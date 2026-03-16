@@ -1,0 +1,48 @@
+// Make the host element take full width when fluid is enabled
+:host {
+  display: block;
+  width: 100%;
+}
+
+:host(.ef-inline) {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+
+  > label {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  > .ef-field-control {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// Utility classes for common layouts
+:host(.ef-inputnumber-small) {
+  ::ng-deep .p-inputnumber-input {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+  }
+}
+
+:host(.ef-inputnumber-large) {
+  ::ng-deep .p-inputnumber-input {
+    font-size: 1.125rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
+// Invalid state styling
+:host(.ng-invalid.ng-touched),
+:host(.ng-invalid.ng-dirty) {
+  ::ng-deep .p-inputnumber-input {
+    border-color: var(--red-500, #ef4444);
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25);
+    }
+  }
+}

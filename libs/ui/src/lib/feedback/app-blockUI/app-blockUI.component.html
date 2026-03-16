@@ -1,0 +1,19 @@
+<p-blockUI
+  *ngIf="isLoading"
+  [target]="contentPanel"
+  [blocked]="isLoading"
+  styleClass="appBlockUI w-full h-full fixed top-0 left-0 right-0 flex items-start justify-center bg-black/30 z-20">
+
+  <ng-template pTemplate="loader">
+    <!-- Loader Container -->
+    <div class="mt-2 flex flex-row items-center space-x-4 rounded-lg bg-white px-4 py-2 shadow">
+      <!-- Spinning Loader -->
+      <div class="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent dark:border-primary-contrast dark:border-t-transparent"></div>
+
+      <!-- Loading Text -->
+      <div id="loading-text" class="font-normal text-primary dark:text-primary-contrast">
+        Chargement en cours... !
+      </div>
+    </div>
+  </ng-template>
+</p-blockUI>

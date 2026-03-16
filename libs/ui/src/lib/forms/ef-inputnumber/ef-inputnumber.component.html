@@ -1,0 +1,75 @@
+@if (labelKey || label) {
+  <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
+}
+<div class="ef-field-control">
+  <p-inputnumber
+    #inputNumber
+    [(ngModel)]="value"
+    [ngModelOptions]="{standalone: true}"
+    [invalid]="isInvalid"
+    [disabled]="disabled"
+    [readonly]="readonly"
+    [required]="required"
+    [format]="format"
+    [showButtons]="showButtons"
+    [buttonLayout]="buttonLayout"
+    [incrementButtonClass]="incrementButtonClass"
+    [decrementButtonClass]="decrementButtonClass"
+    [incrementButtonIcon]="incrementButtonIcon"
+    [decrementButtonIcon]="decrementButtonIcon"
+    [prefix]="prefix"
+    [suffix]="suffix"
+    [currency]="currency"
+    [currencyDisplay]="currencyDisplay"
+    [locale]="locale"
+    [localeMatcher]="localeMatcher"
+    [mode]="mode"
+    [useGrouping]="useGrouping"
+    [minFractionDigits]="minFractionDigits"
+    [maxFractionDigits]="maxFractionDigits"
+    [min]="min"
+    [max]="max"
+    [step]="step"
+    [allowEmpty]="allowEmpty"
+    [inputId]="effectiveId"
+    [name]="name"
+    [placeholder]="effectivePlaceholder"
+    [inputSize]="inputSize"
+    [size]="size"
+    [maxlength]="maxlength"
+    [minlength]="minlength"
+    [pattern]="pattern"
+    [tabindex]="tabindex"
+    [title]="title"
+    [ariaLabel]="ariaLabel"
+    [ariaLabelledBy]="ariaLabelledBy"
+    [ariaDescribedBy]="ariaDescribedBy"
+    [ariaRequired]="ariaRequired"
+    [inputStyle]="inputStyle"
+    [inputStyleClass]="inputStyleClass"
+    [style]="style"
+    [styleClass]="styleClass"
+    [showClear]="showClear"
+    [variant]="variant"
+    [autofocus]="autofocus"
+    [autocomplete]="autocomplete"
+    [fluid]="fluid"
+    [pt]="pt"
+    [ptOptions]="ptOptions"
+    [dt]="dt"
+    [unstyled]="unstyled"
+    (onInput)="handleInput($event)"
+    (onFocus)="handleFocus($event)"
+    (onBlur)="handleBlur($event)"
+    (onKeyDown)="handleKeyDown($event)"
+    (onClear)="handleClear()"
+  />
+  @if (showRequired) {
+    <small class="text-danger">{{ 'validation.required' | translate }}</small>
+  }
+  @if (serverErrors; as errors) {
+    @for (error of errors; track error) {
+      <small class="text-danger block">{{ error }}</small>
+    }
+  }
+</div>

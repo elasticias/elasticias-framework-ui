@@ -1,0 +1,16 @@
+<span [class]="badgeClasses()">
+  <!-- Dot indicator -->
+  @if (config().showDot) {
+    <span [class]="dotClasses()"></span>
+  }
+
+  <!-- Icon -->
+  @if (config().icon) {
+    <i [class]="iconClasses()"></i>
+  }
+
+  <!-- Label -->
+  @if (config().label) {
+    <span>{{ config().label }}</span>
+  }
+</span>

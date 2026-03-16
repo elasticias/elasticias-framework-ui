@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+:host(.ef-inline) {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+
+  > label {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  > .ef-field-control {
+    flex: 1;
+    min-width: 0;
+  }
+}

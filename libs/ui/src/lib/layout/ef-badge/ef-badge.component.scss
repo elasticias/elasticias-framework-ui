@@ -1,0 +1,13 @@
+:host {
+  display: inline-flex;
+}
+
+.ef-badge {
+  white-space: nowrap;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}

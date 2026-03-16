@@ -1,0 +1,36 @@
+@if (labelKey || label) {
+  <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
+}
+<div class="ef-field-control">
+  <p-datepicker
+    [inputId]="effectiveId"
+    [name]="name"
+    [ngModel]="value"
+    [ngModelOptions]="{standalone: true}"
+    (ngModelChange)="handleChange($event)"
+    (onBlur)="handleBlur()"
+    [placeholder]="effectivePlaceholder"
+    [size]="size"
+    [disabled]="disabled"
+    [showIcon]="showIcon"
+    [iconDisplay]="iconDisplay"
+    [selectionMode]="selectionMode"
+    [dateFormat]="dateFormat"
+    [appendTo]="appendTo"
+    [showTime]="showTime"
+    [showButtonBar]="showButtonBar"
+    [minDate]="minDate"
+    [maxDate]="maxDate"
+    [fluid]="fluid"
+    [class.ng-invalid]="isInvalid"
+    [class.ng-touched]="ngControl?.touched"
+  />
+  @if (showRequired) {
+    <small class="text-danger">{{ 'validation.required' | translate }}</small>
+  }
+  @if (serverErrors; as errors) {
+    @for (error of errors; track error) {
+      <small class="text-danger block">{{ error }}</small>
+    }
+  }
+</div>

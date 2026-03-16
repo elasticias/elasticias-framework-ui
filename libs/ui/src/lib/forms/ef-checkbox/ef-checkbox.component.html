@@ -1,0 +1,21 @@
+<p-checkbox
+  [inputId]="effectiveId"
+  [name]="name"
+  [ngModel]="checked"
+  [ngModelOptions]="{standalone: true}"
+  (onChange)="handleChange($event)"
+  [value]="value"
+  [binary]="binary"
+  [disabled]="disabled"
+/>
+@if (labelKey || label) {
+  <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" styleClass="form-label-left" />
+}
+@if (showRequired) {
+  <small class="text-danger">{{ 'validation.required' | translate }}</small>
+}
+@if (serverErrors; as errors) {
+  @for (error of errors; track error) {
+    <small class="text-danger block">{{ error }}</small>
+  }
+}

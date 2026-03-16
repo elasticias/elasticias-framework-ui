@@ -1,0 +1,23 @@
+<div class="flex justify-end" (click)="$event.stopPropagation()">
+  <ef-button *ngIf="duplicateButton"
+    icon="pi pi-copy"
+    severity="primary"
+    styleClass="action-btn"
+    tooltipKey="common.duplicate"
+    (onClick)="duplicateAction()" />
+  <ef-button *ngIf="editButton && hasEditPermission"
+    icon="pi pi-pencil"
+    severity="primary"
+    styleClass="action-btn"
+    size="small"
+    tooltipKey="common.edit"
+    (onClick)="editAction()" />
+  <ef-button *ngIf="deleteButton && hasDeletePermission"
+    icon="pi pi-trash"
+    severity="primary"
+    styleClass="action-btn"
+    size="small"
+    tooltipPosition="top"
+    tooltipKey="common.delete"
+    (onClick)="deleteAction()" />
+</div>

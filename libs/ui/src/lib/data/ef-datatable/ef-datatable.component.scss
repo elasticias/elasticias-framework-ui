@@ -1,0 +1,18 @@
+:host {
+  display: block;
+
+  // Ensure text alignment classes work properly in table cells
+  ::ng-deep {
+    .text-end {
+      text-align: right !important;
+    }
+
+    .text-center {
+      text-align: center !important;
+    }
+
+    .text-start {
+      text-align: left !important;
+    }
+  }
+}

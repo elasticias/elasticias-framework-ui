@@ -1,0 +1,12 @@
+:host ::ng-deep {
+
+    // Overlay mask
+    .p-overlay-mask {
+        background: rgb(19 17 17 / 15%) !important;
+    }
+
+    .p-blockui-mask {
+        border-radius: none !important;
+
+    }
+}

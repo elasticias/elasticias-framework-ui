@@ -1,0 +1,20 @@
+<p-dialog
+  [header]="headerKey ? (headerKey | translate) : header"
+  [visible]="visible"
+  (visibleChange)="handleVisibleChange($event)"
+  [modal]="modal"
+  [closable]="closable"
+  [draggable]="draggable"
+  [resizable]="resizable"
+  [style]="style"
+  [styleClass]="styleClass"
+  [position]="position"
+  [appendTo]="appendTo"
+  (onShow)="handleShow()"
+  (onHide)="handleHide()"
+>
+  <ng-content />
+  <ng-template #footer>
+    <ng-content select="[dialogFooter]" />
+  </ng-template>
+</p-dialog>

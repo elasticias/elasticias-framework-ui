@@ -1,0 +1,19 @@
+<div
+  class="flex h-12 items-center justify-center gap-2 rounded-full !border !border-gray-200 bg-gray-100 dark:bg-slate-500 p-2"
+>
+  <ef-inputnumber
+    [(ngModel)]="value"
+    [min]="min"
+    [max]="max"
+    [step]="step"
+    [disabled]="disabled"
+    [showButtons]="true"
+    buttonLayout="horizontal"
+    decrementButtonIcon="-"
+    incrementButtonIcon="+"
+    [pt]="ptConfig"
+    (ngModelChange)="onValueChange($event)"
+    (onBlur)="onBlur()"
+  >
+  </ef-inputnumber>
+</div>

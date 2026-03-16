@@ -1,0 +1,148 @@
+<p-table #pTable
+  [value]="searchEntity()?.items || []"
+  [columns]="processedColumns()"
+  [dataKey]="mergedConfig.dataKey"
+
+  [lazy]="mergedConfig.lazy"
+  (onLazyLoad)="handleLazyLoad($event)"
+
+  [paginator]="mergedConfig.paginator"
+  [rows]="searchEntity()?.pagination?.pageSize || mergedConfig.rows"
+  [rowsPerPageOptions]="mergedConfig.rowsPerPageOptions"
+  [totalRecords]="searchEntity()?.totalCount || 0"
+  [first]="searchEntity()?.pagination ? (searchEntity()!.pagination!.pageNumber - 1) * searchEntity()!.pagination!.pageSize : 0"
+
+  [scrollable]="mergedConfig.scrollable"
+  [scrollHeight]="mergedConfig.scrollHeight"
+
+  [resizableColumns]="mergedConfig.resizableColumns"
+  [columnResizeMode]="mergedConfig.columnResizeMode"
+
+  [stateStorage]="mergedConfig.stateStorage"
+  [stateKey]="mergedConfig.stateKey"
+
+  [size]="mergedConfig.size"
+  [class]="mergedConfig.styleClass"
+  [tableStyle]="mergedConfig.tableStyle"
+
+  [currentPageReportTemplate]="searchEntity()?.totalCount ? 'Affichage de {first} a {last} sur {totalRecords} entrees' : mergedConfig.emptyMessage"
+  [showCurrentPageReport]="true"
+  [sortField]="sortField()"
+  [sortOrder]="sortOrder()"
+  [loading]="loading()"
+
+  [pt]="pt()"
+
+  selectionMode="single" [(selection)]="selectedItem">
+
+  <!-- Header Template -->
+  <ng-template #header>
+    <tr>
+      <!-- Action column at start if configured -->
+      @if (mergedActions.show && mergedActions.position === 'start') {
+        <th [class]="mergedActions.width"></th>
+      }
+
+      <!-- Data columns -->
+      @for (column of processedColumns(); track column.field) {
+        @if (column.sortable && column.resizable) {
+          <th
+            [pSortableColumn]="column.field"
+            pResizableColumn
+            [class]="column.width || ''"
+            [ngClass]="column.styleClass">
+
+            @if (column.headerTemplate) {
+              <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
+            } @else {
+              {{ column.header }}
+              <p-sortIcon [field]="column.field" />
+            }
+          </th>
+        } @else if (column.sortable) {
+          <th
+            [pSortableColumn]="column.field"
+            [class]="column.width || ''"
+            [ngClass]="column.styleClass">
+
+            @if (column.headerTemplate) {
+              <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
+            } @else {
+              {{ column.header }}
+              <p-sortIcon [field]="column.field" />
+            }
+          </th>
+        } @else if (column.resizable) {
+          <th
+            pResizableColumn
+            [class]="column.width || ''"
+            [ngClass]="column.styleClass">
+
+            @if (column.headerTemplate) {
+              <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
+            } @else {
+              {{ column.header }}
+            }
+          </th>
+        } @else {
+          <th
+            [class]="column.width || ''"
+            [ngClass]="column.styleClass">
+
+            @if (column.headerTemplate) {
+              <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
+            } @else {
+              {{ column.header }}
+            }
+          </th>
+        }
+      }
+
+      <!-- Action column at end if configured -->
+      @if (mergedActions.show && mergedActions.position === 'end') {
+        <th [class]="mergedActions.width"></th>
+      }
+    </tr>
+  </ng-template>
+
+  <!-- Body Template -->
+  <ng-template #body let-rowData let-rowIndex="rowIndex">
+    <tr (dblclick)="handleEdit(rowData)" style="cursor: pointer"
+      [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
+      <!-- Action column at start if configured -->
+      @if (mergedActions.show && mergedActions.position === 'start') {
+        <td>
+          <app-datatable-actionbar
+            [context]="context()"
+            (edit)="handleEdit(rowData)"
+            (delete)="handleDelete(rowData)"
+            (duplicate)="handleDuplicate(rowData)">
+          </app-datatable-actionbar>
+        </td>
+      }
+
+      <!-- Data columns -->
+      @for (column of processedColumns(); track column.field) {
+        <td [ngClass]="getAlignmentClass(column.align)">
+          @if (column.template) {
+            <ng-container *ngTemplateOutlet="column.template; context: { $implicit: rowData, column: column }"></ng-container>
+          } @else {
+            {{ formatCellValue(rowData, column) }}
+          }
+        </td>
+      }
+
+      <!-- Action column at end if configured -->
+      @if (mergedActions.show && mergedActions.position === 'end') {
+        <td>
+          <app-datatable-actionbar
+            [context]="context()"
+            (edit)="handleEdit(rowData)"
+            (delete)="handleDelete(rowData)"
+            (duplicate)="handleDuplicate(rowData)">
+          </app-datatable-actionbar>
+        </td>
+      }
+    </tr>
+  </ng-template>
+</p-table>

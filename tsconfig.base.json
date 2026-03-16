@@ -1,0 +1,26 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "esnext",
+    "lib": ["es2022", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@elasticias/types": ["libs/types/src/index.ts"],
+      "@elasticias/utils": ["libs/utils/src/index.ts"],
+      "@elasticias/core": ["libs/core/src/index.ts"],
+      "@elasticias/ui": ["libs/ui/src/index.ts"],
+      "@elasticias/screens": ["libs/screens/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

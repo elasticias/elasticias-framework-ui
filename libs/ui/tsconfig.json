@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "isolatedModules": false,
+    "moduleResolution": "bundler",
+    "strict": false,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": true,
+    "emitDecoratorMetadata": false,
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./tsconfig.lib.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}
