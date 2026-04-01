@@ -2,11 +2,10 @@ import {
   booleanAttribute,
   Component,
   HostBinding,
+  inject,
   Input,
   Output,
   EventEmitter,
-  Self,
-  Optional,
 } from '@angular/core';
 import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -28,30 +27,33 @@ export class EfDatepickerComponent implements ControlValueAccessor {
   @Input() placeholder?: string;
   @Input() placeholderKey?: string;
   @Input() size: 'small' | 'large' = 'small';
-  @Input({ transform: booleanAttribute }) required: boolean = false;
-  @Input({ transform: booleanAttribute }) fluid: boolean = true;
-  @Input({ transform: booleanAttribute }) inline: boolean = false;
-  @Input({ transform: booleanAttribute }) disabled: boolean = false;
-  @Input({ transform: booleanAttribute }) showIcon: boolean = true;
+  @Input({ transform: booleanAttribute }) required = false;
+  @Input({ transform: booleanAttribute }) fluid = true;
+  @Input({ transform: booleanAttribute }) inline = false;
+  @Input({ transform: booleanAttribute }) disabled = false;
+  @Input({ transform: booleanAttribute }) showIcon = true;
   @Input() iconDisplay: 'input' | 'button' = 'input';
   @Input() selectionMode: 'single' | 'multiple' | 'range' = 'single';
   @Input() dateFormat?: string;
   @Input() appendTo?: string;
-  @Input({ transform: booleanAttribute }) showTime: boolean = false;
-  @Input({ transform: booleanAttribute }) showButtonBar: boolean = false;
+  @Input({ transform: booleanAttribute }) showTime = false;
+  @Input({ transform: booleanAttribute }) showButtonBar = false;
   @Input() minDate?: Date;
   @Input() maxDate?: Date;
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
-  @Output() onDateSelect = new EventEmitter<any>();
+  @Output() dateSelectEvent = new EventEmitter<any>();
 
   value: any = null;
 
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: any) => void = () => { /* noop */ };
+  private onTouched: () => void = () => { /* noop */ };
 
-  constructor(@Self() @Optional() public ngControl: NgControl, private translateService: TranslateService) {
+  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  private readonly translateService = inject(TranslateService);
+
+  constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
@@ -98,7 +100,7 @@ export class EfDatepickerComponent implements ControlValueAccessor {
   handleChange(value: any): void {
     this.value = value;
     this.onChange(value);
-    this.onDateSelect.emit(value);
+    this.dateSelectEvent.emit(value);
   }
 
   handleBlur(): void {

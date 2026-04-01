@@ -2,11 +2,10 @@ import {
   booleanAttribute,
   Component,
   HostBinding,
+  inject,
   Input,
   Output,
   EventEmitter,
-  Self,
-  Optional,
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
@@ -28,17 +27,17 @@ export class EfSelectComponent implements ControlValueAccessor, OnChanges {
   @Input() inputId?: string;
   @Input() name?: string;
   @Input() options: any[] = [];
-  @Input() optionLabel: string = 'name';
+  @Input() optionLabel = 'name';
   @Input() optionValue?: string;
-  @Input() placeholder: string = '';
+  @Input() placeholder = '';
   @Input() placeholderKey?: string;
   @Input() size: 'small' | 'large' = 'small';
-  @Input({ transform: booleanAttribute }) required: boolean = false;
-  @Input({ transform: booleanAttribute }) fluid: boolean = true;
-  @Input({ transform: booleanAttribute }) inline: boolean = false;
-  @Input({ transform: booleanAttribute }) filter: boolean = false;
-  @Input({ transform: booleanAttribute }) showClear: boolean = false;
-  @Input({ transform: booleanAttribute }) disabled: boolean = false;
+  @Input({ transform: booleanAttribute }) required = false;
+  @Input({ transform: booleanAttribute }) fluid = true;
+  @Input({ transform: booleanAttribute }) inline = false;
+  @Input({ transform: booleanAttribute }) filter = false;
+  @Input({ transform: booleanAttribute }) showClear = false;
+  @Input({ transform: booleanAttribute }) disabled = false;
   @Input() appendTo?: string;
 
   /** Filter options by matching key-value pairs */
@@ -46,15 +45,18 @@ export class EfSelectComponent implements ControlValueAccessor, OnChanges {
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
-  @Output() onSelectionChange = new EventEmitter<any>();
+  @Output() selectionChangeEvent = new EventEmitter<any>();
 
   value: any = null;
   filteredOptions: any[] = [];
 
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: any) => void = () => { /* noop */ };
+  private onTouched: () => void = () => { /* noop */ };
 
-  constructor(@Self() @Optional() public ngControl: NgControl, private translateService: TranslateService) {
+  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  private readonly translateService = inject(TranslateService);
+
+  constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
@@ -108,7 +110,7 @@ export class EfSelectComponent implements ControlValueAccessor, OnChanges {
     this.value = event.value;
     this.onChange(event.value);
     this.onTouched();
-    this.onSelectionChange.emit(event.value);
+    this.selectionChangeEvent.emit(event.value);
   }
 
   private applyFilters(): void {

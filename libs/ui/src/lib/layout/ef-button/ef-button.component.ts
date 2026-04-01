@@ -24,12 +24,12 @@ export class EfButtonComponent {
   @Input() icon?: string;
   @Input() severity: 'primary' | 'secondary' | 'success' | 'info' | 'warn' | 'danger' | 'help' | 'contrast' = 'primary';
   @Input() size: 'small' | 'large' = 'small';
-  @Input({ transform: booleanAttribute }) disabled: boolean = false;
-  @Input({ transform: booleanAttribute }) rounded: boolean = false;
-  @Input({ transform: booleanAttribute }) outlined: boolean = false;
-  @Input({ transform: booleanAttribute }) raised: boolean = false;
-  @Input({ transform: booleanAttribute }) text: boolean = false;
-  @Input({ transform: booleanAttribute }) loading: boolean = false;
+  @Input({ transform: booleanAttribute }) disabled = false;
+  @Input({ transform: booleanAttribute }) rounded = false;
+  @Input({ transform: booleanAttribute }) outlined = false;
+  @Input({ transform: booleanAttribute }) raised = false;
+  @Input({ transform: booleanAttribute }) text = false;
+  @Input({ transform: booleanAttribute }) loading = false;
   @Input() styleClass?: string;
   @Input() type: 'button' | 'submit' = 'button';
   @Input() badge?: string;
@@ -41,9 +41,9 @@ export class EfButtonComponent {
   @Input() tooltipKey?: string;
   @Input() tooltipPosition: 'top' | 'bottom' | 'left' | 'right' = 'top';
 
-  @Output() onClick = new EventEmitter<Event>();
+  @Output() clickEvent = new EventEmitter<Event>();
 
   handleClick(event: Event): void {
-    this.onClick.emit(event);
+    this.clickEvent.emit(event);
   }
 }

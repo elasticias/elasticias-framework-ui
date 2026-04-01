@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 
 @Injectable({ providedIn: 'root' })
 export class ConfirmDialogService {
-  constructor(private confirmationService: ConfirmationService) {}
+  private readonly confirmationService = inject(ConfirmationService);
 
   confirm(
     message: string,

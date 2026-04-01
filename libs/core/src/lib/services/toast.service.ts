@@ -1,12 +1,11 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { MessageService } from 'primeng/api';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
   private static readonly DEFAULT_DELAY = 3000;
   private static readonly DEFAULT_DELAY_INFO = 5000;
-
-  constructor(private messageService: MessageService) {}
+  private readonly messageService = inject(MessageService);
 
   showInfo(message: string, title = 'Information', delay = ToastService.DEFAULT_DELAY_INFO): void {
     this.messageService.add({ severity: 'info', summary: title, detail: message, life: delay });

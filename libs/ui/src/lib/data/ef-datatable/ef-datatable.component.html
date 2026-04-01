@@ -112,12 +112,12 @@
       <!-- Action column at start if configured -->
       @if (mergedActions.show && mergedActions.position === 'start') {
         <td>
-          <app-datatable-actionbar
+          <ef-datatable-actionbar
             [context]="context()"
             (edit)="handleEdit(rowData)"
             (delete)="handleDelete(rowData)"
             (duplicate)="handleDuplicate(rowData)">
-          </app-datatable-actionbar>
+          </ef-datatable-actionbar>
         </td>
       }
 
@@ -135,12 +135,12 @@
       <!-- Action column at end if configured -->
       @if (mergedActions.show && mergedActions.position === 'end') {
         <td>
-          <app-datatable-actionbar
+          <ef-datatable-actionbar
             [context]="context()"
             (edit)="handleEdit(rowData)"
             (delete)="handleDelete(rowData)"
             (duplicate)="handleDuplicate(rowData)">
-          </app-datatable-actionbar>
+          </ef-datatable-actionbar>
         </td>
       }
     </tr>

@@ -47,7 +47,7 @@ export class SearchEntity extends AbstractEntity {
   }
 
   getSearchCriteria(): Record<string, unknown> {
-    const { items, totalPages, totalCount, ...criteria } = this;
+    const { items: _items, totalPages: _totalPages, totalCount: _totalCount, ...criteria } = this;
     return criteria;
   }
 }

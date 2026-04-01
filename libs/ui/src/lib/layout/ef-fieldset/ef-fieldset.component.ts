@@ -18,7 +18,7 @@ export class EfFieldsetComponent {
   /** Translation key — takes priority over legend */
   @Input() legendKey?: string;
 
-  @Input({ transform: booleanAttribute }) toggleable: boolean = false;
-  @Input({ transform: booleanAttribute }) collapsed: boolean = false;
+  @Input({ transform: booleanAttribute }) toggleable = false;
+  @Input({ transform: booleanAttribute }) collapsed = false;
   @Input() styleClass?: string;
 }

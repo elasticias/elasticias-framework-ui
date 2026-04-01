@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -81,7 +80,7 @@ export interface DatatableSearchEntity {
     DatatableActionBarComponent,
   ],
 })
-export class EfDatatableComponent implements OnInit, AfterViewInit {
+export class EfDatatableComponent implements OnInit {
   /**
    * Reference to the underlying PrimeNG Table component
    */
@@ -135,28 +134,28 @@ export class EfDatatableComponent implements OnInit, AfterViewInit {
   /**
    * Emitted when edit button is clicked (emits row ID)
    */
-  onEdit = output<any>();
+  editEvent = output<any>();
 
   /**
    * Emitted when delete button is clicked (emits row ID)
    */
-  onDelete = output<any>();
+  deleteEvent = output<any>();
 
   /**
    * Emitted when duplicate button is clicked (emits row ID)
    */
-  onDuplicate = output<any>();
+  duplicateEvent = output<any>();
 
   /**
    * Emitted on lazy load events (pagination, sorting, filtering)
    * Parent component should call search() in response
    */
-  onLazyLoad = output<TableLazyLoadEvent>();
+  lazyLoadEvent = output<TableLazyLoadEvent>();
 
   /**
    * Emitted when a row is selected
    */
-  onRowSelect = output<any>();
+  rowSelectEvent = output<any>();
 
   // ============================================================================
   // INTERNAL STATE
@@ -238,10 +237,6 @@ export class EfDatatableComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-    // Component initialization complete
-  }
-
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
@@ -260,7 +255,7 @@ export class EfDatatableComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.onLazyLoad.emit(event);
+    this.lazyLoadEvent.emit(event);
   }
 
   /**
@@ -301,7 +296,7 @@ export class EfDatatableComponent implements OnInit, AfterViewInit {
    */
   handleEdit(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.onEdit.emit(id);
+    this.editEvent.emit(id);
   }
 
   /**
@@ -310,7 +305,7 @@ export class EfDatatableComponent implements OnInit, AfterViewInit {
    */
   handleDelete(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.onDelete.emit(id);
+    this.deleteEvent.emit(id);
   }
 
   /**
@@ -319,7 +314,7 @@ export class EfDatatableComponent implements OnInit, AfterViewInit {
    */
   handleDuplicate(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.onDuplicate.emit(id);
+    this.duplicateEvent.emit(id);
   }
 
   // ============================================================================

@@ -2,11 +2,10 @@ import {
   booleanAttribute,
   Component,
   HostBinding,
+  inject,
   Input,
   Output,
   EventEmitter,
-  Self,
-  Optional,
 } from '@angular/core';
 import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import { PasswordModule } from 'primeng/password';
@@ -28,24 +27,27 @@ export class EfPasswordComponent implements ControlValueAccessor {
   @Input() placeholder?: string;
   @Input() placeholderKey?: string;
   @Input() size: 'small' | 'large' = 'small';
-  @Input({ transform: booleanAttribute }) required: boolean = false;
-  @Input({ transform: booleanAttribute }) fluid: boolean = true;
-  @Input({ transform: booleanAttribute }) inline: boolean = false;
-  @Input({ transform: booleanAttribute }) toggleMask: boolean = true;
-  @Input({ transform: booleanAttribute }) feedback: boolean = false;
+  @Input({ transform: booleanAttribute }) required = false;
+  @Input({ transform: booleanAttribute }) fluid = true;
+  @Input({ transform: booleanAttribute }) inline = false;
+  @Input({ transform: booleanAttribute }) toggleMask = true;
+  @Input({ transform: booleanAttribute }) feedback = false;
   @Input() autocomplete?: string;
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
-  @Output() onValueChange = new EventEmitter<string>();
+  @Output() valueChangeEvent = new EventEmitter<string>();
 
-  value: string = '';
-  disabled: boolean = false;
+  value = '';
+  disabled = false;
 
-  private onChange: (value: string) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: string) => void = () => { /* noop */ };
+  private onTouched: () => void = () => { /* noop */ };
 
-  constructor(@Self() @Optional() public ngControl: NgControl, private translateService: TranslateService) {
+  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  private readonly translateService = inject(TranslateService);
+
+  constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
@@ -92,7 +94,7 @@ export class EfPasswordComponent implements ControlValueAccessor {
   handleChange(value: string): void {
     this.value = value;
     this.onChange(value);
-    this.onValueChange.emit(value);
+    this.valueChangeEvent.emit(value);
   }
 
   handleBlur(): void {

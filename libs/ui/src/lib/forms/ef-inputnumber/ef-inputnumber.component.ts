@@ -2,12 +2,11 @@ import {
   booleanAttribute,
   Component,
   HostBinding,
+  inject,
   Input,
   Output,
   EventEmitter,
   ViewChild,
-  Self,
-  Optional,
 } from '@angular/core';
 import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import {
@@ -35,23 +34,23 @@ export class EfInputNumberComponent implements ControlValueAccessor {
 
   @Input() label?: string;
   @Input() labelKey?: string;
-  @Input({ transform: booleanAttribute }) required: boolean = false;
+  @Input({ transform: booleanAttribute }) required = false;
 
   // ============================================================================
   // VALUE & MODEL
   // ============================================================================
 
   @Input() value?: Nullable<number>;
-  @Input() invalid: boolean = false;
+  @Input() invalid = false;
   @Input() disabled?: boolean;
-  @Input() readonly: boolean = false;
+  @Input() readonly = false;
 
   // ============================================================================
   // FORMAT & DISPLAY
   // ============================================================================
 
-  @Input() format: boolean = true;
-  @Input() showButtons: boolean = false;
+  @Input() format = true;
+  @Input() showButtons = false;
   @Input() buttonLayout: 'stacked' | 'horizontal' | 'vertical' = 'stacked';
   @Input() incrementButtonClass?: string;
   @Input() decrementButtonClass?: string;
@@ -64,7 +63,7 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   @Input() locale?: string;
   @Input() localeMatcher?: 'lookup' | 'best fit';
   @Input() mode: 'decimal' | 'currency' = 'decimal';
-  @Input() useGrouping: boolean = true;
+  @Input() useGrouping = true;
   @Input() minFractionDigits?: number;
   @Input() maxFractionDigits?: number;
 
@@ -74,8 +73,8 @@ export class EfInputNumberComponent implements ControlValueAccessor {
 
   @Input() min?: number;
   @Input() max?: number;
-  @Input() step: number = 1;
-  @Input() allowEmpty: boolean = true;
+  @Input() step = 1;
+  @Input() allowEmpty = true;
 
   // ============================================================================
   // INPUT ATTRIBUTES
@@ -100,12 +99,12 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   @Input() inputStyleClass?: string;
   @Input() style?: any;
   @Input() styleClass?: string;
-  @Input() showClear: boolean = false;
+  @Input() showClear = false;
   @Input() variant?: 'filled' | 'outlined';
   @Input() autofocus?: boolean;
   @Input() autocomplete?: string;
   @Input() fluid?: boolean = true;
-  @Input({ transform: booleanAttribute }) inline: boolean = false;
+  @Input({ transform: booleanAttribute }) inline = false;
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
@@ -122,20 +121,23 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   // EVENTS
   // ============================================================================
 
-  @Output() onInput = new EventEmitter<InputNumberInputEvent>();
-  @Output() onFocus = new EventEmitter<Event>();
-  @Output() onBlur = new EventEmitter<Event>();
-  @Output() onKeyDown = new EventEmitter<KeyboardEvent>();
-  @Output() onClear = new EventEmitter<void>();
+  @Output() inputEvent = new EventEmitter<InputNumberInputEvent>();
+  @Output() focusEvent = new EventEmitter<Event>();
+  @Output() blurEvent = new EventEmitter<Event>();
+  @Output() keyDownEvent = new EventEmitter<KeyboardEvent>();
+  @Output() clearEvent = new EventEmitter<void>();
 
   // ============================================================================
   // CONTROL VALUE ACCESSOR
   // ============================================================================
 
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: any) => void = () => { /* noop */ };
+  private onTouched: () => void = () => { /* noop */ };
 
-  constructor(@Self() @Optional() public ngControl: NgControl, private translateService: TranslateService) {
+  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  private readonly translateService = inject(TranslateService);
+
+  constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
@@ -186,26 +188,26 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   handleInput(event: InputNumberInputEvent): void {
     this.value = event.value;
     this.onChange(event.value);
-    this.onInput.emit(event);
+    this.inputEvent.emit(event);
   }
 
   handleFocus(event: Event): void {
-    this.onFocus.emit(event);
+    this.focusEvent.emit(event);
   }
 
   handleBlur(event: Event): void {
     this.onTouched();
-    this.onBlur.emit(event);
+    this.blurEvent.emit(event);
   }
 
   handleKeyDown(event: KeyboardEvent): void {
-    this.onKeyDown.emit(event);
+    this.keyDownEvent.emit(event);
   }
 
   handleClear(): void {
     this.value = null;
     this.onChange(null);
-    this.onClear.emit();
+    this.clearEvent.emit();
   }
 
   // ============================================================================

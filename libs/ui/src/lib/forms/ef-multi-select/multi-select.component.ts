@@ -1,4 +1,4 @@
-import { booleanAttribute, Component, HostBinding, Input, Output, EventEmitter, OnChanges, Self, Optional } from '@angular/core';
+import { booleanAttribute, Component, HostBinding, inject, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NgControl } from '@angular/forms';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -12,35 +12,38 @@ import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
   imports: [FormsModule, MultiSelectModule, TranslateModule, EfLabelComponent],
 })
 export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
-  @Output() onChange = new EventEmitter<string[]>();
+  @Output() changeEvent = new EventEmitter<string[]>();
 
   @Input() label?: string;
   @Input() labelKey?: string;
-  @Input() id: string = '';
-  @Input() name: string = '';
-  @Input() optionLabel: string = 'name';
-  @Input() optionValue: string = 'id';
+  @Input() id = '';
+  @Input() name = '';
+  @Input() optionLabel = 'name';
+  @Input() optionValue = 'id';
   @Input() options: any;
   @Input() filteredOptions: any;
-  @Input() maxSelectedLabels: number = 3;
-  @Input() disabled: boolean = false;
+  @Input() maxSelectedLabels = 3;
+  @Input() disabled = false;
   @Input() display: string;
   @Input() size: 'large' | 'small';
   @Input() selectionLimit: any;
   @Input() filters: any;
-  @Input() placeholder: string = '';
+  @Input() placeholder = '';
   @Input() placeholderKey?: string;
-  @Input() required: boolean = false;
-  @Input({ transform: booleanAttribute }) inline: boolean = false;
+  @Input() required = false;
+  @Input({ transform: booleanAttribute }) inline = false;
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
   selectedValues: any[];
 
-  private propagateChange: (value: any[]) => void = () => {};
-  private propagateTouched: () => void = () => {};
+  private propagateChange: (value: any[]) => void = () => { /* noop */ };
+  private propagateTouched: () => void = () => { /* noop */ };
 
-  constructor(@Self() @Optional() public ngControl: NgControl, private translateService: TranslateService) {
+  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  private readonly translateService = inject(TranslateService);
+
+  constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
@@ -82,7 +85,7 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
   handleChange(event: { value: any[] }): void {
     this.selectedValues = event.value;
     this.propagateChange(this.selectedValues);
-    this.onChange.emit(this.selectedValues);
+    this.changeEvent.emit(this.selectedValues);
     this.propagateTouched();
 
     if (this.selectedValues.length === 0) {

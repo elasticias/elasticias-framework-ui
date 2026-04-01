@@ -15,7 +15,11 @@ export class CacheService {
   }
 
   setCache(key: string, value: unknown): void {
-    this.useLocalStorage ? StorageUtils.setLocal(key, value) : (this.cache[key] = value);
+    if (this.useLocalStorage) {
+      StorageUtils.setLocal(key, value);
+    } else {
+      this.cache[key] = value;
+    }
   }
 
   updateCache(key: string, newValue: unknown): void {
@@ -37,11 +41,19 @@ export class CacheService {
   }
 
   removeCache(key: string): void {
-    this.useLocalStorage ? StorageUtils.removeLocal(key) : delete this.cache[key];
+    if (this.useLocalStorage) {
+      StorageUtils.removeLocal(key);
+    } else {
+      delete this.cache[key];
+    }
   }
 
   clearAllCache(): void {
-    this.useLocalStorage ? StorageUtils.clearLocal() : (this.cache = {});
+    if (this.useLocalStorage) {
+      StorageUtils.clearLocal();
+    } else {
+      this.cache = {};
+    }
   }
 
   hasCache(key: string): boolean {

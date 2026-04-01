@@ -20,19 +20,19 @@ export class EfDialogComponent {
   /** Translation key — takes priority over header */
   @Input() headerKey?: string;
 
-  @Input({ transform: booleanAttribute }) visible: boolean = false;
-  @Input({ transform: booleanAttribute }) modal: boolean = true;
-  @Input({ transform: booleanAttribute }) closable: boolean = true;
-  @Input({ transform: booleanAttribute }) draggable: boolean = false;
-  @Input({ transform: booleanAttribute }) resizable: boolean = false;
+  @Input({ transform: booleanAttribute }) visible = false;
+  @Input({ transform: booleanAttribute }) modal = true;
+  @Input({ transform: booleanAttribute }) closable = true;
+  @Input({ transform: booleanAttribute }) draggable = false;
+  @Input({ transform: booleanAttribute }) resizable = false;
   @Input() style?: { [key: string]: string };
   @Input() styleClass?: string;
   @Input() position: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'topleft' | 'topright' | 'bottomleft' | 'bottomright' = 'center';
   @Input() appendTo?: string;
 
   @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() onShow = new EventEmitter<void>();
-  @Output() onHide = new EventEmitter<void>();
+  @Output() showEvent = new EventEmitter<void>();
+  @Output() hideEvent = new EventEmitter<void>();
 
   handleVisibleChange(value: boolean): void {
     this.visible = value;
@@ -40,10 +40,10 @@ export class EfDialogComponent {
   }
 
   handleShow(): void {
-    this.onShow.emit();
+    this.showEvent.emit();
   }
 
   handleHide(): void {
-    this.onHide.emit();
+    this.hideEvent.emit();
   }
 }

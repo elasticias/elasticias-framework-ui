@@ -2,8 +2,9 @@
   "name": "@elasticias/types",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/common": "^21.1.0",
-    "@angular/core": "^21.1.0"
+    "vite": "^7.0.0",
+    "@analogjs/vite-plugin-angular": "2.2.0",
+    "@nx/vite": "22.5.1"
   },
   "sideEffects": false
 }

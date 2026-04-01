@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ScreenContext } from '@elasticias/screens';
 import { PermissionsEnum } from '@elasticias/types';
@@ -6,11 +5,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 
 @Component({
-  selector: 'app-datatable-actionbar',
+  selector: 'ef-datatable-actionbar',
   standalone: true,
   templateUrl: 'datatable-actionbar.component.html',
   imports: [
-    CommonModule,
     EfButtonComponent,
     TranslateModule,
   ],

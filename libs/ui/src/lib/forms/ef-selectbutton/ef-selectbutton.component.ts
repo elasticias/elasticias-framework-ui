@@ -1,9 +1,8 @@
 import {
   booleanAttribute,
   Component,
+  inject,
   Input,
-  Self,
-  Optional,
   TemplateRef,
   ContentChild,
 } from '@angular/core';
@@ -26,11 +25,11 @@ export class EfSelectButtonComponent implements ControlValueAccessor {
   @Input() labelKey?: string;
 
   @Input() options: any[] = [];
-  @Input() optionLabel: string = 'label';
-  @Input() optionValue: string = 'value';
-  @Input({ transform: booleanAttribute }) multiple: boolean = false;
-  @Input({ transform: booleanAttribute }) allowEmpty: boolean = true;
-  @Input({ transform: booleanAttribute }) disabled: boolean = false;
+  @Input() optionLabel = 'label';
+  @Input() optionValue = 'value';
+  @Input({ transform: booleanAttribute }) multiple = false;
+  @Input({ transform: booleanAttribute }) allowEmpty = true;
+  @Input({ transform: booleanAttribute }) disabled = false;
   @Input() size: 'small' | 'large' = 'small';
   @Input() styleClass?: string;
 
@@ -38,10 +37,12 @@ export class EfSelectButtonComponent implements ControlValueAccessor {
 
   value: any = null;
 
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: any) => void = () => { /* noop */ };
+  private onTouched: () => void = () => { /* noop */ };
 
-  constructor(@Self() @Optional() public ngControl: NgControl) {
+  readonly ngControl = inject(NgControl, { self: true, optional: true });
+
+  constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }

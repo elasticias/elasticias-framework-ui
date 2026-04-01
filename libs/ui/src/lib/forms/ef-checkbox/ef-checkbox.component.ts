@@ -1,9 +1,8 @@
 import {
   booleanAttribute,
   Component,
+  inject,
   Input,
-  Self,
-  Optional,
 } from '@angular/core';
 import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -26,16 +25,18 @@ export class EfCheckboxComponent implements ControlValueAccessor {
   @Input() inputId?: string;
   @Input() name?: string;
   @Input() value?: any;
-  @Input({ transform: booleanAttribute }) binary: boolean = false;
-  @Input({ transform: booleanAttribute }) required: boolean = false;
-  @Input({ transform: booleanAttribute }) disabled: boolean = false;
+  @Input({ transform: booleanAttribute }) binary = false;
+  @Input({ transform: booleanAttribute }) required = false;
+  @Input({ transform: booleanAttribute }) disabled = false;
 
   checked: any = false;
 
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: any) => void = () => { /* noop */ };
+  private onTouched: () => void = () => { /* noop */ };
 
-  constructor(@Self() @Optional() public ngControl: NgControl) {
+  readonly ngControl = inject(NgControl, { self: true, optional: true });
+
+  constructor() {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }

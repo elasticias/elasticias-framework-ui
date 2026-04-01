@@ -12,8 +12,8 @@
     decrementButtonIcon="-"
     incrementButtonIcon="+"
     [pt]="ptConfig"
-    (ngModelChange)="onValueChange($event)"
-    (onBlur)="onBlur()"
+    (ngModelChange)="handleValueChange($event)"
+    (blurEvent)="handleBlur()"
   >
   </ef-inputnumber>
 </div>

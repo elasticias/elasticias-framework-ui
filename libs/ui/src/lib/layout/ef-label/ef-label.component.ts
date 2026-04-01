@@ -20,7 +20,7 @@ export class EfLabelComponent {
   /** The for attribute linking to an input id */
   @Input() for?: string;
   /** CSS classes for the label element */
-  @Input() styleClass: string = 'form-label';
+  @Input() styleClass = 'form-label';
   /** Show required indicator */
-  @Input({ transform: booleanAttribute }) required: boolean = false;
+  @Input({ transform: booleanAttribute }) required = false;
 }

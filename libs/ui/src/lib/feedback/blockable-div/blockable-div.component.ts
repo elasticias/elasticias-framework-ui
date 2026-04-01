@@ -1,16 +1,16 @@
-import { Component, ElementRef, Input, HostBinding } from '@angular/core';
+import { Component, ElementRef, inject, Input, HostBinding } from '@angular/core';
 import { BlockableUI } from 'primeng/api';
 
 @Component({
-  selector: 'blockable-div',
+  selector: 'ef-blockable-div',
   standalone: true,
   template: `<ng-content></ng-content>`,
 })
 export class BlockableDivComponent implements BlockableUI {
   @Input() style: { [key: string]: string } = {};
-  @Input() cssClass: string = '';
+  @Input() cssClass = '';
 
-  constructor(private el: ElementRef) {}
+  private readonly el = inject(ElementRef);
 
   getBlockableElement(): HTMLElement {
     return this.el.nativeElement;

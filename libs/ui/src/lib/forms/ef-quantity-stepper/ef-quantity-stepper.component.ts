@@ -5,7 +5,6 @@ import {
   EventEmitter,
   forwardRef,
   ChangeDetectionStrategy,
-  OnInit,
 } from '@angular/core';
 import {
   NG_VALUE_ACCESSOR,
@@ -43,7 +42,7 @@ import { EfInputNumberComponent } from '../ef-inputnumber/ef-inputnumber.compone
     },
   ],
 })
-export class EfQuantityStepperComponent implements ControlValueAccessor, OnInit {
+export class EfQuantityStepperComponent implements ControlValueAccessor {
   /**
    * Current quantity value
    */
@@ -52,22 +51,22 @@ export class EfQuantityStepperComponent implements ControlValueAccessor, OnInit 
   /**
    * Minimum allowed value
    */
-  @Input() min: number = 0;
+  @Input() min = 0;
 
   /**
    * Maximum allowed value
    */
-  @Input() max: number = 999;
+  @Input() max = 999;
 
   /**
    * Step increment/decrement value
    */
-  @Input() step: number = 1;
+  @Input() step = 1;
 
   /**
    * When present, it specifies that the component should be disabled
    */
-  @Input() disabled: boolean = false;
+  @Input() disabled = false;
 
   /**
    * Callback to invoke when the value changes
@@ -107,12 +106,8 @@ export class EfQuantityStepperComponent implements ControlValueAccessor, OnInit 
   // CONTROL VALUE ACCESSOR
   // ============================================================================
 
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
-
-  ngOnInit(): void {
-    // Component initialization logic if needed
-  }
+  private onChange: (value: any) => void = () => { /* noop */ };
+  private onTouched: () => void = () => { /* noop */ };
 
   // ============================================================================
   // CONTROL VALUE ACCESSOR IMPLEMENTATION
@@ -138,13 +133,13 @@ export class EfQuantityStepperComponent implements ControlValueAccessor, OnInit 
   // EVENT HANDLERS
   // ============================================================================
 
-  onValueChange(value: number | null): void {
+  handleValueChange(value: number | null): void {
     this.value = value;
     this.onChange(value);
     this.valueChange.emit(value);
   }
 
-  onBlur(): void {
+  handleBlur(): void {
     this.onTouched();
   }
 }
