@@ -4,7 +4,7 @@
   "peerDependencies": {
     "@angular/core": "^21.0.0",
     "rxjs": "~7.8.0",
-    "@elasticias/types": "^0.0.1"
+    "@elasticias/types": ">=0.0.1"
   },
   "sideEffects": false
 }
