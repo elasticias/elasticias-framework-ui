@@ -7,7 +7,7 @@
     "@angular/forms": "^21.0.0",
     "@elasticias/screens": ">=0.0.1",
     "@elasticias/types": ">=0.0.1",
-    "@ngx-translate/core": "^16.0.0",
+    "@ngx-translate/core": "^17.0.0",
     "primeng": "^21.0.0"
   },
   "sideEffects": false
