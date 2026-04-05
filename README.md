@@ -1,5 +1,10 @@
 # Elasticias Framework UI
 
+[![CI](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/ci.yml)
+[![Publish](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/npm-publish.yml)
+[![npm @elasticias/core](https://img.shields.io/npm/v/@elasticias/core?label=%40elasticias%2Fcore&registry_uri=https%3A%2F%2Fnpm.pkg.github.com)](https://github.com/orgs/elasticias/packages)
+[![npm @elasticias/ui](https://img.shields.io/npm/v/@elasticias/ui?label=%40elasticias%2Fui&registry_uri=https%3A%2F%2Fnpm.pkg.github.com)](https://github.com/orgs/elasticias/packages)
+
 Shared Angular libraries for the Elasticias ecosystem, published as `@elasticias/*` npm packages to GitHub Packages.
 
 This is a **libs-only** [Nx](https://nx.dev) workspace. No apps live here — apps remain in their respective .NET repos and consume these libraries via npm.
