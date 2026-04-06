@@ -55,7 +55,7 @@
             @if (column.headerTemplate) {
               <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
             } @else {
-              {{ column.header }}
+              {{ column.header | translate }}
               <p-sortIcon [field]="column.field" />
             }
           </th>
@@ -68,7 +68,7 @@
             @if (column.headerTemplate) {
               <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
             } @else {
-              {{ column.header }}
+              {{ column.header | translate }}
               <p-sortIcon [field]="column.field" />
             }
           </th>
@@ -81,7 +81,7 @@
             @if (column.headerTemplate) {
               <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
             } @else {
-              {{ column.header }}
+              {{ column.header | translate }}
             }
           </th>
         } @else {
@@ -92,7 +92,7 @@
             @if (column.headerTemplate) {
               <ng-container *ngTemplateOutlet="column.headerTemplate; context: { $implicit: column }"></ng-container>
             } @else {
-              {{ column.header }}
+              {{ column.header | translate }}
             }
           </th>
         }

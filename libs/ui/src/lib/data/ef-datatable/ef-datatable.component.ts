@@ -11,6 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import {
   EfDatatableActions,
@@ -77,6 +78,7 @@ export interface DatatableSearchEntity {
   imports: [
     CommonModule,
     TableModule,
+    TranslateModule,
     DatatableActionBarComponent,
   ],
 })
