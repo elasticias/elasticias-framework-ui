@@ -5,7 +5,7 @@
     "local-registry": {
       "executor": "@nx/js:verdaccio",
       "options": {
-        "port": 4873,
+        "port": 4874,
         "config": ".verdaccio/config.yml",
         "storage": "tmp/local-registry/storage"
       }

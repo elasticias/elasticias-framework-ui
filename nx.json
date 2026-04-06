@@ -85,8 +85,13 @@
     }
   },
   "release": {
+    "projects": ["types", "utils", "core", "screens", "ui"],
     "version": {
-      "preVersionCommand": "npx nx run-many -t build"
+      "preVersionCommand": "npx nx run-many -t build",
+      "generatorOptions": {
+        "currentVersionResolver": "disk",
+        "specifierSource": "prompt"
+      }
     }
   }
 }

@@ -1,15 +1,18 @@
 import {
   booleanAttribute,
   Component,
+  forwardRef,
   HostBinding,
   inject,
+  Injector,
   Input,
+  OnInit,
   Output,
   EventEmitter,
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
+import { ControlValueAccessor, NgControl, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
@@ -20,8 +23,13 @@ import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
   templateUrl: './ef-select.component.html',
   styleUrls: ['./ef-select.component.scss'],
   imports: [SelectModule, FormsModule, TranslateModule, EfLabelComponent],
+  providers: [{
+    provide: NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(() => EfSelectComponent),
+    multi: true,
+  }],
 })
-export class EfSelectComponent implements ControlValueAccessor, OnChanges {
+export class EfSelectComponent implements ControlValueAccessor, OnInit, OnChanges {
   @Input() label?: string;
   @Input() labelKey?: string;
   @Input() inputId?: string;
@@ -53,13 +61,13 @@ export class EfSelectComponent implements ControlValueAccessor, OnChanges {
   private onChange: (value: any) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
 
-  readonly ngControl = inject(NgControl, { self: true, optional: true });
+  /** Resolved lazily in ngOnInit to avoid circular DI with NG_VALUE_ACCESSOR */
+  ngControl: NgControl | null = null;
+  private readonly injector = inject(Injector);
   private readonly translateService = inject(TranslateService);
 
-  constructor() {
-    if (this.ngControl) {
-      this.ngControl.valueAccessor = this;
-    }
+  ngOnInit(): void {
+    this.ngControl = this.injector.get(NgControl, null);
   }
 
   get effectivePlaceholder(): string {
@@ -91,7 +99,7 @@ export class EfSelectComponent implements ControlValueAccessor, OnChanges {
   }
 
   writeValue(value: any): void {
-    this.value = value;
+    this.value = value ?? null;
   }
 
   registerOnChange(fn: (value: any) => void): void {
@@ -106,11 +114,19 @@ export class EfSelectComponent implements ControlValueAccessor, OnChanges {
     this.disabled = isDisabled;
   }
 
-  handleChange(event: any): void {
-    this.value = event.value;
-    this.onChange(event.value);
+  handleSelectionChange(event: { originalEvent?: Event; value: any }): void {
+    const val = event?.value ?? null;
+    this.value = val;
+    this.onChange(val);
     this.onTouched();
-    this.selectionChangeEvent.emit(event.value);
+    this.selectionChangeEvent.emit(val);
+  }
+
+  handleClear(): void {
+    this.value = null;
+    this.onChange(null);
+    this.onTouched();
+    this.selectionChangeEvent.emit(null);
   }
 
   private applyFilters(): void {
