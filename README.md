@@ -79,6 +79,87 @@ Then install:
 npm install @elasticias/types @elasticias/utils @elasticias/core @elasticias/screens @elasticias/ui
 ```
 
+## Local Development (Verdaccio)
+
+Use the local [Verdaccio](https://verdaccio.org/) registry to test library changes in consuming apps (e.g. ElasticERP) before publishing to GitHub Packages.
+
+### 1. Start the local registry
+
+In a dedicated terminal:
+
+```bash
+npx nx run @elasticias/framework-ui:local-registry
+```
+
+This starts Verdaccio on `http://localhost:4873` and proxies any missing packages to npmjs.org.
+
+### 2. Build and publish all libs locally
+
+In another terminal, run the publish script:
+
+```bash
+./publish-local.sh
+```
+
+This builds all libraries in dependency order and publishes them to the local registry. If a version is already published, it is silently skipped.
+
+<details>
+<summary>Manual step-by-step (without the script)</summary>
+
+```bash
+# Build
+npx nx run-many -t build --projects=types,utils,core,screens,ui
+
+# Publish each lib
+for lib in types utils core screens ui; do
+  cd dist/libs/$lib
+  npm publish --registry http://localhost:4873 --tag latest
+  cd -
+done
+```
+
+</details>
+
+### 3. Configure the consuming app
+
+Add or update `.npmrc` in the consuming app root (e.g. `ElasticERP/src/Web/ClientApp/`):
+
+```ini
+@elasticias:registry=http://localhost:4873
+```
+
+Then install as usual:
+
+```bash
+npm install
+```
+
+npm will resolve `@elasticias/*` packages from Verdaccio and everything else from npmjs.org.
+
+### 4. Iterate
+
+After making changes to a library:
+
+1. Bump the version in the library's `package.json` (or use `npx nx release version`)
+2. Re-run `./publish-local.sh`
+3. In the consuming app: `npm install` to pick up the new version
+
+### Cleanup
+
+Stop the Verdaccio process (`Ctrl+C`) and remove the local storage:
+
+```bash
+rm -rf tmp/local-registry
+```
+
+Restore the consuming app's `.npmrc` to point back to GitHub Packages before committing:
+
+```ini
+@elasticias:registry=https://npm.pkg.github.com
+```
+
+---
+
 ## Releases
 
 All libraries are versioned together (fixed release group) using [Nx Release](https://nx.dev/features/manage-releases).
