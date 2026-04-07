@@ -136,21 +136,20 @@ export class EfDatatableComponent implements OnInit {
   /**
    * Emitted when edit button is clicked (emits row ID)
    */
-  editEvent = output<any>();
+  onEdit = output<any>({ alias: 'onEdit' });
 
   /**
    * Emitted when delete button is clicked (emits row ID)
    */
-  deleteEvent = output<any>();
+  onDelete = output<any>({ alias: 'onDelete' });
 
   /**
    * Emitted when duplicate button is clicked (emits row ID)
    */
-  duplicateEvent = output<any>();
+  onDuplicate = output<any>({ alias: 'onDuplicate' });
 
   /**
    * Emitted on lazy load events (pagination, sorting, filtering)
-   * Parent component should call search() in response
    */
   lazyLoadEvent = output<TableLazyLoadEvent>();
 
@@ -298,25 +297,17 @@ export class EfDatatableComponent implements OnInit {
    */
   handleEdit(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.editEvent.emit(id);
+    this.onEdit.emit(id);
   }
 
-  /**
-   * Handle delete button click
-   * @param rowData - The row data object
-   */
   handleDelete(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.deleteEvent.emit(id);
+    this.onDelete.emit(id);
   }
 
-  /**
-   * Handle duplicate button click
-   * @param rowData - The row data object
-   */
   handleDuplicate(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.duplicateEvent.emit(id);
+    this.onDuplicate.emit(id);
   }
 
   // ============================================================================

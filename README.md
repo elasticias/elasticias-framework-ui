@@ -160,6 +160,104 @@ Restore the consuming app's `.npmrc` to point back to GitHub Packages before com
 
 ---
 
+## Local Development (npm link)
+
+The fastest way to iterate on shared libraries during development. Changes are picked up instantly after rebuilding — no version bumps, no publishing.
+
+### Setup
+
+```bash
+./link-all.sh
+```
+
+This script:
+1. Builds all libs (`types`, `utils`, `core`, `screens`, `ui`)
+2. Creates global npm symlinks from each `dist/libs/<lib>`
+3. Links them into the ElasticERP ClientApp's `node_modules`
+
+### Workflow
+
+After making changes to a shared lib:
+
+```bash
+npx nx build ui        # rebuild the changed lib (~1s)
+# Angular dev server hot-reloads automatically
+```
+
+### Teardown
+
+```bash
+./link-all.sh --unlink
+```
+
+This removes all symlinks and runs `npm install` to restore packages from the registry.
+
+> **Note:** Running `npm install` in the ClientApp will break the links. Re-run `./link-all.sh` after any `npm install`.
+
+---
+
+## Local Development (Verdaccio)
+
+Use the local [Verdaccio](https://verdaccio.org/) registry to test library changes as if they were published — useful for validating the full publish flow before pushing to GitHub Packages.
+
+### Setup
+
+```bash
+# Terminal 1: start Verdaccio
+npx nx run @elasticias/framework-ui:local-registry
+
+# Terminal 2: build & publish
+./publish-local.sh
+```
+
+The `publish-local.sh` script:
+1. Starts Verdaccio on `http://localhost:4874` if not already running
+2. Builds all libraries in dependency order
+3. Unpublishes existing versions (force) and republishes to the local registry
+
+You can publish specific libs only:
+
+```bash
+./publish-local.sh ui core    # only publish ui and core
+```
+
+### Configure the consuming app
+
+Add to `.npmrc` in the ClientApp root:
+
+```ini
+@elasticias:registry=http://localhost:4874
+```
+
+Then `npm install` to resolve from Verdaccio.
+
+### Iterate
+
+1. Edit library code
+2. Bump version in `libs/<lib>/package.json`
+3. `./publish-local.sh`
+4. `npm install` in the consuming app
+
+### Cleanup
+
+Stop Verdaccio (`Ctrl+C`), remove local storage, and restore `.npmrc`:
+
+```bash
+rm -rf tmp/local-registry
+```
+
+### When to use which?
+
+| | `link-all.sh` | `publish-local.sh` |
+|---|---|---|
+| Speed | Instant (symlink) | Requires npm install |
+| Version bump needed | No | Yes |
+| Tests full publish flow | No | Yes |
+| Survives `npm install` | No (re-run link) | Yes |
+| Best for | Active development | Pre-release validation |
+
+---
+
 ## Releases
 
 All libraries are versioned together (fixed release group) using [Nx Release](https://nx.dev/features/manage-releases).
