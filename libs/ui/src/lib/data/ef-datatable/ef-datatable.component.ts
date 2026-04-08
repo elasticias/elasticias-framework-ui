@@ -151,12 +151,12 @@ export class EfDatatableComponent implements OnInit {
   /**
    * Emitted on lazy load events (pagination, sorting, filtering)
    */
-  lazyLoadEvent = output<TableLazyLoadEvent>();
+  onLazyLoad = output<TableLazyLoadEvent>();
 
   /**
    * Emitted when a row is selected
    */
-  rowSelectEvent = output<any>();
+  onRowSelect = output<any>();
 
   // ============================================================================
   // INTERNAL STATE
@@ -256,7 +256,7 @@ export class EfDatatableComponent implements OnInit {
       return;
     }
 
-    this.lazyLoadEvent.emit(event);
+    this.onLazyLoad.emit(event);
   }
 
   /**
