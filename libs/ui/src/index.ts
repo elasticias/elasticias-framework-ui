@@ -5,6 +5,12 @@ export { TruncatePipe } from './lib/pipes/truncate.pipe';
 // Commerce
 export { PriceDisplayComponent } from './lib/commerce/price-display.component';
 export { QuantitySelectorComponent } from './lib/commerce/quantity-selector.component';
+export { EfOrderBuilderComponent } from './lib/commerce/ef-order-builder/ef-order-builder.component';
+export * from './lib/commerce/ef-order-builder/ef-order-builder.component.types';
+export { EfOrderSummaryComponent } from './lib/commerce/ef-order-summary/ef-order-summary.component';
+export type { ProductCountGroup, ProductCountGroupLabel, ProductWithCountGroup } from './lib/commerce/ef-order-summary/ef-order-summary.component';
+export { EfProductCatalogueFilterComponent } from './lib/commerce/ef-product-catalogue-filter/ef-product-catalogue-filter.component';
+export type { CategoryItem, CategoryGroup, CategoryAssignment, SelectedFilter } from './lib/commerce/ef-product-catalogue-filter/ef-product-catalogue-filter.component';
 
 // Layout components
 export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
@@ -13,6 +19,7 @@ export { EfButtonComponent } from './lib/layout/ef-button/ef-button.component';
 export { EfLabelComponent } from './lib/layout/ef-label/ef-label.component';
 export { EfBadgeComponent } from './lib/layout/ef-badge/ef-badge.component';
 export * from './lib/layout/ef-badge/ef-badge.component.types';
+export { EfToolbarComponent } from './lib/layout/toolbar/toolbar.component';
 
 // Feedback components
 export { AppBlockUIComponent } from './lib/feedback/app-blockUI/app-blockUI.component';
