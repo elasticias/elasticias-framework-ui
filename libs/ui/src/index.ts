@@ -11,6 +11,8 @@ export { EfOrderSummaryComponent } from './lib/commerce/ef-order-summary/ef-orde
 export type { ProductCountGroup, ProductCountGroupLabel, ProductWithCountGroup } from './lib/commerce/ef-order-summary/ef-order-summary.component';
 export { EfProductCatalogueFilterComponent } from './lib/commerce/ef-product-catalogue-filter/ef-product-catalogue-filter.component';
 export type { CategoryItem, CategoryGroup, CategoryAssignment, SelectedFilter } from './lib/commerce/ef-product-catalogue-filter/ef-product-catalogue-filter.component';
+export { EfProductCatalogueComponent } from './lib/commerce/ef-product-catalogue/ef-product-catalogue.component';
+export type { CatalogueProduct } from './lib/commerce/ef-product-catalogue/ef-product-catalogue.component';
 
 // Layout components
 export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
