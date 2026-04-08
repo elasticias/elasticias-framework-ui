@@ -1,14 +1,11 @@
-import { Component, Injector } from '@angular/core';
+import { Component } from '@angular/core';
 import { AbstractScreenComponent } from './abstract-screen.component';
 
 @Component({
   template: ''
 })
 export abstract class AbstractSubScreenComponent extends AbstractScreenComponent {
-
-  constructor(injector: Injector) {
-    super(injector, null);
-  }
+  protected readonly screenState = null;
 
   override ngOnInit(): void {
     super.ngOnInit();

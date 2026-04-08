@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { AbstractComponent } from '../abstract.component';
 import { ScreenContext } from '../../config/screen-context';
 import { ScreenConfig, LoadOptions } from '../../config/screen-config';
@@ -20,40 +20,26 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
   serverErrors = signal<{ [key: string]: string[] }>({});
   protected refDataLoaded$ = new Subject<void>();
 
-  cacheService: CacheService;
-  changeDetector: ChangeDetectorRef;
-  toastService: ToastService;
-  confirmDialogService: ConfirmDialogService;
-  router: Router;
-  route: ActivatedRoute;
-  refDataService: ScreenReferenceDataService;
+  cacheService = inject(CacheService);
+  changeDetector = inject(ChangeDetectorRef);
+  toastService = inject(ToastService);
+  confirmDialogService = inject(ConfirmDialogService);
+  router = inject(Router);
+  route = inject(ActivatedRoute);
+  refDataService = inject(SCREEN_REF_DATA_SERVICE);
 
-  currentUrl: string;
+  currentUrl = '';
 
-  state: string | null;
+  protected abstract readonly screenState: string | null;
+  get state(): string | null { return this.screenState; }
   screenStateKey = '';
 
-  constructor(injector: Injector, @Inject('STATE_TOKEN') state: string | null) {
-    super();
-    this.state = state;
-
-    this.cacheService = injector.get(CacheService);
-    this.cacheService.configure(true);
-
-    this.changeDetector = injector.get(ChangeDetectorRef);
-    this.toastService = injector.get(ToastService);
-    this.confirmDialogService = injector.get(ConfirmDialogService);
-    this.router = injector.get(Router);
-    this.route = injector.get(ActivatedRoute);
-    this.refDataService = injector.get(SCREEN_REF_DATA_SERVICE);
-
-    this.currentUrl = this.router.url;
-
-    this.context = new ScreenContext(this.state ?? '', undefined, undefined, this.refDataService);
-  }
-
   ngOnInit(): void {
-    this.screenStateKey = `SCREEN_STATE_${this.state}_${this.getBundleName()}`;
+    this.cacheService.configure(true);
+    this.currentUrl = this.router.url;
+    this.context = new ScreenContext(this.screenState ?? '', undefined, undefined, this.refDataService);
+
+    this.screenStateKey = `SCREEN_STATE_${this.screenState}_${this.getBundleName()}`;
     this.context.screenName = this.getBundleName();
     this.processGrants();
   }

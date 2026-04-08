@@ -1,134 +1,146 @@
 <p-toolbar>
   <ng-template #start>
     <div class="flex items-center gap-3">
-      <ef-button
-        *ngIf="isDetailState || backButton"
-        icon="pi pi-angle-left"
-        severity="primary"
-        styleClass="action-btn-text"
-        tooltipKey="common.back"
-        labelKey="common.back"
-        size="small"
-        (onClick)="backAction()"
-      />
+      @if (isDetailState || backButton) {
+        <ef-button
+          icon="pi pi-angle-left"
+          severity="primary"
+          styleClass="action-btn-text"
+          tooltipKey="common.back"
+          labelKey="common.back"
+          size="small"
+          (onClick)="backAction()"
+        />
+      }
       <!-- Custom content slot for start section (e.g., status badge) -->
       <ng-content select="[toolbarStart]" />
     </div>
   </ng-template>
   <ng-template #center>
-    <p-iconfield iconPosition="left" *ngIf="showFreeSearchInput">
-      <p-inputicon styleClass="pi pi-search" />
-      <input
-        id="freeTextSearch"
-        type="text"
-        pInputText
-        [placeholder]="'common.search' | translate"
-      />
-    </p-iconfield>
+    @if (showFreeSearchInput) {
+      <p-iconfield iconPosition="left">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          id="freeTextSearch"
+          type="text"
+          pInputText
+          [placeholder]="'common.search' | translate"
+        />
+      </p-iconfield>
+    }
   </ng-template>
   <ng-template #end>
     <!-- DETAIL state -->
     <!-- Custom content slot for start section (e.g., status badge) -->
     <ng-content select="[toolbarEnd]" />
-    <span
-      *ngIf="isDetailState && isDuplicateMode"
-      class="duplicate-badge flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-sm text-blue-700"
-    >
-      <i class="pi pi-copy"></i> {{ 'common.duplicate' | translate }}
-    </span>
-    <ef-button
-      *ngIf="isDetailState && deleteButton && hasDeletePermission"
-      icon="pi pi-trash"
-      severity="danger"
-      styleClass="action-btn"
-      tooltipPosition="top"
-      tooltipKey="common.delete"
-      size="small"
-      [disabled]="disabled"
-      (onClick)="deleteAction()"
-    />
-    <ef-button
-      *ngIf="isDetailState && printButton"
-      icon="pi pi-print"
-      severity="primary"
-      styleClass="action-btn"
-      tooltipPosition="top"
-      tooltipKey="common.print"
-      size="small"
-      [disabled]="disabled"
-      (onClick)="printAction()"
-    />
-    <ef-button
-      *ngIf="
-        isDetailState &&
-        duplicateButton &&
-        hasDuplicatePermission &&
-        !isDuplicateMode
-      "
-      icon="pi pi-copy"
-      severity="primary"
-      styleClass="action-btn"
-      tooltipPosition="left"
-      tooltipKey="common.duplicate"
-      size="small"
-      [disabled]="disabled"
-      (onClick)="duplicateAction()"
-    />
-    <ef-button
-      *ngIf="isDetailState && saveButton && hasWritePermission"
-      icon="pi pi-save"
-      severity="primary"
-      styleClass="action-btn"
-      tooltipPosition="top"
-      tooltipKey="common.save"
-      size="small"
-      [disabled]="disabled"
-      (onClick)="saveAction()"
-    />
+    @if (isDetailState && isDuplicateMode) {
+      <span
+        class="duplicate-badge flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-sm text-blue-700"
+      >
+        <i class="pi pi-copy"></i> {{ 'common.duplicate' | translate }}
+      </span>
+    }
+    @if (isDetailState && deleteButton && hasDeletePermission) {
+      <ef-button
+        icon="pi pi-trash"
+        severity="danger"
+        styleClass="action-btn"
+        tooltipPosition="top"
+        tooltipKey="common.delete"
+        size="small"
+        [disabled]="disabled"
+        (onClick)="deleteAction()"
+      />
+    }
+    @if (isDetailState && printButton) {
+      <ef-button
+        icon="pi pi-print"
+        severity="primary"
+        styleClass="action-btn"
+        tooltipPosition="top"
+        tooltipKey="common.print"
+        size="small"
+        [disabled]="disabled"
+        (onClick)="printAction()"
+      />
+    }
+    @if (
+      isDetailState &&
+      duplicateButton &&
+      hasDuplicatePermission &&
+      !isDuplicateMode
+    ) {
+      <ef-button
+        icon="pi pi-copy"
+        severity="primary"
+        styleClass="action-btn"
+        tooltipPosition="left"
+        tooltipKey="common.duplicate"
+        size="small"
+        [disabled]="disabled"
+        (onClick)="duplicateAction()"
+      />
+    }
+    @if (isDetailState && saveButton && hasWritePermission) {
+      <ef-button
+        icon="pi pi-save"
+        severity="primary"
+        styleClass="action-btn"
+        tooltipPosition="top"
+        tooltipKey="common.save"
+        size="small"
+        [disabled]="disabled"
+        (onClick)="saveAction()"
+      />
+    }
     <!-- SEARCH state -->
-    <ef-button
-      *ngIf="isSearchState && exportButton && hasExportPermission"
-      icon="pi pi-upload"
-      severity="primary"
-      styleClass="action-btn"
-      tooltipPosition="top"
-      tooltipKey="common.export"
-      size="small"
-      (onClick)="exportAction()"
-    />
-    <ef-button
-      *ngIf="isSearchState && addButton && hasWritePermission"
-      icon="pi pi-plus"
-      severity="primary"
-      styleClass="action-btn-text"
-      tooltipPosition="top"
-      tooltipKey="common.add"
-      labelKey="common.add"
-      size="small"
-      (onClick)="addAction()"
-    />
-    <ef-button
-      *ngIf="isSearchState && clearButton"
-      icon="pi pi-filter-slash"
-      severity="primary"
-      styleClass="action-btn-text"
-      tooltipPosition="top"
-      tooltipKey="common.clear_search_criteria"
-      labelKey="common.clear"
-      size="small"
-      (onClick)="clearAction()"
-    />
-    <ef-button
-      *ngIf="isSearchState && searchButton && hasReadPermission"
-      icon="pi pi-search"
-      severity="primary"
-      styleClass="action-btn-text"
-      tooltipPosition="top"
-      tooltipKey="common.search"
-      labelKey="common.search"
-      size="small"
-      [disabled]="disabled"
-      (onClick)="searchAction()"
-    />
+    @if (isSearchState && exportButton && hasExportPermission) {
+      <ef-button
+        icon="pi pi-upload"
+        severity="primary"
+        styleClass="action-btn"
+        tooltipPosition="top"
+        tooltipKey="common.export"
+        size="small"
+        (onClick)="exportAction()"
+      />
+    }
+    @if (isSearchState && addButton && hasWritePermission) {
+      <ef-button
+        icon="pi pi-plus"
+        severity="primary"
+        styleClass="action-btn-text"
+        tooltipPosition="top"
+        tooltipKey="common.add"
+        labelKey="common.add"
+        size="small"
+        (onClick)="addAction()"
+      />
+    }
+    @if (isSearchState && clearButton) {
+      <ef-button
+        icon="pi pi-filter-slash"
+        severity="primary"
+        styleClass="action-btn-text"
+        tooltipPosition="top"
+        tooltipKey="common.clear_search_criteria"
+        labelKey="common.clear"
+        size="small"
+        (onClick)="clearAction()"
+      />
+    }
+    @if (isSearchState && searchButton && hasReadPermission) {
+      <ef-button
+        icon="pi pi-search"
+        severity="primary"
+        styleClass="action-btn-text"
+        tooltipPosition="top"
+        tooltipKey="common.search"
+        labelKey="common.search"
+        size="small"
+        [disabled]="disabled"
+        (onClick)="searchAction()"
+      />
+    }
   </ng-template>
 </p-toolbar>
