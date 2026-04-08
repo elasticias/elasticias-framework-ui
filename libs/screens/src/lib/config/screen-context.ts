@@ -7,7 +7,7 @@ import { PermissionsEnum } from '@elasticias/types';
  * Apps must implement this and provide it to ScreenContext.
  */
 export interface ReferenceDataProvider {
-  getReference(key: string): Signal<unknown[]>;
+  getReference(key: string): Signal<any[]>;
   hasReference(key: string): boolean;
 }
 
@@ -49,7 +49,7 @@ export class ScreenContext extends AbstractEntity {
 
   get ref() {
     return {
-      get: (key: string): Signal<unknown[]> => {
+      get: (key: string): Signal<any[]> => {
         if (!this._refDataProvider) {
           console.warn('ReferenceDataProvider not set in ScreenContext. Returning empty signal.');
           return signal([]);
