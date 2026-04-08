@@ -1,19 +1,22 @@
-<p-fieldset [legend]="legend()" *ngIf="hasGroups()">
-  <div class="ef-order-summary">
-    <div class="ef-order-summary__content">
-      <div
-        class="ef-order-summary__column"
-        *ngFor="let column of columnGroups()"
-      >
-        <div class="ef-order-summary__item" *ngFor="let group of column">
-          <span class="ef-order-summary__label">{{ group.label }}:</span>
-          <span class="ef-order-summary__count">{{ group.count }}</span>
-        </div>
+@if (hasGroups()) {
+  <p-fieldset [legend]="legend()">
+    <div class="ef-order-summary">
+      <div class="ef-order-summary__content">
+        @for (column of columnGroups(); track $index) {
+          <div class="ef-order-summary__column">
+            @for (group of column; track group.code) {
+              <div class="ef-order-summary__item">
+                <span class="ef-order-summary__label">{{ group.label }}:</span>
+                <span class="ef-order-summary__count">{{ group.count }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <div class="ef-order-summary__footer">
+        <span class="ef-order-summary__total-label">Total:</span>
+        <span class="ef-order-summary__total-count">{{ totalCount() }}</span>
       </div>
     </div>
-    <div class="ef-order-summary__footer">
-      <span class="ef-order-summary__total-label">Total:</span>
-      <span class="ef-order-summary__total-count">{{ totalCount() }}</span>
-    </div>
-  </div>
-</p-fieldset>
+  </p-fieldset>
+}

@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   Injector,
   OnDestroy,
   OnInit,
@@ -32,26 +33,25 @@ export abstract class AbstractSearchScreenComponent
   extends AbstractScreenComponent
   implements AfterViewInit, OnInit, OnDestroy
 {
+  protected readonly screenState = ScreenStateEnum.SEARCH;
+
   @ViewChild('pTable') pTable!: Table;
 
   entity: any = new ViewModelEntity({});
   searchEntity = new SearchEntity(this.entity);
-  enableDateRangeFilter: boolean = true;
-  isLazySearch: boolean = true;
+  enableDateRangeFilter = true;
+  isLazySearch = true;
   lastSearchEvent: TableLazyLoadEvent | null = null;
 
   tableColumns: any[] = [];
 
+  protected injector = inject(Injector);
   private serviceInstance: any;
-  private isInitialLoad: boolean = true;
-
-  constructor(injector: Injector) {
-    super(injector, ScreenStateEnum.SEARCH);
-    this.serviceInstance = injector.get(this.getConfig()!.SERVICE as any);
-  }
+  private isInitialLoad = true;
 
   override ngOnInit(): void {
     super.ngOnInit();
+    this.serviceInstance = this.injector.get(this.getConfig()!.SERVICE as any);
 
     this.tableColumns = this.getTableColumns();
 
@@ -186,7 +186,9 @@ export abstract class AbstractSearchScreenComponent
         this.cacheService.setCache(this.screenStateKey, this.searchEntity);
         this.changeDetector.detectChanges();
       },
-      error: () => {},
+      error: () => {
+        // Errors handled by global error handler
+      },
     });
   }
 
@@ -258,9 +260,13 @@ export abstract class AbstractSearchScreenComponent
               this.toastService.showSuccess();
             }
           },
-          error: () => {},
+          error: () => {
+            // Errors handled by global error handler
+          },
         }),
-      () => {},
+      () => {
+        // User cancelled deletion
+      },
     );
   }
 
@@ -293,5 +299,8 @@ export abstract class AbstractSearchScreenComponent
     this.changeDetector.detectChanges();
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
+  }
 }
