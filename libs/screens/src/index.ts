@@ -2,6 +2,17 @@
 export { AbstractEntity } from './lib/abstract/abstract.entity';
 export { AbstractComponent } from './lib/abstract/abstract.component';
 
+// Screen abstract components
+export { AbstractScreenComponent } from './lib/abstract/screen/abstract-screen.component';
+export { AbstractDetailScreenComponent } from './lib/abstract/screen/abstract-detail-screen.component';
+export { AbstractSearchScreenComponent } from './lib/abstract/screen/abstract-search-screen.component';
+export type { ScreenDatatableColumn } from './lib/abstract/screen/abstract-search-screen.component';
+export { AbstractSubScreenComponent } from './lib/abstract/screen/abstract-sub-screen.component';
+
+// Services
+export { SCREEN_REF_DATA_SERVICE } from './lib/services/screen-reference-data.service';
+export type { ScreenReferenceDataService } from './lib/services/screen-reference-data.service';
+
 // Config
 export { ScreenStateEnum, StateUtilsEnum } from './lib/config/screen-state.enum';
 export { ScreenConfig } from './lib/config/screen-config';

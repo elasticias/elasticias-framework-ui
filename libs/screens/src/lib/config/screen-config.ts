@@ -19,8 +19,8 @@ export abstract class ScreenConfig {
   SEARCH_REFERENTIALS_KEYS!: string[];
   DETAILS_REFERENTIALS_KEYS!: string[];
 
-  SEARCH_STATIC_LISTS!: string[];
-  DETAILS_STATIC_LISTS!: string[];
+  SEARCH_STATIC_LISTS: string[] = [];
+  DETAILS_STATIC_LISTS: string[] = [];
 
   INVALIDATE_KEYS_ON_SAVE?: string[];
   REFRESH_ON_SAVE?: boolean;
