@@ -1,0 +1,18 @@
+// Target the accordion header button
+.p-accordion-header-link {
+  border: 0 !important;
+  padding: 0.25rem 0 !important;
+  box-shadow: none !important;
+
+}
+
+// Target the accordion panel
+.p-accordion-panel {
+  border: 0 !important;
+  border-bottom: 1px solid var(--surface-200) !important;
+}
+
+// Dark mode support
+:host-context(.dark) .p-accordion-panel {
+  border-bottom-color: var(--surface-700) !important;
+}

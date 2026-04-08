@@ -1,0 +1,99 @@
+<div class="bg-surface-0 dark:bg-surface-950">
+  <div class="flex flex-col gap-4 lg:flex-row">
+    <!-- Filter Sidebar -->
+    <ef-product-catalogue-filter
+      [categoryGroups]="categoryGroups()"
+      [products]="products()"
+      [(selectedFilters)]="selectedFilters"
+      (filtersChanged)="onFiltersChanged($event)"
+    />
+
+    <!-- Product Grid -->
+    <div
+      class="min-h-96 flex-1 rounded-md border-2 border-dotted border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800"
+    >
+      <div class="sticky top-0 z-10 w-full mb-4 bg-surface-50 dark:bg-surface-800 pb-2 -mt-4 pt-4 -mx-4 px-4">
+        <p-iconfield iconPosition="left" class="w-full">
+          <p-inputicon class="pi pi-search"></p-inputicon>
+          <input
+            pInputText
+            size="small"
+            [(ngModel)]="productSearch"
+            [placeholder]="'placeholder.search_products' | translate"
+            class="w-full"
+          />
+        </p-iconfield>
+      </div>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        @for (product of filteredProducts(); track product.id) {
+          <p-card
+            [header]="''"
+            [class.border-2]="true"
+            [class.border-blue-100]="getProductQuantity(product) > 0"
+            [class.!bg-blue-100]="getProductQuantity(product) > 0"
+            [class.dark:!border-blue-900]="getProductQuantity(product) > 0"
+            [class.dark:!bg-blue-900]="getProductQuantity(product) > 0"
+            [class.border-transparent]="getProductQuantity(product) === 0"
+            class="cursor-pointer hover:shadow-md dark:hover:shadow-md dark:hover:shadow-gray-300/50"
+          >
+            <ng-template pTemplate="header">
+              <div class="w-full">
+                @if (productThumbnailTpl()) {
+                  <ng-container *ngTemplateOutlet="productThumbnailTpl(); context: { $implicit: product }"></ng-container>
+                } @else {
+                  <!-- Default fallback thumbnail -->
+                  <div class="flex h-[13rem] items-center justify-center bg-surface-100 text-3xl text-surface-400 dark:bg-surface-800">
+                    <i class="pi pi-box"></i>
+                  </div>
+                }
+              </div>
+            </ng-template>
+            <ng-template pTemplate="content">
+              <div [innerHTML]="product.displayName" class="h-14 font-semibold"></div>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <div class="flex items-center justify-between">
+                <p-badge
+                  severity="secondary"
+                  [value]="getPackagingLabel(product)"
+                  badgeSize="small"
+                />
+                <div class="text-lg font-bold">
+                  {{ formatPrice(product) }}
+                </div>
+              </div>
+              <div class="mt-4">
+                @if (getProductQuantity(product) > 0) {
+                  <div class="flex items-center justify-between">
+                    <p-button
+                      icon="pi pi-trash"
+                      severity="primary"
+                      styleClass="!rounded-full"
+                      (onClick)="removeProduct(product)"
+                    />
+                    <ef-quantity-stepper
+                      [ngModel]="getProductQuantity(product)"
+                      (ngModelChange)="updateProductQuantity(product, $event)"
+                      [min]="0"
+                      [max]="1000"
+                    />
+                  </div>
+                } @else {
+                  <p-button
+                    label="Ajouter"
+                    icon="pi pi-shopping-cart"
+                    severity="primary"
+                    styleClass="w-full !rounded-full !h-12"
+                    (onClick)="addProduct(product)"
+                  />
+                }
+              </div>
+            </ng-template>
+          </p-card>
+        } @empty {
+          <div class="p-2">Aucun produit trouvé</div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
