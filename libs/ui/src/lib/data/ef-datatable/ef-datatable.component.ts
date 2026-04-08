@@ -63,9 +63,9 @@ export interface DatatableSearchEntity {
  *   [context]="context"
  *   [screenStateKey]="screenStateKey"
  *   [actions]="{ showDuplicate: true }"
- *   (onEdit)="edit($event)"
- *   (onDelete)="delete($event)"
- *   (onLazyLoad)="search($event)">
+ *   (editRow)="edit($event)"
+ *   (deleteRow)="delete($event)"
+ *   (lazyLoad)="search($event)">
  * </ef-datatable>
  * ```
  */
@@ -136,27 +136,27 @@ export class EfDatatableComponent implements OnInit {
   /**
    * Emitted when edit button is clicked (emits row ID)
    */
-  onEdit = output<any>({ alias: 'onEdit' });
+  editRow = output<any>();
 
   /**
    * Emitted when delete button is clicked (emits row ID)
    */
-  onDelete = output<any>({ alias: 'onDelete' });
+  deleteRow = output<any>();
 
   /**
    * Emitted when duplicate button is clicked (emits row ID)
    */
-  onDuplicate = output<any>({ alias: 'onDuplicate' });
+  duplicateRow = output<any>();
 
   /**
    * Emitted on lazy load events (pagination, sorting, filtering)
    */
-  onLazyLoad = output<TableLazyLoadEvent>();
+  lazyLoad = output<TableLazyLoadEvent>();
 
   /**
    * Emitted when a row is selected
    */
-  onRowSelect = output<any>();
+  rowSelect = output<any>();
 
   // ============================================================================
   // INTERNAL STATE
@@ -256,7 +256,7 @@ export class EfDatatableComponent implements OnInit {
       return;
     }
 
-    this.onLazyLoad.emit(event);
+    this.lazyLoad.emit(event);
   }
 
   /**
@@ -297,17 +297,17 @@ export class EfDatatableComponent implements OnInit {
    */
   handleEdit(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.onEdit.emit(id);
+    this.editRow.emit(id);
   }
 
   handleDelete(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.onDelete.emit(id);
+    this.deleteRow.emit(id);
   }
 
   handleDuplicate(rowData: any): void {
     const id = rowData[this.mergedConfig.dataKey];
-    this.onDuplicate.emit(id);
+    this.duplicateRow.emit(id);
   }
 
   // ============================================================================

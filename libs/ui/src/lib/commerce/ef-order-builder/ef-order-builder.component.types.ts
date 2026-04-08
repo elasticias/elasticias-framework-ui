@@ -168,7 +168,7 @@ export class OrderLineItemHelper {
   /**
    * Create a line item from product selection
    */
-  static createFromProduct(product: any, quantity: number = 1): OrderLineItem {
+  static createFromProduct(product: any, quantity = 1): OrderLineItem {
     const unitPrice = product.unitPrice || product.salePrice || 0;
     const taxRate = product.taxRate || 0;
 

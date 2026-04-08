@@ -1,11 +1,11 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   Injector,
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { ViewModelEntity } from '../../entities/view-model.entity';
 import { AbstractScreenComponent } from './abstract-screen.component';
@@ -19,25 +19,20 @@ export abstract class AbstractDetailScreenComponent
   extends AbstractScreenComponent
   implements AfterViewInit, OnInit, OnDestroy
 {
+  protected readonly screenState = ScreenStateEnum.DETAIL;
+
   entity: any = {};
   entityId: any;
-  override route: ActivatedRoute;
-  editionState: boolean = false;
-  duplicateMode: boolean = false;
+  editionState = false;
+  duplicateMode = false;
 
-  private location: Location;
+  private location = inject(Location);
+  protected injector = inject(Injector);
   private serviceInstance: any;
-
-  protected constructor(injector: Injector) {
-    super(injector, ScreenStateEnum.DETAIL);
-
-    this.route = injector.get(ActivatedRoute);
-    this.location = injector.get(Location);
-    this.serviceInstance = injector.get(this.getConfig()!.SERVICE as any);
-  }
 
   override ngOnInit(): void {
     super.ngOnInit();
+    this.serviceInstance = this.injector.get(this.getConfig()!.SERVICE as any);
 
     const screenConfig = this.getConfig();
     if (screenConfig) {
@@ -74,7 +69,9 @@ export abstract class AbstractDetailScreenComponent
           this.entity.id = this.entityId;
           this.afterLoad();
         },
-        error: (_error: any) => {},
+        error: (_error: any) => {
+          // Errors handled by global error handler
+        },
       });
     } catch (error) {
       console.error(error);
@@ -170,7 +167,9 @@ export abstract class AbstractDetailScreenComponent
     });
   }
 
-  print() {}
+  print() {
+    // Override in subclass to implement print functionality
+  }
 
   delete(): void {
     if (!this.entityId)
@@ -188,9 +187,13 @@ export abstract class AbstractDetailScreenComponent
               this.navigateBack();
             }
           },
-          error: () => {},
+          error: () => {
+            // Errors handled by global error handler
+          },
         }),
-      () => {},
+      () => {
+        // User cancelled deletion
+      },
     );
   }
 

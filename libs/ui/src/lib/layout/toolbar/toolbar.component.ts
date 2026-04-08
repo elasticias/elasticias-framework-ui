@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   EventEmitter,
+  inject,
   Input,
   Output,
 } from '@angular/core';
@@ -44,14 +45,14 @@ export class EfToolbarComponent {
   @Output() delete = new EventEmitter();
   @Output() duplicate = new EventEmitter();
   @Output() print = new EventEmitter();
-  @Output() onTriggerCustoActionEvent = new EventEmitter<any>();
+  @Output() triggerCustoAction = new EventEmitter<any>();
 
   // Search Actions
   @Output() add = new EventEmitter();
-  @Output() search = new EventEmitter();
+  @Output() searchAction$ = new EventEmitter();
   @Output() clear = new EventEmitter();
 
-  searchText: string = '';
+  searchText = '';
 
   // Flags
   @Input() backButton = false;
@@ -65,7 +66,7 @@ export class EfToolbarComponent {
   @Input() searchButton = true;
   @Input() showFreeSearchInput = false;
 
-  constructor(private router: Router) {}
+  private router = inject(Router);
 
   get isSearchState(): boolean {
     return this.state === ScreenStateEnum.SEARCH;
@@ -133,7 +134,7 @@ export class EfToolbarComponent {
   }
 
   searchAction() {
-    this.search.emit();
+    this.searchAction$.emit();
   }
 
   clearAction() {
