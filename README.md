@@ -283,6 +283,18 @@ npx nx release
 |---------|-----|
 | 0.0.2 | `libs-v0.0.2` |
 
+## Published Packages
+
+All libraries are published to GitHub Packages (npm) from the [`elasticias-framework-ui`](https://github.com/elasticias/elasticias-framework-ui) repo. All packages share a single version number (see [ADR-003](../../docs/adrs/003-unified-versioning-ui-libraries.md)).
+
+| Package | Current Version |
+|---------|-----------------|
+| [`@elasticias/types`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/types) | `0.0.4` |
+| [`@elasticias/utils`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/utils) | `0.0.4` |
+| [`@elasticias/core`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/core) | `0.0.4` |
+| [`@elasticias/screens`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/screens) | `0.0.4` |
+| [`@elasticias/ui`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/ui) | `0.0.4` |
+
 ## Tech Stack
 
 | Component | Version |
