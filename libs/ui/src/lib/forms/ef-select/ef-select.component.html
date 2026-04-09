@@ -21,7 +21,18 @@
     [class.ng-invalid]="isInvalid"
     [class.ng-touched]="ngControl?.touched"
     fluid
-  />
+  >
+    @if (itemTemplate) {
+      <ng-template #item let-item>
+        <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
+      </ng-template>
+    }
+    @if (selectedItemTemplate) {
+      <ng-template #selectedItem let-item>
+        <ng-container *ngTemplateOutlet="selectedItemTemplate; context: { $implicit: item }"></ng-container>
+      </ng-template>
+    }
+  </p-select>
   @if (showRequired) {
     <small class="text-danger">{{ 'validation.required' | translate }}</small>
   }

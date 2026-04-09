@@ -149,25 +149,10 @@ export class EfThemeConfiguratorComponent {
 
     onRTLChange(value: boolean) {
         this.configService.appState.update((state) => ({ ...state, RTL: value }));
-        if (!(document as any).startViewTransition) {
-            this.toggleRTL(value);
-            return;
-        }
-        (document as any).startViewTransition(() => this.toggleRTL(value));
-    }
-
-    toggleRTL(value: boolean) {
-        const htmlElement = document.documentElement;
-        if (value) {
-            htmlElement.setAttribute('dir', 'rtl');
-        } else {
-            htmlElement.removeAttribute('dir');
-        }
     }
 
     ngOnInit() {
         this.onPresetChange(this.configService.appState().preset);
-        this.toggleRTL(this.configService.appState().RTL ?? false);
     }
 
     surfaces = [
