@@ -9,7 +9,7 @@
           tooltipKey="common.back"
           labelKey="common.back"
           size="small"
-          (onClick)="backAction()"
+          (clickEvent)="backAction()"
         />
       }
       <!-- Custom content slot for start section (e.g., status badge) -->
@@ -49,7 +49,7 @@
         tooltipKey="common.delete"
         size="small"
         [disabled]="disabled"
-        (onClick)="deleteAction()"
+        (clickEvent)="deleteAction()"
       />
     }
     @if (isDetailState && printButton) {
@@ -61,7 +61,7 @@
         tooltipKey="common.print"
         size="small"
         [disabled]="disabled"
-        (onClick)="printAction()"
+        (clickEvent)="printAction()"
       />
     }
     @if (
@@ -78,7 +78,7 @@
         tooltipKey="common.duplicate"
         size="small"
         [disabled]="disabled"
-        (onClick)="duplicateAction()"
+        (clickEvent)="duplicateAction()"
       />
     }
     @if (isDetailState && saveButton && hasWritePermission) {
@@ -90,7 +90,7 @@
         tooltipKey="common.save"
         size="small"
         [disabled]="disabled"
-        (onClick)="saveAction()"
+        (clickEvent)="saveAction()"
       />
     }
     <!-- SEARCH state -->
@@ -102,7 +102,7 @@
         tooltipPosition="top"
         tooltipKey="common.export"
         size="small"
-        (onClick)="exportAction()"
+        (clickEvent)="exportAction()"
       />
     }
     @if (isSearchState && addButton && hasWritePermission) {
@@ -114,7 +114,7 @@
         tooltipKey="common.add"
         labelKey="common.add"
         size="small"
-        (onClick)="addAction()"
+        (clickEvent)="addAction()"
       />
     }
     @if (isSearchState && clearButton) {
@@ -126,7 +126,7 @@
         tooltipKey="common.clear_search_criteria"
         labelKey="common.clear"
         size="small"
-        (onClick)="clearAction()"
+        (clickEvent)="clearAction()"
       />
     }
     @if (isSearchState && searchButton && hasReadPermission) {
@@ -139,7 +139,7 @@
         labelKey="common.search"
         size="small"
         [disabled]="disabled"
-        (onClick)="searchAction()"
+        (clickEvent)="searchAction()"
       />
     }
   </ng-template>
