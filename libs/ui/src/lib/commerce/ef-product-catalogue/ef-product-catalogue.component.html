@@ -69,7 +69,7 @@
                       icon="pi pi-trash"
                       severity="primary"
                       styleClass="!rounded-full"
-                      (onClick)="removeProduct(product)"
+                      (clickEvent)="removeProduct(product)"
                     />
                     <ef-quantity-stepper
                       [ngModel]="getProductQuantity(product)"
@@ -84,7 +84,7 @@
                     icon="pi pi-shopping-cart"
                     severity="primary"
                     styleClass="w-full !rounded-full !h-12"
-                    (onClick)="addProduct(product)"
+                    (clickEvent)="addProduct(product)"
                   />
                 }
               </div>
