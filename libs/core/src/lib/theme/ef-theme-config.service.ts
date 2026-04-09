@@ -44,8 +44,17 @@ export class EfThemeConfigService {
                 }
                 this.saveAppState(state);
                 this.handleDarkModeTransition(state);
+                this.applyRTL(state);
             },
         );
+
+        // Apply RTL on initial load
+        if (isPlatformBrowser(this.platformId)) {
+            const initialState = this.appState();
+            if (initialState?.RTL) {
+                this.document.documentElement.setAttribute('dir', 'rtl');
+            }
+        }
     }
 
     private handleDarkModeTransition(state: AppState): void {
@@ -80,6 +89,24 @@ export class EfThemeConfigService {
         setTimeout(() => {
             this.transitionComplete.set(false);
         });
+    }
+
+    private applyRTL(state: AppState): void {
+        if (isPlatformBrowser(this.platformId)) {
+            const setDir = () => {
+                if (state.RTL) {
+                    this.document.documentElement.setAttribute('dir', 'rtl');
+                } else {
+                    this.document.documentElement.removeAttribute('dir');
+                }
+            };
+
+            if ((document as any).startViewTransition) {
+                (document as any).startViewTransition(() => setDir());
+            } else {
+                setDir();
+            }
+        }
     }
 
     hideMenu() {

@@ -1,6 +1,7 @@
 import {
   booleanAttribute,
   Component,
+  ContentChild,
   forwardRef,
   HostBinding,
   inject,
@@ -11,8 +12,10 @@ import {
   EventEmitter,
   OnChanges,
   SimpleChanges,
+  TemplateRef,
 } from '@angular/core';
 import { ControlValueAccessor, NgControl, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { SelectModule } from 'primeng/select';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
@@ -22,7 +25,7 @@ import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
   standalone: true,
   templateUrl: './ef-select.component.html',
   styleUrls: ['./ef-select.component.scss'],
-  imports: [SelectModule, FormsModule, TranslateModule, EfLabelComponent],
+  imports: [SelectModule, FormsModule, TranslateModule, EfLabelComponent, CommonModule],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => EfSelectComponent),
@@ -52,6 +55,9 @@ export class EfSelectComponent implements ControlValueAccessor, OnInit, OnChange
   @Input() filterByKeys?: { [key: string]: any };
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
+
+  @ContentChild('item') itemTemplate: TemplateRef<any> | null = null;
+  @ContentChild('selectedItem') selectedItemTemplate: TemplateRef<any> | null = null;
 
   @Output() selectionChangeEvent = new EventEmitter<any>();
 
