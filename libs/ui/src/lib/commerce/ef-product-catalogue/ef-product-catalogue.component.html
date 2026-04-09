@@ -1,5 +1,5 @@
 <div class="bg-surface-0 dark:bg-surface-950">
-  <div class="flex flex-col gap-4 lg:flex-row">
+  <div class="flex flex-row gap-4">
     <!-- Filter Sidebar -->
     <ef-product-catalogue-filter
       [categoryGroups]="categoryGroups()"
@@ -24,7 +24,7 @@
           />
         </p-iconfield>
       </div>
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
         @for (product of filteredProducts(); track product.id) {
           <p-card
             [header]="''"
