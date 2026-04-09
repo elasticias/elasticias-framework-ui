@@ -35,3 +35,6 @@ export { EfDatatableComponent } from './lib/data/ef-datatable/ef-datatable.compo
 export type { DatatableSearchEntity } from './lib/data/ef-datatable/ef-datatable.component';
 export * from './lib/data/ef-datatable/ef-datatable.component.types';
 export { DatatableActionBarComponent } from './lib/data/datatable-actionbar/datatable-actionbar.component';
+
+// Theme
+export { EfThemeConfiguratorComponent } from './lib/ef-theme-configurator/ef-theme-configurator.component';
