@@ -184,7 +184,7 @@ export class EfThemeConfiguratorComponent {
         return palettes;
     });
 
-    getPresetExt() {
+    getPresetExt(): Record<string, any> {
         const color = this.primaryColors().find((c) => c.name === this.selectedPrimaryColor());
 
         if (color?.name === 'noir') {
@@ -297,5 +297,14 @@ export class EfThemeConfiguratorComponent {
             .preset(this.getPresetExt())
             .surfacePalette(surfacePalette)
             .use({ useDefaultOptions: true });
+
+        // Lara gets fully rounded (pill-shaped) components; others use default preset radius
+        updatePreset({
+            primitive: {
+                borderRadius: event === 'Lara'
+                    ? { none: '0', xs: '6px', sm: '12px', md: '16px', lg: '20px', xl: '28px' }
+                    : { none: '0', xs: '2px', sm: '4px', md: '6px', lg: '8px', xl: '12px' },
+            },
+        });
     }
 }

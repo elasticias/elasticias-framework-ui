@@ -32,7 +32,9 @@ export class EfThemeConfigService {
     private initialized = false;
 
     constructor() {
-        this.appState.set({ ...this.loadAppState() });
+        const initialState = this.loadAppState();
+        this.appState.set({ ...initialState });
+        this.updatePresetClass(initialState);
 
         effect(
             () => {
@@ -43,6 +45,7 @@ export class EfThemeConfigService {
                     return;
                 }
                 this.saveAppState(state);
+                this.updatePresetClass(state);
                 this.handleDarkModeTransition(state);
                 this.applyRTL(state);
             },
@@ -50,9 +53,30 @@ export class EfThemeConfigService {
 
         // Apply RTL on initial load
         if (isPlatformBrowser(this.platformId)) {
-            const initialState = this.appState();
             if (initialState?.RTL) {
                 this.document.documentElement.setAttribute('dir', 'rtl');
+            }
+        }
+    }
+
+    private static readonly PRESET_CLASS_MAP: Record<string, string> = {
+        Aura: 'theme-compact',
+        Lara: 'theme-modern',
+        Material: 'theme-material',
+        Nora: 'theme-classic',
+    };
+
+    private static readonly ALL_THEME_CLASSES = Object.values(EfThemeConfigService.PRESET_CLASS_MAP);
+
+    private updatePresetClass(state: AppState): void {
+        if (isPlatformBrowser(this.platformId)) {
+            const body = this.document.body;
+            body.classList.remove(...EfThemeConfigService.ALL_THEME_CLASSES);
+            if (state.preset) {
+                const cls = EfThemeConfigService.PRESET_CLASS_MAP[state.preset];
+                if (cls) {
+                    body.classList.add(cls);
+                }
             }
         }
     }
@@ -115,6 +139,27 @@ export class EfThemeConfigService {
 
     showMenu() {
         this.appState.update((state) => ({ ...state, menuActive: true }));
+    }
+
+    toggleMobileMenu() {
+        this.appState.update((state) => ({
+            ...state,
+            mobileMenuVisible: !state.mobileMenuVisible
+        }));
+    }
+
+    closeMobileMenu() {
+        this.appState.update((state) => ({
+            ...state,
+            mobileMenuVisible: false
+        }));
+    }
+
+    openMobileMenu() {
+        this.appState.update((state) => ({
+            ...state,
+            mobileMenuVisible: true
+        }));
     }
 
     hideNews() {
