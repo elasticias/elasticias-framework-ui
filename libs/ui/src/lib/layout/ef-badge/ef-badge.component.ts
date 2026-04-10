@@ -159,7 +159,7 @@ export class EfBadgeComponent {
    */
   dotClasses = computed(() => {
     const cfg = this.config();
-    const classes: string[] = ['rounded-full'];
+    const classes: string[] = ['inline-block', 'shrink-0', 'rounded-full'];
 
     // Dot size based on badge size
     switch (cfg.size) {
