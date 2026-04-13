@@ -16,7 +16,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BadgeModule } from 'primeng/badge';
-import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -25,7 +24,12 @@ import { Menu, MenuModule } from 'primeng/menu';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfQuantityStepperComponent } from '../../forms/ef-quantity-stepper/ef-quantity-stepper.component';
 import { EfProductCatalogueFilterComponent } from '../ef-product-catalogue-filter/ef-product-catalogue-filter.component';
-import { CategoryAssignment, CategoryGroup, SelectedFilter } from '../ef-product-catalogue-filter/ef-product-catalogue-filter.component';
+import {
+  CategoryAssignment,
+  CategoryGroup,
+  SelectedFilter,
+} from '../ef-product-catalogue-filter/ef-product-catalogue-filter.component';
+import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 
 export interface CatalogueProduct {
   id: number;
@@ -46,7 +50,7 @@ export interface CatalogueProduct {
     CommonModule,
     FormsModule,
     BadgeModule,
-    ButtonModule,
+    EfButtonComponent,
     CardModule,
     IconFieldModule,
     InputIconModule,
@@ -70,12 +74,15 @@ export class EfProductCatalogueComponent implements OnChanges {
   categoryGroups = input<CategoryGroup[]>([]);
 
   /** Initial selected items (for editing existing orders) */
-  initialSelectedItems = input<Array<{ productId?: number; quantity: number }>>(
+  initialSelectedItems = input<Array<{ productId?: any; quantity: number }>>(
     [],
   );
 
   /** Default filters to apply on init */
   defaultFilters = input<SelectedFilter[]>([]);
+
+  /** Property name used as unique key for tracking products in the list */
+  trackByField = input<string>('id');
 
   /** Currency code for price formatting */
   currencyCode = input<string>('MAD');
@@ -96,12 +103,15 @@ export class EfProductCatalogueComponent implements OnChanges {
   @ViewChild('sortMenu') sortMenu!: Menu;
 
   /** Emitted when products are validated */
-  productsValidated = output<Array<{ product: CatalogueProduct; quantity: number }>>();
+  productsValidated =
+    output<Array<{ product: CatalogueProduct; quantity: number }>>();
 
   productSearch = signal('');
   selectedFilters = signal<SelectedFilter[]>([]);
   selectedSort = signal('Sort By');
-  selectedProducts = signal<Array<{ product: CatalogueProduct; quantity: number }>>([]);
+  selectedProducts = signal<
+    Array<{ product: CatalogueProduct; quantity: number }>
+  >([]);
 
   filteredProducts = computed(() => {
     let filtered = this.products();
@@ -147,17 +157,26 @@ export class EfProductCatalogueComponent implements OnChanges {
     {
       label: 'Newest First',
       icon: 'pi pi-calendar-plus',
-      command: () => { this.selectedSort.set('Newest First'); this.sortMenu.hide(); },
+      command: () => {
+        this.selectedSort.set('Newest First');
+        this.sortMenu.hide();
+      },
     },
     {
       label: 'Price: Low to High',
       icon: 'pi pi-sort-amount-up',
-      command: () => { this.selectedSort.set('Price: Low to High'); this.sortMenu.hide(); },
+      command: () => {
+        this.selectedSort.set('Price: Low to High');
+        this.sortMenu.hide();
+      },
     },
     {
       label: 'Price: High to Low',
       icon: 'pi pi-sort-amount-down',
-      command: () => { this.selectedSort.set('Price: High to Low'); this.sortMenu.hide(); },
+      command: () => {
+        this.selectedSort.set('Price: High to Low');
+        this.sortMenu.hide();
+      },
     },
   ];
 
@@ -170,20 +189,37 @@ export class EfProductCatalogueComponent implements OnChanges {
     this.initializeDefaultFilters();
   }
 
+  private productKey(product: CatalogueProduct): unknown {
+    return product[this.trackByField()];
+  }
+
   private initializeSelectedProducts(): void {
     const initialItems = this.initialSelectedItems();
     const allProducts = this.products();
 
-    if (!initialItems || initialItems.length === 0 || !allProducts || allProducts.length === 0) {
+    if (
+      !initialItems ||
+      initialItems.length === 0 ||
+      !allProducts ||
+      allProducts.length === 0
+    ) {
       return;
     }
 
-    const selectedProductsArray: Array<{ product: CatalogueProduct; quantity: number }> = [];
+    const selectedProductsArray: Array<{
+      product: CatalogueProduct;
+      quantity: number;
+    }> = [];
 
     initialItems.forEach((orderItem) => {
-      const matchingProduct = allProducts.find((p) => p.id === orderItem.productId);
+      const matchingProduct = allProducts.find(
+        (p) => this.productKey(p) === orderItem.productId,
+      );
       if (matchingProduct) {
-        selectedProductsArray.push({ product: matchingProduct, quantity: orderItem.quantity || 1 });
+        selectedProductsArray.push({
+          product: matchingProduct,
+          quantity: orderItem.quantity || 1,
+        });
       }
     });
 
@@ -202,32 +238,54 @@ export class EfProductCatalogueComponent implements OnChanges {
   }
 
   getProductQuantity(product: CatalogueProduct): number {
-    const selectedProduct = this.selectedProducts().find((sp) => sp.product.id === product.id);
+    const key = this.productKey(product);
+    const selectedProduct = this.selectedProducts().find(
+      (sp) => this.productKey(sp.product) === key,
+    );
     return selectedProduct?.quantity || 0;
   }
 
   addProduct(product: CatalogueProduct): void {
+    const key = this.productKey(product);
     const currentProducts = this.selectedProducts();
-    const existingProduct = currentProducts.find((sp) => sp.product.id === product.id);
+    const existingProduct = currentProducts.find(
+      (sp) => this.productKey(sp.product) === key,
+    );
 
-    if (!existingProduct) {
+    if (existingProduct) {
+      this.selectedProducts.set(
+        currentProducts.map((sp) =>
+          this.productKey(sp.product) === key
+            ? { ...sp, quantity: sp.quantity + 1 }
+            : sp,
+        ),
+      );
+    } else {
       this.selectedProducts.set([...currentProducts, { product, quantity: 1 }]);
     }
   }
 
   removeProduct(product: CatalogueProduct): void {
+    const key = this.productKey(product);
     const currentProducts = this.selectedProducts();
-    this.selectedProducts.set(currentProducts.filter((sp) => sp.product.id !== product.id));
+    this.selectedProducts.set(
+      currentProducts.filter((sp) => this.productKey(sp.product) !== key),
+    );
   }
 
   updateProductQuantity(product: CatalogueProduct, quantity: number): void {
+    const key = this.productKey(product);
     const currentProducts = this.selectedProducts();
 
     if (quantity === 0) {
-      this.selectedProducts.set(currentProducts.filter((sp) => sp.product.id !== product.id));
+      this.selectedProducts.set(
+        currentProducts.filter((sp) => this.productKey(sp.product) !== key),
+      );
     } else {
       this.selectedProducts.set(
-        currentProducts.map((sp) => sp.product.id === product.id ? { ...sp, quantity } : sp),
+        currentProducts.map((sp) =>
+          this.productKey(sp.product) === key ? { ...sp, quantity } : sp,
+        ),
       );
     }
   }
@@ -241,13 +299,26 @@ export class EfProductCatalogueComponent implements OnChanges {
   }
 
   getPackagingLabel(product: CatalogueProduct): string {
-    const packagingAssignment = product.categoryAssignments?.find((ca) => ca.type === 'PACKAGING');
+    const packagingAssignment = product.categoryAssignments?.find(
+      (ca) => ca.type === 'PACKAGING',
+    );
     return packagingAssignment?.code || '';
+  }
+
+  trackKey(product: CatalogueProduct): unknown {
+    return this.productKey(product);
   }
 
   formatPrice(product: CatalogueProduct): string {
     const price = product.unitPrice;
     if (price == null) return '';
-    return this.currencyPipe.transform(price, this.currencyCode(), 'symbol-narrow', '1.2-2') || '';
+    return (
+      this.currencyPipe.transform(
+        price,
+        this.currencyCode(),
+        'symbol-narrow',
+        '1.2-2',
+      ) || ''
+    );
   }
 }

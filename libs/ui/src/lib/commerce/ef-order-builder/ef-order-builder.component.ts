@@ -85,7 +85,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
 
   config = input<DocumentConfig>({
     documentType: 'order',
-    headerLabel: 'Identification',
+    headerLabel: 'Commamnde',
     dateLabel: 'Date de commande',
     customerLabel: 'Client',
     enableTax: true,
@@ -101,6 +101,8 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   customers = input.required<any[]>();
   readonly = input<boolean>(false);
   countGroupLabels = input<ProductCountGroupLabel[]>([]);
+  /** Field name used to identify products (must match catalogue's trackByField) */
+  productKeyField = input<string>('id');
   backendErrors = input<{ [key: string]: string[] }>({});
 
   openCatalogue = output<void>();
@@ -284,12 +286,12 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     if (this.readonly() || !item.product) return;
 
     const items = this.orderLines();
-    const index = items.indexOf(item);
+    const index = items.findIndex((i) => i.id === item.id);
 
     if (index !== -1) {
       const updatedItem = OrderLineItemHelper.updateCalculations({
         ...item,
-        productId: item.product.id,
+        productId: this.productKey(item.product),
         productDescription: item.product.displayName || item.product.name || '',
         productUnitPrice: item.product.unitPrice || item.product.salePrice || 0,
         taxRate: item.product.taxRate || 0,
@@ -306,7 +308,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     if (this.readonly() || !this.config().allowInlineEdit) return;
 
     const items = this.orderLines();
-    const index = items.indexOf(item);
+    const index = items.findIndex((i) => i.id === item.id);
 
     if (index !== -1) {
       const updatedItems = [...items];
@@ -343,7 +345,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
 
     if (validation.isValid) {
       const items = this.orderLines();
-      const index = items.indexOf(item);
+      const index = items.findIndex((i) => i.id === item.id);
 
       if (index !== -1) {
         const updatedItem = OrderLineItemHelper.updateCalculations({
@@ -377,9 +379,12 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     const currentItems = [...this.orderLines()];
     const addedItems: OrderLineItem[] = [];
 
+    const keyField = this.productKeyField();
+
     selectedProducts.forEach(({ product, quantity }) => {
+      const productKeyValue = product[keyField];
       const existingIndex = currentItems.findIndex(
-        (item) => item.productId === (product.productId || product.id),
+        (item) => item.productId === productKeyValue,
       );
 
       if (existingIndex !== -1) {
@@ -393,6 +398,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
         const newItem = OrderLineItemHelper.createFromProduct(
           product,
           quantity,
+          keyField,
         );
         currentItems.push(newItem);
         addedItems.push(newItem);
@@ -472,8 +478,13 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     return customer?.companyName || customer?.name;
   }
 
-  getProduct(productId: number): any | undefined {
-    return this.products().find((p) => p.id === productId);
+  private productKey(product: any): unknown {
+    return product[this.productKeyField()];
+  }
+
+  getProduct(productId: any): any | undefined {
+    const field = this.productKeyField();
+    return this.products().find((p) => p[field] === productId);
   }
 
   getCustomer(customerId: string): any | undefined {
