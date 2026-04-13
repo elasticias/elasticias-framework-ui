@@ -97,7 +97,9 @@ export class EfThemeConfigService {
             this.toggleDarkMode(state);
         });
 
-        transition.ready.then(() => this.onTransitionEnd());
+        transition.ready
+            .then(() => this.onTransitionEnd())
+            .catch(() => {});
     }
 
     private toggleDarkMode(state: AppState): void {
@@ -126,7 +128,8 @@ export class EfThemeConfigService {
             };
 
             if ((document as any).startViewTransition) {
-                (document as any).startViewTransition(() => setDir());
+                const t = (document as any).startViewTransition(() => setDir());
+                t.ready.catch(() => {});
             } else {
                 setDir();
             }

@@ -24,7 +24,7 @@ export interface OrderProductsSummary {
 export interface OrderLineItem {
   id?: string | number;
   product?: any;
-  productId?: number;
+  productId?: any;
   productDescription?: string;
   productUnitPrice: number;
   quantity: number;
@@ -167,14 +167,15 @@ export class OrderLineItemHelper {
 
   /**
    * Create a line item from product selection
+   * @param keyField - Field name used to identify the product (default: 'id')
    */
-  static createFromProduct(product: any, quantity = 1): OrderLineItem {
+  static createFromProduct(product: any, quantity = 1, keyField = 'id'): OrderLineItem {
     const unitPrice = product.unitPrice || product.salePrice || 0;
     const taxRate = product.taxRate || 0;
 
     const item: OrderLineItem = {
       id: UuidUtils.randomUUID(),
-      productId: product.productId || product.id,
+      productId: product[keyField],
       product: product,
       productDescription: product.displayName || product.name || '',
       productUnitPrice: unitPrice,

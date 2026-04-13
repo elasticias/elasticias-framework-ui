@@ -25,7 +25,7 @@
         </p-iconfield>
       </div>
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-        @for (product of filteredProducts(); track product.id) {
+        @for (product of filteredProducts(); track trackKey(product)) {
           <p-card
             [header]="''"
             [class.border-2]="true"
@@ -65,7 +65,7 @@
               <div class="mt-4">
                 @if (getProductQuantity(product) > 0) {
                   <div class="flex items-center justify-between">
-                    <p-button
+                    <ef-button
                       icon="pi pi-trash"
                       severity="primary"
                       styleClass="!rounded-full"
@@ -79,7 +79,7 @@
                     />
                   </div>
                 } @else {
-                  <p-button
+                  <ef-button
                     label="Ajouter"
                     icon="pi pi-shopping-cart"
                     severity="primary"
