@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/ci.yml)
 [![Publish](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/npm-publish.yml)
-[![npm @elasticias/core](https://img.shields.io/npm/v/@elasticias/core?label=%40elasticias%2Fcore&registry_uri=https%3A%2F%2Fnpm.pkg.github.com)](https://github.com/orgs/elasticias/packages)
-[![npm @elasticias/ui](https://img.shields.io/npm/v/@elasticias/ui?label=%40elasticias%2Fui&registry_uri=https%3A%2F%2Fnpm.pkg.github.com)](https://github.com/orgs/elasticias/packages)
+[![@elasticias/core](https://img.shields.io/badge/%40elasticias%2Fcore-0.0.3-blue)](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/core)
+[![@elasticias/ui](https://img.shields.io/badge/%40elasticias%2Fui-0.0.3-blue)](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/ui)
 
 Shared Angular libraries for the Elasticias ecosystem, published as `@elasticias/*` npm packages to GitHub Packages.
 
@@ -39,7 +39,7 @@ elasticias-framework-ui/
 ├── dist/                   # Build output (published from here)
 ├── .github/workflows/
 │   ├── ci.yml              # Lint, test, build, typecheck on push/PR
-│   └── npm-publish.yml     # Publish to GitHub Packages on libs-v* tags
+│   └── npm-publish.yml     # Publish to GitHub Packages on v* tags
 ├── nx.json                 # Nx workspace configuration
 ├── tsconfig.base.json      # Shared TypeScript config
 └── eslint.config.mjs       # Root ESLint config
@@ -258,42 +258,100 @@ rm -rf tmp/local-registry
 
 ---
 
-## Releases
+## Publishing & Deployment
 
-All libraries are versioned together (fixed release group) using [Nx Release](https://nx.dev/features/manage-releases).
+All libraries are versioned together (fixed release group) using [Nx Release](https://nx.dev/features/manage-releases) and published to [GitHub Packages](https://github.com/orgs/elasticias/packages) under the `@elasticias` npm scope.
 
-### Publishing via CI
+### Prerequisites
 
-Push a tag matching `libs-v*` to trigger the publish workflow:
+1. **`NPM_TOKEN` secret** must be configured in the GitHub repository settings with `packages:write` scope.
+2. Your GitHub account must have write access to the `elasticias` organization packages.
+
+### Publishing via CI (recommended)
+
+1. **Bump versions** — Nx will prompt you for the version bump type (patch, minor, major):
+
+   ```bash
+   npx nx release version patch   # or: minor, major, or a specific version like 0.1.0
+   ```
+
+   This updates all 5 `libs/*/package.json` files to the same version.
+
+2. **Commit the version bump:**
+
+   ```bash
+   git add libs/*/package.json
+   git commit -m "chore(release): v0.0.3"
+   ```
+
+3. **Tag and push:**
+
+   ```bash
+   git tag v0.0.3
+   git push origin main v0.0.3
+   ```
+
+4. The [`npm-publish.yml`](.github/workflows/npm-publish.yml) workflow runs automatically on `v*` tags and will:
+   - Install dependencies
+   - Lint, test, and typecheck all 5 libraries
+   - Build all libraries
+   - Publish to GitHub Packages via `npx nx release publish`
+   - Create a GitHub Release with auto-generated release notes
+
+### Dry-run (validate without publishing)
+
+Use the manual workflow dispatch to test the full pipeline without actually publishing:
+
+1. Go to **Actions** → **Publish** → **Run workflow**
+2. Leave **"Dry run"** checked (default)
+3. Click **Run workflow**
+
+This runs lint, test, typecheck, and build but skips the publish and GitHub Release steps.
+
+### Publishing manually (local)
 
 ```bash
-git tag libs-v0.1.0
-git push origin libs-v0.1.0
+# Build all libraries
+npx nx run-many -t build --projects=types,utils,core,screens,ui
+
+# Publish (requires NPM_TOKEN env var)
+export NPM_TOKEN=<your-github-pat>
+npx nx release publish
 ```
 
-### Publishing manually
+### Verifying published packages
 
 ```bash
-npx nx release
+# List all published packages in the org
+gh api '/orgs/elasticias/packages?package_type=npm' --jq '.[].name'
+
+# Check versions of a specific package
+npm view @elasticias/types versions --registry=https://npm.pkg.github.com
+
+# View full package info
+npm view @elasticias/ui --registry=https://npm.pkg.github.com
 ```
+
+> **Note:** The `gh api` commands require `read:packages` scope. Run `gh auth refresh -s read:packages` if you get a 403.
 
 ### Version history
 
-| Version | Tag |
-|---------|-----|
-| 0.0.2 | `libs-v0.0.2` |
+| Version | Tag | Status |
+|---------|-----|--------|
+| 0.0.2 | `v0.0.2` | Published |
+| 0.0.1 | — | Published |
 
 ## Published Packages
 
 All libraries are published to GitHub Packages (npm) from the [`elasticias-framework-ui`](https://github.com/elasticias/elasticias-framework-ui) repo. All packages share a single version number (see [ADR-003](../../docs/adrs/003-unified-versioning-ui-libraries.md)).
 
-| Package | Current Version |
-|---------|-----------------|
-| [`@elasticias/types`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/types) | `0.0.4` |
-| [`@elasticias/utils`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/utils) | `0.0.4` |
-| [`@elasticias/core`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/core) | `0.0.4` |
-| [`@elasticias/screens`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/screens) | `0.0.4` |
-| [`@elasticias/ui`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/ui) | `0.0.4` |
+| Package | Registry |
+|---------|----------|
+| [`@elasticias/types`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/types) | `npm.pkg.github.com` |
+| [`@elasticias/utils`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/utils) | `npm.pkg.github.com` |
+| [`@elasticias/core`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/core) | `npm.pkg.github.com` |
+| [`@elasticias/screens`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/screens) | `npm.pkg.github.com` |
+| [`@elasticias/ui`](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/ui) | `npm.pkg.github.com` |
 
 ## Tech Stack
 
