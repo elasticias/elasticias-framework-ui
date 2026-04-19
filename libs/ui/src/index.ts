@@ -38,3 +38,6 @@ export { DatatableActionBarComponent } from './lib/data/datatable-actionbar/data
 
 // Theme
 export { EfThemeConfiguratorComponent } from './lib/ef-theme-configurator/ef-theme-configurator.component';
+
+// Analytics
+export { EfEmailMetricsCardComponent } from './lib/analytics/ef-email-metrics-card/ef-email-metrics-card.component';
