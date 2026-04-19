@@ -3,9 +3,11 @@
     <div class="ef-email-metrics-card__header">
       <div>
         <h3 class="ef-email-metrics-card__title">{{ title() }}</h3>
-        <p class="ef-email-metrics-card__subtitle" *ngIf="metrics() as m">
-          {{ m.from | date: 'dd MMM' }} – {{ m.to | date: 'dd MMM yyyy' }}
-        </p>
+        @if (metrics(); as m) {
+          <p class="ef-email-metrics-card__subtitle">
+            {{ m.from | date: 'dd MMM' }} – {{ m.to | date: 'dd MMM yyyy' }}
+          </p>
+        }
       </div>
       <p-selectButton
         [options]="rangeOptions"
@@ -18,72 +20,77 @@
     </div>
   </ng-template>
 
-  <ng-container *ngIf="metrics() as m; else empty">
+  @if (metrics(); as m) {
     <div class="ef-email-metrics-card__kpis">
-      <div *ngFor="let kpi of kpis()" class="ef-email-metrics-card__kpi" [attr.data-tone]="kpi.tone">
-        <span class="ef-email-metrics-card__kpi-label">{{ kpi.label }}</span>
-        <span class="ef-email-metrics-card__kpi-value">
-          <ng-container *ngIf="kpi.rate; else intValue">
-            {{ kpi.value | number: '1.1-1' : 'fr' }}
-            <span class="ef-email-metrics-card__kpi-unit" *ngIf="kpi.rate">%</span>
-          </ng-container>
-          <ng-template #intValue>{{ kpi.value | number: '1.0-0' : 'fr' }}</ng-template>
-        </span>
+      @for (kpi of kpis(); track kpi.label) {
+        <div class="ef-email-metrics-card__kpi" [attr.data-tone]="kpi.tone">
+          <span class="ef-email-metrics-card__kpi-label">{{ kpi.label }}</span>
+          <span class="ef-email-metrics-card__kpi-value">
+            @if (kpi.rate) {
+              {{ kpi.value | number: '1.1-1' : 'fr' }}
+              <span class="ef-email-metrics-card__kpi-unit">%</span>
+            } @else {
+              {{ kpi.value | number: '1.0-0' : 'fr' }}
+            }
+          </span>
+        </div>
+      }
+    </div>
+
+    @if (m.categories.length > 0) {
+      <div class="ef-email-metrics-card__section">
+        <h4 class="ef-email-metrics-card__section-title">Par catégorie</h4>
+        <p-table [value]="m.categories" styleClass="ef-email-metrics-card__table" [scrollable]="true" scrollHeight="180px">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Catégorie</th>
+              <th class="ef-email-metrics-card__num">Envoyés</th>
+              <th class="ef-email-metrics-card__num">Ouverts</th>
+              <th class="ef-email-metrics-card__num">Cliqués</th>
+              <th class="ef-email-metrics-card__num">Rebonds</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td class="ef-email-metrics-card__category">{{ row.category }}</td>
+              <td class="ef-email-metrics-card__num">{{ row.sent }}</td>
+              <td class="ef-email-metrics-card__num">{{ row.opened }}</td>
+              <td class="ef-email-metrics-card__num">{{ row.clicked }}</td>
+              <td class="ef-email-metrics-card__num" [class.ef-email-metrics-card__num--danger]="row.bounced > 0">{{ row.bounced }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
-    </div>
+    }
 
-    <div class="ef-email-metrics-card__section" *ngIf="m.categories.length > 0">
-      <h4 class="ef-email-metrics-card__section-title">Par catégorie</h4>
-      <p-table [value]="m.categories" styleClass="ef-email-metrics-card__table" [scrollable]="true" scrollHeight="180px">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Catégorie</th>
-            <th class="ef-email-metrics-card__num">Envoyés</th>
-            <th class="ef-email-metrics-card__num">Ouverts</th>
-            <th class="ef-email-metrics-card__num">Cliqués</th>
-            <th class="ef-email-metrics-card__num">Rebonds</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td class="ef-email-metrics-card__category">{{ row.category }}</td>
-            <td class="ef-email-metrics-card__num">{{ row.sent }}</td>
-            <td class="ef-email-metrics-card__num">{{ row.opened }}</td>
-            <td class="ef-email-metrics-card__num">{{ row.clicked }}</td>
-            <td class="ef-email-metrics-card__num" [class.ef-email-metrics-card__num--danger]="row.bounced > 0">{{ row.bounced }}</td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-
-    <div class="ef-email-metrics-card__section" *ngIf="recentEvents().length > 0">
-      <h4 class="ef-email-metrics-card__section-title">Événements récents</h4>
-      <p-table [value]="recentEvents()" styleClass="ef-email-metrics-card__table" [scrollable]="true" scrollHeight="240px">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Quand</th>
-            <th>Destinataire</th>
-            <th>Catégorie</th>
-            <th>Type</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr>
-            <td class="ef-email-metrics-card__when">{{ row.occurredAt | date: 'dd/MM HH:mm' }}</td>
-            <td class="ef-email-metrics-card__recipient">{{ row.recipient }}</td>
-            <td>{{ row.category || '—' }}</td>
-            <td>
-              <p-tag [severity]="kindSeverity(row.kind)" [value]="row.kind" styleClass="ef-email-metrics-card__kind" />
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-  </ng-container>
-
-  <ng-template #empty>
+    @if (recentEvents().length > 0) {
+      <div class="ef-email-metrics-card__section">
+        <h4 class="ef-email-metrics-card__section-title">Événements récents</h4>
+        <p-table [value]="recentEvents()" styleClass="ef-email-metrics-card__table" [scrollable]="true" scrollHeight="240px">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Quand</th>
+              <th>Destinataire</th>
+              <th>Catégorie</th>
+              <th>Type</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td class="ef-email-metrics-card__when">{{ row.occurredAt | date: 'dd/MM HH:mm' }}</td>
+              <td class="ef-email-metrics-card__recipient">{{ row.recipient }}</td>
+              <td>{{ row.category || '—' }}</td>
+              <td>
+                <p-tag [severity]="kindSeverity(row.kind)" [value]="row.kind" styleClass="ef-email-metrics-card__kind" />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+  } @else {
     <div class="ef-email-metrics-card__empty">
       <p-button label="Aucune donnée encore" [text]="true" icon="pi pi-envelope" [disabled]="true" />
     </div>
-  </ng-template>
+  }
 </p-card>

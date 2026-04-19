@@ -31,7 +31,7 @@ import { DatatableActionBarComponent } from '../datatable-actionbar/datatable-ac
  * Matches the shape expected from the consuming application's SearchEntity.
  */
 export interface DatatableSearchEntity {
-  items?: any[];
+  items?: Record<string, unknown>[];
   totalCount?: number;
   pagination?: {
     pageNumber: number;
@@ -88,7 +88,7 @@ export class EfDatatableComponent implements OnInit {
    */
   @ViewChild('pTable') pTable?: Table;
 
-  selectedItem: any;
+  selectedItem: Record<string, unknown> | undefined;
 
   // ============================================================================
   // INPUTS
@@ -122,7 +122,7 @@ export class EfDatatableComponent implements OnInit {
   /**
    * PassThrough options for deep DOM customization
    */
-  pt = input<any>();
+  pt = input<Record<string, unknown>>();
 
   /**
    * Screen state key for state persistence (auto-generates stateKey if not provided in config)
@@ -136,17 +136,17 @@ export class EfDatatableComponent implements OnInit {
   /**
    * Emitted when edit button is clicked (emits row ID)
    */
-  editRow = output<any>();
+  editRow = output<unknown>();
 
   /**
    * Emitted when delete button is clicked (emits row ID)
    */
-  deleteRow = output<any>();
+  deleteRow = output<unknown>();
 
   /**
    * Emitted when duplicate button is clicked (emits row ID)
    */
-  duplicateRow = output<any>();
+  duplicateRow = output<unknown>();
 
   /**
    * Emitted on lazy load events (pagination, sorting, filtering)
@@ -156,7 +156,7 @@ export class EfDatatableComponent implements OnInit {
   /**
    * Emitted when a row is selected
    */
-  rowSelect = output<any>();
+  rowSelect = output<unknown>();
 
   // ============================================================================
   // INTERNAL STATE
@@ -295,17 +295,17 @@ export class EfDatatableComponent implements OnInit {
    * Handle edit button click
    * @param rowData - The row data object
    */
-  handleEdit(rowData: any): void {
+  handleEdit(rowData: Record<string, unknown>): void {
     const id = rowData[this.mergedConfig.dataKey];
     this.editRow.emit(id);
   }
 
-  handleDelete(rowData: any): void {
+  handleDelete(rowData: Record<string, unknown>): void {
     const id = rowData[this.mergedConfig.dataKey];
     this.deleteRow.emit(id);
   }
 
-  handleDuplicate(rowData: any): void {
+  handleDuplicate(rowData: Record<string, unknown>): void {
     const id = rowData[this.mergedConfig.dataKey];
     this.duplicateRow.emit(id);
   }
@@ -320,7 +320,7 @@ export class EfDatatableComponent implements OnInit {
    * @param column - The column configuration
    * @returns Formatted string value
    */
-  formatCellValue(rowData: any, column: EfDatatableColumn): string | null {
+  formatCellValue(rowData: Record<string, unknown>, column: EfDatatableColumn): string | null {
     const value = rowData[column.field];
     if (value == null) return '';
 
@@ -362,7 +362,7 @@ export class EfDatatableComponent implements OnInit {
    * @param column - The column configuration
    * @returns Display label from reference data
    */
-  private resolveReferenceValue(rowData: any, column: EfDatatableColumn): string {
+  private resolveReferenceValue(rowData: Record<string, unknown>, column: EfDatatableColumn): string {
     const ctx = this.context();
     if (!ctx || !column.referenceKey) {
       return String(rowData[column.field]);
@@ -375,11 +375,13 @@ export class EfDatatableComponent implements OnInit {
       return String(value);
     }
 
+    const valueField = column.referenceValueField ?? 'code';
+    const labelField = column.referenceLabelField ?? 'name';
     const match = refData.find(
-      item => item[column.referenceValueField!] === value
+      (item: Record<string, unknown>) => item[valueField] === value
     );
 
-    return match ? String(match[column.referenceLabelField!]) : String(value);
+    return match ? String(match[labelField]) : String(value);
   }
 
   /**
@@ -421,7 +423,7 @@ export class EfDatatableComponent implements OnInit {
   /**
    * Get the current filter state
    */
-  getFilters(): any {
-    return this.pTable?.filters;
+  getFilters(): Record<string, unknown> | undefined {
+    return this.pTable?.filters as Record<string, unknown> | undefined;
   }
 }

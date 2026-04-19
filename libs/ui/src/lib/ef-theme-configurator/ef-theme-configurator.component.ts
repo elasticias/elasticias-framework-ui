@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, Input, PLATFORM_ID } from '@angular/core';
+import { Component, computed, inject, Input, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { $t, updatePreset, updateSurfacePalette } from '@primeng/themes';
@@ -12,7 +12,7 @@ import { SelectButton } from 'primeng/selectbutton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { EfThemeConfigService } from '@elasticias/core';
 
-const PRESETS: Record<string, any> = {
+const PRESETS: Record<string, Record<string, unknown>> = {
     Aura,
     Lara,
     Material,
@@ -116,7 +116,7 @@ const PRESETS: Record<string, any> = {
         ToggleSwitchModule,
     ],
 })
-export class EfThemeConfiguratorComponent {
+export class EfThemeConfiguratorComponent implements OnInit {
     @Input() primaryLabelKey = 'configurator.primary_color';
     @Input() surfaceLabelKey = 'configurator.surface';
     @Input() presetLabelKey = 'configurator.preset';
@@ -171,9 +171,9 @@ export class EfThemeConfiguratorComponent {
     selectedPreset = computed(() => this.configService.appState().preset);
 
     primaryColors = computed(() => {
-        const presetPalette = PRESETS[this.configService.appState().preset!]?.primitive;
+        const presetPalette = (PRESETS[this.configService.appState().preset ?? ''] as Record<string, Record<string, unknown>> | undefined)?.primitive;
         const colors = ['emerald', 'green', 'lime', 'orange', 'amber', 'yellow', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
-        const palettes: { name: string; palette: any }[] = [{ name: 'noir', palette: {} }];
+        const palettes: { name: string; palette: Record<string, string> }[] = [{ name: 'noir', palette: {} }];
 
         colors.forEach((color) => {
             if (presetPalette?.[color]) {
@@ -184,7 +184,7 @@ export class EfThemeConfiguratorComponent {
         return palettes;
     });
 
-    getPresetExt(): Record<string, any> {
+    getPresetExt(): Record<string, unknown> {
         const color = this.primaryColors().find((c) => c.name === this.selectedPrimaryColor());
 
         if (color?.name === 'noir') {
@@ -261,7 +261,7 @@ export class EfThemeConfiguratorComponent {
         };
     }
 
-    updateColors(event: any, type: string, color: any) {
+    updateColors(event: Event, type: string, color: { name: string; palette: Record<string, string> }) {
         if (type === 'primary') {
             this.configService.appState.update((state) => ({ ...state, primary: color.name }));
         } else if (type === 'surface') {
@@ -271,7 +271,7 @@ export class EfThemeConfiguratorComponent {
         event.stopPropagation();
     }
 
-    applyTheme(type: string, color: any) {
+    applyTheme(type: string, color: { name: string; palette: Record<string, string> }) {
         if (type === 'primary') {
             updatePreset(this.getPresetExt());
         } else if (type === 'surface') {
@@ -279,7 +279,7 @@ export class EfThemeConfiguratorComponent {
         }
     }
 
-    onPresetChange(event: any) {
+    onPresetChange(event: string) {
         this.configService.appState.update((state) => ({ ...state, preset: event }));
         const preset = PRESETS[event];
         const surfacePalette = this.surfaces.find((s) => s.name === this.selectedSurfaceColor())?.palette;
