@@ -97,8 +97,8 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   });
 
   order = model.required<OrderEntity>();
-  products = input.required<any[]>();
-  customers = input.required<any[]>();
+  products = input.required<Record<string, unknown>[]>();
+  customers = input.required<Record<string, unknown>[]>();
   readonly = input<boolean>(false);
   countGroupLabels = input<ProductCountGroupLabel[]>([]);
   /** Field name used to identify products (must match catalogue's trackByField) */
@@ -111,7 +111,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   productsAdded = output<OrderLineItem[]>();
 
   private originalOrder = signal<OrderEntity | null>(null);
-  private updateTimeout: any = null;
+  private updateTimeout: ReturnType<typeof setTimeout> | null = null;
   private initialized = signal(false);
 
   orderLines = computed(() => this.order().orderLines || []);
@@ -292,9 +292,9 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
       const updatedItem = OrderLineItemHelper.updateCalculations({
         ...item,
         productId: this.productKey(item.product),
-        productDescription: item.product.displayName || item.product.name || '',
-        productUnitPrice: item.product.unitPrice || item.product.salePrice || 0,
-        taxRate: item.product.taxRate || 0,
+        productDescription: (item.product['displayName'] || item.product['name'] || '') as string,
+        productUnitPrice: (item.product['unitPrice'] || item.product['salePrice'] || 0) as number,
+        taxRate: (item.product['taxRate'] || 0) as number,
         isEditing: false,
       });
 
@@ -370,7 +370,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   }
 
   addProductsFromCatalogue(
-    selectedProducts: Array<{ product: any; quantity: number }>,
+    selectedProducts: Array<{ product: Record<string, unknown>; quantity: number }>,
   ): void {
     if (this.readonly() || !selectedProducts || selectedProducts.length === 0) {
       return;
@@ -474,21 +474,21 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   private getCustomerName(customerId: string | null): string | undefined {
     if (!customerId) return undefined;
 
-    const customer = this.customers().find((c) => c.customerId === customerId);
-    return customer?.companyName || customer?.name;
+    const customer = this.customers().find((c) => c['customerId'] === customerId);
+    return (customer?.['companyName'] || customer?.['name']) as string | undefined;
   }
 
-  private productKey(product: any): unknown {
+  private productKey(product: Record<string, unknown>): unknown {
     return product[this.productKeyField()];
   }
 
-  getProduct(productId: any): any | undefined {
+  getProduct(productId: unknown): Record<string, unknown> | undefined {
     const field = this.productKeyField();
     return this.products().find((p) => p[field] === productId);
   }
 
-  getCustomer(customerId: string): any | undefined {
-    return this.customers().find((c) => c.customerId === customerId);
+  getCustomer(customerId: string): Record<string, unknown> | undefined {
+    return this.customers().find((c) => c['customerId'] === customerId);
   }
 
   initializeOrderLines(): void {

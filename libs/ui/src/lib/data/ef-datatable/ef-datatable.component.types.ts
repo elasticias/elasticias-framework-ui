@@ -72,10 +72,10 @@ export interface EfDatatableColumn {
   // Template support
 
   /** Custom cell template (receives rowData and column) */
-  template?: TemplateRef<any>;
+  template?: TemplateRef<unknown>;
 
   /** Custom header template (receives column) */
-  headerTemplate?: TemplateRef<any>;
+  headerTemplate?: TemplateRef<unknown>;
 }
 
 /**
@@ -157,7 +157,7 @@ export interface EfDatatableConfig {
   styleClass?: string;
 
   /** Inline table styles */
-  tableStyle?: any;
+  tableStyle?: Record<string, string>;
 
   // i18n
 

@@ -74,7 +74,7 @@ export class EfProductCatalogueComponent implements OnChanges {
   categoryGroups = input<CategoryGroup[]>([]);
 
   /** Initial selected items (for editing existing orders) */
-  initialSelectedItems = input<Array<{ productId?: any; quantity: number }>>(
+  initialSelectedItems = input<Array<{ productId?: unknown; quantity: number }>>(
     [],
   );
 
@@ -98,7 +98,7 @@ export class EfProductCatalogueComponent implements OnChanges {
    *   </ng-template>
    * </ef-product-catalogue>
    */
-  productThumbnailTpl = contentChild<TemplateRef<any>>('productThumbnail');
+  productThumbnailTpl = contentChild<TemplateRef<unknown>>('productThumbnail');
 
   @ViewChild('sortMenu') sortMenu!: Menu;
 

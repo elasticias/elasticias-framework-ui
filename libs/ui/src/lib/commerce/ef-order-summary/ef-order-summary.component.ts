@@ -139,12 +139,15 @@ export class EfOrderSummaryComponent {
       if (!columnMap.has(colIndex)) {
         columnMap.set(colIndex, []);
       }
-      columnMap.get(colIndex)!.push(group);
+      const col = columnMap.get(colIndex);
+      if (col) {
+        col.push(group);
+      }
     });
 
     // Sort columns by key and return as array
     const sortedKeys = Array.from(columnMap.keys()).sort((a, b) => a - b);
-    return sortedKeys.map((key) => columnMap.get(key)!);
+    return sortedKeys.map((key) => columnMap.get(key) as ProductCountGroup[]);
   });
 
   /**
