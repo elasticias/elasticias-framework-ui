@@ -8,20 +8,28 @@
 
 WORKSPACE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 FRAMEWORK_UI="$WORKSPACE_ROOT/shared/elasticias-framework-ui"
-CLIENT_APP="$WORKSPACE_ROOT/apps/elasticerp/src/Web/ClientApp"
 DIST_DIR="$FRAMEWORK_UI/dist/libs"
-TARGET_DIR="$CLIENT_APP/node_modules/@elasticias"
 ALL_LIBS=(types utils core screens ui)
+
+# All consumer apps
+CLIENT_APPS=(
+  "$WORKSPACE_ROOT/apps/elasticerp/src/Web/ClientApp"
+  "$WORKSPACE_ROOT/apps/ElasticStore/src/Web/ClientApp"
+)
 
 set -e
 
 if [ "$1" = "--unlink" ]; then
   echo "Restoring @elasticias/* packages from registry..."
-  for lib in "${ALL_LIBS[@]}"; do
-    rm -rf "$TARGET_DIR/$lib"
+  for CLIENT_APP in "${CLIENT_APPS[@]}"; do
+    [ ! -d "$CLIENT_APP" ] && continue
+    TARGET_DIR="$CLIENT_APP/node_modules/@elasticias"
+    for lib in "${ALL_LIBS[@]}"; do
+      rm -rf "$TARGET_DIR/$lib"
+    done
+    cd "$CLIENT_APP"
+    npm install
   done
-  cd "$CLIENT_APP"
-  npm install
   echo "Done. Packages restored from registry."
   exit 0
 fi
@@ -38,12 +46,15 @@ cd "$FRAMEWORK_UI"
 echo "Building: ${LIBS[*]}..."
 npx nx run-many -t build --projects="$(IFS=,; echo "${LIBS[*]}")" --skip-nx-cache
 
-mkdir -p "$TARGET_DIR"
-for lib in "${LIBS[@]}"; do
-  rm -rf "$TARGET_DIR/$lib"
-  cp -r "$DIST_DIR/$lib" "$TARGET_DIR/$lib"
-  echo "  @elasticias/$lib updated"
+for CLIENT_APP in "${CLIENT_APPS[@]}"; do
+  [ ! -d "$CLIENT_APP" ] && continue
+  TARGET_DIR="$CLIENT_APP/node_modules/@elasticias"
+  mkdir -p "$TARGET_DIR"
+  for lib in "${LIBS[@]}"; do
+    rm -rf "$TARGET_DIR/$lib"
+    cp -r "$DIST_DIR/$lib" "$TARGET_DIR/$lib"
+    echo "  @elasticias/$lib updated"
+  done
+  rm -rf "$CLIENT_APP/.angular/cache"
 done
-
-rm -rf "$CLIENT_APP/.angular/cache"
 echo "Done!"
