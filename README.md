@@ -2,7 +2,10 @@
 
 [![CI](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/ci.yml)
 [![Publish](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/elasticias/elasticias-framework-ui/actions/workflows/npm-publish.yml)
+[![@elasticias/types](https://img.shields.io/badge/%40elasticias%2Ftypes-0.0.3-blue)](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/types)
+[![@elasticias/utils](https://img.shields.io/badge/%40elasticias%2Futils-0.0.3-blue)](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/utils)
 [![@elasticias/core](https://img.shields.io/badge/%40elasticias%2Fcore-0.0.3-blue)](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/core)
+[![@elasticias/screens](https://img.shields.io/badge/%40elasticias%2Fscreens-0.0.3-blue)](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/screens)
 [![@elasticias/ui](https://img.shields.io/badge/%40elasticias%2Fui-0.0.3-blue)](https://github.com/elasticias/elasticias-framework-ui/pkgs/npm/ui)
 
 Shared Angular libraries for the Elasticias ecosystem, published as `@elasticias/*` npm packages to GitHub Packages.
