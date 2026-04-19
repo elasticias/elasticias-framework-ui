@@ -14,5 +14,14 @@
     "@primeng/themes": "^21.0.0",
     "primeng": "^21.0.0"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elasticias/elasticias-framework-ui.git",
+    "directory": "libs/ui"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  }
 }
