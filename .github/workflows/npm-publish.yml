@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run (build & test only, skip publish)'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -33,11 +40,13 @@ jobs:
         run: npx nx run-many -t build --projects=types,utils,core,screens,ui
 
       - name: Publish
+        if: ${{ !inputs.dry-run }}
         run: npx nx release publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
+        if: ${{ !inputs.dry-run }}
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
