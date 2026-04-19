@@ -177,7 +177,7 @@ export class EfThemeConfiguratorComponent implements OnInit {
 
         colors.forEach((color) => {
             if (presetPalette?.[color]) {
-                palettes.push({ name: color, palette: presetPalette[color] });
+                palettes.push({ name: color, palette: presetPalette[color] as Record<string, string> });
             }
         });
 
