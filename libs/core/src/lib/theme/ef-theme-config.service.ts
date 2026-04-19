@@ -99,7 +99,7 @@ export class EfThemeConfigService {
 
         transition.ready
             .then(() => this.onTransitionEnd())
-            .catch(() => {});
+            .catch(() => { /* view transition aborted */ });
     }
 
     private toggleDarkMode(state: AppState): void {
@@ -129,7 +129,7 @@ export class EfThemeConfigService {
 
             if ((document as any).startViewTransition) {
                 const t = (document as any).startViewTransition(() => setDir());
-                t.ready.catch(() => {});
+                t.ready.catch(() => { /* view transition aborted */ });
             } else {
                 setDir();
             }
