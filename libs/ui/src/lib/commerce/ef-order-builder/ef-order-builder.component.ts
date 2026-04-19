@@ -502,7 +502,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
       }
 
       if (product && !item.productDescription) {
-        item.productDescription = product.displayName || product.name || '';
+        item.productDescription = (product.displayName || product.name || '') as string;
       }
 
       return OrderLineItemHelper.updateCalculations({

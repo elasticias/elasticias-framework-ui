@@ -326,20 +326,20 @@ export class EfDatatableComponent implements OnInit {
 
     switch (column.type) {
       case 'date':
-        return this.datePipe.transform(value, column.dateFormat);
+        return this.datePipe.transform(value as string | number | Date, column.dateFormat);
 
       case 'datetime':
-        return this.datePipe.transform(value, 'short');
+        return this.datePipe.transform(value as string | number | Date, 'short');
 
       case 'number':
         return this.decimalPipe.transform(
-          value,
+          value as string | number,
           `1.${column.minFractionDigits}-${column.maxFractionDigits}`
         );
 
       case 'money':
         return this.currencyPipe.transform(
-          value,
+          value as string | number,
           column.currencyCode,
           column.currencyDisplay,
           `1.${column.minFractionDigits}-${column.maxFractionDigits}`
