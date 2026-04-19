@@ -49,7 +49,7 @@ describe('EfDatatable — translation', () => {
 
   it('should show raw keys when translations are not loaded', () => {
     const headers = fixture.nativeElement.querySelectorAll('th');
-    const headerTexts = Array.from(headers).map((th: any) => th.textContent.trim());
+    const headerTexts = Array.from(headers).map((th: Element) => (th as HTMLElement).textContent?.trim());
     // Before translations load, keys are shown as-is
     expect(headerTexts).toContain('crm.account_name');
     expect(headerTexts).toContain('crm.status');
@@ -68,7 +68,7 @@ describe('EfDatatable — translation', () => {
     fixture.detectChanges();
 
     const headers = fixture.nativeElement.querySelectorAll('th');
-    const headerTexts: string[] = Array.from(headers).map((th: any) => th.textContent.trim());
+    const headerTexts: string[] = Array.from(headers).map((th: Element) => (th as HTMLElement).textContent?.trim() ?? '');
 
     expect(headerTexts.some(t => t.includes('Nom du compte'))).toBe(true);
     expect(headerTexts.some(t => t.includes('Statut'))).toBe(true);
@@ -91,7 +91,7 @@ describe('EfDatatable — translation', () => {
 
     // Verify FR
     let headers = fixture.nativeElement.querySelectorAll('th');
-    let texts: string[] = Array.from(headers).map((th: any) => th.textContent.trim());
+    let texts: string[] = Array.from(headers).map((th: Element) => (th as HTMLElement).textContent?.trim() ?? '');
     expect(texts.some(t => t.includes('Nom du compte'))).toBe(true);
 
     // Switch to EN
@@ -101,7 +101,7 @@ describe('EfDatatable — translation', () => {
     fixture.detectChanges();
 
     headers = fixture.nativeElement.querySelectorAll('th');
-    texts = Array.from(headers).map((th: any) => th.textContent.trim());
+    texts = Array.from(headers).map((th: Element) => (th as HTMLElement).textContent?.trim() ?? '');
     expect(texts.some(t => t.includes('Account Name'))).toBe(true);
   });
 });
