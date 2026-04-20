@@ -7,6 +7,6 @@ import { EfCurrencyPipe } from '../pipes/ef-currency.pipe';
   imports: [EfCurrencyPipe],
   template: `<span class="font-medium">{{ amount() | efCurrency }}</span>`,
 })
-export class PriceDisplayComponent {
+export class EfPriceDisplayComponent {
   readonly amount = input.required<number>();
 }

@@ -3,8 +3,8 @@ export { EfCurrencyPipe } from './lib/pipes/ef-currency.pipe';
 export { TruncatePipe } from './lib/pipes/truncate.pipe';
 
 // Commerce
-export { PriceDisplayComponent } from './lib/commerce/price-display.component';
-export { QuantitySelectorComponent } from './lib/commerce/quantity-selector.component';
+export { EfPriceDisplayComponent } from './lib/commerce/ef-price-display.component';
+export { EfQuantitySelectorComponent } from './lib/commerce/ef-quantity-selector.component';
 export { EfOrderBuilderComponent } from './lib/commerce/ef-order-builder/ef-order-builder.component';
 export * from './lib/commerce/ef-order-builder/ef-order-builder.component.types';
 export { EfOrderSummaryComponent } from './lib/commerce/ef-order-summary/ef-order-summary.component';
@@ -21,11 +21,11 @@ export { EfButtonComponent } from './lib/layout/ef-button/ef-button.component';
 export { EfLabelComponent } from './lib/layout/ef-label/ef-label.component';
 export { EfBadgeComponent } from './lib/layout/ef-badge/ef-badge.component';
 export * from './lib/layout/ef-badge/ef-badge.component.types';
-export { EfToolbarComponent } from './lib/layout/toolbar/toolbar.component';
+export { EfToolbarComponent } from './lib/layout/ef-toolbar/ef-toolbar.component';
 
 // Feedback components
-export { AppBlockUIComponent } from './lib/feedback/app-blockUI/app-blockUI.component';
-export { BlockableDivComponent } from './lib/feedback/blockable-div/blockable-div.component';
+export { EfBlockUiComponent } from './lib/feedback/ef-block-ui/ef-block-ui.component';
+export { EfBlockableDivComponent } from './lib/feedback/ef-blockable-div/ef-blockable-div.component';
 
 // Forms
 export * from './lib/forms';
@@ -34,7 +34,7 @@ export * from './lib/forms';
 export { EfDatatableComponent } from './lib/data/ef-datatable/ef-datatable.component';
 export type { DatatableSearchEntity } from './lib/data/ef-datatable/ef-datatable.component';
 export * from './lib/data/ef-datatable/ef-datatable.component.types';
-export { DatatableActionBarComponent } from './lib/data/datatable-actionbar/datatable-actionbar.component';
+export { EfDatatableActionBarComponent } from './lib/data/ef-datatable-actionbar/ef-datatable-actionbar.component';
 
 // Theme
 export { EfThemeConfiguratorComponent } from './lib/ef-theme-configurator/ef-theme-configurator.component';

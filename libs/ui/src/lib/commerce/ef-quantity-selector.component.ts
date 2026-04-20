@@ -26,7 +26,7 @@ import { ButtonModule } from 'primeng/button';
     </div>
   `,
 })
-export class QuantitySelectorComponent {
+export class EfQuantitySelectorComponent {
   readonly quantity = input(1);
   readonly quantityChange = output<number>();
 
