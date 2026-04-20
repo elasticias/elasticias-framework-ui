@@ -4,11 +4,11 @@ import { BlockUIModule } from 'primeng/blockui';
 @Component({
   selector: 'ef-block-ui',
   standalone: true,
-  templateUrl: './app-blockUI.component.html',
-  styleUrls: ['./app-blockUI.component.scss'],
+  templateUrl: './ef-block-ui.component.html',
+  styleUrls: ['./ef-block-ui.component.scss'],
   imports: [BlockUIModule],
 })
-export class AppBlockUIComponent {
+export class EfBlockUiComponent {
   @Input() isLoading = false;
   @Input() contentPanel!: any;
 }

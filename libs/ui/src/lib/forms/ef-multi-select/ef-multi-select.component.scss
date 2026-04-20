@@ -2,6 +2,11 @@
   display: block;
 }
 
+// Suppress PrimeNG red border when not required (filter usage)
+:host:not(.ef-required) ::ng-deep .p-multiselect.ng-invalid.ng-dirty {
+  border-color: var(--p-multiselect-border-color, #d1d5db);
+}
+
 :host(.ef-inline) {
   display: flex;
   align-items: baseline;

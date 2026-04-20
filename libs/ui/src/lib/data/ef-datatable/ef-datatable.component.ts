@@ -24,7 +24,7 @@ import {
   mergeColumnDefaults,
 } from './ef-datatable.component.types';
 import { ScreenContext } from '@elasticias/screens';
-import { DatatableActionBarComponent } from '../datatable-actionbar/datatable-actionbar.component';
+import { EfDatatableActionBarComponent } from '../ef-datatable-actionbar/ef-datatable-actionbar.component';
 
 /**
  * SearchEntity interface for datatable consumption.
@@ -79,7 +79,7 @@ export interface DatatableSearchEntity {
     CommonModule,
     TableModule,
     TranslateModule,
-    DatatableActionBarComponent,
+    EfDatatableActionBarComponent,
   ],
 })
 export class EfDatatableComponent implements OnInit {

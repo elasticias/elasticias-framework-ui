@@ -6,8 +6,8 @@ import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 
 @Component({
   selector: 'ef-multi-select',
-  templateUrl: 'multi-select.component.html',
-  styleUrls: ['./multi-select.component.scss'],
+  templateUrl: 'ef-multi-select.component.html',
+  styleUrls: ['./ef-multi-select.component.scss'],
   standalone: true,
   imports: [FormsModule, MultiSelectModule, TranslateModule, EfLabelComponent],
 })
@@ -24,18 +24,20 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
   @Input() filteredOptions: any;
   @Input() maxSelectedLabels = 3;
   @Input() disabled = false;
-  @Input() display: string;
+  @Input() display: 'comma' | 'chip' = 'comma';
   @Input() size: 'large' | 'small';
   @Input() selectionLimit: any;
   @Input() filters: any;
   @Input() placeholder = '';
   @Input() placeholderKey?: string;
+  @Input({ transform: booleanAttribute }) showClear = false;
   @Input() required = false;
   @Input({ transform: booleanAttribute }) inline = false;
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
+  @HostBinding('class.ef-required') get isRequired() { return this.required; }
 
-  selectedValues: any[];
+  selectedValues: any[] = [];
 
   private propagateChange: (value: any[]) => void = () => { /* noop */ };
   private propagateTouched: () => void = () => { /* noop */ };
@@ -63,10 +65,12 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
   }
 
   writeValue(value: string[]): void {
-    if (Array.isArray(value) && this.options) {
+    if (Array.isArray(value) && value.length > 0 && this.options) {
       this.selectedValues = value
-        .map(v => this.options.find(opt => opt[this.optionValue] === v)?.[this.optionValue])
-        .filter(opt => !!opt);
+        .map(v => this.options.find((opt: any) => opt[this.optionValue] === v)?.[this.optionValue])
+        .filter((opt: any) => !!opt);
+    } else {
+      this.selectedValues = [];
     }
   }
 
@@ -82,15 +86,19 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
     this.disabled = isDisabled;
   }
 
-  handleChange(event: { value: any[] }): void {
-    this.selectedValues = event.value;
-    this.propagateChange(this.selectedValues);
-    this.changeEvent.emit(this.selectedValues);
+  onInternalModelChange(val: any[]): void {
+    const value = val ?? [];
+    this.selectedValues = value;
+    this.propagateChange(value);
+    this.changeEvent.emit(value);
     this.propagateTouched();
+  }
 
-    if (this.selectedValues.length === 0) {
-      this.propagateChange(null);
-    }
+  handleClear(): void {
+    this.selectedValues = [];
+    this.propagateChange([]);
+    this.changeEvent.emit([]);
+    this.propagateTouched();
   }
 
   ngOnChanges(): void {
@@ -102,7 +110,7 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
   }
 
   private applyFilters(filters: { [key: string]: any }): void {
-    this.filteredOptions = this.options.filter(option =>
+    this.filteredOptions = this.options.filter((option: any) =>
       Object.keys(filters).every(key => option[key] === filters[key])
     );
     this.selectedValues = [];

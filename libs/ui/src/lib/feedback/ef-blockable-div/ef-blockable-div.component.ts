@@ -6,7 +6,7 @@ import { BlockableUI } from 'primeng/api';
   standalone: true,
   template: `<ng-content></ng-content>`,
 })
-export class BlockableDivComponent implements BlockableUI {
+export class EfBlockableDivComponent implements BlockableUI {
   @Input() style: { [key: string]: string } = {};
   @Input() cssClass = '';
 

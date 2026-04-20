@@ -7,13 +7,13 @@ import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 @Component({
   selector: 'ef-datatable-actionbar',
   standalone: true,
-  templateUrl: 'datatable-actionbar.component.html',
+  templateUrl: 'ef-datatable-actionbar.component.html',
   imports: [
     EfButtonComponent,
     TranslateModule,
   ],
 })
-export class DatatableActionBarComponent {
+export class EfDatatableActionBarComponent {
   @Input() context?: ScreenContext;
 
   @Input() state?: string;
