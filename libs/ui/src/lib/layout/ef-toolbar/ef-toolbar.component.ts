@@ -20,8 +20,8 @@ import { TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'ef-toolbar',
   standalone: true,
-  templateUrl: 'toolbar.component.html',
-  styleUrl: 'toolbar.component.scss',
+  templateUrl: 'ef-toolbar.component.html',
+  styleUrl: 'ef-toolbar.component.scss',
   imports: [
     CommonModule,
     ToolbarModule,

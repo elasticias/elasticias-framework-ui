@@ -10,13 +10,15 @@
     [optionLabel]="optionLabel"
     [optionValue]="optionValue"
     [maxSelectedLabels]="maxSelectedLabels"
-    [(ngModel)]="selectedValues"
+    [ngModel]="selectedValues"
     [ngModelOptions]="{standalone: true}"
-    (onChange)="handleChange($event)"
+    (ngModelChange)="onInternalModelChange($event)"
+    (onClear)="handleClear()"
     [disabled]="disabled"
     [display]="display"
     [size]="size"
     [selectionLimit]="selectionLimit"
+    [showClear]="showClear"
     fluid
   />
   @if (showRequired) {
