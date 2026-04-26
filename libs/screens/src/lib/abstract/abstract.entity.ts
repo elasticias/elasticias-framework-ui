@@ -1,4 +1,5 @@
 export abstract class AbstractEntity {
+  [key: string]: unknown;
   clone(entity: AbstractEntity): AbstractEntity {
     for (const field of Reflect.ownKeys(entity)) {
       if ((this as Record<string | symbol, unknown>)[field] == null) {
