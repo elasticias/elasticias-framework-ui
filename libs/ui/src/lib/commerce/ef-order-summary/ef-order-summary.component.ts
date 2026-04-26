@@ -78,7 +78,7 @@ export class EfOrderSummaryComponent {
 
     lines.forEach((line) => {
       const product = line.product as ProductWithCountGroup;
-      const countGroup = product?.countGroup;
+      const countGroup = (line as { countGroup?: string }).countGroup || product?.countGroup;
 
       if (countGroup) {
         const currentCount = countMap.get(countGroup) || 0;
