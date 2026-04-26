@@ -151,7 +151,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
 
     lines.forEach((line) => {
       const product = line.product as { countGroup?: string };
-      const countGroup = product?.countGroup;
+      const countGroup = line.countGroup || product?.countGroup;
 
       if (countGroup) {
         const currentCount = countMap.get(countGroup) || 0;
@@ -289,11 +289,23 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     const index = items.findIndex((i) => i.id === item.id);
 
     if (index !== -1) {
+      // For Variable products with a default variant, use variant data
+      const variants = item.product['variants'] as Array<Record<string, unknown>> | undefined;
+      const defaultVariantId = item.product['defaultVariantId'] as string | undefined;
+      const variant = defaultVariantId && variants?.length
+        ? variants.find((v) => v['variantId'] === defaultVariantId)
+        : variants?.[0];
+
+      const unitPrice = variant?.['price'] ?? item.product['unitPrice'] ?? item.product['salePrice'] ?? 0;
+      const countGroup = (variant?.['countGroup'] ?? item.product['countGroup'] ?? '') as string;
+
       const updatedItem = OrderLineItemHelper.updateCalculations({
         ...item,
         productId: this.productKey(item.product),
+        variantId: (variant?.['variantId'] as string) ?? null,
+        countGroup: countGroup,
         productDescription: (item.product['displayName'] || item.product['name'] || '') as string,
-        productUnitPrice: (item.product['unitPrice'] || item.product['salePrice'] || 0) as number,
+        productUnitPrice: unitPrice as number,
         taxRate: (item.product['taxRate'] || 0) as number,
         isEditing: false,
       });
@@ -370,7 +382,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   }
 
   addProductsFromCatalogue(
-    selectedProducts: Array<{ product: Record<string, unknown>; quantity: number }>,
+    selectedProducts: Array<{ product: Record<string, unknown>; quantity: number; variantId?: string }>,
   ): void {
     if (this.readonly() || !selectedProducts || selectedProducts.length === 0) {
       return;
@@ -381,10 +393,11 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
 
     const keyField = this.productKeyField();
 
-    selectedProducts.forEach(({ product, quantity }) => {
+    selectedProducts.forEach(({ product, quantity, variantId }) => {
       const productKeyValue = product[keyField];
+      // Match by both productId AND variantId to avoid merging different variants
       const existingIndex = currentItems.findIndex(
-        (item) => item.productId === productKeyValue,
+        (item) => item.productId === productKeyValue && item.variantId === (variantId ?? null),
       );
 
       if (existingIndex !== -1) {
@@ -399,6 +412,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
           product,
           quantity,
           keyField,
+          variantId,
         );
         currentItems.push(newItem);
         addedItems.push(newItem);

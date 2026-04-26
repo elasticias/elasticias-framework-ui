@@ -25,6 +25,8 @@ export interface OrderLineItem {
   id?: string | number;
   product?: Record<string, unknown>;
   productId?: unknown;
+  variantId?: string | null;
+  countGroup?: string;
   productDescription?: string;
   productUnitPrice: number;
   quantity: number;
@@ -169,13 +171,22 @@ export class OrderLineItemHelper {
    * Create a line item from product selection
    * @param keyField - Field name used to identify the product (default: 'id')
    */
-  static createFromProduct(product: Record<string, unknown>, quantity = 1, keyField = 'id'): OrderLineItem {
-    const unitPrice = product.unitPrice || product.salePrice || 0;
+  static createFromProduct(product: Record<string, unknown>, quantity = 1, keyField = 'id', variantId?: string): OrderLineItem {
+    // Resolve variant data if variantId is provided and product has variants
+    const variants = product['variants'] as Array<Record<string, unknown>> | undefined;
+    const variant = variantId && variants?.length
+      ? variants.find((v) => v['variantId'] === variantId)
+      : undefined;
+
+    const unitPrice = variant?.['price'] ?? product.unitPrice ?? product.salePrice ?? 0;
     const taxRate = product.taxRate || 0;
+    const countGroup = (variant?.['countGroup'] ?? product['countGroup'] ?? '') as string;
 
     const item: OrderLineItem = {
       id: UuidUtils.randomUUID(),
       productId: product[keyField] as string,
+      variantId: variantId ?? null,
+      countGroup: countGroup,
       product: product,
       productDescription: (product.displayName || product.name || '') as string,
       productUnitPrice: unitPrice as number,
