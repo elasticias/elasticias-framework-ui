@@ -1,14 +1,14 @@
 <!-- Order Header -->
 <p-fieldset [legend]="config().headerLabel">
-  <div class="row">
-    <ef-label [label]="config().customerLabel" for="order.customerId" styleClass="col-6 form-label-left" required />
-    <ef-label [label]="config().dateLabel" for="order.orderDate" styleClass="col-3 form-label-left" required />
+  <div class="grid grid-cols-12 items-baseline gap-2 mb-2">
+    <ef-label [label]="config().customerLabel" for="order.customerId" styleClass="col-span-12 md:col-span-6 form-label-left" required />
+    <ef-label [label]="config().dateLabel" for="order.orderDate" styleClass="col-span-3 form-label-left" required />
     @if (config().showCatalogue) {
-      <ef-label labelKey="label.article_catalogue" styleClass="col-3 form-label-left" />
+      <ef-label labelKey="label.article_catalogue" styleClass="col-span-3 form-label-left" />
     }
   </div>
-  <div class="row mt-4">
-    <div class="col-6">
+  <div class="grid grid-cols-12 items-baseline gap-2 mb-2 mt-4">
+    <div class="col-span-12 md:col-span-6">
       <ef-select
         [ngModel]="order().customerId"
         (ngModelChange)="updateCustomer($event)"
@@ -24,7 +24,7 @@
         required
       />
     </div>
-    <div class="col-3">
+    <div class="col-span-3">
       <ef-datepicker
         [ngModel]="order().orderDate"
         (ngModelChange)="updateOrderDate($event)"
@@ -35,7 +35,7 @@
       />
     </div>
     @if (config().showCatalogue) {
-      <div class="col-3">
+      <div class="col-span-3">
         <p-button
           icon="pi pi-search"
           size="small"
