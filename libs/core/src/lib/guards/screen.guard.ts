@@ -7,12 +7,14 @@ import { PermissionsEnum } from '@elasticias/types';
  * Configuration for the screen guard factory.
  */
 export interface ScreenGuardConfig {
-  /** localStorage key where screen grants are stored (default: 'CURRENT_USER_GRANTS') */
+  /** Storage key where screen grants are stored (default: 'CURRENT_USER_GRANTS') */
   grantsStorageKey?: string;
   /** Route to redirect to when access is denied (default: '/') */
   deniedRedirect?: string;
   /** Minimum required permission to access the screen (default: PermissionsEnum.Read) */
   requiredPermission?: PermissionsEnum;
+  /** Storage type to read grants from (default: 'session') */
+  storageType?: 'local' | 'session';
 }
 
 /**
@@ -40,6 +42,7 @@ export function screenGuard(config?: ScreenGuardConfig): CanActivateFn {
     const grantsKey = config?.grantsStorageKey ?? 'CURRENT_USER_GRANTS';
     const deniedRedirect = config?.deniedRedirect ?? '/';
     const requiredPermission = config?.requiredPermission ?? PermissionsEnum.Read;
+    const storageType = config?.storageType ?? 'local';
 
     const screenCode = getScreenCode(route);
 
@@ -48,7 +51,9 @@ export function screenGuard(config?: ScreenGuardConfig): CanActivateFn {
       return true;
     }
 
-    const screenGrants = StorageUtils.getLocal<Record<string, { permissions?: string[] }>>(grantsKey);
+    const screenGrants = storageType === 'session'
+      ? StorageUtils.getSession<Record<string, { permissions?: string[] }>>(grantsKey)
+      : StorageUtils.getLocal<Record<string, { permissions?: string[] }>>(grantsKey);
 
     if (!screenGrants) {
       router.navigate([deniedRedirect]);
@@ -85,9 +90,12 @@ function getScreenCode(route: ActivatedRouteSnapshot): string | undefined {
 export function hasScreenPermission(
   screenCode: string,
   permission: PermissionsEnum,
-  grantsStorageKey = 'CURRENT_USER_GRANTS'
+  grantsStorageKey = 'CURRENT_USER_GRANTS',
+  storageType: 'local' | 'session' = 'local'
 ): boolean {
-  const screenGrants = StorageUtils.getLocal<Record<string, { permissions?: string[] }>>(grantsStorageKey);
+  const screenGrants = storageType === 'session'
+    ? StorageUtils.getSession<Record<string, { permissions?: string[] }>>(grantsStorageKey)
+    : StorageUtils.getLocal<Record<string, { permissions?: string[] }>>(grantsStorageKey);
   if (!screenGrants) return false;
 
   const grant = screenGrants[screenCode];
