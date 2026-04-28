@@ -1,0 +1,54 @@
+name: Auto-tag on version bump
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'libs/ui/package.json'
+      - 'libs/core/package.json'
+      - 'libs/screens/package.json'
+      - 'libs/types/package.json'
+      - 'libs/utils/package.json'
+
+permissions:
+  contents: write
+
+jobs:
+  auto-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect version change
+        id: version
+        run: |
+          # Read current version from libs/ui/package.json (all libs share the same version)
+          CURRENT=$(node -e "console.log(require('./libs/ui/package.json').version)")
+
+          # Read previous version
+          git show HEAD~1:libs/ui/package.json > /tmp/prev.json 2>/dev/null || echo '{"version":"0.0.0"}' > /tmp/prev.json
+          PREVIOUS=$(node -e "console.log(require('/tmp/prev.json').version)")
+
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "previous=$PREVIOUS" >> "$GITHUB_OUTPUT"
+
+          if [ "$CURRENT" != "$PREVIOUS" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Version bumped: $PREVIOUS → $CURRENT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No version change ($CURRENT)"
+          fi
+
+      - name: Create and push tag
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          TAG="v${{ steps.version.outputs.current }}"
+          echo "Creating tag: $TAG"
+          git config user.name "github-actions[bot]"
+          git config user.email "ayoub.ezzouine-noreply@elasticias.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          echo "Tag $TAG pushed — this will trigger the publish workflow."
