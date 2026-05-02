@@ -21,6 +21,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Menu, MenuModule } from 'primeng/menu';
+import { SelectModule } from 'primeng/select';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfQuantityStepperComponent } from '../../forms/ef-quantity-stepper/ef-quantity-stepper.component';
 import { EfProductCatalogueFilterComponent } from '../ef-product-catalogue-filter/ef-product-catalogue-filter.component';
@@ -31,6 +32,18 @@ import {
 } from '../ef-product-catalogue-filter/ef-product-catalogue-filter.component';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 
+export interface CatalogueProductVariant {
+  variantId: string;
+  title: string;
+  sku?: string | null;
+  price: number;
+  compareAtPrice?: number | null;
+  optionValues?: Record<string, string>;
+  isActive?: boolean;
+  countGroup?: string | null;
+  [key: string]: unknown;
+}
+
 export interface CatalogueProduct {
   id: number;
   productCode: string;
@@ -39,6 +52,9 @@ export interface CatalogueProduct {
   unitPrice?: number | null;
   packagingVolume?: number | null;
   categoryAssignments?: CategoryAssignment[];
+  productType?: string | null; // 'SIMPLE' | 'VARIABLE'
+  variants?: CatalogueProductVariant[];
+  defaultVariantId?: string | null;
   [key: string]: unknown;
 }
 
@@ -56,6 +72,7 @@ export interface CatalogueProduct {
     InputIconModule,
     InputTextModule,
     MenuModule,
+    SelectModule,
     EfQuantityStepperComponent,
     EfProductCatalogueFilterComponent,
     TranslateModule,
@@ -74,7 +91,7 @@ export class EfProductCatalogueComponent implements OnChanges {
   categoryGroups = input<CategoryGroup[]>([]);
 
   /** Initial selected items (for editing existing orders) */
-  initialSelectedItems = input<Array<{ productId?: unknown; quantity: number }>>(
+  initialSelectedItems = input<Array<{ productId?: unknown; quantity: number; variantId?: string | null }>>(
     [],
   );
 
@@ -104,14 +121,17 @@ export class EfProductCatalogueComponent implements OnChanges {
 
   /** Emitted when products are validated */
   productsValidated =
-    output<Array<{ product: CatalogueProduct; quantity: number }>>();
+    output<Array<{ product: CatalogueProduct; quantity: number; variantId?: string }>>();
 
   productSearch = signal('');
   selectedFilters = signal<SelectedFilter[]>([]);
   selectedSort = signal('Sort By');
   selectedProducts = signal<
-    Array<{ product: CatalogueProduct; quantity: number }>
+    Array<{ product: CatalogueProduct; quantity: number; variantId?: string }>
   >([]);
+
+  /** Tracks the currently selected variantId per product key */
+  selectedVariants = signal<Record<string, string>>({});
 
   filteredProducts = computed(() => {
     let filtered = this.products();
@@ -189,7 +209,7 @@ export class EfProductCatalogueComponent implements OnChanges {
     this.initializeDefaultFilters();
   }
 
-  private productKey(product: CatalogueProduct): unknown {
+  productKey(product: CatalogueProduct): unknown {
     return product[this.trackByField()];
   }
 
@@ -209,6 +229,7 @@ export class EfProductCatalogueComponent implements OnChanges {
     const selectedProductsArray: Array<{
       product: CatalogueProduct;
       quantity: number;
+      variantId?: string;
     }> = [];
 
     initialItems.forEach((orderItem) => {
@@ -219,6 +240,7 @@ export class EfProductCatalogueComponent implements OnChanges {
         selectedProductsArray.push({
           product: matchingProduct,
           quantity: orderItem.quantity || 1,
+          variantId: orderItem.variantId ?? undefined,
         });
       }
     });
@@ -237,56 +259,164 @@ export class EfProductCatalogueComponent implements OnChanges {
     this.sortMenu.toggle(event);
   }
 
+  /** Composite key for tracking product+variant selections */
+  private selectionKey(productKey: unknown, variantId?: string): string {
+    return variantId ? `${productKey}::${variantId}` : `${productKey}`;
+  }
+
+  /** Get the selected variantId for a product, or its defaultVariantId */
+  getSelectedVariantId(product: CatalogueProduct): string | undefined {
+    const key = String(this.productKey(product));
+    const selected = this.selectedVariants()[key];
+    if (selected) return selected;
+    if (this.isVariableProduct(product)) {
+      const activeVariants = this.getActiveVariants(product);
+      return product.defaultVariantId ?? activeVariants[0]?.variantId;
+    }
+    return undefined;
+  }
+
+  /** Set the selected variant for a product */
+  setSelectedVariant(product: CatalogueProduct, variantId: string): void {
+    const key = String(this.productKey(product));
+    this.selectedVariants.update((v) => ({ ...v, [key]: variantId }));
+  }
+
+  /** Check if product is a VARIABLE product with variants */
+  isVariableProduct(product: CatalogueProduct): boolean {
+    return product.productType === 'VARIABLE' && !!product.variants?.length;
+  }
+
+  /** Get active variants for a product */
+  getActiveVariants(product: CatalogueProduct): CatalogueProductVariant[] {
+    return (product.variants || []).filter((v) => v.isActive !== false);
+  }
+
+  /** Get total quantity for a product across all its variants */
   getProductQuantity(product: CatalogueProduct): number {
     const key = this.productKey(product);
-    const selectedProduct = this.selectedProducts().find(
+    if (this.isVariableProduct(product)) {
+      return this.selectedProducts()
+        .filter((sp) => this.productKey(sp.product) === key)
+        .reduce((sum, sp) => sum + sp.quantity, 0);
+    }
+    const selected = this.selectedProducts().find(
       (sp) => this.productKey(sp.product) === key,
     );
-    return selectedProduct?.quantity || 0;
+    return selected?.quantity || 0;
+  }
+
+  /** Get quantity for a specific product+variant combination */
+  getVariantQuantity(product: CatalogueProduct, variantId: string): number {
+    const key = this.productKey(product);
+    const selected = this.selectedProducts().find(
+      (sp) => this.productKey(sp.product) === key && sp.variantId === variantId,
+    );
+    return selected?.quantity || 0;
   }
 
   addProduct(product: CatalogueProduct): void {
     const key = this.productKey(product);
+    const variantId = this.isVariableProduct(product)
+      ? this.getSelectedVariantId(product)
+      : undefined;
+    const selKey = this.selectionKey(key, variantId);
     const currentProducts = this.selectedProducts();
-    const existingProduct = currentProducts.find(
-      (sp) => this.productKey(sp.product) === key,
+
+    const existingIndex = currentProducts.findIndex(
+      (sp) => this.selectionKey(this.productKey(sp.product), sp.variantId) === selKey,
     );
 
-    if (existingProduct) {
+    if (existingIndex !== -1) {
       this.selectedProducts.set(
-        currentProducts.map((sp) =>
-          this.productKey(sp.product) === key
-            ? { ...sp, quantity: sp.quantity + 1 }
-            : sp,
+        currentProducts.map((sp, i) =>
+          i === existingIndex ? { ...sp, quantity: sp.quantity + 1 } : sp,
         ),
       );
     } else {
-      this.selectedProducts.set([...currentProducts, { product, quantity: 1 }]);
+      this.selectedProducts.set([
+        ...currentProducts,
+        { product, quantity: 1, variantId },
+      ]);
     }
   }
 
   removeProduct(product: CatalogueProduct): void {
     const key = this.productKey(product);
-    const currentProducts = this.selectedProducts();
+    if (this.isVariableProduct(product)) {
+      // Remove all variant selections for this product
+      this.selectedProducts.set(
+        this.selectedProducts().filter(
+          (sp) => this.productKey(sp.product) !== key,
+        ),
+      );
+    } else {
+      this.selectedProducts.set(
+        this.selectedProducts().filter(
+          (sp) => this.productKey(sp.product) !== key,
+        ),
+      );
+    }
+  }
+
+  removeVariantSelection(product: CatalogueProduct, variantId: string): void {
+    const key = this.productKey(product);
+    const selKey = this.selectionKey(key, variantId);
     this.selectedProducts.set(
-      currentProducts.filter((sp) => this.productKey(sp.product) !== key),
+      this.selectedProducts().filter(
+        (sp) => this.selectionKey(this.productKey(sp.product), sp.variantId) !== selKey,
+      ),
     );
   }
 
   updateProductQuantity(product: CatalogueProduct, quantity: number): void {
     const key = this.productKey(product);
+    const variantId = this.isVariableProduct(product)
+      ? this.getSelectedVariantId(product)
+      : undefined;
+    const selKey = this.selectionKey(key, variantId);
     const currentProducts = this.selectedProducts();
 
     if (quantity === 0) {
       this.selectedProducts.set(
-        currentProducts.filter((sp) => this.productKey(sp.product) !== key),
+        currentProducts.filter(
+          (sp) => this.selectionKey(this.productKey(sp.product), sp.variantId) !== selKey,
+        ),
       );
     } else {
       this.selectedProducts.set(
         currentProducts.map((sp) =>
-          this.productKey(sp.product) === key ? { ...sp, quantity } : sp,
+          this.selectionKey(this.productKey(sp.product), sp.variantId) === selKey
+            ? { ...sp, quantity }
+            : sp,
         ),
       );
+    }
+  }
+
+  updateVariantQuantity(product: CatalogueProduct, variantId: string, quantity: number): void {
+    const key = this.productKey(product);
+    const selKey = this.selectionKey(key, variantId);
+    const currentProducts = this.selectedProducts();
+
+    if (quantity === 0) {
+      this.removeVariantSelection(product, variantId);
+    } else {
+      const existingIndex = currentProducts.findIndex(
+        (sp) => this.selectionKey(this.productKey(sp.product), sp.variantId) === selKey,
+      );
+      if (existingIndex !== -1) {
+        this.selectedProducts.set(
+          currentProducts.map((sp, i) =>
+            i === existingIndex ? { ...sp, quantity } : sp,
+          ),
+        );
+      } else {
+        this.selectedProducts.set([
+          ...currentProducts,
+          { product, quantity, variantId },
+        ]);
+      }
     }
   }
 
@@ -295,6 +425,7 @@ export class EfProductCatalogueComponent implements OnChanges {
     if (selectedItems.length > 0) {
       this.productsValidated.emit([...selectedItems]);
       this.selectedProducts.set([]);
+      this.selectedVariants.set({});
     }
   }
 
@@ -305,16 +436,45 @@ export class EfProductCatalogueComponent implements OnChanges {
     return packagingAssignment?.code || '';
   }
 
+  getVariantTitle(product: CatalogueProduct, variantId: string): string {
+    const variant = product.variants?.find((v) => v.variantId === variantId);
+    return variant?.title || variantId;
+  }
+
   trackKey(product: CatalogueProduct): unknown {
     return this.productKey(product);
   }
 
   formatPrice(product: CatalogueProduct): string {
+    if (this.isVariableProduct(product)) {
+      const variantId = this.getSelectedVariantId(product);
+      const variant = product.variants?.find((v) => v.variantId === variantId);
+      if (variant) {
+        return this.formatCurrency(variant.price);
+      }
+      // Fallback: show price range
+      const activeVariants = this.getActiveVariants(product);
+      if (activeVariants.length > 0) {
+        const min = Math.min(...activeVariants.map((v) => v.price));
+        const max = Math.max(...activeVariants.map((v) => v.price));
+        if (min === max) return this.formatCurrency(min);
+        return `${this.formatCurrency(min)} - ${this.formatCurrency(max)}`;
+      }
+    }
     const price = product.unitPrice;
     if (price == null) return '';
+    return this.formatCurrency(price);
+  }
+
+  formatVariantPrice(variant: CatalogueProductVariant): string {
+    return this.formatCurrency(variant.price);
+  }
+
+  private formatCurrency(value: number | null | undefined): string {
+    if (value == null) return '';
     return (
       this.currencyPipe.transform(
-        price,
+        value,
         this.currencyCode(),
         'symbol-narrow',
         '1.2-2',

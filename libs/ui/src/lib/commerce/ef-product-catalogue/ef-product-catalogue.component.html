@@ -52,46 +52,119 @@
               <div [innerHTML]="product.displayName" class="h-14 font-semibold"></div>
             </ng-template>
             <ng-template pTemplate="footer">
-              <div class="flex items-center justify-between">
-                <p-badge
-                  severity="secondary"
-                  [value]="getPackagingLabel(product)"
-                  badgeSize="small"
-                />
-                <div class="text-lg font-bold">
-                  {{ formatPrice(product) }}
-                </div>
-              </div>
-              <div class="mt-4">
-                @if (getProductQuantity(product) > 0) {
-                  <div class="flex items-center justify-between">
-                    <ef-button
-                      icon="pi pi-trash"
-                      severity="primary"
-                      styleClass="!rounded-full"
-                      (clickEvent)="removeProduct(product)"
-                    />
-                    <ef-quantity-stepper
-                      [ngModel]="getProductQuantity(product)"
-                      (ngModelChange)="updateProductQuantity(product, $event)"
-                      [min]="0"
-                      [max]="1000"
-                    />
-                  </div>
-                } @else {
-                  <ef-button
-                    label="Ajouter"
-                    icon="pi pi-shopping-cart"
-                    severity="primary"
-                    styleClass="w-full !rounded-full !h-12"
-                    (clickEvent)="addProduct(product)"
+              @if (isVariableProduct(product)) {
+                <!-- Variable product: variant selector + per-variant quantities -->
+                <div class="flex items-center justify-between mb-2">
+                  <p-badge
+                    severity="secondary"
+                    [value]="getActiveVariants(product).length + ' ' + ('catalogue.variants' | translate)"
+                    badgeSize="small"
                   />
-                }
-              </div>
+                  <div class="text-lg font-bold">
+                    {{ formatPrice(product) }}
+                  </div>
+                </div>
+
+                <!-- Variant selector -->
+                <p-select
+                  [options]="getActiveVariants(product)"
+                  optionLabel="title"
+                  optionValue="variantId"
+                  [ngModel]="getSelectedVariantId(product)"
+                  (ngModelChange)="setSelectedVariant(product, $event)"
+                  size="small"
+                  styleClass="w-full mb-3"
+                  [placeholder]="'placeholder.select_variant' | translate"
+                />
+
+                <!-- Add button or quantity stepper for selected variant -->
+                <div class="mt-2">
+                  @if (getProductQuantity(product) > 0) {
+                    <!-- Show per-variant breakdown -->
+                    @for (entry of selectedProducts(); track $index) {
+                      @if (productKey(entry.product) === productKey(product) && entry.variantId) {
+                        <div class="flex items-center justify-center gap-2 mb-2">
+                          <span class="text-xs font-medium text-surface-600 dark:text-surface-400 min-w-12 text-center">
+                            {{ getVariantTitle(product, entry.variantId) }}
+                          </span>
+                          <ef-quantity-stepper
+                            [ngModel]="entry.quantity"
+                            (ngModelChange)="updateVariantQuantity(product, entry.variantId!, $event)"
+                            [min]="0"
+                            [max]="1000"
+                          />
+                          <ef-button
+                            icon="pi pi-times"
+                            severity="danger"
+                            styleClass="!rounded-full !w-7 !h-7 !p-0"
+                            size="small"
+                            (clickEvent)="removeVariantSelection(product, entry.variantId!)"
+                          />
+                        </div>
+                      }
+                    }
+                    <!-- Add another variant button -->
+                    <ef-button
+                      icon="pi pi-plus"
+                      [label]="'button.add_variant' | translate"
+                      severity="primary"
+                      styleClass="w-full !rounded-full !h-10 mt-1"
+                      size="small"
+                      (clickEvent)="addProduct(product)"
+                    />
+                  } @else {
+                    <ef-button
+                      [label]="'button.add' | translate"
+                      icon="pi pi-shopping-cart"
+                      severity="primary"
+                      styleClass="w-full !rounded-full !h-12"
+                      (clickEvent)="addProduct(product)"
+                    />
+                  }
+                </div>
+              } @else {
+                <!-- Simple product: original behavior -->
+                <div class="flex items-center justify-between">
+                  <p-badge
+                    severity="secondary"
+                    [value]="getPackagingLabel(product)"
+                    badgeSize="small"
+                  />
+                  <div class="text-lg font-bold">
+                    {{ formatPrice(product) }}
+                  </div>
+                </div>
+                <div class="mt-4">
+                  @if (getProductQuantity(product) > 0) {
+                    <div class="flex items-center justify-between">
+                      <ef-button
+                        icon="pi pi-trash"
+                        severity="primary"
+                        styleClass="!rounded-full"
+                        (clickEvent)="removeProduct(product)"
+                      />
+                      <ef-quantity-stepper
+                        [ngModel]="getProductQuantity(product)"
+                        (ngModelChange)="updateProductQuantity(product, $event)"
+                        [min]="0"
+                        [max]="1000"
+                      />
+                    </div>
+                  } @else {
+                    <ef-button
+                      [label]="'button.add' | translate"
+                      icon="pi pi-shopping-cart"
+                      severity="primary"
+                      styleClass="w-full !rounded-full !h-12"
+                      (clickEvent)="addProduct(product)"
+                    />
+                  }
+                </div>
+              }
             </ng-template>
           </p-card>
         } @empty {
-          <div class="p-2">Aucun produit trouvé</div>
+          <div class="p-2">{{ 'message.no_products_found' | translate }}</div>
         }
       </div>
     </div>
