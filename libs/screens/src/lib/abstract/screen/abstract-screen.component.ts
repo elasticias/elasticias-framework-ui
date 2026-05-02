@@ -52,7 +52,7 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
   }
 
   processGrants() {
-    const userGrants: any = StorageUtils.getLocal('CURRENT_USER_GRANTS');
+    const userGrants: any = StorageUtils.getSession('CURRENT_USER_GRANTS');
     if (userGrants && userGrants[this.context.screenName] && userGrants[this.context.screenName].permissions) {
       this.context.grants = userGrants[this.context.screenName].permissions;
     } else {

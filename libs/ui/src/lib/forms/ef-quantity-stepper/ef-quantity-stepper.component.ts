@@ -83,16 +83,16 @@ export class EfQuantityStepperComponent implements ControlValueAccessor {
     pcInputText: {
       root: {
         class:
-          '!w-12 !border-none !rounded-full bg-transparent font-bold text-primary dark:text-primary-contrast text-center',
+          '!w-12 !border-none !rounded-full bg-transparent font-bold text-primary dark:text-primary-contrast !text-center',
       },
     },
     decrementButton: {
       class:
-        '!w-9 !border-none cursor-pointer !rounded-full !bg-white px-3 py-2 font-bold !text-primary dark:!text-primary-contrast',
+        '!w-9 !border-none cursor-pointer !rounded-full !bg-white px-3 py-2 font-bold !text-primary dark:!text-primary-contrast !text-center',
     },
     incrementButton: {
       class:
-        '!w-9 !border-none cursor-pointer !rounded-full !bg-white px-3 py-2 font-bold !text-primary dark:!text-primary-contrast',
+        '!w-9 !border-none cursor-pointer !rounded-full !bg-white px-3 py-2 font-bold !text-primary dark:!text-primary-contrast !text-center',
     },
     decrementButtonIcon: {
       innerHTML: '-',
@@ -106,8 +106,12 @@ export class EfQuantityStepperComponent implements ControlValueAccessor {
   // CONTROL VALUE ACCESSOR
   // ============================================================================
 
-  private onChange: (value: any) => void = () => { /* noop */ };
-  private onTouched: () => void = () => { /* noop */ };
+  private onChange: (value: any) => void = () => {
+    /* noop */
+  };
+  private onTouched: () => void = () => {
+    /* noop */
+  };
 
   // ============================================================================
   // CONTROL VALUE ACCESSOR IMPLEMENTATION
