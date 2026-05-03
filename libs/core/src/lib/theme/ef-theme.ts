@@ -1,5 +1,14 @@
 import { definePreset } from '@primeng/themes';
 import Aura from '@primeng/themes/aura';
+import Lara from '@primeng/themes/lara';
+
+/* ──────────────────────────────────────────────────────────────────
+ * LEGACY: Noir preset (Aura base, monochrome surface palette).
+ * Kept for backward-compat with apps that haven't migrated to
+ * Comptoir. Phase 5 of the design-system plan retrofits consumers
+ * to EfComptoirTheme; once that lands, Noir + EfTheme can be
+ * deleted.
+ * ────────────────────────────────────────────────────────────── */
 
 const Noir = definePreset(Aura, {
     semantic: {
@@ -53,10 +62,8 @@ const Noir = definePreset(Aura, {
  * Default Elasticias theme configuration for PrimeNG.
  * Uses the Noir preset (surface-based primary colors) with dark mode support.
  *
- * Usage with providePrimeNG:
- * ```ts
- * providePrimeNG({ theme: EfTheme, ripple: true })
- * ```
+ * @deprecated Migrate to {@link EfComptoirTheme} as part of Phase 5 of the
+ * design-system plan. Will be removed once all consumers have moved.
  */
 export const EfTheme = {
     preset: Noir,
@@ -66,3 +73,107 @@ export const EfTheme = {
 };
 
 export default EfTheme;
+
+/* ──────────────────────────────────────────────────────────────────
+ * COMPTOIR: ink surface + tenant primary (Lara base).
+ * Surface palette is the ink ramp from libs/tokens/colors.json.
+ * Primary palette defaults to the parfumerie sample tenant; it is
+ * runtime-replaced by EfThemeConfigService.setTenantAccent(hex)
+ * via PrimeNG's updatePrimaryPalette() API.
+ * ────────────────────────────────────────────────────────────── */
+
+const ComptoirPreset = definePreset(Lara, {
+    semantic: {
+        primary: {
+            50:  '#f7f0f4',
+            100: '#ecdce5',
+            200: '#d8b4c5',
+            300: '#b87a99',
+            400: '#934e74',
+            500: '#6f3257',
+            600: '#54243f',
+            700: '#401a30',
+            800: '#2c1221',
+            900: '#1a0913',
+            950: '#0d040a'
+        },
+        colorScheme: {
+            light: {
+                primary: {
+                    color: '{primary.500}',
+                    contrastColor: '#ffffff',
+                    hoverColor: '{primary.600}',
+                    activeColor: '{primary.700}'
+                },
+                surface: {
+                    0:   '#ffffff',
+                    50:  '#f8f9fb',
+                    100: '#f1f3f6',
+                    200: '#e4e8ee',
+                    300: '#cdd3dd',
+                    400: '#9ca5b3',
+                    500: '#6c7280',
+                    600: '#4a4f5a',
+                    700: '#2f3239',
+                    800: '#1d1f24',
+                    900: '#0f1115',
+                    950: '#06070a'
+                },
+                highlight: {
+                    background: '{primary.500}',
+                    focusBackground: '{primary.600}',
+                    color: '#ffffff',
+                    focusColor: '#ffffff'
+                }
+            },
+            dark: {
+                primary: {
+                    color: '{primary.400}',
+                    contrastColor: '{primary.950}',
+                    hoverColor: '{primary.300}',
+                    activeColor: '{primary.200}'
+                },
+                surface: {
+                    0:   '#000000',
+                    50:  '#06070a',
+                    100: '#0f1115',
+                    200: '#1d1f24',
+                    300: '#2f3239',
+                    400: '#4a4f5a',
+                    500: '#6c7280',
+                    600: '#9ca5b3',
+                    700: '#cdd3dd',
+                    800: '#e4e8ee',
+                    900: '#f1f3f6',
+                    950: '#f8f9fb'
+                },
+                highlight: {
+                    background: '{primary.400}',
+                    focusBackground: '{primary.300}',
+                    color: '{primary.950}',
+                    focusColor: '{primary.950}'
+                }
+            }
+        }
+    }
+});
+
+/**
+ * Comptoir theme configuration for PrimeNG (Phase 1 / design-system v0.2).
+ * Surface palette = ink ramp; primary palette = tenant accent
+ * (runtime-driven via `EfThemeConfigService.setTenantAccent(hex)`).
+ *
+ * Usage with providePrimeNG:
+ * ```ts
+ * providePrimeNG({ theme: EfComptoirTheme, ripple: true })
+ * ```
+ *
+ * Pair with `state.preset = 'Comptoir'` so the body class becomes
+ * `theme-comptoir` (avoids legacy `theme-modern` radius overrides).
+ */
+export const EfComptoirTheme = {
+    preset: ComptoirPreset,
+    options: {
+        darkModeSelector: '.p-dark',
+    }
+};

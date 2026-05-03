@@ -1,0 +1,57 @@
+{
+  "version": "0.2.0",
+  "name": "comptoir.typography",
+
+  "families": {
+    "display": {
+      "name": "Bricolage Grotesque",
+      "stack": "'Bricolage Grotesque', system-ui, sans-serif",
+      "variable": true,
+      "axes": ["opsz", "wght", "wdth"]
+    },
+    "ui": {
+      "name": "Manrope",
+      "stack": "'Manrope', system-ui, sans-serif",
+      "variable": true,
+      "features": ["cv11", "ss03"]
+    },
+    "mono": {
+      "name": "JetBrains Mono",
+      "stack": "'JetBrains Mono', ui-monospace, monospace",
+      "variable": true,
+      "features": ["tnum", "zero", "ss01"],
+      "variantNumeric": "tabular-nums slashed-zero"
+    }
+  },
+
+  "scale": {
+    "display-xl": { "family": "display", "size": "clamp(56px,9vw,144px)", "weight": 600, "wdth": 95, "tracking": "-0.025em", "lineHeight": 0.95 },
+    "display-lg": { "family": "display", "size": "clamp(40px,6vw,88px)",  "weight": 600, "wdth": 95, "tracking": "-0.025em", "lineHeight": 0.95 },
+    "display-md": { "family": "display", "size": "clamp(28px,4vw,56px)",  "weight": 600, "wdth": 95, "tracking": "-0.025em", "lineHeight": 0.95 },
+    "display-sm": { "family": "display", "size": "clamp(22px,3vw,36px)",  "weight": 600, "wdth": 95, "tracking": "-0.025em", "lineHeight": 0.95 },
+
+    "h1":         { "family": "ui",      "size": "26px",  "weight": 700, "tracking": "-0.02em",  "lineHeight": 1.2 },
+    "h2":         { "family": "ui",      "size": "20px",  "weight": 700, "tracking": "-0.015em", "lineHeight": 1.2 },
+    "h3":         { "family": "ui",      "size": "16px",  "weight": 700, "tracking": "-0.01em",  "lineHeight": 1.2 },
+    "h4":         { "family": "ui",      "size": "13px",  "weight": 700,                          "lineHeight": 1.2 },
+
+    "body":       { "family": "ui",      "size": "14.5px", "lineHeight": 1.6 },
+    "small":      { "family": "ui",      "size": "12.5px", "lineHeight": 1.5 },
+    "micro":      { "family": "ui",      "size": "10.5px", "lineHeight": 1.4 },
+
+    "label":      { "family": "ui",      "size": "11px",  "weight": 700, "tracking": "0.08em", "transform": "uppercase" },
+
+    "num-big":    { "family": "display", "weight": 700, "wdth": 80, "tracking": "-0.04em", "lineHeight": 1 }
+  },
+
+  "variants": {
+    "display-tight": { "opsz": 96, "wght": 700, "wdth": 80,  "tracking": "-0.04em" },
+    "display-wide":  { "opsz": 96, "wght": 400, "wdth": 100, "tracking": "-0.01em" }
+  },
+
+  "rendering": {
+    "textRendering": "optimizeLegibility",
+    "webkitFontSmoothing": "antialiased",
+    "fontFeatureSettings": "'cv11','ss03'"
+  }
+}
