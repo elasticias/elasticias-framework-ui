@@ -1,0 +1,22 @@
+<nav class="ef-module-rail" aria-label="Modules">
+  @for (module of visibleModules(); track module.id) {
+    <button
+      type="button"
+      class="ef-module-rail__btn"
+      [class.is-active]="activeId() === module.id"
+      [attr.data-module]="module.id"
+      [attr.aria-current]="activeId() === module.id ? 'page' : null"
+      [pTooltip]="module.labelKey | translate"
+      tooltipPosition="right"
+      (click)="onSelect(module)"
+    >
+      <i class="ef-module-rail__icon" [class]="module.icon" aria-hidden="true"></i>
+
+      @if (badgeFor(module.id); as badge) {
+        <span class="ef-module-rail__badge">{{ badge }}</span>
+      }
+
+      <span class="ef-module-rail__sr">{{ module.labelKey | translate }}</span>
+    </button>
+  }
+</nav>

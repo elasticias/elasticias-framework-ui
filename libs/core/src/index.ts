@@ -17,6 +17,7 @@ export { DEFAULT_APP_STATE } from './lib/theme/app-state';
 // Modules
 export { EF_MODULES, EF_MODULES_TOKEN } from './lib/modules/ef-module-registry';
 export type { EfModule, EfModuleId, EfNavSection, EfNavItem, EfNavAction } from './lib/modules/ef-module-registry';
+export { EfActiveModuleService } from './lib/modules/ef-active-module.service';
 
 // Responsive
 export { EfViewportService } from './lib/responsive/ef-viewport.service';

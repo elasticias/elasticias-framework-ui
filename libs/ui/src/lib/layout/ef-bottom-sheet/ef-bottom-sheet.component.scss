@@ -1,0 +1,61 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+:host(.is-open) {
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.ef-bottom-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--ink-950) 35%, transparent);
+  opacity: 0;
+  transition: opacity var(--t-base) var(--ease-out);
+}
+
+:host(.is-open) .ef-bottom-sheet__backdrop {
+  opacity: 1;
+}
+
+.ef-bottom-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 85vh;
+  background: var(--paper);
+  color: var(--text);
+  border-top-left-radius: var(--r-xl);
+  border-top-right-radius: var(--r-xl);
+  box-shadow: 0 -8px 24px color-mix(in oklab, var(--ink-950) 18%, transparent);
+  transform: translateY(100%);
+  transition: transform var(--t-base) var(--ease-spring);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+:host(.is-open) .ef-bottom-sheet__panel {
+  transform: translateY(0);
+}
+
+.ef-bottom-sheet__grabber {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 4px;
+  margin: 8px auto 4px;
+  border-radius: var(--r-pill);
+  background: var(--rule);
+}
+
+.ef-bottom-sheet__body {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 16px 20px 20px;
+}
