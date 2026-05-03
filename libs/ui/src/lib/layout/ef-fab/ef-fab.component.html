@@ -1,0 +1,18 @@
+<button
+  type="button"
+  class="ef-fab"
+  [disabled]="disabled"
+  (click)="onClick($event)"
+>
+  <i class="ef-fab__icon" [class]="icon" aria-hidden="true"></i>
+
+  @if (isExtended) {
+    <span class="ef-fab__label">
+      @if (labelKey) {
+        {{ labelKey | translate }}
+      } @else {
+        {{ label }}
+      }
+    </span>
+  }
+</button>

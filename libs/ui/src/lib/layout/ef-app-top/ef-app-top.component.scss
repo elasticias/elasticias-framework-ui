@@ -1,0 +1,45 @@
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  height: 56px; /* hit-base × 1.4 */
+  padding: 0 24px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  color: var(--text);
+}
+
+.ef-app-top__slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ef-app-top__slot--search {
+  justify-content: center;
+}
+
+.ef-app-top__slot--actions {
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.ef-app-top__fallback {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+
+  /* The fallback only shows when no [breadcrumb] is projected;
+     project content into [breadcrumb] to override. */
+  &:has(+ *) { display: none; }
+}
+
+/* If anything is projected into [breadcrumb], hide the fallback. */
+.ef-app-top__slot--breadcrumb:has(> *:first-child:not(.ef-app-top__fallback)) {
+  .ef-app-top__fallback { display: none; }
+}
