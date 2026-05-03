@@ -149,6 +149,27 @@ export class OrderLineItemHelper {
   }
 
   /**
+   * Compose a line description from a product and (optionally) its variant.
+   * Variable product → "{displayName} ({variantTitle})"
+   * Simple product → displayName
+   * Mirrors the legacy PDF format `[PF] {ref} - {NAME} ({volume})` after
+   * the parent displayName has been cleaned of its baked-in volume suffix.
+   */
+  static composeDescription(
+    product: Record<string, unknown> | null | undefined,
+    variant?: Record<string, unknown>,
+  ): string {
+    if (!product) return '';
+    const base = (product['displayName'] || product['name'] || '') as string;
+    if (!base) return '';
+    const title = variant?.['title'] as string | undefined;
+    if (title && title.trim().length > 0) {
+      return `${base} (${title})`;
+    }
+    return base;
+  }
+
+  /**
    * Create a new empty line item
    */
   static createEmptyItem(): OrderLineItem {
@@ -188,7 +209,7 @@ export class OrderLineItemHelper {
       variantId: variantId ?? null,
       countGroup: countGroup,
       product: product,
-      productDescription: (product.displayName || product.name || '') as string,
+      productDescription: OrderLineItemHelper.composeDescription(product, variant),
       productUnitPrice: unitPrice as number,
       quantity: quantity,
       discount: 0,
