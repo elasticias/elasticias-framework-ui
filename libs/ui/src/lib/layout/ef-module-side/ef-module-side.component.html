@@ -1,0 +1,30 @@
+@if (module(); as m) {
+  <header class="ef-module-side__head">
+    <span class="ef-module-side__title">{{ m.labelKey | translate }}</span>
+  </header>
+
+  @for (section of visibleSections(); track section.id) {
+    <section class="ef-module-side__section">
+      @if (section.labelKey) {
+        <h3 class="ef-module-side__section-title">{{ section.labelKey | translate }}</h3>
+      }
+      <ul class="ef-module-side__list">
+        @for (item of section.items; track item.id) {
+          <li>
+            <a
+              class="ef-module-side__item"
+              [routerLink]="item.route"
+              routerLinkActive="is-active"
+              [routerLinkActiveOptions]="{ exact: false }"
+            >
+              @if (item.icon) {
+                <i class="ef-module-side__icon" [class]="item.icon" aria-hidden="true"></i>
+              }
+              <span class="ef-module-side__label">{{ item.labelKey | translate }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+}

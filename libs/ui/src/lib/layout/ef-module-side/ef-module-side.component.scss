@@ -1,0 +1,102 @@
+:host {
+  display: block;
+  flex: 0 0 240px;
+  width: 240px;
+  background: var(--paper-alt);
+  border-right: 1px solid var(--rule);
+  overflow: auto;
+  padding: 16px 0;
+
+  /* When no active module, host collapses. */
+  &:empty { display: none; }
+}
+
+.ef-module-side__head {
+  padding: 0 16px 16px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 12px;
+}
+
+.ef-module-side__title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings: 'opsz' 96, 'wght' 600, 'wdth' 95;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  color: var(--text);
+}
+
+.ef-module-side__section {
+  margin: 0 0 16px;
+}
+
+.ef-module-side__section-title {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+  padding: 0 16px 6px;
+  margin: 0;
+}
+
+.ef-module-side__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ef-module-side__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--hit-base);
+  padding: 0 16px;
+  color: var(--text-mute);
+  text-decoration: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease-out),
+              background-color var(--t-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--text);
+    background: var(--paper);
+  }
+
+  &.is-active {
+    color: var(--text);
+    background: var(--paper);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: var(--module);
+      border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tenant-400);
+    outline-offset: -3px;
+  }
+}
+
+.ef-module-side__icon {
+  font-size: 16px;
+  line-height: 1;
+  width: 16px;
+  text-align: center;
+}
+
+.ef-module-side__label {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
