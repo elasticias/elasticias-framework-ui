@@ -23,6 +23,17 @@ export { EfBadgeComponent } from './lib/layout/ef-badge/ef-badge.component';
 export * from './lib/layout/ef-badge/ef-badge.component.types';
 export { EfToolbarComponent } from './lib/layout/ef-toolbar/ef-toolbar.component';
 
+// Comptoir shell components (Phase 2)
+export { EfAppShellComponent } from './lib/layout/ef-app-shell/ef-app-shell.component';
+export { EfAppShellMobileComponent } from './lib/layout/ef-app-shell-mobile/ef-app-shell-mobile.component';
+export { EfAppMainComponent } from './lib/layout/ef-app-main/ef-app-main.component';
+export { EfAppTopComponent } from './lib/layout/ef-app-top/ef-app-top.component';
+export { EfModuleRailComponent } from './lib/layout/ef-module-rail/ef-module-rail.component';
+export { EfModuleSideComponent } from './lib/layout/ef-module-side/ef-module-side.component';
+export { EfBottomSheetComponent } from './lib/layout/ef-bottom-sheet/ef-bottom-sheet.component';
+export { EfFabComponent } from './lib/layout/ef-fab/ef-fab.component';
+export type { EfFabPosition } from './lib/layout/ef-fab/ef-fab.component';
+
 // Feedback components
 export { EfBlockUiComponent } from './lib/feedback/ef-block-ui/ef-block-ui.component';
 export { EfBlockableDivComponent } from './lib/feedback/ef-blockable-div/ef-blockable-div.component';
