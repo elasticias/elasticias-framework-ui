@@ -49,7 +49,7 @@ export class EfToolbarComponent {
 
   // Search Actions
   @Output() add = new EventEmitter();
-  @Output() searchAction$ = new EventEmitter();
+  @Output() search = new EventEmitter();
   @Output() clear = new EventEmitter();
 
   searchText = '';
@@ -134,7 +134,7 @@ export class EfToolbarComponent {
   }
 
   searchAction() {
-    this.searchAction$.emit();
+    this.search.emit();
   }
 
   clearAction() {
