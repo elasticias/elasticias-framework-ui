@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "name": "comptoir.radii",
+
+  "scale": {
+    "sm":   "8px",
+    "md":   "12px",
+    "lg":   "16px",
+    "xl":   "20px",
+    "2xl":  "24px",
+    "pill": "999px"
+  },
+
+  "semantic": {
+    "input":   "12px",
+    "button":  "12px",
+    "card":    "16px",
+    "dialog":  "20px",
+    "chip":    "999px",
+    "avatar":  "999px",
+    "tag":     "8px"
+  }
+}
