@@ -304,7 +304,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
         productId: this.productKey(item.product),
         variantId: (variant?.['variantId'] as string) ?? null,
         countGroup: countGroup,
-        productDescription: (item.product['displayName'] || item.product['name'] || '') as string,
+        productDescription: OrderLineItemHelper.composeDescription(item.product, variant),
         productUnitPrice: unitPrice as number,
         taxRate: (item.product['taxRate'] || 0) as number,
         isEditing: false,
@@ -516,7 +516,11 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
       }
 
       if (product && !item.productDescription) {
-        item.productDescription = (product.displayName || product.name || '') as string;
+        const variants = product['variants'] as Array<Record<string, unknown>> | undefined;
+        const variant = item.variantId && variants?.length
+          ? variants.find((v) => v['variantId'] === item.variantId)
+          : undefined;
+        item.productDescription = OrderLineItemHelper.composeDescription(product, variant);
       }
 
       return OrderLineItemHelper.updateCalculations({
