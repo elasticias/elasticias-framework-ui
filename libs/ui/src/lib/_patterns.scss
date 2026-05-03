@@ -1,0 +1,23 @@
+/* Comptoir patterns — utility classes lifted from per-app custom.scss
+   into the shared lib so consumers don't reimplement them.
+
+   Depends on the token CSS vars defined in `_comptoir.scss`.
+   Apps include both partials via the `comptoir.scss` barrel. */
+
+/* ── action-btn / action-btn-text ────────────────────────────────
+   Inline-flex wrappers used by ef-toolbar, ef-datatable-actionbar,
+   and any consumer that wants compact action buttons. The wrappers
+   are radius-neutral — the inner .p-button picks up the active
+   PrimeNG preset's radii. No body.theme-* overrides needed. */
+
+.action-btn {
+  display: inline-flex;
+  margin: 0.1rem;
+}
+
+.action-btn-text {
+  display: inline-flex;
+  width:  inherit;
+  height: var(--hit);  /* 32px compact, from libs/tokens/targets.json */
+  margin: 0.1rem;
+}
