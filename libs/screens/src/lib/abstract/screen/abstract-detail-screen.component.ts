@@ -36,8 +36,18 @@ export abstract class AbstractDetailScreenComponent
 
     const screenConfig = this.getConfig();
     if (screenConfig) {
-      this.initializeReferenceKeys(screenConfig.DETAILS_REFERENTIALS_KEYS);
-      this.loadReferenceData();
+      const hasDynamicRefs = (screenConfig.DETAILS_REFERENTIALS_KEYS?.length ?? 0) > 0;
+      const hasStaticLists = (screenConfig.DETAILS_STATIC_LISTS?.length ?? 0) > 0;
+
+      if (hasDynamicRefs) {
+        this.initializeReferenceKeys(screenConfig.DETAILS_REFERENTIALS_KEYS);
+      }
+      if (hasStaticLists) {
+        this.initializeStaticLists(screenConfig.DETAILS_STATIC_LISTS);
+      }
+      if (hasDynamicRefs || hasStaticLists) {
+        this.loadReferenceData(screenConfig.REF_DATA_OPTIONS);
+      }
     }
   }
 
