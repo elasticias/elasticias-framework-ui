@@ -10,11 +10,31 @@
   [styleClass]="styleClass"
   [position]="position"
   [appendTo]="appendTo"
+  [footerTemplate]="defaultActions ? defaultFooterTpl : null"
   (onShow)="handleShow()"
   (onHide)="handleHide()"
 >
   <ng-content />
-  <ng-template #footer>
-    <ng-content select="[dialogFooter]" />
-  </ng-template>
 </p-dialog>
+
+<!-- Default action footer. Declared outside <p-dialog> because its <ng-template>
+     is a view child of ef-dialog, not a content child of <p-dialog>; we hand it
+     to <p-dialog> via the [footerTemplate] input above. -->
+<ng-template #defaultFooter>
+  <div class="flex justify-end gap-2">
+    <ef-button
+      [labelKey]="cancelLabelKey"
+      [label]="cancelLabel"
+      [styleClass]="cancelStyleClass"
+      (clickEvent)="onDefaultCancel()"
+    />
+    <ef-button
+      [labelKey]="saveLabelKey"
+      [label]="saveLabel"
+      [icon]="saveIcon"
+      [styleClass]="saveStyleClass"
+      [disabled]="saveDisabled"
+      (clickEvent)="onDefaultSave()"
+    />
+  </div>
+</ng-template>
