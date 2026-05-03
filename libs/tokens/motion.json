@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "name": "comptoir.motion",
+
+  "duration": {
+    "fast": "140ms",
+    "base": "260ms",
+    "slow": "480ms"
+  },
+
+  "easing": {
+    "spring": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "out":    "cubic-bezier(0.22, 1, 0.36, 1)",
+    "linear": "linear"
+  },
+
+  "reducedMotion": {
+    "note": "Honor prefers-reduced-motion. Animations collapse to instant; transitions clamp to 0.01ms.",
+    "transitionDuration": "0.01ms",
+    "animationDuration":  "0.01ms"
+  }
+}
