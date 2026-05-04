@@ -28,6 +28,7 @@ export { EfAppShellComponent } from './lib/layout/ef-app-shell/ef-app-shell.comp
 export { EfAppShellMobileComponent } from './lib/layout/ef-app-shell-mobile/ef-app-shell-mobile.component';
 export { EfAppMainComponent } from './lib/layout/ef-app-main/ef-app-main.component';
 export { EfAppTopComponent } from './lib/layout/ef-app-top/ef-app-top.component';
+export { EfPageHeadComponent } from './lib/layout/ef-page-head/ef-page-head.component';
 export { EfModuleRailComponent } from './lib/layout/ef-module-rail/ef-module-rail.component';
 export { EfModuleSideComponent } from './lib/layout/ef-module-side/ef-module-side.component';
 export { EfBottomSheetComponent } from './lib/layout/ef-bottom-sheet/ef-bottom-sheet.component';
