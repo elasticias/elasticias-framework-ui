@@ -1,15 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
-import { EfActiveModuleService } from '@elasticias/core';
 
 /**
  * Top chrome bar for the desktop and mobile shells.
  *
  * Layout is three slots: `breadcrumb` (left), `search` (centre), and
- * `actions` (right). Apps project content into each slot. When no
- * breadcrumb is projected, the active module's `labelKey` renders as
- * a fallback.
+ * `actions` (right). Apps project content into each slot.
  *
  * Usage:
  * ```html
@@ -22,7 +18,8 @@ import { EfActiveModuleService } from '@elasticias/core';
  * ```
  *
  * The component itself stays content-light — it owns layout, height
- * (`--hit-base` × 1.4), divider, and the active-module fallback only.
+ * (`--hit-base` × 1.4), and the divider only. Per-screen breadcrumb
+ * lives in `ef-page-head` below the top bar.
  */
 @Component({
     selector: 'ef-app-top',
@@ -30,10 +27,6 @@ import { EfActiveModuleService } from '@elasticias/core';
     templateUrl: './ef-app-top.component.html',
     styleUrl: './ef-app-top.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule],
 })
-export class EfAppTopComponent {
-    private readonly active = inject(EfActiveModuleService);
-
-    readonly fallbackLabelKey = computed(() => this.active.activeModule()?.labelKey ?? null);
-}
+export class EfAppTopComponent {}
