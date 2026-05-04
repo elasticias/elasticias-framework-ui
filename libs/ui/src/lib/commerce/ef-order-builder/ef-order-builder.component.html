@@ -46,6 +46,67 @@
       </div>
     }
   </div>
+
+  @if (config().enableQuickAdd && !readonly()) {
+    <div class="grid grid-cols-12 items-baseline gap-2 mt-4 mb-2">
+      <ef-label labelKey="label.article" for="quickAdd.product" styleClass="col-span-12 md:col-span-6 form-label-left" />
+      <ef-label labelKey="label.sale_price" for="quickAdd.price" styleClass="col-span-2 form-label-left" />
+      <ef-label labelKey="label.quantity" for="quickAdd.quantity" styleClass="col-span-2 form-label-left" />
+    </div>
+    <div class="grid grid-cols-12 items-center gap-2">
+      <div class="col-span-12 md:col-span-6">
+        <ef-select
+          [ngModel]="quickAddProduct()"
+          (ngModelChange)="onQuickAddProductSelect($event)"
+          name="quickAdd.product"
+          inputId="quickAdd.product"
+          [options]="flattenedProductOptions()"
+          optionLabel="_displayLabel"
+          placeholderKey="placeholder.select_article"
+          filter
+          showClear
+          [disabled]="readonly()"
+        />
+      </div>
+      <div class="col-span-2">
+        <ef-inputnumber
+          id="quickAdd.price"
+          name="quickAdd.price"
+          [ngModel]="quickAddPrice()"
+          (ngModelChange)="quickAddPrice.set($event)"
+          mode="currency"
+          [currency]="currency()"
+          [locale]="locale()"
+          [min]="0"
+          [disabled]="readonly()"
+          size="small"
+        />
+      </div>
+      <div class="col-span-2">
+        <ef-inputnumber
+          id="quickAdd.quantity"
+          name="quickAdd.quantity"
+          [ngModel]="quickAddQuantity()"
+          (ngModelChange)="quickAddQuantity.set($event)"
+          [min]="1"
+          [minFractionDigits]="4"
+          [maxFractionDigits]="4"
+          [locale]="locale()"
+          [disabled]="readonly()"
+          size="small"
+        />
+      </div>
+      <div class="col-span-2 flex justify-start">
+        <ef-button
+          icon="pi pi-plus"
+          [rounded]="true"
+          severity="primary"
+          [disabled]="quickAddDisabled()"
+          (clickEvent)="addQuickProduct()"
+        />
+      </div>
+    </div>
+  }
 </p-fieldset>
 
 <div class="my-4"></div>
@@ -68,9 +129,9 @@
   >
     <ng-template #header>
       <tr>
-        <th>Description</th>
-        <th class="w-[120px] !text-end">P.U</th>
-        <th class="w-[120px] !text-end">Quantité</th>
+        <th>{{ 'label.article' | translate }}</th>
+        <th class="w-[120px] !text-end">{{ 'label.sale_price' | translate }}</th>
+        <th class="w-[120px] !text-end">{{ 'label.quantity' | translate }}</th>
         @if (config().enableTax) {
           <th class="w-[120px] !text-end">TVA (%)</th>
         }

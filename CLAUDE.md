@@ -44,6 +44,10 @@ Libs are published to GitHub Packages under `@elasticias` scope. Apps consume th
 
 All `ef-*` UI components expose `*Key` input variants for i18n: `labelKey`, `placeholderKey`, `legendKey`, `headerKey`. Consuming apps **must** use these instead of the plain `label`/`placeholder`/`legend`/`header` inputs. The `*Key` inputs are translated via `ngx-translate`'s `TranslateModule`. Translation files live in each app's `src/assets/i18n/` directory (e.g. `fr.json`, `ar.json`). Always add keys to **both** `fr.json` (with proper French accents: é, è, ê, ë, à, ô, ù, ç, etc.) and `ar.json` (Arabic).
 
+## Wrapper Convention
+
+Always prefer the `ef-*` wrappers (`ef-button`, `ef-select`, `ef-inputnumber`, `ef-datepicker`, `ef-label`, `ef-fieldset`, `ef-datatable`, `ef-dialog`, ...) over raw PrimeNG primitives (`p-button`, `p-dropdown`, `p-inputnumber`, ...). This applies inside both the shared libs and consuming apps. The wrappers enforce the `*Key` i18n inputs, rounded styling defaults, and consistent severities/sizes. New components and templates should use `ef-*`; don't refactor existing `p-*` usages unless the task requires it.
+
 ## Nx Guidelines
 
 - Prefix nx commands with `npx` (no global install)
