@@ -2,7 +2,7 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { EF_MODULES_TOKEN, EfModule, EfModuleId } from './ef-module-registry';
+import { EF_MODULES_TOKEN, EfModule, EfModuleId, EfNavItem } from './ef-module-registry';
 
 /**
  * Single source of truth for "which ERP module is active right now."
@@ -25,9 +25,11 @@ export class EfActiveModuleService {
     private readonly destroyRef = inject(DestroyRef);
 
     private readonly _activeModule = signal<EfModule | null>(null);
+    private readonly _activeNavItem = signal<EfNavItem | null>(null);
 
     readonly activeModule = this._activeModule.asReadonly();
     readonly activeModuleId = computed(() => this._activeModule()?.id ?? null);
+    readonly activeNavItem = this._activeNavItem.asReadonly();
 
     constructor() {
         this.resolveFromUrl(this.router.url);
@@ -56,20 +58,31 @@ export class EfActiveModuleService {
     private resolveFromUrl(url: string): void {
         const path = url.split('?')[0].split('#')[0];
 
-        let best: EfModule | null = null;
+        let bestModule: EfModule | null = null;
+        let bestNavItem: EfNavItem | null = null;
         let bestLen = 0;
         for (const m of this.modules) {
-            const candidates = this.routesFor(m);
-            for (const route of candidates) {
+            for (const route of this.routesFor(m)) {
                 if (path === route || path.startsWith(route + '/')) {
                     if (route.length > bestLen) {
-                        best = m;
+                        bestModule = m;
+                        bestNavItem = this.findNavItem(m, route);
                         bestLen = route.length;
                     }
                 }
             }
         }
-        this._activeModule.set(best);
+        this._activeModule.set(bestModule);
+        this._activeNavItem.set(bestNavItem);
+    }
+
+    private findNavItem(m: EfModule, route: string): EfNavItem | null {
+        for (const section of m.navSections) {
+            for (const item of section.items) {
+                if (item.route === route) return item;
+            }
+        }
+        return null;
     }
 
     /**
