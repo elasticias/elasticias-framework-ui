@@ -116,6 +116,54 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
 
   orderLines = computed(() => this.order().orderLines || []);
 
+  /**
+   * Flatten products → one option per active variant for the inline ef-select.
+   * Simple products (no variants) get a single row with the product label.
+   * Each option exposes `_displayLabel` for `optionLabel` and carries the
+   * underlying product/variant references for `onProductSelect`.
+   */
+  flattenedProductOptions = computed<Array<Record<string, unknown>>>(() => {
+    const keyField = this.productKeyField();
+    const list: Array<Record<string, unknown>> = [];
+
+    for (const product of this.products()) {
+      const variants = product['variants'] as
+        | Array<Record<string, unknown>>
+        | undefined;
+      const activeVariants = (variants ?? []).filter(
+        (v) => v['isActive'] !== false,
+      );
+      const productLabel = (product['displayName'] ||
+        product['name'] ||
+        '') as string;
+
+      if (activeVariants.length === 0) {
+        list.push({
+          _product: product,
+          _variant: null,
+          _displayLabel: productLabel,
+          _key: `${product[keyField]}::`,
+        });
+        continue;
+      }
+
+      for (const variant of activeVariants) {
+        const variantTitle = (variant['title'] || '') as string;
+        const label = variantTitle
+          ? `${productLabel} - ${variantTitle}`
+          : productLabel;
+        list.push({
+          _product: product,
+          _variant: variant,
+          _displayLabel: label,
+          _key: `${product[keyField]}::${variant['variantId']}`,
+        });
+      }
+    }
+
+    return list;
+  });
+
   grossTotal = computed(() => {
     return this.orderLines().reduce((total, item) => {
       return total + (item.productUnitPrice || 0) * (item.quantity || 0);
@@ -287,33 +335,41 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
 
     const items = this.orderLines();
     const index = items.findIndex((i) => i.id === item.id);
+    if (index === -1) return;
 
-    if (index !== -1) {
-      // For Variable products with a default variant, use variant data
-      const variants = item.product['variants'] as Array<Record<string, unknown>> | undefined;
-      const defaultVariantId = item.product['defaultVariantId'] as string | undefined;
-      const variant = defaultVariantId && variants?.length
-        ? variants.find((v) => v['variantId'] === defaultVariantId)
-        : variants?.[0];
+    // The dropdown emits a flattened option `{ _product, _variant, _displayLabel, _key }`.
+    const option = item.product as Record<string, unknown>;
+    const product = (option['_product'] as Record<string, unknown>) ?? option;
+    const variant =
+      (option['_variant'] as Record<string, unknown> | null | undefined) ??
+      undefined;
 
-      const unitPrice = variant?.['price'] ?? item.product['unitPrice'] ?? item.product['salePrice'] ?? 0;
-      const countGroup = (variant?.['countGroup'] ?? item.product['countGroup'] ?? '') as string;
+    const unitPrice = (variant?.['price'] ??
+      product['unitPrice'] ??
+      product['salePrice'] ??
+      0) as number;
+    const countGroup = (variant?.['countGroup'] ??
+      product['countGroup'] ??
+      '') as string;
 
-      const updatedItem = OrderLineItemHelper.updateCalculations({
-        ...item,
-        productId: this.productKey(item.product),
-        variantId: (variant?.['variantId'] as string) ?? null,
-        countGroup: countGroup,
-        productDescription: OrderLineItemHelper.composeDescription(item.product, variant),
-        productUnitPrice: unitPrice as number,
-        taxRate: (item.product['taxRate'] || 0) as number,
-        isEditing: false,
-      });
+    const updatedItem = OrderLineItemHelper.updateCalculations({
+      ...item,
+      product,
+      productId: this.productKey(product),
+      variantId: (variant?.['variantId'] as string) ?? null,
+      countGroup,
+      productDescription: OrderLineItemHelper.composeDescription(
+        product,
+        variant,
+      ),
+      productUnitPrice: unitPrice,
+      taxRate: (product['taxRate'] || 0) as number,
+      isEditing: false,
+    });
 
-      const updatedItems = [...items];
-      updatedItems[index] = updatedItem;
-      this.updateOrderLines(updatedItems);
-    }
+    const updatedItems = [...items];
+    updatedItems[index] = updatedItem;
+    this.updateOrderLines(updatedItems);
   }
 
   startEditField(item: OrderLineItem, fieldName: string): void {
@@ -382,7 +438,11 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   }
 
   addProductsFromCatalogue(
-    selectedProducts: Array<{ product: Record<string, unknown>; quantity: number; variantId?: string }>,
+    selectedProducts: Array<{
+      product: Record<string, unknown>;
+      quantity: number;
+      variantId?: string;
+    }>,
   ): void {
     if (this.readonly() || !selectedProducts || selectedProducts.length === 0) {
       return;
@@ -397,14 +457,21 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
       const productKeyValue = product[keyField];
       // Match by both productId AND variantId to avoid merging different variants
       const existingIndex = currentItems.findIndex(
-        (item) => item.productId === productKeyValue && item.variantId === (variantId ?? null),
+        (item) =>
+          item.productId === productKeyValue &&
+          item.variantId === (variantId ?? null),
       );
 
       if (existingIndex !== -1) {
+        // The catalogue is seeded with current order lines via
+        // `initialSelectedItems` and shows live steppers, so the emitted
+        // selection represents the desired final quantity for each product
+        // — replace rather than add, otherwise reopening the catalogue and
+        // re-validating doubles every previously-selected line.
         const existing = currentItems[existingIndex];
         const updated = OrderLineItemHelper.updateCalculations({
           ...existing,
-          quantity: (existing.quantity || 0) + quantity,
+          quantity,
         });
         currentItems[existingIndex] = updated;
       } else {
@@ -488,8 +555,12 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   private getCustomerName(customerId: string | null): string | undefined {
     if (!customerId) return undefined;
 
-    const customer = this.customers().find((c) => c['customerId'] === customerId);
-    return (customer?.['companyName'] || customer?.['name']) as string | undefined;
+    const customer = this.customers().find(
+      (c) => c['customerId'] === customerId,
+    );
+    return (customer?.['companyName'] || customer?.['name']) as
+      | string
+      | undefined;
   }
 
   private productKey(product: Record<string, unknown>): unknown {
@@ -516,11 +587,17 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
       }
 
       if (product && !item.productDescription) {
-        const variants = product['variants'] as Array<Record<string, unknown>> | undefined;
-        const variant = item.variantId && variants?.length
-          ? variants.find((v) => v['variantId'] === item.variantId)
-          : undefined;
-        item.productDescription = OrderLineItemHelper.composeDescription(product, variant);
+        const variants = product['variants'] as
+          | Array<Record<string, unknown>>
+          | undefined;
+        const variant =
+          item.variantId && variants?.length
+            ? variants.find((v) => v['variantId'] === item.variantId)
+            : undefined;
+        item.productDescription = OrderLineItemHelper.composeDescription(
+          product,
+          variant,
+        );
       }
 
       return OrderLineItemHelper.updateCalculations({
