@@ -92,6 +92,7 @@ export interface DocumentConfig {
   enableDiscount?: boolean;
   showCatalogue?: boolean;
   allowInlineEdit?: boolean;
+  enableQuickAdd?: boolean;
   showNotes?: boolean;
   showProductsSummary?: boolean;
   currencyCode?: string;

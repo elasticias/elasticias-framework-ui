@@ -38,6 +38,7 @@ import { EfDatepickerComponent } from '../../forms/ef-datepicker/ef-datepicker.c
 import { EfInputNumberComponent } from '../../forms/ef-inputnumber/ef-inputnumber.component';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfFieldsetComponent } from '../../layout/ef-fieldset/ef-fieldset.component';
+import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 import { UuidUtils, AppUtils } from '@elasticias/utils';
 
 /**
@@ -75,6 +76,7 @@ import { UuidUtils, AppUtils } from '@elasticias/utils';
     EfInputNumberComponent,
     EfLabelComponent,
     EfFieldsetComponent,
+    EfButtonComponent,
   ],
 })
 export class EfOrderBuilderComponent implements OnInit, OnDestroy {
@@ -113,6 +115,14 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   private originalOrder = signal<OrderEntity | null>(null);
   private updateTimeout: ReturnType<typeof setTimeout> | null = null;
   private initialized = signal(false);
+
+  quickAddProduct = signal<Record<string, unknown> | null>(null);
+  quickAddPrice = signal<number>(0);
+  quickAddQuantity = signal<number>(1);
+
+  quickAddDisabled = computed(
+    () => this.quickAddProduct() === null || (this.quickAddQuantity() ?? 0) <= 0,
+  );
 
   orderLines = computed(() => this.order().orderLines || []);
 
@@ -435,6 +445,57 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   handleOpenCatalogue(): void {
     if (this.readonly()) return;
     this.openCatalogue.emit();
+  }
+
+  onQuickAddProductSelect(option: Record<string, unknown> | null): void {
+    this.quickAddProduct.set(option);
+
+    if (!option) {
+      this.quickAddPrice.set(0);
+      return;
+    }
+
+    const product = (option['_product'] as Record<string, unknown>) ?? option;
+    const variant =
+      (option['_variant'] as Record<string, unknown> | null | undefined) ??
+      undefined;
+
+    const unitPrice = (variant?.['price'] ??
+      product['unitPrice'] ??
+      product['salePrice'] ??
+      0) as number;
+
+    this.quickAddPrice.set(unitPrice);
+  }
+
+  addQuickProduct(): void {
+    if (this.readonly() || this.quickAddDisabled()) return;
+
+    const option = this.quickAddProduct() as Record<string, unknown>;
+    const product = (option['_product'] as Record<string, unknown>) ?? option;
+    const variant =
+      (option['_variant'] as Record<string, unknown> | null | undefined) ??
+      undefined;
+    const variantId = (variant?.['variantId'] as string | undefined) ?? undefined;
+
+    const newItem = OrderLineItemHelper.createFromProduct(
+      product,
+      this.quickAddQuantity(),
+      this.productKeyField(),
+      variantId,
+    );
+
+    const overriddenItem = OrderLineItemHelper.updateCalculations({
+      ...newItem,
+      productUnitPrice: this.quickAddPrice(),
+    });
+
+    this.updateOrderLines([...this.orderLines(), overriddenItem]);
+    this.productsAdded.emit([overriddenItem]);
+
+    this.quickAddProduct.set(null);
+    this.quickAddPrice.set(0);
+    this.quickAddQuantity.set(1);
   }
 
   addProductsFromCatalogue(
