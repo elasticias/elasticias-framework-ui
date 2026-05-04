@@ -1,25 +1,19 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { EfActiveModuleService } from '@elasticias/core';
 
 /**
  * Top chrome bar for the desktop and mobile shells.
  *
  * Layout is three slots: `breadcrumb` (left), `search` (centre), and
- * `actions` (right). Apps project content into each slot.
+ * `actions` (right). Apps project into `search` and `actions` for global
+ * features (⌘K, notifications bell, profile chip).
  *
- * Usage:
- * ```html
- * <ef-app-top>
- *   <ef-breadcrumb breadcrumb [...]/>
- *   <ef-global-search search />
- *   <ef-notifications-bell actions />
- *   <ef-tenant-avatar actions />
- * </ef-app-top>
- * ```
- *
- * The component itself stays content-light — it owns layout, height
- * (`--hit-base` × 1.4), and the divider only. Per-screen breadcrumb
- * lives in `ef-page-head` below the top bar.
+ * The breadcrumb slot fills automatically from `EfActiveModuleService`:
+ * a leading dot in the active module's accent, the module label, then
+ * the active nav-item label as the leaf. Apps that need a custom
+ * breadcrumb can still project their own content into `[breadcrumb]`.
  */
 @Component({
     selector: 'ef-app-top',
@@ -27,6 +21,13 @@ import { CommonModule } from '@angular/common';
     templateUrl: './ef-app-top.component.html',
     styleUrl: './ef-app-top.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule],
+    imports: [CommonModule, TranslateModule],
 })
-export class EfAppTopComponent {}
+export class EfAppTopComponent {
+    private readonly active = inject(EfActiveModuleService);
+
+    readonly module = this.active.activeModule;
+    readonly navItem = this.active.activeNavItem;
+
+    readonly hasBreadcrumb = computed(() => this.module() != null);
+}

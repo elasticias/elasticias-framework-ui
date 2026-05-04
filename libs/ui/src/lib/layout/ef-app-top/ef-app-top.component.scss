@@ -27,19 +27,43 @@
   gap: 12px;
 }
 
-.ef-app-top__fallback {
+.ef-app-top__crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: 'Manrope', system-ui, sans-serif;
-  font-size: 14.5px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text);
-
-  /* The fallback only shows when no [breadcrumb] is projected;
-     project content into [breadcrumb] to override. */
-  &:has(+ *) { display: none; }
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-mute);
 }
 
-/* If anything is projected into [breadcrumb], hide the fallback. */
-.ef-app-top__slot--breadcrumb:has(> *:first-child:not(.ef-app-top__fallback)) {
-  .ef-app-top__fallback { display: none; }
+.ef-app-top__crumb-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--m-admin);
+  flex-shrink: 0;
+
+  &[data-module='sales']     { background: var(--m-sales); }
+  &[data-module='purchase']  { background: var(--m-purchase); }
+  &[data-module='stock']     { background: var(--m-stock); }
+  &[data-module='pos']       { background: var(--m-pos); }
+  &[data-module='marketing'] { background: var(--m-marketing); }
+  &[data-module='store']     { background: var(--m-store); }
+  &[data-module='finance']   { background: var(--m-finance); }
+  &[data-module='admin']     { background: var(--m-admin); }
+}
+
+.ef-app-top__crumb-root {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ef-app-top__crumb-sep {
+  color: var(--text-soft);
+}
+
+.ef-app-top__crumb-leaf {
+  color: var(--text-mute);
 }
