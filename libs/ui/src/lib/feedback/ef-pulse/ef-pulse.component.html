@@ -1,0 +1,9 @@
+<span class="ef-pulse" [attr.data-severity]="severity" [class.is-static]="!active">
+  <span class="ef-pulse__halo" aria-hidden="true"></span>
+  <span class="ef-pulse__dot" aria-hidden="true"></span>
+  @if (labelKey) {
+    <span class="ef-pulse__label">{{ labelKey | translate }}</span>
+  } @else if (label) {
+    <span class="ef-pulse__label">{{ label }}</span>
+  }
+</span>
