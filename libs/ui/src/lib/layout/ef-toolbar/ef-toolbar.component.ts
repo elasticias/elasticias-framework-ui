@@ -49,6 +49,10 @@ export class EfToolbarComponent {
 
   // Search Actions
   @Output() add = new EventEmitter();
+  // `search` collides with the native HTMLInputElement `search` event under
+  // @angular-eslint/no-output-native, but renaming would churn every consumer
+  // template — keep the name, suppress the rule for this line only.
+  // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() search = new EventEmitter();
   @Output() clear = new EventEmitter();
 
