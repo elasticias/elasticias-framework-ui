@@ -92,6 +92,9 @@
                             (ngModelChange)="updateVariantQuantity(product, entry.variantId!, $event)"
                             [min]="0"
                             [max]="1000"
+                            [minFractionDigits]="4"
+                            [maxFractionDigits]="4"
+                            [locale]="localeCode()"
                           />
                           <ef-button
                             icon="pi pi-times"
@@ -148,6 +151,9 @@
                         (ngModelChange)="updateProductQuantity(product, $event)"
                         [min]="0"
                         [max]="1000"
+                        [minFractionDigits]="4"
+                        [maxFractionDigits]="4"
+                        [locale]="localeCode()"
                       />
                     </div>
                   } @else {

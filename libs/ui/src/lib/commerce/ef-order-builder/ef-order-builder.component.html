@@ -97,8 +97,8 @@
                 (ngModelChange)="onProductSelect(item)"
                 [name]="'item.product.' + rowIndex"
                 [inputId]="'item.product.' + rowIndex"
-                [options]="products()"
-                optionLabel="displayName"
+                [options]="flattenedProductOptions()"
+                optionLabel="_displayLabel"
                 placeholderKey="placeholder.select_article"
                 filter
                 showClear
@@ -129,6 +129,9 @@
               (ngModelChange)="onFieldChange(item)"
               (onBlur)="saveEditingRow(item)"
               [min]="1"
+              [minFractionDigits]="4"
+              [maxFractionDigits]="4"
+              [locale]="locale()"
               [disabled]="readonly()"
               size="small"
             />
@@ -233,6 +236,9 @@
                 (ngModelChange)="onFieldChange(item)"
                 (onBlur)="stopEditField(item)"
                 [min]="1"
+                [minFractionDigits]="4"
+                [maxFractionDigits]="4"
+                [locale]="locale()"
                 size="small"
                 class="!text-end"
               />
@@ -244,7 +250,7 @@
                     : 'block px-2 py-1 text-end'
                 "
               >
-                {{ item.quantity }}
+                {{ item.quantity | number: '1.4-4' : locale() }}
               </span>
             }
           </td>

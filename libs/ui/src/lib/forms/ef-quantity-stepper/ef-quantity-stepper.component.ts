@@ -64,6 +64,21 @@ export class EfQuantityStepperComponent implements ControlValueAccessor {
   @Input() step = 1;
 
   /**
+   * Minimum fraction digits to display (forwarded to ef-inputnumber).
+   */
+  @Input() minFractionDigits?: number;
+
+  /**
+   * Maximum fraction digits to display (forwarded to ef-inputnumber).
+   */
+  @Input() maxFractionDigits?: number;
+
+  /**
+   * Locale used for number formatting (forwarded to ef-inputnumber).
+   */
+  @Input() locale?: string;
+
+  /**
    * When present, it specifies that the component should be disabled
    */
   @Input() disabled = false;

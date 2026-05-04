@@ -104,6 +104,9 @@ export class EfProductCatalogueComponent implements OnChanges {
   /** Currency code for price formatting */
   currencyCode = input<string>('MAD');
 
+  /** Locale used for number/currency formatting and the quantity stepper */
+  localeCode = input<string>('fr-FR');
+
   /**
    * Custom product thumbnail template.
    * Context: { $implicit: CatalogueProduct }
