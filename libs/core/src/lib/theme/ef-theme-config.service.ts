@@ -30,34 +30,27 @@ export class EfThemeConfigService {
 
     transitionComplete = signal<boolean>(false);
 
-    private initialized = false;
-
     constructor() {
         const initialState = this.loadAppState();
         this.appState.set({ ...initialState });
+
+        // Apply preset class + RTL synchronously so the first paint has
+        // the right theme — the effect below picks up subsequent changes
+        // (including any subclass `appState.update()` issued before its
+        // first run).
         this.updatePresetClass(initialState);
-
-        effect(
-            () => {
-                const state = this.appState();
-
-                if (!this.initialized || !state) {
-                    this.initialized = true;
-                    return;
-                }
-                this.saveAppState(state);
-                this.updatePresetClass(state);
-                this.handleDarkModeTransition(state);
-                this.applyRTL(state);
-            },
-        );
-
-        // Apply RTL on initial load
-        if (isPlatformBrowser(this.platformId)) {
-            if (initialState?.RTL) {
-                this.document.documentElement.setAttribute('dir', 'rtl');
-            }
+        if (isPlatformBrowser(this.platformId) && initialState?.RTL) {
+            this.document.documentElement.setAttribute('dir', 'rtl');
         }
+
+        effect(() => {
+            const state = this.appState();
+            if (!state) return;
+            this.saveAppState(state);
+            this.updatePresetClass(state);
+            this.handleDarkModeTransition(state);
+            this.applyRTL(state);
+        });
     }
 
     private static readonly PRESET_CLASS_MAP: Record<string, string> = {
