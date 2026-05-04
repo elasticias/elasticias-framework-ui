@@ -59,14 +59,32 @@ export class EfActiveModuleService {
         let best: EfModule | null = null;
         let bestLen = 0;
         for (const m of this.modules) {
-            const route = m.defaultRoute;
-            if (path === route || path.startsWith(route + '/')) {
-                if (route.length > bestLen) {
-                    best = m;
-                    bestLen = route.length;
+            const candidates = this.routesFor(m);
+            for (const route of candidates) {
+                if (path === route || path.startsWith(route + '/')) {
+                    if (route.length > bestLen) {
+                        best = m;
+                        bestLen = route.length;
+                    }
                 }
             }
         }
         this._activeModule.set(best);
+    }
+
+    /**
+     * Every URL prefix that should resolve back to this module: the
+     * `defaultRoute` plus every nav item route. Modules whose nav items
+     * span multiple URL prefixes (e.g. sales spread across `/operations/sales`
+     * and `/parameters/sales`) need this to stay active across all of them.
+     */
+    private routesFor(m: EfModule): string[] {
+        const routes: string[] = [m.defaultRoute];
+        for (const section of m.navSections) {
+            for (const item of section.items) {
+                routes.push(item.route);
+            }
+        }
+        return routes;
     }
 }
