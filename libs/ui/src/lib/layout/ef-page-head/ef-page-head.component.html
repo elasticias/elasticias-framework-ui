@@ -1,0 +1,29 @@
+<header class="ef-page-head">
+    @if (breadcrumb) {
+        <nav class="ef-page-head__crumb" aria-label="breadcrumb">
+            @if (module(); as m) {
+                <span class="ef-page-head__crumb-root">{{ m.labelKey | translate }}</span>
+                @if (titleKey) {
+                    <span class="ef-page-head__crumb-sep" aria-hidden="true">/</span>
+                }
+            }
+            @if (titleKey) {
+                <span class="ef-page-head__crumb-leaf">{{ titleKey | translate }}</span>
+            }
+        </nav>
+    }
+
+    <div class="ef-page-head__bar">
+        <div class="ef-page-head__title-block">
+            @if (titleKey) {
+                <h1 class="ef-page-head__title">{{ titleKey | translate }}</h1>
+            }
+            <p class="ef-page-head__subtitle">
+                <ng-content select="[subtitle]"></ng-content>
+            </p>
+        </div>
+        <div class="ef-page-head__actions">
+            <ng-content select="[actions]"></ng-content>
+        </div>
+    </div>
+</header>
