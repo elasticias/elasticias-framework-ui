@@ -3,9 +3,6 @@
   <div class="grid grid-cols-12 items-baseline gap-2 mb-2">
     <ef-label [label]="config().customerLabel" for="order.customerId" styleClass="col-span-12 md:col-span-6 form-label-left" required />
     <ef-label [label]="config().dateLabel" for="order.orderDate" styleClass="col-span-3 form-label-left" required />
-    @if (config().showCatalogue) {
-      <ef-label labelKey="label.article_catalogue" styleClass="col-span-3 form-label-left" />
-    }
   </div>
   <div class="grid grid-cols-12 items-baseline gap-2 mb-2 mt-4">
     <div class="col-span-12 md:col-span-6">
@@ -34,17 +31,6 @@
         required
       />
     </div>
-    @if (config().showCatalogue) {
-      <div class="col-span-3">
-        <p-button
-          icon="pi pi-search"
-          size="small"
-          label="Catalogue des articles"
-          [disabled]="readonly()"
-          (click)="handleOpenCatalogue()"
-        />
-      </div>
-    }
   </div>
 
   @if (config().enableQuickAdd && !readonly()) {
@@ -96,14 +82,25 @@
           size="small"
         />
       </div>
-      <div class="col-span-2 flex justify-start">
+      <div class="col-span-2 flex justify-start gap-2">
         <ef-button
           icon="pi pi-plus"
           [rounded]="true"
           severity="primary"
+          tooltipKey="tooltip.add_article"
           [disabled]="quickAddDisabled()"
           (clickEvent)="addQuickProduct()"
         />
+        @if (config().showCatalogue) {
+          <ef-button
+            icon="pi pi-search"
+            [rounded]="true"
+            severity="primary"
+            tooltipKey="tooltip.open_catalogue"
+            [disabled]="readonly()"
+            (clickEvent)="handleOpenCatalogue()"
+          />
+        }
       </div>
     </div>
   }

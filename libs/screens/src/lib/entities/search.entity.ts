@@ -22,8 +22,8 @@ export class SearchEntity extends AbstractEntity {
   totalPages = 0;
   totalCount = 0;
   items: AbstractEntity[] = [];
-  start: Date | null = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
-  end: Date | null = new Date();
+  start: Date | null = null;
+  end: Date | null = null;
   startEndDateRanges: Date[] | null = null;
 
   constructor(entity: Record<string, unknown>) {
@@ -41,7 +41,7 @@ export class SearchEntity extends AbstractEntity {
       this.sort = [{ field: SortDirectionEnum.DEFAULT_SORT_FIELD, sortDirection: SortDirectionEnum.DESC }];
     }
 
-    if (!this.startEndDateRanges) {
+    if (!this.startEndDateRanges && entity['start'] && entity['end']) {
       this.startEndDateRanges = [new Date(entity['start'] as string), new Date(entity['end'] as string)];
     }
   }
