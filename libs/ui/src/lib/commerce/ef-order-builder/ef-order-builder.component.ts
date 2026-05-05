@@ -121,7 +121,8 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   quickAddQuantity = signal<number>(1);
 
   quickAddDisabled = computed(
-    () => this.quickAddProduct() === null || (this.quickAddQuantity() ?? 0) <= 0,
+    () =>
+      this.quickAddProduct() === null || (this.quickAddQuantity() ?? 0) <= 0,
   );
 
   orderLines = computed(() => this.order().orderLines || []);
@@ -476,7 +477,8 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     const variant =
       (option['_variant'] as Record<string, unknown> | null | undefined) ??
       undefined;
-    const variantId = (variant?.['variantId'] as string | undefined) ?? undefined;
+    const variantId =
+      (variant?.['variantId'] as string | undefined) ?? undefined;
 
     const newItem = OrderLineItemHelper.createFromProduct(
       product,
