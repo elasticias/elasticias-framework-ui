@@ -92,7 +92,6 @@
                             (ngModelChange)="updateVariantQuantity(product, entry.variantId!, $event)"
                             [min]="0"
                             [max]="1000"
-                            [minFractionDigits]="4"
                             [maxFractionDigits]="4"
                             [locale]="localeCode()"
                           />
@@ -151,7 +150,6 @@
                         (ngModelChange)="updateProductQuantity(product, $event)"
                         [min]="0"
                         [max]="1000"
-                        [minFractionDigits]="4"
                         [maxFractionDigits]="4"
                         [locale]="localeCode()"
                       />
