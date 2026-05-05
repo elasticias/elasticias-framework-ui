@@ -153,6 +153,9 @@ export abstract class AbstractSearchScreenComponent
     if (this.entity.startEndDateRanges) {
       this.searchEntity.start = this.entity.startEndDateRanges[0];
       this.searchEntity.end = this.entity.startEndDateRanges[1];
+    } else {
+      this.searchEntity.start = null;
+      this.searchEntity.end = null;
     }
 
     if (this.isLazySearch) {
