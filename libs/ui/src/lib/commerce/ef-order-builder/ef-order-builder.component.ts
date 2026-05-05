@@ -415,6 +415,7 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   onFieldChange(item: OrderLineItem): void {
     const updatedItem = OrderLineItemHelper.updateCalculations(item);
     Object.assign(item, updatedItem);
+    this.updateOrderLines([...this.orderLines()]);
   }
 
   saveEditingRow(item: OrderLineItem): void {
