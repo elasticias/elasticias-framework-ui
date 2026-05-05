@@ -14,7 +14,7 @@ on:
 
 permissions:
   contents: write
-  packages: write
+  id-token: write
 
 jobs:
   publish:
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          registry-url: 'https://npm.pkg.github.com'
+          registry-url: 'https://registry.npmjs.org'
           scope: '@elasticias'
 
       - run: npm ci
