@@ -12,6 +12,14 @@ Shared Angular libraries for the Elasticias ecosystem, published as `@elasticias
 
 This is a **libs-only** [Nx](https://nx.dev) workspace. No apps live here — apps remain in their respective .NET repos and consume these libraries via npm.
 
+## Install
+
+```bash
+npm install @elasticias/types @elasticias/utils @elasticias/core @elasticias/screens @elasticias/ui
+```
+
+Packages are hosted on GitHub Packages — see [Consuming Packages](#consuming-packages) for the `.npmrc` token setup.
+
 ## Libraries
 
 | Package | Path | Purpose |
@@ -81,87 +89,6 @@ Then install:
 ```bash
 npm install @elasticias/types @elasticias/utils @elasticias/core @elasticias/screens @elasticias/ui
 ```
-
-## Local Development (Verdaccio)
-
-Use the local [Verdaccio](https://verdaccio.org/) registry to test library changes in consuming apps (e.g. ElasticERP) before publishing to GitHub Packages.
-
-### 1. Start the local registry
-
-In a dedicated terminal:
-
-```bash
-npx nx run @elasticias/framework-ui:local-registry
-```
-
-This starts Verdaccio on `http://localhost:4873` and proxies any missing packages to npmjs.org.
-
-### 2. Build and publish all libs locally
-
-In another terminal, run the publish script:
-
-```bash
-./publish-local.sh
-```
-
-This builds all libraries in dependency order and publishes them to the local registry. If a version is already published, it is silently skipped.
-
-<details>
-<summary>Manual step-by-step (without the script)</summary>
-
-```bash
-# Build
-npx nx run-many -t build --projects=types,utils,core,screens,ui
-
-# Publish each lib
-for lib in types utils core screens ui; do
-  cd dist/libs/$lib
-  npm publish --registry http://localhost:4873 --tag latest
-  cd -
-done
-```
-
-</details>
-
-### 3. Configure the consuming app
-
-Add or update `.npmrc` in the consuming app root (e.g. `ElasticERP/src/Web/ClientApp/`):
-
-```ini
-@elasticias:registry=http://localhost:4873
-```
-
-Then install as usual:
-
-```bash
-npm install
-```
-
-npm will resolve `@elasticias/*` packages from Verdaccio and everything else from npmjs.org.
-
-### 4. Iterate
-
-After making changes to a library:
-
-1. Bump the version in the library's `package.json` (or use `npx nx release version`)
-2. Re-run `./publish-local.sh`
-3. In the consuming app: `npm install` to pick up the new version
-
-### Cleanup
-
-Stop the Verdaccio process (`Ctrl+C`) and remove the local storage:
-
-```bash
-rm -rf tmp/local-registry
-```
-
-Restore the consuming app's `.npmrc` to point back to GitHub Packages before committing:
-
-```ini
-@elasticias:registry=https://npm.pkg.github.com
-```
-
----
 
 ## Local Development (npm link)
 
@@ -284,14 +211,14 @@ All libraries are versioned together (fixed release group) using [Nx Release](ht
 
    ```bash
    git add libs/*/package.json
-   git commit -m "chore(release): v0.0.3"
+   git commit -m "chore(release): vX.Y.Z"
    ```
 
 3. **Tag and push:**
 
    ```bash
-   git tag v0.0.3
-   git push origin main v0.0.3
+   git tag vX.Y.Z
+   git push origin main vX.Y.Z
    ```
 
 4. The [`npm-publish.yml`](.github/workflows/npm-publish.yml) workflow runs automatically on `v*` tags and will:
@@ -339,14 +266,11 @@ npm view @elasticias/ui --registry=https://npm.pkg.github.com
 
 ### Version history
 
-| Version | Tag | Status |
-|---------|-----|--------|
-| 0.0.2 | `v0.0.2` | Published |
-| 0.0.1 | — | Published |
+See the [GitHub Releases page](https://github.com/elasticias/elasticias-framework-ui/releases) for the full list of published versions and auto-generated release notes.
 
 ## Published Packages
 
-All libraries are published to GitHub Packages (npm) from the [`elasticias-framework-ui`](https://github.com/elasticias/elasticias-framework-ui) repo. All packages share a single version number (see [ADR-003](../../docs/adrs/003-unified-versioning-ui-libraries.md)).
+All libraries are published to GitHub Packages (npm) from the [`elasticias-framework-ui`](https://github.com/elasticias/elasticias-framework-ui) repo. All packages share a single version number to keep peer-dependency alignment simple — bump one, bump all.
 
 | Package | Registry |
 |---------|----------|
@@ -366,3 +290,7 @@ All libraries are published to GitHub Packages (npm) from the [`elasticias-frame
 | TypeScript | 5.9.x |
 | ng-packagr | 21.x |
 | Vitest | 4.x |
+
+## License
+
+[MIT](./LICENSE) — see the LICENSE file for details. Security issues should be reported per [SECURITY.md](./SECURITY.md).
