@@ -1,6 +1,6 @@
 {
   "name": "@elasticias/screens",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "peerDependencies": {
     "@angular/common": "^21.0.0",
     "@angular/core": "^21.0.0",
@@ -19,7 +19,7 @@
     "directory": "libs/screens"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   }
 }
