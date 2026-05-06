@@ -218,13 +218,13 @@
           </td>
           @if (!readonly()) {
             <td class="w-10 !text-end">
-              <p-button
+              <ef-button
                 icon="pi pi-trash"
                 size="small"
                 [outlined]="true"
-                pTooltip="Supprimer"
+                tooltip="Supprimer"
                 tooltipPosition="top"
-                (click)="removeOrderLine(item.id)"
+                (clickEvent)="removeOrderLine(item.id)"
               />
             </td>
           }
@@ -355,13 +355,13 @@
           </td>
           @if (!readonly()) {
             <td class="w-10 !text-end">
-              <p-button
+              <ef-button
                 icon="pi pi-trash"
                 size="small"
                 [outlined]="true"
+                tooltip="Supprimer"
                 tooltipPosition="top"
-                pTooltip="Supprimer"
-                (click)="removeOrderLine(item.id)"
+                (clickEvent)="removeOrderLine(item.id)"
               />
             </td>
           }
