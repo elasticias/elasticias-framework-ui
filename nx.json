@@ -86,6 +86,7 @@
   },
   "release": {
     "projects": ["types", "utils", "core", "screens", "ui"],
+    "projectsRelationship": "fixed",
     "version": {
       "preVersionCommand": "npx nx run-many -t build",
       "generatorOptions": {

@@ -38,7 +38,16 @@ cd dist/libs/ui && npm publish
 
 ## Publishing
 
-Libs are published to GitHub Packages under `@elasticias` scope. Apps consume them as regular npm dependencies.
+Libs are published to the public npm registry (`registry.npmjs.org`) under the `@elasticias` scope (`access: public`). Apps consume them as regular npm dependencies — no auth required to install.
+
+**All 5 libs are versioned in lockstep** (`projectsRelationship: "fixed"` in `nx.json`). They always share the same version and ship together under a single `vX.Y.Z` git tag. Never bump a single lib's `package.json` by hand — use:
+
+```bash
+npx nx release version <patch|minor|major>   # bumps all 5 libs together
+git push                                     # → CI → Release workflow publishes
+```
+
+Release flow: bump → push to `main` → CI runs → on green CI, the `Release` workflow verifies all 5 libs share the same version (fails if not), builds, and publishes via `nx release publish` using `NPM_TOKEN`.
 
 ## i18n Convention
 
