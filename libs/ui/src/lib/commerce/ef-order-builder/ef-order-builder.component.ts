@@ -24,7 +24,6 @@ import {
   OrderSummaryItem,
 } from './ef-order-builder.component.types';
 import { TextareaModule } from 'primeng/textarea';
-import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { FieldsetModule } from 'primeng/fieldset';
 import { DividerModule } from 'primeng/divider';
@@ -65,7 +64,6 @@ import { UuidUtils, AppUtils } from '@elasticias/utils';
     FormsModule,
     TranslateModule,
     TextareaModule,
-    ButtonModule,
     TableModule,
     FieldsetModule,
     DividerModule,
