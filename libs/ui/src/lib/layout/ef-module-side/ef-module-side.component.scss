@@ -1,13 +1,28 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   flex: 0 0 240px;
   width: 240px;
   background: var(--paper-alt);
   border-right: 1px solid var(--rule);
-  overflow: auto;
-  padding: 16px 0;
 
   /* When no active module, host collapses. */
+  &:empty { display: none; }
+}
+
+.ef-module-side__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 0;
+}
+
+.ef-module-side__footer {
+  flex: 0 0 auto;
+  padding: 8px;
+  border-top: 1px solid var(--rule);
+
+  /* No projected content → hide the divider too. */
   &:empty { display: none; }
 }
 

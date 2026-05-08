@@ -29,7 +29,9 @@ import { EfAppShellMobileComponent } from '../ef-app-shell-mobile/ef-app-shell-m
  * body + 5-tab bottom bar + FAB slot.
  *
  * Top-bar slots are forwarded to `<ef-app-top>` on both layouts: project
- * with `breadcrumb`, `search`, `actions` attributes.
+ * with `breadcrumb`, `search`, `actions` attributes. The `side-footer`
+ * slot is forwarded to the bottom of `<ef-module-side>` (desktop only —
+ * mobile drops it; surface identity via `[actions]` instead).
  */
 @Component({
     selector: 'ef-app-shell',

@@ -9,7 +9,9 @@
 } @else {
   <ef-module-rail />
   @if (showSide()) {
-    <ef-module-side />
+    <ef-module-side>
+      <ng-content select="[side-footer]" side-footer></ng-content>
+    </ef-module-side>
   }
   <div class="ef-app-shell__column">
     <ef-app-top>

@@ -36,6 +36,7 @@ export { EfFabComponent } from './lib/layout/ef-fab/ef-fab.component';
 export type { EfFabPosition } from './lib/layout/ef-fab/ef-fab.component';
 export { EfPillGroupComponent } from './lib/layout/ef-pill-group/ef-pill-group.component';
 export type { EfPillItem } from './lib/layout/ef-pill-group/ef-pill-group.component';
+export { EfProfileChipComponent } from './lib/layout/ef-profile-chip/ef-profile-chip.component';
 
 // Feedback components
 export { EfBlockUiComponent } from './lib/feedback/ef-block-ui/ef-block-ui.component';
