@@ -15,7 +15,7 @@
           {{ item.label }}
         }
       </span>
-      @if (!hideCounts && item.count != null) {
+      @if (!hideCounts && item.count !== undefined) {
         <span class="ef-pill__sep" aria-hidden="true">·</span>
         <span class="ef-pill__count">{{ item.count }}</span>
       }
