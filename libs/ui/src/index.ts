@@ -18,6 +18,7 @@ export type { CatalogueProduct, CatalogueProductVariant } from './lib/commerce/e
 export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
 export { EfFieldsetComponent } from './lib/layout/ef-fieldset/ef-fieldset.component';
 export { EfButtonComponent } from './lib/layout/ef-button/ef-button.component';
+export { EfButtonGroupComponent } from './lib/layout/ef-button-group/ef-button-group.component';
 export { EfLabelComponent } from './lib/layout/ef-label/ef-label.component';
 export { EfBadgeComponent } from './lib/layout/ef-badge/ef-badge.component';
 export * from './lib/layout/ef-badge/ef-badge.component.types';
