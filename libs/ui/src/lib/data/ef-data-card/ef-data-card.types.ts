@@ -12,6 +12,7 @@ export type EfDataCardColumnType =
     | 'boolean'
     | 'mono'
     | 'chip'
+    | 'status'
     | 'reference'
     | 'custom';
 

@@ -42,6 +42,8 @@ export { EfProfileChipComponent } from './lib/layout/ef-profile-chip/ef-profile-
 export { EfBlockUiComponent } from './lib/feedback/ef-block-ui/ef-block-ui.component';
 export { EfBlockableDivComponent } from './lib/feedback/ef-blockable-div/ef-blockable-div.component';
 export { EfPulseComponent } from './lib/feedback/ef-pulse/ef-pulse.component';
+export { EfStatusChipComponent } from './lib/feedback/ef-status-chip/ef-status-chip.component';
+export type { EfStatusColor, EfStatusReferenceItem } from './lib/feedback/ef-status-chip/ef-status-chip.types';
 
 // Forms
 export * from './lib/forms';

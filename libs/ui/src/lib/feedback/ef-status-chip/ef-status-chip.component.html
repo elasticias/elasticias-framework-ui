@@ -1,0 +1,15 @@
+<span class="chip" [class]="'chip chip-' + resolvedColor()">
+  @if (!hideDot()) {
+    <span aria-hidden="true">●</span>
+  }
+  @if (resolvedLabelKey()) {
+    {{ resolvedLabelKey() | translate }}
+  } @else {
+    {{ resolvedLabel() }}
+  }
+  @if (showCode()) {
+    <span class="text-mute" style="margin-inline-start: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px;">
+      {{ code() }}
+    </span>
+  }
+</span>

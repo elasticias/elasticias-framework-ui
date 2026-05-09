@@ -14,6 +14,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
+import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
 import {
     EfColumnHeaderTemplateDirective,
     EfColumnTemplateDirective,
@@ -62,7 +63,7 @@ import {
 @Component({
     selector: 'ef-data-card',
     standalone: true,
-    imports: [CommonModule, TranslateModule, EfPagerComponent],
+    imports: [CommonModule, TranslateModule, EfPagerComponent, EfStatusChipComponent],
     templateUrl: './ef-data-card.component.html',
     styleUrl: './ef-data-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
