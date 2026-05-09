@@ -55,16 +55,16 @@
               } @else {
                 @switch (col.type) {
                   @case ('number') {
-                    {{ $any(cellValue(row, col)) | number:numberFormat(col):(col.locale || 'fr-FR') }}
+                    {{ $any(cellValue(row, col)) | number:numberFormat(col):col.locale }}
                   }
                   @case ('money') {
-                    {{ $any(cellValue(row, col)) | currency:(col.currencyCode || 'EUR'):(col.currencyDisplay || 'symbol'):numberFormat(col):(col.locale || 'fr-FR') }}
+                    {{ $any(cellValue(row, col)) | currency:(col.currencyCode || 'EUR'):(col.currencyDisplay || 'symbol'):numberFormat(col):col.locale }}
                   }
                   @case ('date') {
-                    {{ $any(cellValue(row, col)) | date:(col.dateFormat || 'dd/MM/yyyy'):undefined:(col.locale || 'fr-FR') }}
+                    {{ $any(cellValue(row, col)) | date:(col.dateFormat || 'dd/MM/yyyy'):undefined:col.locale }}
                   }
                   @case ('datetime') {
-                    {{ $any(cellValue(row, col)) | date:(col.dateFormat || 'dd/MM/yyyy HH:mm'):undefined:(col.locale || 'fr-FR') }}
+                    {{ $any(cellValue(row, col)) | date:(col.dateFormat || 'dd/MM/yyyy HH:mm'):undefined:col.locale }}
                   }
                   @case ('boolean') {
                     @if (cellValue(row, col)) {
