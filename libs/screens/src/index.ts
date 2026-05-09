@@ -7,6 +7,7 @@ export { AbstractScreenComponent } from './lib/abstract/screen/abstract-screen.c
 export { AbstractDetailScreenComponent } from './lib/abstract/screen/abstract-detail-screen.component';
 export { AbstractSearchScreenComponent } from './lib/abstract/screen/abstract-search-screen.component';
 export type { ScreenDatatableColumn } from './lib/abstract/screen/abstract-search-screen.component';
+export { AbstractSearchScreenV2 } from './lib/abstract/screen/abstract-search-screen-v2.component';
 export { AbstractSubScreenComponent } from './lib/abstract/screen/abstract-sub-screen.component';
 
 // Services
