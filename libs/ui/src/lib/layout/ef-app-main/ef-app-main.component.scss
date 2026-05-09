@@ -20,6 +20,6 @@
   overflow: auto;
   padding: var(--s-5) var(--s-6) var(--s-7); /* 20/24/32 — more breathing room */
   display: grid;
-  gap: var(--s-4); /* 16px — was 12 */
+  gap: var(--s-5); /* 20px — matches prototype canon (.app-content) */
   align-content: start;
 }
