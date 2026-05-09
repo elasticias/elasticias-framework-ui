@@ -88,7 +88,7 @@
                     />
                   }
                   @case ('reference') {
-                    {{ cellValue(row, col) }}
+                    {{ resolveReference(cellValue(row, col), col) }}
                   }
                   @default {
                     {{ cellValue(row, col) }}

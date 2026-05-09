@@ -7,12 +7,17 @@ import {
     TemplateRef,
     booleanAttribute,
     computed,
+    inject,
     input,
     output,
     signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import {
+    SCREEN_REF_DATA_SERVICE,
+    ScreenReferenceDataService,
+} from '@elasticias/screens';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
 import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
 import {
@@ -69,6 +74,11 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EfDataCardComponent<TRow = any> implements AfterContentInit {
+    private readonly refDataService = inject<ScreenReferenceDataService | null>(
+        SCREEN_REF_DATA_SERVICE,
+        { optional: true },
+    );
+
     /* ── Data inputs ────────────────────────────────────────────── */
 
     readonly columns = input<ReadonlyArray<EfDataCardColumn>>([]);
@@ -176,6 +186,25 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         const field = col.sortField ?? col.field ?? col.id;
         if (s.field !== field) return '';
         return s.direction === 'asc' ? '↑' : '↓';
+    }
+
+    /**
+     * Resolve a reference cell — looks up the row's value in
+     * `referenceKey`, finds the entry where
+     * `entry[referenceValueField] === value`, returns
+     * `entry[referenceLabelField]`. Falls back to the raw value when
+     * no match is found.
+     */
+    resolveReference(value: unknown, col: EfDataCardColumn): string {
+        if (value == null) return '';
+        if (!this.refDataService || !col.referenceKey) return String(value);
+
+        const list = this.refDataService.getReference(col.referenceKey)();
+        const valueField = col.referenceValueField || 'code';
+        const labelField = col.referenceLabelField || 'label';
+        const match = list.find((item: any) => item?.[valueField] === value);
+        if (!match) return String(value);
+        return String(match[labelField] ?? value);
     }
 
     /** Build an Angular DigitInfo string from min/max fraction-digit hints. */
