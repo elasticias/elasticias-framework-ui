@@ -57,6 +57,11 @@ export { EfDataCardComponent } from './lib/data/ef-data-card/ef-data-card.compon
 export { EfPagerComponent } from './lib/data/ef-pager/ef-pager.component';
 export { EfBulkBarComponent } from './lib/data/ef-bulk-bar/ef-bulk-bar.component';
 export { EfEmptyStateComponent } from './lib/feedback/ef-empty-state/ef-empty-state.component';
+export { EfSmartBarComponent } from './lib/data/ef-smart-bar/ef-smart-bar.component';
+export { EfFilterPillComponent } from './lib/forms/ef-filter-pill/ef-filter-pill.component';
+export { EfPresetPillComponent } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
+export type { EfPresetItem } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
+export { EfFilterDrawerComponent } from './lib/forms/ef-filter-drawer/ef-filter-drawer.component';
 
 // Theme
 export { EfThemeConfiguratorComponent } from './lib/ef-theme-configurator/ef-theme-configurator.component';
