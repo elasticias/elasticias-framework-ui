@@ -7,7 +7,9 @@
     <ng-content></ng-content>
   </ef-app-shell-mobile>
 } @else {
-  <ef-module-rail />
+  <ef-module-rail>
+    <ng-content select="[logo]" logo></ng-content>
+  </ef-module-rail>
   @if (showSide()) {
     <ef-module-side>
       <ng-content select="[side-footer]" side-footer></ng-content>

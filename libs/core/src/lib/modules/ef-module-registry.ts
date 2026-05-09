@@ -46,6 +46,13 @@ export interface EfModule {
     accent: `m-${EfModuleId}`;
     defaultRoute: string;
     navSections: EfNavSection[];
+    /**
+     * Logical grouping for rail divider placement. `ef-module-rail` renders
+     * a 1px divider between two consecutive visible modules whose `group`
+     * differs. Free string — `'operations' | 'commerce' | 'admin'` is the
+     * conventional set but apps can use anything stable.
+     */
+    group?: string;
 }
 
 /**
@@ -64,6 +71,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-sales',
         defaultRoute: '/operations/sales',
         navSections: [],
+        group: 'operations',
     },
     {
         id: 'purchase',
@@ -72,6 +80,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-purchase',
         defaultRoute: '/operations/purchase',
         navSections: [],
+        group: 'operations',
     },
     {
         id: 'stock',
@@ -80,6 +89,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-stock',
         defaultRoute: '/operations/stock',
         navSections: [],
+        group: 'operations',
     },
     {
         id: 'pos',
@@ -88,6 +98,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-pos',
         defaultRoute: '/pos',
         navSections: [],
+        group: 'operations',
     },
     {
         id: 'marketing',
@@ -96,6 +107,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-marketing',
         defaultRoute: '/marketing',
         navSections: [],
+        group: 'commerce',
     },
     {
         id: 'store',
@@ -104,6 +116,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-store',
         defaultRoute: '/store',
         navSections: [],
+        group: 'commerce',
     },
     {
         id: 'finance',
@@ -112,6 +125,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-finance',
         defaultRoute: '/finance',
         navSections: [],
+        group: 'commerce',
     },
     {
         id: 'admin',
@@ -120,6 +134,7 @@ export const EF_MODULES: ReadonlyArray<EfModule> = [
         accent: 'm-admin',
         defaultRoute: '/admin',
         navSections: [],
+        group: 'admin',
     },
 ];
 

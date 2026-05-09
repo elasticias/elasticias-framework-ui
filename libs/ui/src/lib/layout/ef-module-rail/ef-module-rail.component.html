@@ -1,22 +1,31 @@
 <nav class="ef-module-rail" aria-label="Modules">
-  @for (module of visibleModules(); track module.id) {
-    <button
-      type="button"
-      class="ef-module-rail__btn"
-      [class.is-active]="activeId() === module.id"
-      [attr.data-module]="module.id"
-      [attr.aria-current]="activeId() === module.id ? 'page' : null"
-      [pTooltip]="module.labelKey | translate"
-      tooltipPosition="right"
-      (click)="onSelect(module)"
-    >
-      <i class="ef-module-rail__icon" [class]="module.icon" aria-hidden="true"></i>
+  <div class="ef-module-rail__logo-slot">
+    <ng-content select="[logo]"></ng-content>
+  </div>
 
-      @if (badgeFor(module.id); as badge) {
-        <span class="ef-module-rail__badge">{{ badge }}</span>
-      }
+  @for (row of rows(); track trackRow($index, row)) {
+    @if (row.kind === 'divider') {
+      <span class="ef-module-rail__divider" aria-hidden="true"></span>
+    } @else {
+      <button
+        type="button"
+        class="ef-module-rail__btn"
+        [class.is-active]="activeId() === row.module.id"
+        [attr.data-module]="row.module.id"
+        [attr.aria-current]="activeId() === row.module.id ? 'page' : null"
+        [style.--m-color]="'var(--' + row.module.accent + ')'"
+        [pTooltip]="row.module.labelKey | translate"
+        tooltipPosition="right"
+        (click)="onSelect(row.module)"
+      >
+        <i class="ef-module-rail__icon" [class]="row.module.icon" aria-hidden="true"></i>
 
-      <span class="ef-module-rail__sr">{{ module.labelKey | translate }}</span>
-    </button>
+        @if (badgeFor(row.module.id); as badge) {
+          <span class="ef-module-rail__badge">{{ badge }}</span>
+        }
+
+        <span class="ef-module-rail__sr">{{ row.module.labelKey | translate }}</span>
+      </button>
+    }
   }
 </nav>
