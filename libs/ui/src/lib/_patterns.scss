@@ -1025,6 +1025,115 @@
     mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3.5'><polyline points='5 12 10 17 19 7'/></svg>") center/contain no-repeat;
 }
 
+/* ──────────── DASHBOARD KPI CARDS ───────────────────────────────── */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--s-3);
+}
+
+.kpi-card {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-2xl);
+    padding: 16px;
+    display: grid;
+    gap: 8px;
+    align-content: start;
+}
+
+.kpi-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.kpi-value {
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    font-variation-settings: 'opsz' 96, 'wght' 700, 'wdth' 80;
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-feature-settings: 'tnum';
+    color: var(--text);
+}
+
+.kpi-value .unit {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.4em;
+    font-weight: 500;
+    color: var(--text-mute);
+    margin-inline-start: 6px;
+    letter-spacing: 0;
+}
+
+.spark {
+    width: 100%;
+    height: 28px;
+    margin-top: 4px;
+}
+
+.delta {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    letter-spacing: 0;
+}
+
+.delta.up {
+    background: var(--st-delivered-bg);
+    color: var(--st-delivered-fg);
+}
+
+.delta.down {
+    background: var(--st-cancelled-bg);
+    color: var(--st-cancelled-fg);
+}
+
+/* Lower-half dashboard grid (recent activity / pipeline / top lists). */
+
+.dash-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-3);
+}
+
+@media (min-width: 1100px) {
+    .dash-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Pipeline-by-status row: chip · bar · count. */
+
+.pipeline-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 40px;
+    align-items: center;
+    gap: 12px;
+}
+
+.pipeline-row .bar {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    border-radius: var(--r-pill);
+    background: var(--paper);
+    overflow: hidden;
+}
+
+.pipeline-row .bar-fill {
+    position: absolute;
+    inset: 0;
+    width: var(--w, 0%);
+    border-radius: var(--r-pill);
+    transition: width var(--t-base) var(--ease-out);
+}
+
 /* ──────────── PRODUCT THUMB ────────────────────────────────────── */
 
 .thumb {
