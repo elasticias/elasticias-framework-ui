@@ -1,0 +1,52 @@
+<div class="pager">
+  @if (!hideSize()) {
+    <div class="size">
+      <span>{{ linesPerPageLabelKey() | translate }}</span>
+      <select
+        [value]="pageSize()"
+        [attr.aria-label]="linesPerPageLabelKey() | translate"
+        (change)="onSizeChange($any($event.target).value)"
+      >
+        @for (option of pageSizeOptions(); track option) {
+          <option [value]="option" [selected]="option === pageSize()">{{ option }}</option>
+        }
+      </select>
+      @if (totalCount() > 0) {
+        <span>· {{ range().start }}–{{ range().end }} {{ ofLabelKey() | translate }} {{ totalCount() }}</span>
+      }
+    </div>
+  } @else {
+    <span></span>
+  }
+
+  <div class="pages">
+    <button
+      class="pg"
+      type="button"
+      [disabled]="pageNumber() <= 1"
+      [attr.aria-label]="prevLabelKey() | translate"
+      (click)="goToPage(pageNumber() - 1)"
+    >‹</button>
+
+    @for (btn of pageButtons(); track trackBtn($index, btn)) {
+      @if (btn.kind === 'page') {
+        <button
+          class="pg"
+          type="button"
+          [class.active]="btn.value === pageNumber()"
+          (click)="goToPage(btn.value)"
+        >{{ btn.value }}</button>
+      } @else {
+        <span class="pg" aria-hidden="true" style="cursor: default;">…</span>
+      }
+    }
+
+    <button
+      class="pg"
+      type="button"
+      [disabled]="pageNumber() >= totalPages()"
+      [attr.aria-label]="nextLabelKey() | translate"
+      (click)="goToPage(pageNumber() + 1)"
+    >›</button>
+  </div>
+</div>

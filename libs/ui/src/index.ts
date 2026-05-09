@@ -52,6 +52,12 @@ export type { DatatableSearchEntity } from './lib/data/ef-datatable/ef-datatable
 export * from './lib/data/ef-datatable/ef-datatable.component.types';
 export { EfDatatableActionBarComponent } from './lib/data/ef-datatable-actionbar/ef-datatable-actionbar.component';
 
+// Comptoir data primitives (Phase 6)
+export { EfDataCardComponent } from './lib/data/ef-data-card/ef-data-card.component';
+export { EfPagerComponent } from './lib/data/ef-pager/ef-pager.component';
+export { EfBulkBarComponent } from './lib/data/ef-bulk-bar/ef-bulk-bar.component';
+export { EfEmptyStateComponent } from './lib/feedback/ef-empty-state/ef-empty-state.component';
+
 // Theme
 export { EfThemeConfiguratorComponent } from './lib/ef-theme-configurator/ef-theme-configurator.component';
 
