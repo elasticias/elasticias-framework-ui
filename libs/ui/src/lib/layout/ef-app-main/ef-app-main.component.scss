@@ -18,5 +18,8 @@
 .ef-app-main__content {
   flex: 1 1 auto;
   overflow: auto;
-  padding: 20px 24px; /* page-pad-y / page-pad-x from spacing.json */
+  padding: var(--s-4) var(--s-5) var(--s-6); /* prototype canon: 16/20/24 */
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
 }
