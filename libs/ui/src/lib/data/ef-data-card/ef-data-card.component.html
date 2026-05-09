@@ -45,7 +45,10 @@
 
     <tbody>
       @for (row of rows(); track trackByRow($index, row)) {
-        <tr>
+        <tr
+          [class.is-row-clickable]="rowDoubleClickable()"
+          (dblclick)="onRowDoubleClick(row, $event)"
+        >
           @for (col of effectiveColumns(); track trackByColumn($index, col); let colIdx = $index) {
             <td [class]="cellAlignClass(col)" [attr.data-col]="col.id">
               @if (bodyTemplate(col.id); as bodyTpl) {

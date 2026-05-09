@@ -10,3 +10,10 @@
         color: var(--text);
     }
 }
+
+/* Body rows when [rowDoubleClickable] is on — affordance for the
+   double-click-to-open interaction. Interactive cells (buttons,
+   inputs, links) keep their own cursor. */
+.tbl tbody tr.is-row-clickable {
+    cursor: pointer;
+}

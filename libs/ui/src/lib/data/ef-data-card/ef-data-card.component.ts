@@ -107,11 +107,26 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     readonly errorMsg = input<string>('');
     readonly loadingKey = input<string>('common_loading_msg');
 
+    /* ── Row interactions ──────────────────────────────────────── */
+
+    /**
+     * When `true`, double-clicking anywhere on a `<tr>` emits the row
+     * via `rowDoubleClick` and the body rows render with
+     * `cursor: pointer`. Consumers typically wire the output to
+     * `navigateToDetails(row.id)` from {@link AbstractSearchScreenV2}.
+     *
+     * Double-clicks that originate inside an interactive child
+     * (checkbox, button, link, form control) are ignored — those keep
+     * their native behaviour (toggle selection, run an action, …).
+     */
+    readonly rowDoubleClickable = input(false, { transform: booleanAttribute });
+
     /* ── Outputs ────────────────────────────────────────────────── */
 
     readonly pageChange = output<number>();
     readonly pageSizeChange = output<number>();
     readonly sortChange = output<EfDataCardSort>();
+    readonly rowDoubleClick = output<TRow>();
 
     /* ── Content children ──────────────────────────────────────── */
 
@@ -212,6 +227,15 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         const min = col.minFractionDigits ?? 2;
         const max = col.maxFractionDigits ?? 2;
         return `1.${min}-${max}`;
+    }
+
+    /** Fires `rowDoubleClick` unless the dblclick originated on an
+     *  interactive child (checkbox, button, link, form control). */
+    onRowDoubleClick(row: TRow, event: MouseEvent): void {
+        if (!this.rowDoubleClickable()) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('button, a, input, select, textarea, label')) return;
+        this.rowDoubleClick.emit(row);
     }
 
     onHeaderClick(col: EfDataCardColumn): void {
