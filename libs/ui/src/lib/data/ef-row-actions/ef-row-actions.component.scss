@@ -1,0 +1,8 @@
+/* All visual rules live in @elasticias/ui/styles/patterns under
+   `.row-actions__*`. The component contributes only host layout. */
+
+:host {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+}

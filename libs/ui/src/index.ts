@@ -67,6 +67,8 @@ export type {
     EfDataCardSort,
     EfDataCardSortDirection,
 } from './lib/data/ef-data-card/ef-data-card.types';
+export { EfRowActionsComponent } from './lib/data/ef-row-actions/ef-row-actions.component';
+export type { EfRowAction } from './lib/data/ef-row-actions/ef-row-actions.types';
 export { EfPagerComponent } from './lib/data/ef-pager/ef-pager.component';
 export { EfBulkBarComponent } from './lib/data/ef-bulk-bar/ef-bulk-bar.component';
 export { EfEmptyStateComponent } from './lib/feedback/ef-empty-state/ef-empty-state.component';

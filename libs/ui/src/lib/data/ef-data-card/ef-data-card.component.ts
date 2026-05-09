@@ -3,6 +3,7 @@ import {
     ChangeDetectionStrategy,
     Component,
     ContentChildren,
+    HostListener,
     QueryList,
     TemplateRef,
     booleanAttribute,
@@ -227,6 +228,17 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         const min = col.minFractionDigits ?? 2;
         const max = col.maxFractionDigits ?? 2;
         return `1.${min}-${max}`;
+    }
+
+    /** Tracks how many `ef-row-actions` are currently open inside this
+     *  card. When > 0, `.tbl-wrap` lifts its `overflow: hidden` so the
+     *  popup can escape its rounded edges. */
+    readonly openMenuCount = signal(0);
+
+    @HostListener('ef-row-actions-toggle', ['$event'])
+    onRowActionsToggle(event: Event): void {
+        const detail = (event as CustomEvent<{ open: boolean }>).detail;
+        this.openMenuCount.update(c => Math.max(0, c + (detail?.open ? 1 : -1)));
     }
 
     /** Fires `rowDoubleClick` unless the dblclick originated on an
