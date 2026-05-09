@@ -12,6 +12,7 @@
   </ef-module-rail>
   @if (showSide()) {
     <ef-module-side>
+      <ng-content select="[side-header-meta]" side-header-meta></ng-content>
       <ng-content select="[side-footer]" side-footer></ng-content>
     </ef-module-side>
   }

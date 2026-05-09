@@ -1,7 +1,21 @@
 @if (module(); as m) {
   <div class="ef-module-side__scroll">
-    <header class="ef-module-side__head">
-      <span class="ef-module-side__title">{{ m.labelKey | translate }}</span>
+    <header class="ef-module-side__header">
+      <span
+        class="ef-module-side__header-icon"
+        [style.--m-color]="'var(--' + m.accent + ')'"
+        aria-hidden="true"
+      >
+        @if (m.icon) {
+          <i [class]="m.icon"></i>
+        }
+      </span>
+      <span class="ef-module-side__header-text">
+        <span class="ef-module-side__name">{{ m.labelKey | translate }}</span>
+        <span class="ef-module-side__meta">
+          <ng-content select="[side-header-meta]"></ng-content>
+        </span>
+      </span>
     </header>
 
     @for (section of visibleSections(); track section.id) {
@@ -22,6 +36,9 @@
                   <i class="ef-module-side__icon" [class]="item.icon" aria-hidden="true"></i>
                 }
                 <span class="ef-module-side__label">{{ item.labelKey | translate }}</span>
+                @if (item.badge !== undefined && item.badge !== null) {
+                  <span class="ef-module-side__badge">{{ item.badge }}</span>
+                }
               </a>
             </li>
           }

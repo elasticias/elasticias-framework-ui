@@ -6,15 +6,20 @@
   background: var(--paper-alt);
   border-right: 1px solid var(--rule);
 
-  /* When no active module, host collapses. */
-  &:empty { display: none; }
+  /* When no active module, host renders empty and collapses. */
+  &:empty {
+    display: none;
+  }
 }
 
 .ef-module-side__scroll {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: 16px 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .ef-module-side__footer {
@@ -23,25 +28,69 @@
   border-top: 1px solid var(--rule);
 
   /* No projected content → hide the divider too. */
-  &:empty { display: none; }
+  &:empty {
+    display: none;
+  }
 }
 
-.ef-module-side__head {
-  padding: 0 16px 16px;
+/* ─── Header ─── */
+
+.ef-module-side__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 12px;
   border-bottom: 1px solid var(--rule);
-  margin-bottom: 12px;
 }
 
-.ef-module-side__title {
+.ef-module-side__header-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-md);
+  background: var(--m-color, var(--module));
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.ef-module-side__header-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.ef-module-side__name {
   font-family: 'Bricolage Grotesque', system-ui, sans-serif;
-  font-variation-settings: 'opsz' 96, 'wght' 600, 'wdth' 95;
-  font-size: 22px;
-  letter-spacing: -0.025em;
+  font-variation-settings: 'opsz' 12, 'wght' 700, 'wdth' 90;
+  font-size: 15px;
+  letter-spacing: -0.01em;
   color: var(--text);
 }
 
+.ef-module-side__meta {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* Collapse the entire meta line when nothing is projected. */
+  &:empty {
+    display: none;
+  }
+}
+
+/* ─── Sections ─── */
+
 .ef-module-side__section {
-  margin: 0 0 16px;
+  display: grid;
+  gap: 2px;
 }
 
 .ef-module-side__section-title {
@@ -51,7 +100,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-mute);
-  padding: 0 16px 6px;
+  padding: 0 12px 4px;
   margin: 0;
 }
 
@@ -59,21 +108,29 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  gap: 2px;
 }
+
+/* ─── Pill-shaped nav items (Comptoir v0.3) ─── */
 
 .ef-module-side__item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: var(--hit-base);
-  padding: 0 16px;
+  gap: 12px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: var(--r-pill);
   color: var(--text-mute);
   text-decoration: none;
-  border-radius: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   cursor: pointer;
-  transition: color var(--t-fast) var(--ease-out),
-              background-color var(--t-fast) var(--ease-out);
+  transition:
+    color var(--t-fast) var(--ease-out),
+    background-color var(--t-fast) var(--ease-out);
 
   &:hover {
     color: var(--text);
@@ -81,24 +138,13 @@
   }
 
   &.is-active {
-    color: var(--text);
-    background: var(--paper);
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 8px;
-      bottom: 8px;
-      width: 3px;
-      background: var(--module);
-      border-radius: 0 var(--r-sm) var(--r-sm) 0;
-    }
+    color: var(--paper);
+    background: var(--ink-active);
   }
 
   &:focus-visible {
     outline: 2px solid var(--tenant-400);
-    outline-offset: -3px;
+    outline-offset: 2px;
   }
 }
 
@@ -107,11 +153,33 @@
   line-height: 1;
   width: 16px;
   text-align: center;
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .ef-module-side__label {
-  font-family: 'Manrope', system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Monospace count chip; tints flip with the active state. */
+.ef-module-side__badge {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--tenant-100);
+  color: var(--tenant-700);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.ef-module-side__item.is-active .ef-module-side__badge {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--paper);
 }

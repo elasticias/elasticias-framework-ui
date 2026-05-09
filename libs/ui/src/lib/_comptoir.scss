@@ -77,12 +77,31 @@
 
   /* ── Semantic aliases (light) ────────────────────────────────── */
   --paper:      var(--ink-50);
-  --paper-alt:  var(--ink-100);
+  --paper-alt:  #fff;
   --rule:       var(--ink-200);
+  --rule-soft:  rgba(15, 17, 21, 0.05);
   --text:       var(--ink-900);
   --text-mute:  var(--ink-500);
   --text-soft:  var(--ink-400);
   --ink-active: var(--ink-900);
+
+  /* ── Spatial scale (s-1 = 4px → s-10 = 96px) ─────────────────── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 48px;
+  --s-9: 64px;
+  --s-10: 96px;
+
+  /* ── Shadows (light) ─────────────────────────────────────────── */
+  --shadow-1: 0 1px 2px rgba(15, 17, 21, 0.04), 0 1px 0 rgba(15, 17, 21, 0.03);
+  --shadow-2: 0 4px 14px -4px rgba(15, 17, 21, 0.10), 0 1px 0 rgba(15, 17, 21, 0.03);
+  --shadow-3: 0 16px 40px -16px rgba(15, 17, 21, 0.20), 0 2px 0 rgba(15, 17, 21, 0.03);
+  --shadow-tenant: 0 12px 30px -10px var(--tenant-200);
 
   /* ── Module current (default; overridden by [data-module]) ───── */
   --module: var(--m-admin);
@@ -92,11 +111,15 @@
 .p-dark {
   --paper:      var(--ink-900);
   --paper-alt:  var(--ink-800);
-  --rule:       var(--ink-700);
+  --rule:       rgba(248, 249, 251, 0.08);
+  --rule-soft:  rgba(248, 249, 251, 0.04);
   --text:       var(--ink-50);
   --text-mute:  var(--ink-400);
   --text-soft:  var(--ink-500);
   --ink-active: var(--ink-50);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 20px -8px rgba(0, 0, 0, 0.5);
+  --shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
 }
 
 /* ── Module current — driven by data-module attribute ──────────── */

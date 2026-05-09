@@ -25,6 +25,12 @@ export interface EfNavItem {
     route: string;
     /** Minimum permission level required to render this item. Defaults to `read`. */
     requiredAction?: EfNavAction;
+    /**
+     * Optional count chip rendered after the label (e.g. `Commandes ⟨14⟩`).
+     * Apps typically derive this from a service signal and patch the
+     * registry — it can be number, string, or anything stringifiable.
+     */
+    badge?: string | number;
 }
 
 export interface EfNavSection {
