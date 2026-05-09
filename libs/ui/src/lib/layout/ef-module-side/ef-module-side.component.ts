@@ -25,12 +25,16 @@ import {
     styleUrl: './ef-module-side.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule],
+    host: {
+        '[attr.data-module]': 'moduleId()',
+    },
 })
 export class EfModuleSideComponent {
     private readonly active = inject(EfActiveModuleService);
     private readonly perms = inject(EfPermissionService);
 
     readonly module = this.active.activeModule;
+    readonly moduleId = this.active.activeModuleId;
 
     readonly visibleSections = computed<EfNavSection[]>(() => {
         const m = this.module();
