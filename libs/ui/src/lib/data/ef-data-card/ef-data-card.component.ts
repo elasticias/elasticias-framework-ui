@@ -1,88 +1,210 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import {
+    AfterContentInit,
+    ChangeDetectionStrategy,
+    Component,
+    ContentChildren,
+    QueryList,
+    TemplateRef,
+    booleanAttribute,
+    computed,
+    input,
+    output,
+    signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
+import {
+    EfColumnHeaderTemplateDirective,
+    EfColumnTemplateDirective,
+} from './ef-column-template.directive';
+import {
+    EfDataCardColumn,
+    EfDataCardSort,
+    EfDataCardSortDirection,
+} from './ef-data-card.types';
 
 /**
- * Comptoir data card — `.tbl-wrap` shell with header (count info +
- * actions) and integrated pager. Consumer projects their own
- * `<table class="tbl">` as default content.
+ * Comptoir data card — column-driven `.tbl-wrap` with header (count
+ * info + actions) and integrated pager.
+ *
+ * Two consumer surfaces:
+ * 1. **Columns + rows + templates** (preferred): declare columns in
+ *    TS as `EfDataCardColumn[]`, project body / header templates via
+ *    `*efColumnTemplate` / `*efColumnHeaderTemplate` for cells that
+ *    need rich HTML. Built-in cell renderers handle text / number /
+ *    money / date / datetime / boolean / mono / chip / reference.
+ * 2. **`tbl-head-info` / `tbl-head-actions` slots**: still projected
+ *    so the consumer can render the count text + density / columns /
+ *    view-toggle buttons next to the table header.
  *
  * ```html
  * <ef-data-card
+ *   [columns]="cols"
+ *   [rows]="orders()"
  *   [pageNumber]="criteria().pagination.pageNumber"
  *   [pageSize]="criteria().pagination.pageSize"
  *   [totalCount]="totalCount()"
  *   [loading]="loading()"
- *   [errorMsg]="errorMsg()"
+ *   [sort]="currentSort()"
  *   (pageChange)="setPage($event)"
- *   (pageSizeChange)="setPage(1, $event)"
+ *   (sortChange)="setSort($event.field, $event.direction)"
+ *   trackByField="id"
  * >
- *   <span tbl-head-info>
- *     <strong>{{ totalCount() }}</strong> {{ 'sales_orders_count_match' | translate }}
- *   </span>
- *   <ng-container tbl-head-actions>
- *     <button class="btn btn-ghost btn-sm">{{ 'common_density' | translate }}</button>
- *   </ng-container>
+ *   <span tbl-head-info>…count…</span>
  *
- *   <table class="tbl">…</table>
+ *   <ng-template efColumnTemplate="status" let-row>
+ *     <span class="chip" [class]="'chip chip-' + row.status">…</span>
+ *   </ng-template>
  * </ef-data-card>
  * ```
- *
- * `[hidePager]` hides the bottom row when the consumer doesn't want
- * pagination (e.g., tiny lookup tables). `[loading]` swaps the head
- * info to a loading message; `[errorMsg]` shows an error chip.
  */
 @Component({
     selector: 'ef-data-card',
     standalone: true,
     imports: [CommonModule, TranslateModule, EfPagerComponent],
-    template: `
-        <div class="tbl-wrap">
-            <div class="tbl-head">
-                <div class="count small">
-                    @if (loading()) {
-                        <span>{{ loadingKey() | translate }}</span>
-                    } @else if (errorMsg()) {
-                        <span style="color: var(--st-cancelled-fg); font-weight: 600;">⚠ {{ errorMsg() }}</span>
-                    } @else {
-                        <ng-content select="[tbl-head-info]"></ng-content>
-                    }
-                </div>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                    <ng-content select="[tbl-head-actions]"></ng-content>
-                </div>
-            </div>
-
-            <ng-content></ng-content>
-
-            @if (!hidePager()) {
-                <ef-pager
-                    [pageNumber]="pageNumber()"
-                    [pageSize]="pageSize()"
-                    [totalCount]="totalCount()"
-                    [pageSizeOptions]="pageSizeOptions()"
-                    (pageChange)="pageChange.emit($event)"
-                    (pageSizeChange)="pageSizeChange.emit($event)"
-                />
-            }
-        </div>
-    `,
+    templateUrl: './ef-data-card.component.html',
+    styleUrl: './ef-data-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EfDataCardComponent {
+export class EfDataCardComponent<TRow = any> implements AfterContentInit {
+    /* ── Data inputs ────────────────────────────────────────────── */
+
+    readonly columns = input<ReadonlyArray<EfDataCardColumn>>([]);
+    readonly rows = input<ReadonlyArray<TRow>>([]);
+
+    /** Field path on each row used as the trackBy key. */
+    readonly trackByField = input<string>('id');
+
+    /* ── Pagination ─────────────────────────────────────────────── */
+
     readonly pageNumber = input<number>(1);
     readonly pageSize = input<number>(25);
     readonly totalCount = input<number>(0);
     readonly pageSizeOptions = input<ReadonlyArray<number>>([10, 25, 50, 100]);
+    readonly hidePager = input(false, { transform: booleanAttribute });
 
-    readonly loading = input<boolean>(false);
-    /** Empty string = no error. */
+    /* ── Sorting ────────────────────────────────────────────────── */
+
+    /** Currently active sort. Header click toggles asc / desc. */
+    readonly sort = input<EfDataCardSort | undefined>(undefined);
+
+    /* ── State ──────────────────────────────────────────────────── */
+
+    readonly loading = input(false, { transform: booleanAttribute });
+    /** Empty string = no error. Non-empty triggers an error chip in tbl-head. */
     readonly errorMsg = input<string>('');
-    readonly hidePager = input<boolean>(false);
-
     readonly loadingKey = input<string>('common_loading_msg');
+
+    /* ── Outputs ────────────────────────────────────────────────── */
 
     readonly pageChange = output<number>();
     readonly pageSizeChange = output<number>();
+    readonly sortChange = output<EfDataCardSort>();
+
+    /* ── Content children ──────────────────────────────────────── */
+
+    @ContentChildren(EfColumnTemplateDirective)
+    private readonly bodyTemplates!: QueryList<EfColumnTemplateDirective>;
+
+    @ContentChildren(EfColumnHeaderTemplateDirective)
+    private readonly headerTemplates!: QueryList<EfColumnHeaderTemplateDirective>;
+
+    private readonly bodyTemplateMap = signal<Map<string, TemplateRef<unknown>>>(new Map());
+    private readonly headerTemplateMap = signal<Map<string, TemplateRef<unknown>>>(new Map());
+
+    ngAfterContentInit(): void {
+        this.bodyTemplateMap.set(toMap(this.bodyTemplates));
+        this.headerTemplateMap.set(toMap(this.headerTemplates));
+        this.bodyTemplates.changes.subscribe(() =>
+            this.bodyTemplateMap.set(toMap(this.bodyTemplates)),
+        );
+        this.headerTemplates.changes.subscribe(() =>
+            this.headerTemplateMap.set(toMap(this.headerTemplates)),
+        );
+    }
+
+    /* ── Computed views ─────────────────────────────────────────── */
+
+    /** Columns enriched with effective alignment / sortField defaults. */
+    readonly effectiveColumns = computed<ReadonlyArray<EfDataCardColumn>>(() =>
+        this.columns().map(col => ({
+            ...col,
+            type: col.type ?? 'text',
+            align:
+                col.align ??
+                (col.type === 'number' || col.type === 'money' ? 'end' : 'start'),
+            sortField: col.sortField ?? col.field ?? col.id,
+        })),
+    );
+
+    /* ── Cell helpers (used in template) ───────────────────────── */
+
+    bodyTemplate(columnId: string): TemplateRef<unknown> | undefined {
+        return this.bodyTemplateMap().get(columnId);
+    }
+
+    headerTemplate(columnId: string): TemplateRef<unknown> | undefined {
+        return this.headerTemplateMap().get(columnId);
+    }
+
+    /** Pluck `column.field` (or `column.id`) from a row, dotted-path safe. */
+    cellValue(row: TRow, col: EfDataCardColumn): unknown {
+        const path = col.field ?? col.id;
+        if (!path) return undefined;
+        return path.split('.').reduce<any>((obj, key) => (obj == null ? obj : obj[key]), row);
+    }
+
+    headerAlignClass(col: EfDataCardColumn): string {
+        if (col.align === 'end') return 'num';
+        return '';
+    }
+
+    cellAlignClass(col: EfDataCardColumn): string {
+        const align = col.align ?? (col.type === 'number' || col.type === 'money' ? 'end' : 'start');
+        const classes: string[] = [];
+        if (align === 'end') classes.push('num');
+        if (col.cellClass) classes.push(col.cellClass);
+        return classes.join(' ');
+    }
+
+    /** Sort indicator: '↑' / '↓' / '' for the given column. */
+    sortIndicator(col: EfDataCardColumn): string {
+        const s = this.sort();
+        if (!s) return '';
+        const field = col.sortField ?? col.field ?? col.id;
+        if (s.field !== field) return '';
+        return s.direction === 'asc' ? '↑' : '↓';
+    }
+
+    /** Build an Angular DigitInfo string from min/max fraction-digit hints. */
+    numberFormat(col: EfDataCardColumn): string {
+        const min = col.minFractionDigits ?? 2;
+        const max = col.maxFractionDigits ?? 2;
+        return `1.${min}-${max}`;
+    }
+
+    onHeaderClick(col: EfDataCardColumn): void {
+        if (!col.sortable) return;
+        const field = col.sortField ?? col.field ?? col.id;
+        const current = this.sort();
+        const direction: EfDataCardSortDirection =
+            current?.field === field && current.direction === 'desc' ? 'asc' : 'desc';
+        this.sortChange.emit({ field, direction });
+    }
+
+    trackByRow = (_: number, row: TRow): unknown => {
+        const f = this.trackByField();
+        return f ? (row as any)?.[f] : row;
+    };
+
+    trackByColumn = (_: number, col: EfDataCardColumn): string => col.id;
+}
+
+function toMap<T extends { columnId: string; templateRef: TemplateRef<unknown> }>(
+    list: QueryList<T>,
+): Map<string, TemplateRef<unknown>> {
+    const m = new Map<string, TemplateRef<unknown>>();
+    list.forEach(d => m.set(d.columnId, d.templateRef));
+    return m;
 }

@@ -1,0 +1,116 @@
+<div class="tbl-wrap">
+  <!-- ── HEAD ROW ────────────────────────────────────────────── -->
+  <div class="tbl-head">
+    <div class="count small">
+      @if (loading()) {
+        <span>{{ loadingKey() | translate }}</span>
+      } @else if (errorMsg()) {
+        <span style="color: var(--st-cancelled-fg); font-weight: 600;">⚠ {{ errorMsg() }}</span>
+      } @else {
+        <ng-content select="[tbl-head-info]"></ng-content>
+      }
+    </div>
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <ng-content select="[tbl-head-actions]"></ng-content>
+    </div>
+  </div>
+
+  <!-- ── TABLE ─────────────────────────────────────────────── -->
+  <table class="tbl">
+    <thead>
+      <tr>
+        @for (col of effectiveColumns(); track trackByColumn($index, col)) {
+          <th
+            [class]="headerAlignClass(col)"
+            [class.is-sortable]="col.sortable"
+            [style.width]="col.width || null"
+            [attr.data-col]="col.id"
+            (click)="onHeaderClick(col)"
+            [style.cursor]="col.sortable ? 'pointer' : null"
+          >
+            @if (headerTemplate(col.id); as headerTpl) {
+              <ng-container *ngTemplateOutlet="headerTpl; context: { $implicit: col, col: col }"></ng-container>
+            } @else if (col.headerKey) {
+              <span>{{ col.headerKey | translate }}</span>
+            } @else if (col.header) {
+              <span>{{ col.header }}</span>
+            }
+            @if (col.sortable && sortIndicator(col)) {
+              <span aria-hidden="true" style="margin-inline-start: 4px; opacity: 0.7;">{{ sortIndicator(col) }}</span>
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (row of rows(); track trackByRow($index, row)) {
+        <tr>
+          @for (col of effectiveColumns(); track trackByColumn($index, col); let colIdx = $index) {
+            <td [class]="cellAlignClass(col)" [attr.data-col]="col.id">
+              @if (bodyTemplate(col.id); as bodyTpl) {
+                <ng-container
+                  *ngTemplateOutlet="bodyTpl; context: { $implicit: row, col: col, index: $index }"
+                ></ng-container>
+              } @else {
+                @switch (col.type) {
+                  @case ('number') {
+                    {{ $any(cellValue(row, col)) | number:numberFormat(col):(col.locale || 'fr-FR') }}
+                  }
+                  @case ('money') {
+                    {{ $any(cellValue(row, col)) | currency:(col.currencyCode || 'EUR'):(col.currencyDisplay || 'symbol'):numberFormat(col):(col.locale || 'fr-FR') }}
+                  }
+                  @case ('date') {
+                    {{ $any(cellValue(row, col)) | date:(col.dateFormat || 'shortDate'):undefined:(col.locale || 'fr-FR') }}
+                  }
+                  @case ('datetime') {
+                    {{ $any(cellValue(row, col)) | date:(col.dateFormat || 'short'):undefined:(col.locale || 'fr-FR') }}
+                  }
+                  @case ('boolean') {
+                    @if (cellValue(row, col)) {
+                      <span class="bool yes"><span class="dot"></span> ✓</span>
+                    } @else {
+                      <span class="bool no"><span class="dot"></span> —</span>
+                    }
+                  }
+                  @case ('mono') {
+                    <span class="ref">{{ cellValue(row, col) }}</span>
+                  }
+                  @case ('chip') {
+                    <span [class]="'chip ' + (col.chipPrefix || 'chip-') + cellValue(row, col)">
+                      ● {{ cellValue(row, col) }}
+                    </span>
+                  }
+                  @case ('reference') {
+                    {{ cellValue(row, col) }}
+                  }
+                  @default {
+                    {{ cellValue(row, col) }}
+                  }
+                }
+              }
+            </td>
+          }
+        </tr>
+      } @empty {
+        <tr>
+          <td [attr.colspan]="effectiveColumns().length">
+            <ng-content select="[empty-state]"></ng-content>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <!-- ── PAGER ─────────────────────────────────────────────── -->
+  @if (!hidePager()) {
+    <ef-pager
+      [pageNumber]="pageNumber()"
+      [pageSize]="pageSize()"
+      [totalCount]="totalCount()"
+      [pageSizeOptions]="pageSizeOptions()"
+      (pageChange)="pageChange.emit($event)"
+      (pageSizeChange)="pageSizeChange.emit($event)"
+    />
+  }
+</div>

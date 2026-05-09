@@ -54,6 +54,17 @@ export { EfDatatableActionBarComponent } from './lib/data/ef-datatable-actionbar
 
 // Comptoir data primitives (Phase 6)
 export { EfDataCardComponent } from './lib/data/ef-data-card/ef-data-card.component';
+export {
+    EfColumnTemplateDirective,
+    EfColumnHeaderTemplateDirective,
+} from './lib/data/ef-data-card/ef-column-template.directive';
+export type {
+    EfDataCardColumn,
+    EfDataCardColumnType,
+    EfDataCardColumnAlign,
+    EfDataCardSort,
+    EfDataCardSortDirection,
+} from './lib/data/ef-data-card/ef-data-card.types';
 export { EfPagerComponent } from './lib/data/ef-pager/ef-pager.component';
 export { EfBulkBarComponent } from './lib/data/ef-bulk-bar/ef-bulk-bar.component';
 export { EfEmptyStateComponent } from './lib/feedback/ef-empty-state/ef-empty-state.component';
