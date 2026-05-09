@@ -1,0 +1,171 @@
+<div class="dp">
+    <!-- Trigger pill -->
+    <button
+        type="button"
+        class="dp__trigger"
+        [class.open]="open()"
+        [disabled]="disabled()"
+        [attr.aria-haspopup]="'dialog'"
+        [attr.aria-expanded]="open()"
+        (click)="toggle($event)"
+    >
+        <i class="ico pi pi-calendar" aria-hidden="true"></i>
+        <span class="lbl">
+            {{ triggerLabelKey() ? (triggerLabelKey() | translate) : triggerLabel() }}
+        </span>
+        <span class="val">{{ triggerValue() }}</span>
+        <i class="caret pi pi-chevron-down" aria-hidden="true"></i>
+    </button>
+
+    @if (open()) {
+        <div
+            class="dp__panel open"
+            [class.wide]="view() === 'custom'"
+            role="dialog"
+            [attr.aria-label]="triggerLabelKey() | translate"
+        >
+            <!-- ── View 1 — preset list ── -->
+            <div class="dp__view" [class.active]="view() === 'presets'">
+                @for (preset of effectivePresets(); track trackByPreset($index, preset)) {
+                    <button
+                        type="button"
+                        class="dp__preset"
+                        [class.active]="isActivePreset(preset.key)"
+                        (click)="selectPreset(preset)"
+                    >
+                        {{ preset.labelKey ? (preset.labelKey | translate) : preset.label }}
+                        <span class="hint">{{ presetHint(preset) }}</span>
+                    </button>
+                }
+
+                @if (allowCustomRange()) {
+                    <div class="dp__divider" role="separator"></div>
+                    <button
+                        type="button"
+                        class="dp__preset muted"
+                        (click)="openCustomView()"
+                    >
+                        <span style="display:inline-flex;align-items:center;gap:8px">
+                            <i class="ico-lead pi pi-calendar" aria-hidden="true"></i>
+                            {{ 'date_preset_custom' | translate }}
+                        </span>
+                        <span class="hint">⇧</span>
+                    </button>
+                }
+            </div>
+
+            <!-- ── View 2 — custom range with calendar ── -->
+            <div class="dp__view" [class.active]="view() === 'custom'">
+                <div class="dp__custom-head">
+                    <button
+                        type="button"
+                        class="dp__back"
+                        [attr.aria-label]="'common_back' | translate"
+                        (click)="backToPresets()"
+                    >
+                        <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <div class="dp__custom-title">
+                        <span class="pulse-dot"></span>
+                        {{ 'date_custom_range' | translate }}
+                    </div>
+                    <span></span>
+                </div>
+
+                <div class="dp__cal">
+                    <div class="dp__cal-head">
+                        <button
+                            type="button"
+                            class="dp__cal-nav"
+                            [attr.aria-label]="'date_prev_month' | translate"
+                            (click)="prevMonth()"
+                        >
+                            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <div class="dp__cal-title">
+                            <span class="dp__cal-pick">{{ monthLabel() }}</span>
+                            <span class="dp__cal-pick">{{ yearLabel() }}</span>
+                        </div>
+                        <button
+                            type="button"
+                            class="dp__cal-nav"
+                            [attr.aria-label]="'date_next_month' | translate"
+                            (click)="nextMonth()"
+                        >
+                            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <div class="dp__cal-dow-row">
+                        @for (label of dowLabels(); track trackByDow($index, label)) {
+                            <div class="dp__cal-dow">{{ label }}</div>
+                        }
+                    </div>
+
+                    <div class="dp__cal-grid">
+                        @for (day of calendarGrid(); track trackByDay($index, day)) {
+                            <button
+                                type="button"
+                                class="dp__cal-day"
+                                [class.out]="day.out"
+                                [class.today]="day.today"
+                                [class.in-range]="day.inRange"
+                                [class.range-start]="day.rangeStart"
+                                [class.range-end]="day.rangeEnd"
+                                [attr.aria-label]="day.date | date:'fullDate'"
+                                (click)="selectDay(day.date)"
+                            >
+                                <span class="day-num">{{ day.day }}</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="dp__inputs">
+                    <div class="dp__field">
+                        <label>{{ 'date_from' | translate }}</label>
+                        <input
+                            type="text"
+                            readonly
+                            [value]="fromText()"
+                            placeholder="JJ/MM/AAAA"
+                        />
+                    </div>
+                    <div class="dp__field">
+                        <label>{{ 'date_to' | translate }}</label>
+                        <input
+                            type="text"
+                            readonly
+                            [value]="toText()"
+                            placeholder="JJ/MM/AAAA"
+                        />
+                    </div>
+                </div>
+
+                <div class="dp__actions">
+                    <span class="duration">
+                        <span class="num">{{ draftDurationDays() }}</span>
+                        {{ 'date_days' | translate }}
+                    </span>
+                    <div class="right">
+                        <button
+                            type="button"
+                            class="btn btn-ghost btn-sm"
+                            (click)="backToPresets()"
+                        >
+                            {{ 'common_back' | translate }}
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            [disabled]="!draftStart() || !draftEnd()"
+                            (click)="applyCustomRange()"
+                        >
+                            {{ 'common_apply' | translate }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

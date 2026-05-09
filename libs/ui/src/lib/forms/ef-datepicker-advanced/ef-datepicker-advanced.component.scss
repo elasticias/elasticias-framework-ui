@@ -1,0 +1,6 @@
+/* All visual rules live in @elasticias/ui/styles/patterns under
+   `.dp__*`. The component contributes only host layout. */
+
+:host {
+    display: inline-block;
+}

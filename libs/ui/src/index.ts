@@ -76,6 +76,12 @@ export { EfSmartBarComponent } from './lib/data/ef-smart-bar/ef-smart-bar.compon
 export { EfFilterPillComponent } from './lib/forms/ef-filter-pill/ef-filter-pill.component';
 export { EfPresetPillComponent } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
 export type { EfPresetItem } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
+export { EfDatepickerAdvancedComponent } from './lib/forms/ef-datepicker-advanced/ef-datepicker-advanced.component';
+export type {
+    EfDatePreset,
+    EfDatePresetKey,
+    EfDateRange,
+} from './lib/forms/ef-datepicker-advanced/ef-datepicker-advanced.types';
 export { EfFilterDrawerComponent } from './lib/forms/ef-filter-drawer/ef-filter-drawer.component';
 
 // Theme
