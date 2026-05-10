@@ -1,6 +1,16 @@
 export { LoaderService } from './lib/services/loader.service';
 export { CacheService } from './lib/services/cache.service';
-export { ToastService } from './lib/services/toast.service';
+export {
+    EfToastService,
+    /** @deprecated alias of EfToastService — kept for v1 imports. */
+    ToastService,
+} from './lib/services/toast.service';
+export type {
+    EfToast,
+    EfToastAction,
+    EfToastOptions,
+    EfToastSeverity,
+} from './lib/services/toast.service';
 export { ConfirmDialogService } from './lib/services/confirm-dialog.service';
 export { screenGuard, hasScreenPermission } from './lib/guards/screen.guard';
 export type { ScreenGuardConfig } from './lib/guards/screen.guard';

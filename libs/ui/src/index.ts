@@ -44,6 +44,8 @@ export { EfBlockableDivComponent } from './lib/feedback/ef-blockable-div/ef-bloc
 export { EfPulseComponent } from './lib/feedback/ef-pulse/ef-pulse.component';
 export { EfStatusChipComponent } from './lib/feedback/ef-status-chip/ef-status-chip.component';
 export type { EfStatusColor, EfStatusReferenceItem } from './lib/feedback/ef-status-chip/ef-status-chip.types';
+export { EfToastRegionComponent } from './lib/feedback/ef-toast-region/ef-toast-region.component';
+export type { EfToastRegionPosition } from './lib/feedback/ef-toast-region/ef-toast-region.component';
 
 // Forms
 export * from './lib/forms';
