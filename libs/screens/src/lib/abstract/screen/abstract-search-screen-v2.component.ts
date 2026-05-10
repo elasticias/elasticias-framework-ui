@@ -52,6 +52,52 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     /** Live search criteria (paging, sort, text, dates, custom). */
     readonly criteria = signal<SearchEntity>(new SearchEntity({}));
 
+    /* ── Row-actions standard surface ───────────────────────────────
+       Subclasses can flip these off when a particular CRUD action
+       isn't applicable. Defaults are all-on; permission filtering
+       still happens at render time via ScreenContext, so an action
+       that the user can't perform is hidden regardless of these
+       flags. */
+
+    readonly showViewAction = signal(true);
+    readonly showEditAction = signal(true);
+    readonly showDuplicateAction = signal(true);
+    readonly showDeleteAction = signal(true);
+
+    /**
+     * PK accessor for a row. Default returns `row?.id` — override when
+     * the backend names its primary key something else (e.g. sales-orders'
+     * `orderId`). Used by the row-actions dispatcher and as the implicit
+     * navigateToDetails / edit / delete argument.
+     */
+    rowId(row: any): any {
+        return row?.id;
+    }
+
+    /**
+     * Dispatch helper wired to ef-data-card's `(rowAction)` output and
+     * the auto-rendered row-actions cell. Routes the standard four
+     * actions to the inherited methods so subclasses don't have to
+     * declare per-screen rowActions arrays.
+     */
+    onRowAction(action: 'view' | 'edit' | 'duplicate' | 'delete', row: any): void {
+        const id = this.rowId(row);
+        switch (action) {
+            case 'view':
+                this.navigateToDetails(id);
+                break;
+            case 'edit':
+                this.edit(id);
+                break;
+            case 'duplicate':
+                this.duplicate(id);
+                break;
+            case 'delete':
+                this.delete(id);
+                break;
+        }
+    }
+
     override ngOnInit(): void {
         super.ngOnInit();
         this.serviceInstance = this.injector.get(this.getConfig()!.SERVICE as any);

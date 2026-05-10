@@ -55,6 +55,13 @@
                 <ng-container
                   *ngTemplateOutlet="bodyTpl; context: { $implicit: row, col: col, index: $index }"
                 ></ng-container>
+              } @else if (col.id === 'actions' && hasActionsColumn()) {
+                <!-- Auto row-actions cell: View / Edit / Duplicate / Delete,
+                     gated by [show*Action] flags + ScreenContext perms. -->
+                <ef-row-actions
+                  [items]="defaultRowActions(row)"
+                  [context]="rowActionsContext()"
+                />
               } @else {
                 @switch (col.type) {
                   @case ('number') {

@@ -17,10 +17,14 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import {
     SCREEN_REF_DATA_SERVICE,
+    ScreenContext,
     ScreenReferenceDataService,
 } from '@elasticias/screens';
+import { PermissionsEnum } from '@elasticias/types';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
 import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
+import { EfRowActionsComponent } from '../ef-row-actions/ef-row-actions.component';
+import { EfRowAction } from '../ef-row-actions/ef-row-actions.types';
 import {
     EfColumnHeaderTemplateDirective,
     EfColumnTemplateDirective,
@@ -30,6 +34,9 @@ import {
     EfDataCardSort,
     EfDataCardSortDirection,
 } from './ef-data-card.types';
+
+/** Action identifier emitted by `ef-data-card`'s auto row-actions cell. */
+export type EfDataCardRowAction = 'view' | 'edit' | 'duplicate' | 'delete';
 
 /**
  * Comptoir data card — column-driven `.tbl-wrap` with header (count
@@ -69,7 +76,13 @@ import {
 @Component({
     selector: 'ef-data-card',
     standalone: true,
-    imports: [CommonModule, TranslateModule, EfPagerComponent, EfStatusChipComponent],
+    imports: [
+        CommonModule,
+        TranslateModule,
+        EfPagerComponent,
+        EfStatusChipComponent,
+        EfRowActionsComponent,
+    ],
     templateUrl: './ef-data-card.component.html',
     styleUrl: './ef-data-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,12 +135,36 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      */
     readonly rowDoubleClickable = input(false, { transform: booleanAttribute });
 
+    /* ── Auto row-actions cell ─────────────────────────────────────
+       When `[hasActionsColumn]` is set, ef-data-card appends a 48px
+       `actions` column at the right edge with a built-in
+       `<ef-row-actions>` per row. The standard four CRUD actions are
+       wired via the show* flags; emitted commands flip back through
+       `(rowAction)`. Permission filtering happens through the bound
+       `[rowActionsContext]` (a ScreenContext).
+
+       Consumers that want a custom actions cell can keep declaring
+       their own `'actions'` column + projected template — the
+       built-in cell only auto-appears when this flag is on AND no
+       column with id 'actions' is already declared. */
+
+    readonly hasActionsColumn = input(false, { transform: booleanAttribute });
+    readonly rowActionsContext = input<ScreenContext | undefined>(undefined);
+
+    readonly showViewAction = input(true, { transform: booleanAttribute });
+    readonly showEditAction = input(true, { transform: booleanAttribute });
+    readonly showDuplicateAction = input(true, { transform: booleanAttribute });
+    readonly showDeleteAction = input(true, { transform: booleanAttribute });
+
     /* ── Outputs ────────────────────────────────────────────────── */
 
     readonly pageChange = output<number>();
     readonly pageSizeChange = output<number>();
     readonly sortChange = output<EfDataCardSort>();
     readonly rowDoubleClick = output<TRow>();
+
+    /** Emitted by the auto row-actions cell — `{ action, row }`. */
+    readonly rowAction = output<{ action: EfDataCardRowAction; row: TRow }>();
 
     /* ── Content children ──────────────────────────────────────── */
 
@@ -153,17 +190,76 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     /* ── Computed views ─────────────────────────────────────────── */
 
-    /** Columns enriched with effective alignment / sortField defaults. */
-    readonly effectiveColumns = computed<ReadonlyArray<EfDataCardColumn>>(() =>
-        this.columns().map(col => ({
+    /** Columns enriched with effective alignment / sortField defaults
+     *  + the auto `'actions'` column when `[hasActionsColumn]` is on
+     *  and the consumer hasn't declared one already. */
+    readonly effectiveColumns = computed<ReadonlyArray<EfDataCardColumn>>(() => {
+        const declared = this.columns().map(col => ({
             ...col,
             type: col.type ?? 'text',
             align:
                 col.align ??
                 (col.type === 'number' || col.type === 'money' ? 'end' : 'start'),
             sortField: col.sortField ?? col.field ?? col.id,
-        })),
-    );
+        }));
+
+        if (!this.hasActionsColumn()) return declared;
+        if (declared.some(c => c.id === 'actions')) return declared;
+        return [...declared, { id: 'actions', width: '48px' } as EfDataCardColumn];
+    });
+
+    /** Items array for the auto row-actions cell. Rebuilt per call so
+     *  the ef-row-actions component receives a fresh closure per row.
+     *  Visibility is filtered later by ef-row-actions against
+     *  `rowActionsContext` (ScreenContext.isGranted). */
+    defaultRowActions(row: TRow): ReadonlyArray<EfRowAction> {
+        const items: EfRowAction[] = [];
+
+        if (this.showViewAction()) {
+            items.push({
+                id: 'view',
+                labelKey: 'common_view',
+                icon: 'pi pi-eye',
+                kbd: '↵',
+                permission: PermissionsEnum.Read,
+                command: () => this.rowAction.emit({ action: 'view', row }),
+            });
+        }
+        if (this.showEditAction()) {
+            items.push({
+                id: 'edit',
+                labelKey: 'common_edit',
+                icon: 'pi pi-pencil',
+                kbd: 'E',
+                permission: PermissionsEnum.Edit,
+                command: () => this.rowAction.emit({ action: 'edit', row }),
+            });
+        }
+        if (this.showDuplicateAction()) {
+            items.push({
+                id: 'duplicate',
+                labelKey: 'common_duplicate',
+                icon: 'pi pi-copy',
+                kbd: '⌘D',
+                permission: PermissionsEnum.Duplicate,
+                command: () => this.rowAction.emit({ action: 'duplicate', row }),
+            });
+        }
+        if (this.showDeleteAction()) {
+            if (items.length > 0) items.push({ separator: true });
+            items.push({
+                id: 'delete',
+                labelKey: 'common_delete',
+                icon: 'pi pi-trash',
+                kbd: '⌫',
+                severity: 'danger',
+                permission: PermissionsEnum.Delete,
+                command: () => this.rowAction.emit({ action: 'delete', row }),
+            });
+        }
+
+        return items;
+    }
 
     /* ── Cell helpers (used in template) ───────────────────────── */
 

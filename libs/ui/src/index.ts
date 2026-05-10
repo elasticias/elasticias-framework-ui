@@ -56,6 +56,7 @@ export { EfDatatableActionBarComponent } from './lib/data/ef-datatable-actionbar
 
 // Comptoir data primitives (Phase 6)
 export { EfDataCardComponent } from './lib/data/ef-data-card/ef-data-card.component';
+export type { EfDataCardRowAction } from './lib/data/ef-data-card/ef-data-card.component';
 export {
     EfColumnTemplateDirective,
     EfColumnHeaderTemplateDirective,

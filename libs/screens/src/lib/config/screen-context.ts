@@ -74,6 +74,44 @@ export class ScreenContext extends AbstractEntity {
     return this.grants?.some((value) => value === permission) ?? false;
   }
 
+  /* ── Permission convenience getters ───────────────────────────────
+     Shared components (ef-row-actions, ef-data-card auto actions cell,
+     toolbars) read these to default-show / default-hide CRUD buttons
+     against the current user's grants without re-importing
+     PermissionsEnum at every call site. */
+
+  get hasReadPermission(): boolean {
+    return this.isGranted(PermissionsEnum.Read);
+  }
+
+  get hasWritePermission(): boolean {
+    return this.isGranted(PermissionsEnum.Write);
+  }
+
+  get hasEditPermission(): boolean {
+    return this.isGranted(PermissionsEnum.Edit);
+  }
+
+  get hasDeletePermission(): boolean {
+    return this.isGranted(PermissionsEnum.Delete);
+  }
+
+  get hasDuplicatePermission(): boolean {
+    return this.isGranted(PermissionsEnum.Duplicate);
+  }
+
+  get hasPrintPermission(): boolean {
+    return this.isGranted(PermissionsEnum.Print);
+  }
+
+  get hasExportPermission(): boolean {
+    return this.isGranted(PermissionsEnum.Export);
+  }
+
+  get hasImportPermission(): boolean {
+    return this.isGranted(PermissionsEnum.Import);
+  }
+
   isReadOnly(): boolean {
     return (
       this.isGranted(PermissionsEnum.Read) &&
