@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, Injector, inject, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 
@@ -76,8 +76,16 @@ export class EfToastService {
     private static readonly LIFE_WARN = 6000;
     private static readonly LIFE_ERROR = 8000;
 
-    private readonly translate = inject(TranslateService);
-    private readonly messageService = inject(MessageService, { optional: true });
+    /**
+     * Lazy holders. Resolving TranslateService eagerly at construction
+     * time pulls in HttpClient → HTTP_INTERCEPTORS → AuthorizeInterceptor
+     * → AuthorizeService → ToastService → cycle. We defer to the first
+     * actual translate / message-publish call.
+     */
+    private readonly injector = inject(Injector);
+    private _translate?: TranslateService;
+    private _messageService?: MessageService | null;
+    private _messageServiceResolved = false;
 
     private nextId = 1;
 
@@ -150,6 +158,14 @@ export class EfToastService {
         return toast;
     }
 
+    private get messageService(): MessageService | null {
+        if (!this._messageServiceResolved) {
+            this._messageServiceResolved = true;
+            this._messageService = this.injector.get(MessageService, null, { optional: true });
+        }
+        return this._messageService ?? null;
+    }
+
     dismiss(id: number): void {
         this.toasts.update(list => list.filter(t => t.id !== id));
     }
@@ -158,6 +174,9 @@ export class EfToastService {
         this.toasts.set([]);
         this.messageService?.clear();
     }
+
+    /* (messageService getter is defined just below `show` to keep it
+        close to where it's consumed.) */
 
     /* ── Internals ─────────────────────────────────────────────── */
 
@@ -173,7 +192,10 @@ export class EfToastService {
     }
 
     private t(key: string): string {
-        const value = this.translate.instant(key);
+        // Lazy-resolve TranslateService — see the field comment above
+        // for the AuthorizeService cycle this avoids.
+        this._translate ??= this.injector.get(TranslateService);
+        const value = this._translate.instant(key);
         // `instant()` returns the key when no translation is loaded;
         // fall through to empty string so untranslated toasts don't
         // surface internal keys to end users.
