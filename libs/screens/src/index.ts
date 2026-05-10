@@ -24,3 +24,4 @@ export type { ReferenceDataProvider } from './lib/config/screen-context';
 // Entities
 export { SearchEntity, SortDirectionEnum, PaginationEnum } from './lib/entities/search.entity';
 export { ViewModelEntity } from './lib/entities/view-model.entity';
+export type { EfDateRange, EfDatePresetKey } from './lib/entities/date-range.entity';

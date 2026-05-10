@@ -2,6 +2,7 @@ import { Component, inject, Injector, OnDestroy, OnInit, signal } from '@angular
 import { take } from 'rxjs';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
+import { EfDateRange } from '../../entities/date-range.entity';
 import {
     PaginationEnum,
     SearchEntity,
@@ -52,6 +53,17 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     /** Live search criteria (paging, sort, text, dates, custom). */
     readonly criteria = signal<SearchEntity>(new SearchEntity({}));
 
+    /**
+     * Active date-range filter shown in `ef-datepicker-advanced`'s
+     * trigger. Display-only at construction time — actually filters
+     * the search once `onDateRangeChange()` fires (or a screen wires
+     * one in `ngOnInit`).
+     *
+     * Override `buildDefaultDateRange()` per screen to ship a
+     * different starting preset.
+     */
+    readonly dateRange = signal<EfDateRange>(this.buildDefaultDateRange());
+
     /* ── Row-actions standard surface ───────────────────────────────
        Subclasses can flip these off when a particular CRUD action
        isn't applicable. Defaults are all-on; permission filtering
@@ -96,6 +108,58 @@ export abstract class AbstractSearchScreenV2<TItem = any>
                 this.delete(id);
                 break;
         }
+    }
+
+    /* ── Date-range filter (DRY) ────────────────────────────────────
+       Wired to ef-datepicker-advanced. The default range is
+       `last_30_days` — override `buildDefaultDateRange()` per screen
+       if a different starting preset is needed. */
+
+    /**
+     * Wired to `<ef-datepicker-advanced (rangeChange)>` — stores the
+     * range for trigger display and pushes it into the search criteria
+     * so the next `search()` filters by it.
+     */
+    onDateRangeChange(range: EfDateRange): void {
+        this.dateRange.set(range);
+        this.setDateRange(range.start, range.end);
+    }
+
+    /**
+     * Reset the date range to the default. Called automatically by
+     * `clear()` so screens don't have to remember to invoke it from
+     * their own `clearAll()` orchestration.
+     */
+    protected resetDateRange(): void {
+        this.dateRange.set(this.buildDefaultDateRange());
+    }
+
+    /**
+     * Build the default `EfDateRange`. Override per screen to ship a
+     * different default — e.g., a 90-day window for low-velocity
+     * catalogues. Default: last 30 days.
+     */
+    protected buildDefaultDateRange(): EfDateRange {
+        return {
+            start: this.daysAgo(29),
+            end: this.startOfToday(),
+            presetKey: 'last_30_days',
+            labelKey: 'date_preset_last_30_days',
+            label: '30 derniers jours',
+        };
+    }
+
+    /** Today at 00:00 local time. */
+    protected startOfToday(): Date {
+        const d = new Date();
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    /** N days before today, at 00:00 local time. */
+    protected daysAgo(n: number): Date {
+        const t = this.startOfToday();
+        t.setDate(t.getDate() - n);
+        return t;
     }
 
     override ngOnInit(): void {
@@ -197,7 +261,9 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         this.search();
     }
 
-    /** Reset to defaults and re-fetch. */
+    /** Reset to defaults and re-fetch. Also resets the date-range
+     *  filter so subclasses don't have to remember to do it from their
+     *  own clearAll() orchestration. */
     clear(): void {
         const cfg = this.getConfig();
         const fresh = new SearchEntity({});
@@ -207,6 +273,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
             ];
         }
         this.criteria.set(fresh);
+        this.resetDateRange();
         this.cacheService.setCache(this.screenStateKey, fresh);
         this.search();
     }

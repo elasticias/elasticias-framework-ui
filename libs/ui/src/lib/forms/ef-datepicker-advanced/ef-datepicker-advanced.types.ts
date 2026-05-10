@@ -1,27 +1,19 @@
-/**
- * Built-in preset keys. The component computes the start/end dates for
- * these from `today` at open time. Pass `'custom'` to indicate the
- * user picked a manual range.
- */
-export type EfDatePresetKey =
-    | 'today'
-    | 'this_week'
-    | 'this_month'
-    | 'last_30_days'
-    | 'last_90_days'
-    | 'this_quarter'
-    | 'this_year'
-    | 'custom'
-    | string;
+// EfDatePresetKey + EfDateRange now live in @elasticias/screens so
+// AbstractSearchScreenV2 can own dateRange state without circular
+// deps. Re-exported here so consumers that already import from
+// `@elasticias/ui` keep working unchanged.
+export type { EfDatePresetKey, EfDateRange } from '@elasticias/screens';
 
 /**
- * One row in the presets list. The component ships a default set if
- * `[presets]` is omitted; consumers can replace or extend the list.
+ * One row in the picker's presets list. UI-specific — carries the
+ * optional `compute` and `hintFn` callbacks that the picker invokes
+ * at render time. Stays in @elasticias/ui because it's a render-time
+ * descriptor, not a state shape.
  */
 export interface EfDatePreset {
     /** Stable key. Built-in keys (`today`, `this_week`, …) are computed
      *  automatically; custom keys must come with a date computer. */
-    key: EfDatePresetKey;
+    key: import('@elasticias/screens').EfDatePresetKey;
 
     /** Translation key for the row label. */
     labelKey?: string;
@@ -36,27 +28,4 @@ export interface EfDatePreset {
 
     /** Optional secondary text right-aligned (e.g. `'5 j'`, `'T2'`). */
     hintFn?: (today: Date) => string;
-}
-
-/**
- * Emitted by `(rangeChange)` whenever the user picks a preset or applies
- * a custom range. `start`/`end` are inclusive day boundaries (both at
- * 00:00 local time).
- */
-export interface EfDateRange {
-    /** Inclusive start. */
-    start: Date;
-    /** Inclusive end (00:00 local on the last day — caller treats as
-     *  `< end + 1 day` if doing strict comparisons). */
-    end: Date;
-    /** Which preset was active (`'custom'` for manual selection). */
-    presetKey: EfDatePresetKey;
-    /** Resolved literal label — formatted date range for `'custom'`,
-     *  the preset's `label` (or builtInHint) for built-ins. Used when
-     *  `labelKey` is empty. */
-    label: string;
-    /** Translation key — preferred when set. The component renders
-     *  this through `| translate` so the trigger updates reactively
-     *  when translations finish loading or the language changes. */
-    labelKey?: string;
 }
