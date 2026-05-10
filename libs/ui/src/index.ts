@@ -47,6 +47,19 @@ export type { EfStatusColor, EfStatusReferenceItem } from './lib/feedback/ef-sta
 export { EfToastRegionComponent } from './lib/feedback/ef-toast-region/ef-toast-region.component';
 export type { EfToastRegionPosition } from './lib/feedback/ef-toast-region/ef-toast-region.component';
 
+// Phase 7 — detail-screen primitives
+export { EfCardComponent } from './lib/layout/ef-card/ef-card.component';
+export { EfFormGridComponent } from './lib/layout/ef-form-grid/ef-form-grid.component';
+export { EfDetailToolbarComponent } from './lib/layout/ef-detail-toolbar/ef-detail-toolbar.component';
+export { EfTotalsComponent } from './lib/data/ef-totals/ef-totals.component';
+export type { EfTotalsRow, EfTotalsGrand } from './lib/data/ef-totals/ef-totals.types';
+export { EfStatsComponent } from './lib/data/ef-stats/ef-stats.component';
+export type { EfStatsRow } from './lib/data/ef-stats/ef-stats.types';
+export { EfTimelineComponent } from './lib/data/ef-timeline/ef-timeline.component';
+export type { EfTimelineItem, EfTimelineState } from './lib/data/ef-timeline/ef-timeline.types';
+export { EfKpiCardComponent } from './lib/data/ef-kpi-card/ef-kpi-card.component';
+export type { EfKpiSparkline, EfKpiDeltaTone } from './lib/data/ef-kpi-card/ef-kpi-card.types';
+
 // Forms
 export * from './lib/forms';
 

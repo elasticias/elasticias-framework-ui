@@ -8,7 +8,14 @@ export type EfDatatableColumnAlign = 'start' | 'center' | 'end';
 /**
  * Column data types for automatic formatting
  */
-export type EfDatatableColumnType = 'text' | 'number' | 'money' | 'date' | 'datetime' | 'boolean' | 'reference';
+export type EfDatatableColumnType =
+  | 'text'
+  | 'number'
+  | 'money'
+  | 'date'
+  | 'datetime'
+  | 'boolean'
+  | 'reference';
 
 /**
  * Column definition interface for ef-datatable
@@ -187,7 +194,7 @@ export const EF_DATATABLE_DEFAULTS: Required<EfDatatableConfig> = {
   styleClass: 'text-sm',
   tableStyle: { 'min-width': '50rem' },
   emptyMessage: 'Aucune entree trouvee',
-  currentPageReportTemplate: '{currentPage} de {totalPages}'
+  currentPageReportTemplate: '{currentPage} de {totalPages}',
 };
 
 /**
@@ -204,7 +211,7 @@ export const EF_DATATABLE_COLUMN_DEFAULTS: Partial<EfDatatableColumn> = {
   minFractionDigits: 2,
   maxFractionDigits: 2,
   referenceValueField: 'code',
-  referenceLabelField: 'name'
+  referenceLabelField: 'name',
 };
 
 /**
@@ -216,7 +223,7 @@ export const EF_DATATABLE_ACTIONS_DEFAULTS: Required<EfDatatableActions> = {
   showEdit: true,
   showDelete: true,
   showDuplicate: false,
-  position: 'end'
+  position: 'end',
 };
 
 /**
@@ -224,7 +231,9 @@ export const EF_DATATABLE_ACTIONS_DEFAULTS: Required<EfDatatableActions> = {
  * @param column - The column configuration
  * @returns The computed alignment
  */
-export function getColumnAlignment(column: EfDatatableColumn): EfDatatableColumnAlign {
+export function getColumnAlignment(
+  column: EfDatatableColumn,
+): EfDatatableColumnAlign {
   if (column.align) return column.align;
   if (column.type === 'money' || column.type === 'number') return 'end';
   return 'start';
@@ -235,6 +244,8 @@ export function getColumnAlignment(column: EfDatatableColumn): EfDatatableColumn
  * @param column - The column configuration
  * @returns Column with defaults applied
  */
-export function mergeColumnDefaults(column: EfDatatableColumn): EfDatatableColumn {
+export function mergeColumnDefaults(
+  column: EfDatatableColumn,
+): EfDatatableColumn {
   return { ...EF_DATATABLE_COLUMN_DEFAULTS, ...column };
 }

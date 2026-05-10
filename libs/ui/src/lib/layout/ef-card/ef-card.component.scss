@@ -1,0 +1,14 @@
+/* All visual rules live in @elasticias/ui/styles/patterns under
+   `.card` / `.card-head` / `.card-body` / `.card-foot`. The
+   component's host carries the .card class. */
+
+:host {
+    display: block;
+}
+
+:host {
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-2xl);
+    overflow: hidden;
+}
