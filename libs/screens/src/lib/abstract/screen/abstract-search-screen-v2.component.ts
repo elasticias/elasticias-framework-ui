@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   inject,
   Injector,
   OnDestroy,
@@ -9,8 +10,10 @@ import {
 import { take } from 'rxjs';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
+import { ActiveFilter } from '../../entities/active-filter.entity';
 import {
   EfDataCardColumn,
+  EfDataCardSort,
   EfReferenceColumnOpts,
 } from '../../entities/data-card-column.entity';
 import { EfDateRange } from '../../entities/date-range.entity';
@@ -74,6 +77,47 @@ export abstract class AbstractSearchScreenV2<TItem = any>
    * different starting preset.
    */
   readonly dateRange = signal<EfDateRange>(this.buildDefaultDateRange());
+
+  /* ── Filter-bar UI state (DRY) ──────────────────────────────────
+       Identical across every list screen — lifted up so subclasses
+       don't re-declare. `clear()` resets all four signals. */
+
+  /** Free-text search input value — bound `[(searchText)]` on
+   *  ef-smart-bar; drives `runSearch()`. */
+  readonly searchQuery = signal('');
+
+  /** Active status pill-group selection (defaults to `'all'`). */
+  readonly statusFilter = signal<string>('all');
+
+  /** Whether the advanced-filter drawer is open. */
+  readonly drawerOpen = signal(false);
+
+  /** Active named filter chips shown in the smart-bar. */
+  readonly activeFilters = signal<ActiveFilter[]>([]);
+
+  /* ── Selection (DRY) ────────────────────────────────────────────
+       Per-row checkbox state, used by `ef-bulk-bar` and the auto
+       row-actions cell. */
+
+  /** Selected row ids — keyed by `String(rowId(row))`. */
+  readonly selected = signal<ReadonlySet<string>>(new Set());
+
+  /** Live count derived from `selected`. */
+  readonly selectionCount = computed(() => this.selected().size);
+
+  /* ── Sort indicator (DRY) ───────────────────────────────────────
+       ef-data-card consumes `[sort]` as `{ field, direction: 'asc' |
+       'desc' }`. The base criteria stores the legacy
+       'Ascending' / 'Descending' strings — convert lazily here. */
+
+  readonly currentSort = computed<EfDataCardSort | null>(() => {
+    const s = this.criteria().sort?.[0];
+    if (!s?.field) return null;
+    return {
+      field: s.field,
+      direction: (s.sortDirection ?? '').toLowerCase().startsWith('asc') ? 'asc' : 'desc',
+    };
+  });
 
   /* ── Row-actions standard surface ───────────────────────────────
        Subclasses can flip these off when a particular CRUD action
@@ -174,6 +218,59 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     const t = this.startOfToday();
     t.setDate(t.getDate() - n);
     return t;
+  }
+
+  /* ── Filter-bar handlers (DRY) ──────────────────────────────────
+       Wired to ef-smart-bar / pill-group / filter-drawer / chip
+       removal. None of these need overriding — subclasses use them
+       through inherited template bindings. */
+
+  /** Wired to filter-drawer's `(apply)` — pushes the current
+   *  searchQuery into the criteria and re-runs the search. */
+  runSearch(): void {
+    this.setSearchText(this.searchQuery());
+  }
+
+  /** Pill-group click handler. Stores the selected status code; the
+   *  search itself only re-runs once the consumer pushes the value
+   *  into the criteria (or wires it via beforeSearch). */
+  setStatus(key: string): void {
+    this.statusFilter.set(key);
+  }
+
+  toggleDrawer(): void {
+    this.drawerOpen.update(o => !o);
+  }
+
+  /** Drop a chip from the active-filters list. */
+  removeFilter(key: string): void {
+    this.activeFilters.update(filters => filters.filter(f => f.key !== key));
+  }
+
+  /* ── Selection helpers (DRY) ────────────────────────────────────
+       Mutate `selected` (Set<string>); template binds via
+       `[checked]="isSelected(rowId(row))"` and
+       `(change)="toggleSelection(rowId(row))"`. */
+
+  toggleSelection(id: string): void {
+    this.selected.update(set => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  /** Toggle every visible row in or out of the selection in one shot. */
+  toggleAllSelection(): void {
+    const all = this.items().map(item => String(this.rowId(item)));
+    this.selected.update(set =>
+      set.size === all.length ? new Set() : new Set(all),
+    );
+  }
+
+  isSelected(id: string): boolean {
+    return this.selected().has(id);
   }
 
   /* ── Column builders (DRY) ──────────────────────────────────────
@@ -419,8 +516,14 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   }
 
   setSort(field: string, direction: string = SortDirectionEnum.DESC): void {
+    // Normalize `'asc' | 'desc'` (ef-data-card emits these) to the
+    // backend's legacy `'Ascending' | 'Descending'` strings, so
+    // subclasses don't need to override `setSort` just for that.
+    const normalized = (direction || '').toLowerCase().startsWith('asc')
+      ? 'Ascending'
+      : 'Descending';
     this.criteria.update((c) =>
-      this.cloneCriteria(c, { sort: [{ field, sortDirection: direction }] }),
+      this.cloneCriteria(c, { sort: [{ field, sortDirection: normalized }] }),
     );
     this.search();
   }
@@ -438,9 +541,9 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     this.search();
   }
 
-  /** Reset to defaults and re-fetch. Also resets the date-range
-   *  filter so subclasses don't have to remember to do it from their
-   *  own clearAll() orchestration. */
+  /** Reset everything to defaults and re-fetch. Subclasses bind this
+   *  to ef-smart-bar's `(clear)` output directly — no per-screen
+   *  `clearAll()` orchestration needed. */
   clear(): void {
     const cfg = this.getConfig();
     const fresh = new SearchEntity({});
@@ -453,7 +556,16 @@ export abstract class AbstractSearchScreenV2<TItem = any>
       ];
     }
     this.criteria.set(fresh);
+
+    // Reset all the shared filter-bar / selection signals so
+    // subclasses don't have to track each one individually.
+    this.searchQuery.set('');
+    this.statusFilter.set('all');
+    this.drawerOpen.set(false);
+    this.activeFilters.set([]);
+    this.selected.set(new Set());
     this.resetDateRange();
+
     this.cacheService.setCache(this.screenStateKey, fresh);
     this.search();
   }
