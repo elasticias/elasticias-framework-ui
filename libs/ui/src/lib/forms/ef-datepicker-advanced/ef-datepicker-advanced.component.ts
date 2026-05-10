@@ -1,18 +1,24 @@
 import {
     ChangeDetectionStrategy,
     Component,
+    DestroyRef,
     ElementRef,
+    EmbeddedViewRef,
     HostListener,
     LOCALE_ID,
+    TemplateRef,
+    ViewChild,
+    ViewContainerRef,
     booleanAttribute,
     computed,
+    effect,
     inject,
     input,
     output,
     signal,
 } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import {
     EfDatePreset,
     EfDatePresetKey,
@@ -52,8 +58,34 @@ import {
 })
 export class EfDatepickerAdvancedComponent {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-    private readonly translate = inject(TranslateService);
     private readonly locale = inject(LOCALE_ID);
+    private readonly vcr = inject(ViewContainerRef);
+    private readonly destroyRef = inject(DestroyRef);
+
+    /** Trigger button — used as the anchor for portal positioning. */
+    @ViewChild('triggerEl', { static: true })
+    private triggerEl!: ElementRef<HTMLButtonElement>;
+
+    /** Panel template — instantiated and attached to <body> on open. */
+    @ViewChild('panelTpl', { static: true })
+    private panelTpl!: TemplateRef<unknown>;
+
+    /** Active embedded view + its root node, while the panel is open. */
+    private panelView: EmbeddedViewRef<unknown> | null = null;
+    private panelRoot: HTMLElement | null = null;
+    private resizeHandler: (() => void) | null = null;
+
+    constructor() {
+        // React to `open` toggling: attach / detach the body-portaled panel.
+        effect(() => {
+            if (this.open()) this.attachPortal();
+            else this.detachPortal();
+        });
+
+        // Last-line cleanup if the host is destroyed while the panel is open
+        // (route change, *ngIf collapse, …) — orphan DOM is the worst.
+        this.destroyRef.onDestroy(() => this.detachPortal());
+    }
 
     /* ── Inputs ─────────────────────────────────────────────────── */
 
@@ -115,18 +147,10 @@ export class EfDatepickerAdvancedComponent {
         const explicitStart = this.start();
         const explicitEnd = this.end();
         if (explicitStart && explicitEnd) {
-            return {
-                start: explicitStart,
-                end: explicitEnd,
-                presetKey: key,
-                label: this.labelForPreset(key, explicitStart, explicitEnd),
-            };
+            return this.buildRange(key, explicitStart, explicitEnd);
         }
         return this.computePresetRange(key);
     });
-
-    /** Bold value shown in the trigger. */
-    readonly triggerValue = computed(() => this.resolvedRange().label);
 
     /** 7×6 grid for the visible month, prev/next-month overflow days included. */
     readonly calendarGrid = computed(() => this.buildMonthGrid(this.visibleMonth()));
@@ -179,7 +203,11 @@ export class EfDatepickerAdvancedComponent {
     onDocumentClick(event: MouseEvent): void {
         if (!this.open()) return;
         const target = event.target as Node | null;
-        if (target && this.host.nativeElement.contains(target)) return;
+        if (!target) return;
+        // Trigger sits inside the host element …
+        if (this.host.nativeElement.contains(target)) return;
+        // … the panel is portaled to <body>, so check it separately.
+        if (this.panelRoot && this.panelRoot.contains(target)) return;
         this.close();
     }
 
@@ -234,6 +262,57 @@ export class EfDatepickerAdvancedComponent {
         this.visibleMonth.update(d => this.addMonths(d, 1));
     }
 
+    /* ── Portal (panel rendered as a child of <body>) ───────────── */
+
+    private attachPortal(): void {
+        if (this.panelView || !this.panelTpl) return;
+
+        this.panelView = this.vcr.createEmbeddedView(this.panelTpl);
+        this.panelView.detectChanges();
+
+        const root = this.panelView.rootNodes.find(
+            (n: Node): n is HTMLElement => n instanceof HTMLElement,
+        );
+        if (!root) return;
+
+        this.panelRoot = root;
+        document.body.appendChild(root);
+        this.positionPanel();
+
+        // Reposition when the viewport changes; scroll already moves the
+        // panel with the trigger because we use absolute / page coords.
+        this.resizeHandler = () => this.positionPanel();
+        window.addEventListener('resize', this.resizeHandler);
+    }
+
+    private detachPortal(): void {
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+            this.resizeHandler = null;
+        }
+        if (this.panelRoot && this.panelRoot.parentNode) {
+            this.panelRoot.parentNode.removeChild(this.panelRoot);
+        }
+        this.panelRoot = null;
+        if (this.panelView) {
+            this.panelView.destroy();
+            this.panelView = null;
+        }
+    }
+
+    /** Anchor the panel's top-left to the trigger's bottom-left, using
+     *  page coords so the panel scrolls with the trigger naturally. */
+    private positionPanel(): void {
+        if (!this.panelRoot || !this.triggerEl) return;
+        const rect = this.triggerEl.nativeElement.getBoundingClientRect();
+        Object.assign(this.panelRoot.style, {
+            position: 'absolute',
+            top: `${window.scrollY + rect.bottom + 8}px`,
+            left: `${window.scrollX + rect.left}px`,
+            insetInlineEnd: 'auto',
+        });
+    }
+
     /** Click handling: 1st click sets start, 2nd click sets end (or swap). */
     selectDay(day: Date): void {
         const start = this.draftStart();
@@ -260,13 +339,7 @@ export class EfDatepickerAdvancedComponent {
         const s = this.draftStart();
         const e = this.draftEnd() ?? s;
         if (!s || !e) return;
-        const range: EfDateRange = {
-            start: s,
-            end: e,
-            presetKey: 'custom',
-            label: this.labelForPreset('custom', s, e),
-        };
-        this.rangeChange.emit(range);
+        this.rangeChange.emit(this.buildRange('custom', s, e));
         this.close();
     }
 
@@ -293,16 +366,30 @@ export class EfDatepickerAdvancedComponent {
     private computePresetRange(key: EfDatePresetKey): EfDateRange {
         const today = new Date();
         const preset = this.effectivePresets().find(p => p.key === key);
-        if (preset?.compute) {
-            const { start, end } = preset.compute(today);
-            return { start, end, presetKey: key, label: this.labelForPreset(key, start, end) };
+        const { start, end } = preset?.compute
+            ? preset.compute(today)
+            : this.builtInRange(key, today);
+        return this.buildRange(key, start, end);
+    }
+
+    /** Assemble an EfDateRange — exposes `labelKey` (for the trigger
+     *  to render via `| translate`) and a literal `label` fallback. */
+    private buildRange(key: EfDatePresetKey, start: Date, end: Date): EfDateRange {
+        if (key === 'custom') {
+            const sameYear = start.getFullYear() === end.getFullYear();
+            const fmt = sameYear ? 'd MMM' : 'd MMM yyyy';
+            return {
+                start, end,
+                presetKey: 'custom',
+                label: `${formatDate(start, fmt, this.locale)} — ${formatDate(end, fmt, this.locale)}`,
+            };
         }
-        const builtIn = this.builtInRange(key, today);
+        const preset = this.effectivePresets().find(p => p.key === key);
         return {
-            start: builtIn.start,
-            end: builtIn.end,
+            start, end,
             presetKey: key,
-            label: this.labelForPreset(key, builtIn.start, builtIn.end),
+            labelKey: preset?.labelKey,
+            label: preset?.label ?? this.builtInHint(key),
         };
     }
 
@@ -354,19 +441,6 @@ export class EfDatepickerAdvancedComponent {
             default:
                 return '';
         }
-    }
-
-    private labelForPreset(key: EfDatePresetKey, start: Date, end: Date): string {
-        if (key === 'custom') {
-            const sameYear = start.getFullYear() === end.getFullYear();
-            const fmt = sameYear ? 'd MMM' : 'd MMM yyyy';
-            return `${formatDate(start, fmt, this.locale)} — ${formatDate(end, fmt, this.locale)}`;
-        }
-        const preset = this.effectivePresets().find(p => p.key === key);
-        const labelKey = preset?.labelKey;
-        return labelKey
-            ? this.translate.instant(labelKey)
-            : (preset?.label ?? this.builtInHint(key));
     }
 
     /** 6 weeks × 7 days. Each cell carries its date + flags. */

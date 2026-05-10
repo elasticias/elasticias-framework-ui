@@ -51,6 +51,12 @@ export interface EfDateRange {
     end: Date;
     /** Which preset was active (`'custom'` for manual selection). */
     presetKey: EfDatePresetKey;
-    /** Resolved label suitable for the trigger's bold value text. */
+    /** Resolved literal label — formatted date range for `'custom'`,
+     *  the preset's `label` (or builtInHint) for built-ins. Used when
+     *  `labelKey` is empty. */
     label: string;
+    /** Translation key — preferred when set. The component renders
+     *  this through `| translate` so the trigger updates reactively
+     *  when translations finish loading or the language changes. */
+    labelKey?: string;
 }
