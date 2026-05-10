@@ -2,6 +2,10 @@ import { Component, inject, Injector, OnDestroy, OnInit, signal } from '@angular
 import { take } from 'rxjs';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
+import {
+    EfDataCardColumn,
+    EfReferenceColumnOpts,
+} from '../../entities/data-card-column.entity';
 import { EfDateRange } from '../../entities/date-range.entity';
 import {
     PaginationEnum,
@@ -160,6 +164,151 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         const t = this.startOfToday();
         t.setDate(t.getDate() - n);
         return t;
+    }
+
+    /* ── Column builders (DRY) ──────────────────────────────────────
+       Convenience helpers that return a fully-formed EfDataCardColumn
+       with sensible per-type defaults. Pass `opts` to override any
+       property — `opts` always wins over the builder's defaults. */
+
+    /** Selection checkbox column — paired with `efColumnTemplate="select"`
+     *  for the row's checkbox. 40px wide, no other props. */
+    protected addSelectColumn(width = '40px'): EfDataCardColumn {
+        return { id: 'select', width };
+    }
+
+    /** Plain text column. */
+    protected addTextColumn(
+        field: string,
+        headerKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return { id: field, ...opts, field, headerKey, type: 'text' };
+    }
+
+    /** Monospace column — JetBrains Mono with tabular-nums; for codes,
+     *  IDs, refs, anything where character alignment matters. */
+    protected addMonoColumn(
+        field: string,
+        headerKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return { id: field, ...opts, field, headerKey, type: 'mono' };
+    }
+
+    /** Number column — end-aligned, integer by default. Override
+     *  `minFractionDigits` / `maxFractionDigits` via opts for decimals. */
+    protected addNumberColumn(
+        field: string,
+        headerKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return {
+            id: field,
+            minFractionDigits: 0,
+            maxFractionDigits: 0,
+            ...opts,
+            field,
+            headerKey,
+            type: 'number',
+            align: opts.align ?? 'end',
+        };
+    }
+
+    /** Money column — end-aligned with required ISO currency code. */
+    protected addMoneyColumn(
+        field: string,
+        headerKey: string,
+        currencyCode: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return {
+            id: field,
+            ...opts,
+            field,
+            headerKey,
+            type: 'money',
+            currencyCode,
+            align: opts.align ?? 'end',
+        };
+    }
+
+    /** Date column — formats as `dd/MM/yyyy` by default. */
+    protected addDateColumn(
+        field: string,
+        headerKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return { id: field, ...opts, field, headerKey, type: 'date' };
+    }
+
+    /** Datetime column — formats as `dd/MM/yyyy HH:mm` by default. */
+    protected addDatetimeColumn(
+        field: string,
+        headerKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return { id: field, ...opts, field, headerKey, type: 'datetime' };
+    }
+
+    /** Boolean column — renders the `bool yes / bool no` indicator. */
+    protected addBooleanColumn(
+        field: string,
+        headerKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return { id: field, ...opts, field, headerKey, type: 'boolean' };
+    }
+
+    /** Static-class chip column — renders `chip <chipPrefix><value>`.
+     *  Use `addStatusColumn` for reference_data-driven palettes. */
+    protected addChipColumn(
+        field: string,
+        headerKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return { id: field, chipPrefix: 'chip-', ...opts, field, headerKey, type: 'chip' };
+    }
+
+    /** Status chip column — palette + label resolved from
+     *  `reference_data` via `referenceKey`. Sortable by default. */
+    protected addStatusColumn(
+        field: string,
+        headerKey: string,
+        referenceKey: string,
+        opts: Partial<EfDataCardColumn> = {},
+    ): EfDataCardColumn {
+        return {
+            id: field,
+            sortable: true,
+            ...opts,
+            field,
+            headerKey,
+            type: 'status',
+            referenceKey,
+        };
+    }
+
+    /** Reference column — looks up `field`'s value in the reference
+     *  list keyed by `referenceKey`, renders the matching item's label.
+     *  Defaults: `valueField: 'id'`, `labelField: 'label'`. */
+    protected addReferenceColumn(
+        field: string,
+        headerKey: string,
+        referenceKey: string,
+        opts: EfReferenceColumnOpts = {},
+    ): EfDataCardColumn {
+        const { valueField, labelField, ...rest } = opts;
+        return {
+            id: field,
+            ...rest,
+            field,
+            headerKey,
+            type: 'reference',
+            referenceKey,
+            referenceValueField: valueField ?? rest.referenceValueField ?? 'id',
+            referenceLabelField: labelField ?? rest.referenceLabelField ?? 'label',
+        };
     }
 
     override ngOnInit(): void {

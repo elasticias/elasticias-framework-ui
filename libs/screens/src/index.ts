@@ -25,3 +25,11 @@ export type { ReferenceDataProvider } from './lib/config/screen-context';
 export { SearchEntity, SortDirectionEnum, PaginationEnum } from './lib/entities/search.entity';
 export { ViewModelEntity } from './lib/entities/view-model.entity';
 export type { EfDateRange, EfDatePresetKey } from './lib/entities/date-range.entity';
+export type {
+    EfDataCardColumn,
+    EfDataCardColumnType,
+    EfDataCardColumnAlign,
+    EfDataCardSort,
+    EfDataCardSortDirection,
+    EfReferenceColumnOpts,
+} from './lib/entities/data-card-column.entity';
