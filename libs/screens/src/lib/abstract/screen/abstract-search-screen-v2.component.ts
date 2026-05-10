@@ -598,18 +598,41 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     return next;
   }
 
-  /* ── Navigation helpers (mirror legacy class) ───────────────── */
+  /* ── Navigation helpers ─────────────────────────────────────────
+       V2 routes are `<list-path>/:id` for the detail screen — no
+       `/details/` segment. The legacy abstract used to inject one;
+       V2 drops it.
+
+       `currentUrl` cached on `AbstractScreenComponent.ngOnInit` is
+       not reliable (Router.url isn't committed yet during route
+       activation, so it holds the previous URL). Read `router.url`
+       at call time instead. Strip a trailing `/:id` segment so
+       calling `navigateToDetails` from a detail screen doesn't
+       compound paths. */
+
+  /** Resolve the list-screen URL at call time, peeling a trailing
+   *  detail-id segment if the caller is already on `/foo/123`. */
+  protected resolveListUrl(): string {
+    let url = this.router.url || this.currentUrl || '';
+    // Drop query string + fragment.
+    const q = url.indexOf('?');
+    if (q >= 0) url = url.slice(0, q);
+    const h = url.indexOf('#');
+    if (h >= 0) url = url.slice(0, h);
+    return url.replace(/\/$/, '');
+  }
 
   navigateToDetails(id?: any): void {
-    const path =
-      id || id === 0
-        ? `${this.currentUrl}/details/${id}`
-        : `${this.currentUrl}/details`;
-    this.router.navigate([path]);
+    const base = this.resolveListUrl();
+    if (id == null && id !== 0) {
+      this.router.navigate([base]);
+      return;
+    }
+    this.router.navigate([base, id]);
   }
 
   add(): void {
-    this.router.navigate([this.currentUrl.concat('/details')]);
+    this.router.navigate([this.resolveListUrl(), 'new']);
   }
 
   edit(id: any): void {
@@ -617,7 +640,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
       this.toastService.showError('Item [id] is undefined !');
       return;
     }
-    this.router.navigate([this.currentUrl.concat('/details/'), id]);
+    this.router.navigate([this.resolveListUrl(), id]);
   }
 
   delete(id: any): void {
@@ -647,7 +670,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
       this.toastService.showError('Item [id] is undefined !');
       return;
     }
-    this.router.navigate([this.currentUrl.concat('/details/'), id], {
+    this.router.navigate([this.resolveListUrl(), id], {
       queryParams: { mode: 'duplicate' },
     });
   }
