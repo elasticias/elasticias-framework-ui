@@ -2,29 +2,93 @@
   <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
 }
 <div class="ef-field-control">
-  <input
-    [id]="effectiveId"
-    [type]="type"
-    pInputText
-    [pSize]="size"
-    [value]="value"
-    (input)="handleInput($any($event.target).value)"
-    (blur)="handleBlur()"
-    [placeholder]="effectivePlaceholder"
-    [attr.maxlength]="maxlength"
-    [readonly]="readonly"
-    [disabled]="disabled"
-    [attr.autocomplete]="autocomplete"
-    [class.ng-invalid]="isInvalid"
-    [class.ng-touched]="ngControl?.touched"
-    fluid
-  />
-  @if (showRequired) {
-    <small class="text-danger">{{ 'validation.required' | translate }}</small>
-  }
-  @if (serverErrors; as errors) {
-    @for (error of errors; track error) {
-      <small class="text-danger block">{{ error }}</small>
+  @if (variant === 'comptoir') {
+    @if (prefix || suffix) {
+      <!-- Comptoir variant with prefix/suffix — wraps the input in
+           an .ef-input-group so the addons share the border + focus
+           ring with the input. -->
+      <div class="ef-input-group" [class.is-invalid]="isInvalid">
+        @if (prefix) {
+          <span class="ef-input-addon is-prefix" aria-hidden="true">{{ prefix }}</span>
+        }
+        <input
+          [id]="effectiveId"
+          [attr.name]="name || null"
+          [type]="type"
+          [value]="value"
+          (input)="handleInput($any($event.target).value)"
+          (blur)="handleBlur()"
+          [attr.placeholder]="effectivePlaceholder || null"
+          [attr.maxlength]="maxlength ?? null"
+          [readonly]="readonly"
+          [disabled]="disabled"
+          [attr.autocomplete]="autocomplete ?? null"
+          [attr.aria-label]="effectiveAriaLabel"
+          [attr.aria-required]="required ? 'true' : null"
+          [attr.aria-invalid]="isInvalid ? 'true' : null"
+          [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+        />
+        @if (suffix) {
+          <span class="ef-input-addon is-suffix" aria-hidden="true">{{ suffix }}</span>
+        }
+      </div>
+    } @else {
+      <!-- Comptoir variant — bare native input. -->
+      <input
+        class="ef-input"
+        [id]="effectiveId"
+        [attr.name]="name || null"
+        [type]="type"
+        [value]="value"
+        (input)="handleInput($any($event.target).value)"
+        (blur)="handleBlur()"
+        [attr.placeholder]="effectivePlaceholder || null"
+        [attr.maxlength]="maxlength ?? null"
+        [readonly]="readonly"
+        [disabled]="disabled"
+        [attr.autocomplete]="autocomplete ?? null"
+        [class.is-invalid]="isInvalid"
+        [attr.aria-label]="effectiveAriaLabel"
+        [attr.aria-required]="required ? 'true' : null"
+        [attr.aria-invalid]="isInvalid ? 'true' : null"
+        [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+      />
     }
+  } @else {
+    <!-- PrimeNG variant (default) — v1 styling. -->
+    <input
+      [id]="effectiveId"
+      [attr.name]="name || null"
+      [type]="type"
+      pInputText
+      [pSize]="size"
+      [value]="value"
+      (input)="handleInput($any($event.target).value)"
+      (blur)="handleBlur()"
+      [attr.placeholder]="effectivePlaceholder || null"
+      [attr.maxlength]="maxlength ?? null"
+      [readonly]="readonly"
+      [disabled]="disabled"
+      [attr.autocomplete]="autocomplete ?? null"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-touched]="ngControl?.touched"
+      [attr.aria-label]="effectiveAriaLabel"
+      [attr.aria-required]="required ? 'true' : null"
+      [attr.aria-invalid]="isInvalid ? 'true' : null"
+      [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+      fluid
+    />
+  }
+  @if (showRequired || serverErrors) {
+    <div [id]="errorsId" role="alert" aria-live="polite">
+      @if (showRequired) {
+        <small class="text-danger">{{ 'validation.required' | translate }}</small>
+      }
+      @if (serverErrors; as errors) {
+        @for (error of errors; track error) {
+          <small class="text-danger block">{{ error }}</small>
+        }
+      }
+    </div>
   }
 </div>

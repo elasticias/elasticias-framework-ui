@@ -30,6 +30,26 @@ export class EfDialogComponent {
   @Input({ transform: booleanAttribute }) resizable = false;
   @Input() style?: { [key: string]: string };
   @Input() styleClass?: string;
+
+  /**
+   * Render variant.
+   * - `'comptoir'` (default) — applies the `.es-dialog` Comptoir skin
+   *   from `@elasticias/ui/styles/patterns` (paper-alt surface,
+   *   --rule borders, --r-xl radius, Bricolage title, ghost close,
+   *   rule-separated footer).
+   * - `'primeng'`            — bare p-dialog. Use to inherit a stock
+   *   PrimeNG theme one-off, or in legacy screens.
+   */
+  @Input() variant: 'primeng' | 'comptoir' = 'comptoir';
+
+  /** Always prefixes the configured `styleClass` with `es-dialog` so
+   *  the Comptoir skin always applies in the default variant. */
+  get effectiveStyleClass(): string {
+    const parts: string[] = [];
+    if (this.variant === 'comptoir') parts.push('es-dialog');
+    if (this.styleClass) parts.push(this.styleClass);
+    return parts.join(' ');
+  }
   @Input() position:
     | 'center'
     | 'top'
@@ -49,14 +69,19 @@ export class EfDialogComponent {
    * `[dialogFooter]` projection slot for fully custom footers.
    */
   @Input({ transform: booleanAttribute }) defaultActions = true;
-  @Input() saveLabelKey = 'button.save';
-  @Input() cancelLabelKey = 'button.cancel';
+  @Input() saveLabelKey = 'common_save';
+  @Input() cancelLabelKey = 'common_cancel';
   @Input() saveLabel?: string;
   @Input() cancelLabel?: string;
   @Input() saveIcon = 'pi pi-check';
+  @Input() cancelIcon?: string;
   @Input({ transform: booleanAttribute }) saveDisabled = false;
-  @Input() saveStyleClass = 'p-button-sm';
-  @Input() cancelStyleClass = 'p-button-sm p-button-text';
+  /** Style class forwarded to the default-action save button. Honoured
+   *  for both variants; pair with `saveSeverity` for Comptoir intent. */
+  @Input() saveStyleClass?: string;
+  @Input() cancelStyleClass?: string;
+  @Input() saveSeverity: 'primary' | 'tenant' | 'ghost' | 'danger' = 'primary';
+  @Input() cancelSeverity: 'primary' | 'tenant' | 'ghost' | 'danger' = 'ghost';
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() showEvent = new EventEmitter<void>();

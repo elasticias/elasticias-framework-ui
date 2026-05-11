@@ -1,21 +1,53 @@
-<p-checkbox
-  [inputId]="effectiveId"
-  [name]="name"
-  [ngModel]="checked"
-  [ngModelOptions]="{standalone: true}"
-  (onChange)="handleChange($event)"
-  [value]="value"
-  [binary]="binary"
-  [disabled]="disabled"
-/>
-@if (labelKey || label) {
-  <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" styleClass="form-label-left" />
-}
-@if (showRequired) {
-  <small class="text-danger">{{ 'validation.required' | translate }}</small>
-}
-@if (serverErrors; as errors) {
-  @for (error of errors; track error) {
-    <small class="text-danger block">{{ error }}</small>
+@if (variant === 'comptoir') {
+  <label class="ef-checkbox-native" [class.is-disabled]="disabled">
+    <input
+      type="checkbox"
+      [id]="effectiveId"
+      [attr.name]="name || null"
+      [checked]="!!checked"
+      [disabled]="disabled"
+      [class.is-invalid]="isInvalid"
+      [attr.aria-label]="effectiveAriaLabel"
+      [attr.aria-required]="required ? 'true' : null"
+      [attr.aria-invalid]="isInvalid ? 'true' : null"
+      [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+      (change)="handleNativeChange($any($event.target).checked)"
+    />
+    <span class="ef-checkbox-box" aria-hidden="true"></span>
+    @if (labelKey || label) {
+      <span class="ef-checkbox-label">
+        {{ labelKey ? (labelKey | translate) : label }}
+        @if (required) {
+          <span class="ef-checkbox-required" aria-hidden="true">*</span>
+        }
+      </span>
+    }
+  </label>
+} @else {
+  <p-checkbox
+    [inputId]="effectiveId"
+    [name]="name"
+    [ngModel]="checked"
+    [ngModelOptions]="{standalone: true}"
+    (onChange)="handleChange($event)"
+    [value]="value"
+    [binary]="binary"
+    [disabled]="disabled"
+    [ariaLabel]="effectiveAriaLabel || undefined"
+  />
+  @if (labelKey || label) {
+    <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" styleClass="form-label-left" />
   }
+}
+@if (showRequired || serverErrors) {
+  <div [id]="errorsId" role="alert" aria-live="polite">
+    @if (showRequired) {
+      <small class="text-danger">{{ 'validation.required' | translate }}</small>
+    }
+    @if (serverErrors; as errors) {
+      @for (error of errors; track error) {
+        <small class="text-danger block">{{ error }}</small>
+      }
+    }
+  </div>
 }

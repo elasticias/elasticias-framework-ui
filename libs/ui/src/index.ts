@@ -18,6 +18,11 @@ export type { CatalogueProduct, CatalogueProductVariant } from './lib/commerce/e
 export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
 export { EfFieldsetComponent } from './lib/layout/ef-fieldset/ef-fieldset.component';
 export { EfButtonComponent } from './lib/layout/ef-button/ef-button.component';
+export type {
+    EfButtonSeverity,
+    EfButtonPrimeNGSeverity,
+    EfButtonComptoirSeverity,
+} from './lib/layout/ef-button/ef-button.component';
 export { EfButtonGroupComponent } from './lib/layout/ef-button-group/ef-button-group.component';
 export { EfLabelComponent } from './lib/layout/ef-label/ef-label.component';
 export { EfBadgeComponent } from './lib/layout/ef-badge/ef-badge.component';
@@ -51,6 +56,7 @@ export type { EfToastRegionPosition } from './lib/feedback/ef-toast-region/ef-to
 export { EfCardComponent } from './lib/layout/ef-card/ef-card.component';
 export { EfFormGridComponent } from './lib/layout/ef-form-grid/ef-form-grid.component';
 export { EfDetailToolbarComponent } from './lib/layout/ef-detail-toolbar/ef-detail-toolbar.component';
+export type { EfDetailToolbarAction } from './lib/layout/ef-detail-toolbar/ef-detail-toolbar.types';
 export { EfTotalsComponent } from './lib/data/ef-totals/ef-totals.component';
 export type { EfTotalsRow, EfTotalsGrand } from './lib/data/ef-totals/ef-totals.types';
 export { EfStatsComponent } from './lib/data/ef-stats/ef-stats.component';
@@ -90,6 +96,9 @@ export { EfBulkBarComponent } from './lib/data/ef-bulk-bar/ef-bulk-bar.component
 export { EfEmptyStateComponent } from './lib/feedback/ef-empty-state/ef-empty-state.component';
 export { EfSmartBarComponent } from './lib/data/ef-smart-bar/ef-smart-bar.component';
 export { EfFilterPillComponent } from './lib/forms/ef-filter-pill/ef-filter-pill.component';
+export { EfInputTextComponent } from './lib/forms/ef-input-text/ef-input-text.component';
+export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
+export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
 export { EfPresetPillComponent } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
 export type { EfPresetItem } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
 export { EfDatepickerAdvancedComponent } from './lib/forms/ef-datepicker-advanced/ef-datepicker-advanced.component';

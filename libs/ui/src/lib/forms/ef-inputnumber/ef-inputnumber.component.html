@@ -2,74 +2,161 @@
   <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
 }
 <div class="ef-field-control">
-  <p-inputnumber
-    #inputNumber
-    [(ngModel)]="value"
-    [ngModelOptions]="{standalone: true}"
-    [invalid]="isInvalid"
-    [disabled]="disabled"
-    [readonly]="readonly"
-    [required]="required"
-    [format]="format"
-    [showButtons]="showButtons"
-    [buttonLayout]="buttonLayout"
-    [incrementButtonClass]="incrementButtonClass"
-    [decrementButtonClass]="decrementButtonClass"
-    [incrementButtonIcon]="incrementButtonIcon"
-    [decrementButtonIcon]="decrementButtonIcon"
-    [prefix]="prefix"
-    [suffix]="suffix"
-    [currency]="currency"
-    [currencyDisplay]="currencyDisplay"
-    [locale]="locale"
-    [localeMatcher]="localeMatcher"
-    [mode]="mode"
-    [useGrouping]="useGrouping"
-    [minFractionDigits]="minFractionDigits"
-    [maxFractionDigits]="maxFractionDigits"
-    [min]="min"
-    [max]="max"
-    [step]="step"
-    [allowEmpty]="allowEmpty"
-    [inputId]="effectiveId"
-    [name]="name"
-    [placeholder]="effectivePlaceholder"
-    [inputSize]="inputSize"
-    [size]="size"
-    [maxlength]="maxlength"
-    [minlength]="minlength"
-    [pattern]="pattern"
-    [tabindex]="tabindex"
-    [title]="title"
-    [ariaLabel]="ariaLabel"
-    [ariaLabelledBy]="ariaLabelledBy"
-    [ariaDescribedBy]="ariaDescribedBy"
-    [ariaRequired]="ariaRequired"
-    [inputStyle]="inputStyle"
-    [inputStyleClass]="inputStyleClass"
-    [style]="style"
-    [styleClass]="styleClass"
-    [showClear]="showClear"
-    [variant]="variant"
-    [autofocus]="autofocus"
-    [autocomplete]="autocomplete"
-    [fluid]="fluid"
-    [pt]="pt"
-    [ptOptions]="ptOptions"
-    [dt]="dt"
-    [unstyled]="unstyled"
-    (onInput)="handleInput($event)"
-    (onFocus)="handleFocus($event)"
-    (onBlur)="handleBlur($event)"
-    (onKeyDown)="handleKeyDown($event)"
-    (onClear)="handleClear()"
-  />
-  @if (showRequired) {
-    <small class="text-danger">{{ 'validation.required' | translate }}</small>
-  }
-  @if (serverErrors; as errors) {
-    @for (error of errors; track error) {
-      <small class="text-danger block">{{ error }}</small>
+  @if (variant === 'comptoir') {
+    @if (prefix || suffix || showButtons) {
+      <!-- Comptoir variant — native <input type="number"> wrapped in
+           .ef-input-group when there's a prefix / suffix / stepper. -->
+      <div class="ef-input-group" [class.is-invalid]="isInvalid">
+        @if (showButtons) {
+          <button
+            type="button"
+            class="ef-input-addon is-stepper"
+            [disabled]="disabled || (min != null && (value ?? 0) <= min)"
+            (click)="step$(-1)"
+            [attr.aria-label]="('ef_input_decrement' | translate) || 'Decrease'"
+          >
+            <i class="pi pi-minus" aria-hidden="true"></i>
+          </button>
+        }
+        @if (prefix) {
+          <span class="ef-input-addon is-prefix" aria-hidden="true">{{ prefix }}</span>
+        }
+        <input
+          type="number"
+          [id]="effectiveId"
+          [attr.name]="name || null"
+          [value]="value ?? ''"
+          [attr.min]="min ?? null"
+          [attr.max]="max ?? null"
+          [attr.step]="step ?? null"
+          [attr.placeholder]="effectivePlaceholder || null"
+          [readonly]="readonly"
+          [disabled]="disabled"
+          [attr.autocomplete]="autocomplete ?? null"
+          [attr.aria-label]="effectiveAriaLabel"
+          [attr.aria-required]="required ? 'true' : null"
+          [attr.aria-invalid]="isInvalid ? 'true' : null"
+          [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+          (input)="handleNativeInput($any($event.target).value)"
+          (focus)="handleFocus($event)"
+          (blur)="handleBlur($event)"
+          (keydown)="handleKeyDown($event)"
+        />
+        @if (suffix) {
+          <span class="ef-input-addon is-suffix" aria-hidden="true">{{ suffix }}</span>
+        }
+        @if (showButtons) {
+          <button
+            type="button"
+            class="ef-input-addon is-stepper"
+            [disabled]="disabled || (max != null && (value ?? 0) >= max)"
+            (click)="step$(1)"
+            [attr.aria-label]="('ef_input_increment' | translate) || 'Increase'"
+          >
+            <i class="pi pi-plus" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    } @else {
+      <!-- Comptoir variant — bare native number input. -->
+      <input
+        type="number"
+        class="ef-input"
+        [id]="effectiveId"
+        [attr.name]="name || null"
+        [value]="value ?? ''"
+        [attr.min]="min ?? null"
+        [attr.max]="max ?? null"
+        [attr.step]="step ?? null"
+        [attr.placeholder]="effectivePlaceholder || null"
+        [readonly]="readonly"
+        [disabled]="disabled"
+        [attr.autocomplete]="autocomplete ?? null"
+        [class.is-invalid]="isInvalid"
+        [attr.aria-label]="effectiveAriaLabel"
+        [attr.aria-required]="required ? 'true' : null"
+        [attr.aria-invalid]="isInvalid ? 'true' : null"
+        [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+        (input)="handleNativeInput($any($event.target).value)"
+        (focus)="handleFocus($event)"
+        (blur)="handleBlur($event)"
+        (keydown)="handleKeyDown($event)"
+      />
     }
+  } @else {
+    <!-- PrimeNG variant (default) — full locale-aware formatting. -->
+    <p-inputnumber
+      #inputNumber
+      [(ngModel)]="value"
+      [ngModelOptions]="{standalone: true}"
+      [invalid]="isInvalid"
+      [disabled]="disabled"
+      [readonly]="readonly"
+      [required]="required"
+      [format]="format"
+      [showButtons]="showButtons"
+      [buttonLayout]="buttonLayout"
+      [incrementButtonClass]="incrementButtonClass"
+      [decrementButtonClass]="decrementButtonClass"
+      [incrementButtonIcon]="incrementButtonIcon"
+      [decrementButtonIcon]="decrementButtonIcon"
+      [prefix]="prefix"
+      [suffix]="suffix"
+      [currency]="currency"
+      [currencyDisplay]="currencyDisplay"
+      [locale]="locale"
+      [localeMatcher]="localeMatcher"
+      [mode]="mode"
+      [useGrouping]="useGrouping"
+      [minFractionDigits]="minFractionDigits"
+      [maxFractionDigits]="maxFractionDigits"
+      [min]="min"
+      [max]="max"
+      [step]="step"
+      [allowEmpty]="allowEmpty"
+      [inputId]="effectiveId"
+      [name]="name"
+      [placeholder]="effectivePlaceholder"
+      [inputSize]="inputSize"
+      [size]="size"
+      [maxlength]="maxlength"
+      [minlength]="minlength"
+      [pattern]="pattern"
+      [tabindex]="tabindex"
+      [title]="title"
+      [ariaLabel]="effectiveAriaLabel"
+      [ariaLabelledBy]="ariaLabelledBy"
+      [ariaRequired]="required"
+      [inputStyle]="inputStyle"
+      [inputStyleClass]="inputStyleClass"
+      [style]="style"
+      [styleClass]="styleClass"
+      [showClear]="showClear"
+      [variant]="primeNgVariant"
+      [autofocus]="autofocus"
+      [autocomplete]="autocomplete"
+      [fluid]="fluid"
+      [pt]="pt"
+      [ptOptions]="ptOptions"
+      [dt]="dt"
+      [unstyled]="unstyled"
+      (onInput)="handleInput($event)"
+      (onFocus)="handleFocus($event)"
+      (onBlur)="handleBlur($event)"
+      (onKeyDown)="handleKeyDown($event)"
+      (onClear)="handleClear()"
+    />
+  }
+  @if (showRequired || serverErrors) {
+    <div [id]="errorsId" role="alert" aria-live="polite">
+      @if (showRequired) {
+        <small class="text-danger">{{ 'validation.required' | translate }}</small>
+      }
+      @if (serverErrors; as errors) {
+        @for (error of errors; track error) {
+          <small class="text-danger block">{{ error }}</small>
+        }
+      }
+    </div>
   }
 </div>

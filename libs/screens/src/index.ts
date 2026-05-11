@@ -27,6 +27,7 @@ export { SearchEntity, SortDirectionEnum, PaginationEnum } from './lib/entities/
 export { ViewModelEntity } from './lib/entities/view-model.entity';
 export type { EfDateRange, EfDatePresetKey } from './lib/entities/date-range.entity';
 export type { ActiveFilter } from './lib/entities/active-filter.entity';
+export type { EfDetailToolbarAction } from './lib/entities/detail-toolbar-action.entity';
 export type {
     EfDataCardColumn,
     EfDataCardColumnType,

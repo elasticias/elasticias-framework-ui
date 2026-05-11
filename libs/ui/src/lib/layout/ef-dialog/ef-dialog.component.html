@@ -7,7 +7,7 @@
   [draggable]="draggable"
   [resizable]="resizable"
   [style]="style"
-  [styleClass]="styleClass"
+  [styleClass]="effectiveStyleClass"
   [position]="position"
   [appendTo]="appendTo"
   [footerTemplate]="defaultActions ? defaultFooterTpl : null"
@@ -21,20 +21,23 @@
      is a view child of ef-dialog, not a content child of <p-dialog>; we hand it
      to <p-dialog> via the [footerTemplate] input above. -->
 <ng-template #defaultFooter>
-  <div class="flex justify-end gap-2">
-    <ef-button
-      [labelKey]="cancelLabelKey"
-      [label]="cancelLabel"
-      [styleClass]="cancelStyleClass"
-      (clickEvent)="onDefaultCancel()"
-    />
-    <ef-button
-      [labelKey]="saveLabelKey"
-      [label]="saveLabel"
-      [icon]="saveIcon"
-      [styleClass]="saveStyleClass"
-      [disabled]="saveDisabled"
-      (clickEvent)="onDefaultSave()"
-    />
-  </div>
+  <ef-button
+    [variant]="variant === 'comptoir' ? 'comptoir' : 'primeng'"
+    [severity]="cancelSeverity"
+    [labelKey]="cancelLabelKey"
+    [label]="cancelLabel"
+    [icon]="cancelIcon"
+    [styleClass]="cancelStyleClass"
+    (clickEvent)="onDefaultCancel()"
+  />
+  <ef-button
+    [variant]="variant === 'comptoir' ? 'comptoir' : 'primeng'"
+    [severity]="saveSeverity"
+    [labelKey]="saveLabelKey"
+    [label]="saveLabel"
+    [icon]="saveIcon"
+    [styleClass]="saveStyleClass"
+    [disabled]="saveDisabled"
+    (clickEvent)="onDefaultSave()"
+  />
 </ng-template>

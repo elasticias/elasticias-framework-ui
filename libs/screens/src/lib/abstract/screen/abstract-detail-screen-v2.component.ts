@@ -4,6 +4,7 @@ import {
     Injector,
     OnDestroy,
     OnInit,
+    computed,
     inject,
     signal,
 } from '@angular/core';
@@ -12,6 +13,7 @@ import { Location } from '@angular/common';
 import { combineLatest } from 'rxjs';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
+import { EfDetailToolbarAction } from '../../entities/detail-toolbar-action.entity';
 import { ViewModelEntity } from '../../entities/view-model.entity';
 
 /**
@@ -63,7 +65,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     protected readonly location = inject(Location);
     private readonly destroyRef = inject(DestroyRef);
 
-    private serviceInstance: any;
+    protected serviceInstance: any;
 
     /** Loaded entity. Empty object when on `/details` (create mode). */
     readonly entity = signal<TItem>(<TItem>{});
@@ -86,6 +88,46 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     /** Last load / save error message — empty string when none. */
     readonly errorMsg = signal<string | null>(null);
+
+    /**
+     * Reactive list of custom actions for `<ef-detail-toolbar>`'s
+     * `[customActions]` input — recomputes whenever editionState /
+     * duplicateMode flip. Default contents:
+     * - Edit mode      → empty (the standard `print | duplicate |
+     *                    delete | save` row covers it)
+     * - Create mode    → `[Cancel]` — navigates back to the list
+     * - Duplicate mode → `[Cancel]` — drops `?mode=duplicate` and
+     *                    returns to edit view of the source entity
+     *
+     * Subclasses override `getCustomActions()` to add screen-specific
+     * actions (Approve / Print PDF / Mark as paid / etc.). Call
+     * `super.getCustomActions()` to keep the Cancel default.
+     */
+    readonly customActions = computed<ReadonlyArray<EfDetailToolbarAction>>(
+        () => this.getCustomActions(),
+    );
+
+    /**
+     * Builder for `customActions`. Override per screen to add or
+     * replace the defaults. Pure function — reads other signals
+     * freely, returns a fresh array each call.
+     */
+    protected getCustomActions(): EfDetailToolbarAction[] {
+        // Edit mode: standard right-side group is enough; let subclass
+        // append Preview / Print PDF / etc. by overriding this method.
+        if (this.editionState()) return [];
+
+        // Create / duplicate mode: a Cancel button. See cancel().
+        return [
+            {
+                id: 'cancel',
+                labelKey: 'common_cancel',
+                icon: 'pi pi-times',
+                severity: 'ghost',
+                command: () => this.cancel(),
+            },
+        ];
+    }
 
     override ngOnInit(): void {
         super.ngOnInit();
@@ -122,6 +164,23 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                     this.afterLoad();
                 }
             });
+    }
+
+    /**
+     * Merge a partial patch into the `entity` signal — the canonical
+     * way for form inputs to write back. Spread-immutably so OnPush
+     * change detection picks it up.
+     *
+     * ```html
+     * <ef-input-text
+     *   variant="comptoir"
+     *   [value]="title()"
+     *   (valueChangeEvent)="patchEntity({ title: $event })"
+     * />
+     * ```
+     */
+    patchEntity(patch: Partial<TItem>): void {
+        this.entity.update(current => ({ ...(current as object), ...patch }) as TItem);
     }
 
     /** Fetch the entity from the backend and populate `entity`. */
@@ -217,11 +276,42 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         );
     }
 
-    /** Navigate to `/details?mode=duplicate` to clone the current entity. */
+    /** Navigate to `/details/:id?mode=duplicate` so the abstract can
+     *  reload the source entity, treat it as a template, and persist
+     *  via `service.create()` after the user hits Save.
+     *  Without the id, the duplicate route would have nothing to
+     *  fetch — `entity` would be empty and the clone-as-template
+     *  flow would fall back to creating a blank record. */
     duplicate(): void {
-        this.router.navigate([this.detailsBaseUrl()], {
+        const id = this.entityId();
+        const base = this.detailsBaseUrl();
+        if (id == null) {
+            // No source record (already on /details with no id) —
+            // just open the create form.
+            this.router.navigate([base]);
+            return;
+        }
+        this.router.navigate([base, id], {
             queryParams: { mode: 'duplicate' },
         });
+    }
+
+    /**
+     * Cancel handler for the default toolbar action:
+     * - Duplicate mode → drop `?mode=duplicate` and return to
+     *   `/details/:id`. The route subscription re-fires and reloads
+     *   the source entity, discarding any in-memory edits.
+     * - Create mode (no id) → navigate back to the list.
+     *
+     * Subclasses may override to add a confirm dialog when the form
+     * is dirty.
+     */
+    cancel(): void {
+        if (this.duplicateMode() && this.entityId() != null) {
+            this.router.navigate([this.detailsBaseUrl(), this.entityId()]);
+            return;
+        }
+        this.navigateBack();
     }
 
     /** Navigate back to the list (strip `/details` and any id). */
@@ -296,7 +386,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     /** Resolve the bare `/<resource>/details` base URL — strips a
      *  trailing `:id`, query string, fragment, trailing slash. */
-    private detailsBaseUrl(): string {
+    protected detailsBaseUrl(): string {
         let url = this.router.url || '';
         const q = url.indexOf('?');
         if (q >= 0) url = url.slice(0, q);

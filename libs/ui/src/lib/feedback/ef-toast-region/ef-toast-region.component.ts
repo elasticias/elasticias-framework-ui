@@ -35,7 +35,7 @@ export type EfToastRegionPosition =
  *
  * ```html
  * <!-- App root -->
- * <ef-toast-region position="top-right" />
+ * <ef-toast-region position="bottom-right" />
  * ```
  */
 @Component({

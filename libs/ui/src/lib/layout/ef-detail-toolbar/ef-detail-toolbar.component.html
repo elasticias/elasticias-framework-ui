@@ -1,0 +1,75 @@
+<div class="left">
+    <ng-content></ng-content>
+</div>
+
+<div class="right">
+    <!-- Custom screen actions (before the standard group). -->
+    @for (action of visibleCustomActions(); track trackByAction($index, action)) {
+        <ef-button
+            variant="comptoir"
+            size="small"
+            [severity]="action.severity ?? 'ghost'"
+            [icon]="action.icon"
+            [label]="action.label"
+            [labelKey]="action.labelKey"
+            [disabled]="!!action.disabled"
+            (clickEvent)="onCustomClick(action)"
+        />
+    }
+
+    <!-- Full-template escape hatch — anything projected here renders
+         after the customActions array, before the standard group. -->
+    <ng-content select="[actions]"></ng-content>
+
+    <!-- Separator between custom and standard groups. -->
+    @if (showSeparator()) {
+        <span class="sep" aria-hidden="true">|</span>
+    }
+
+    <!-- Standard actions: Print → Duplicate → Delete → Save. -->
+    @if (canPrint()) {
+        <ef-button
+            variant="comptoir"
+            severity="ghost"
+            size="small"
+            icon="pi pi-print"
+            labelKey="common_print"
+            (clickEvent)="print.emit()"
+        />
+    }
+
+    @if (canDuplicate()) {
+        <ef-button
+            variant="comptoir"
+            severity="ghost"
+            size="small"
+            icon="pi pi-clone"
+            labelKey="common_duplicate"
+            (clickEvent)="duplicate.emit()"
+        />
+    }
+
+    @if (canDelete()) {
+        <ef-button
+            variant="comptoir"
+            severity="danger"
+            size="small"
+            icon="pi pi-trash"
+            labelKey="common_delete"
+            (clickEvent)="delete.emit()"
+        />
+    }
+
+    @if (canSave()) {
+        <ef-button
+            variant="comptoir"
+            severity="tenant"
+            size="small"
+            icon="pi pi-save"
+            [labelKey]="saveLabelKey()"
+            [disabled]="saving()"
+            [loading]="saving()"
+            (clickEvent)="save.emit()"
+        />
+    }
+</div>
