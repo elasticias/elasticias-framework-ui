@@ -139,7 +139,7 @@ export class EfInputNumberComponent
   /* ── Events ──────────────────────────────────────────────────── */
 
   @Output() inputEvent = new EventEmitter<InputNumberInputEvent>();
-  @Output() valueChangeEvent = new EventEmitter<number | null>();
+  @Output() valueChangeEvent: EventEmitter<number | null> = new EventEmitter<number | null>();
   @Output() focusEvent = new EventEmitter<Event>();
   @Output() blurEvent = new EventEmitter<Event>();
   @Output() keyDownEvent = new EventEmitter<KeyboardEvent>();
