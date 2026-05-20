@@ -41,6 +41,13 @@ export { EfFabComponent } from './lib/layout/ef-fab/ef-fab.component';
 export type { EfFabPosition } from './lib/layout/ef-fab/ef-fab.component';
 export { EfPillGroupComponent } from './lib/layout/ef-pill-group/ef-pill-group.component';
 export type { EfPillItem } from './lib/layout/ef-pill-group/ef-pill-group.component';
+export { EfTabsComponent } from './lib/layout/ef-tabs/ef-tabs.component';
+export type {
+    EfTabItem,
+    EfTabsVariant,
+    EfTabsModule,
+} from './lib/layout/ef-tabs/ef-tabs.component';
+export { EfTabPanelDirective } from './lib/layout/ef-tabs/ef-tab-panel.directive';
 export { EfProfileChipComponent } from './lib/layout/ef-profile-chip/ef-profile-chip.component';
 
 // Feedback components
@@ -57,6 +64,8 @@ export { EfCardComponent } from './lib/layout/ef-card/ef-card.component';
 export { EfFormGridComponent } from './lib/layout/ef-form-grid/ef-form-grid.component';
 export { EfDetailToolbarComponent } from './lib/layout/ef-detail-toolbar/ef-detail-toolbar.component';
 export type { EfDetailToolbarAction } from './lib/layout/ef-detail-toolbar/ef-detail-toolbar.types';
+export { EfSearchToolbarComponent } from './lib/layout/ef-search-toolbar/ef-search-toolbar.component';
+export type { EfSearchToolbarAction } from './lib/layout/ef-search-toolbar/ef-search-toolbar.types';
 export { EfTotalsComponent } from './lib/data/ef-totals/ef-totals.component';
 export type { EfTotalsRow, EfTotalsGrand } from './lib/data/ef-totals/ef-totals.types';
 export { EfStatsComponent } from './lib/data/ef-stats/ef-stats.component';

@@ -88,11 +88,30 @@ export class EfButtonComponent {
     | 'secondary'
     | 'contrast';
 
-  /** Direct tooltip text (not translated). */
+  /** Direct tooltip text (not translated). Falls back to `label`
+   *  when neither `tooltip` nor `tooltipKey` is set. */
   @Input() tooltip?: string;
-  /** Translation key for tooltip — takes priority over `tooltip`. */
+  /** Translation key for tooltip — takes priority over `tooltip`.
+   *  Falls back to `labelKey` when not provided, so buttons with
+   *  visible labels still expose them to screen readers / mobile
+   *  long-press once the label is hidden by responsive CSS. */
   @Input() tooltipKey?: string;
   @Input() tooltipPosition: 'top' | 'bottom' | 'left' | 'right' = 'top';
+
+  /** Resolved tooltip translation key — `tooltipKey` if provided,
+   *  otherwise `labelKey`. Lets responsive icon-only buttons reuse
+   *  their label as the tooltip without restating it at every call
+   *  site. */
+  get effectiveTooltipKey(): string | undefined {
+    return this.tooltipKey ?? this.labelKey;
+  }
+
+  /** Resolved plain tooltip text — `tooltip` if provided, otherwise
+   *  `label`. Used only when neither `tooltipKey` nor `labelKey` is
+   *  set. */
+  get effectiveTooltip(): string | undefined {
+    return this.tooltip ?? this.label;
+  }
 
   @Output() clickEvent = new EventEmitter<Event>();
 

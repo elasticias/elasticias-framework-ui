@@ -115,7 +115,9 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     if (!s?.field) return null;
     return {
       field: s.field,
-      direction: (s.sortDirection ?? '').toLowerCase().startsWith('asc') ? 'asc' : 'desc',
+      direction: (s.sortDirection ?? '').toLowerCase().startsWith('asc')
+        ? 'asc'
+        : 'desc',
     };
   });
 
@@ -239,12 +241,14 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   }
 
   toggleDrawer(): void {
-    this.drawerOpen.update(o => !o);
+    this.drawerOpen.update((o) => !o);
   }
 
   /** Drop a chip from the active-filters list. */
   removeFilter(key: string): void {
-    this.activeFilters.update(filters => filters.filter(f => f.key !== key));
+    this.activeFilters.update((filters) =>
+      filters.filter((f) => f.key !== key),
+    );
   }
 
   /* ── Selection helpers (DRY) ────────────────────────────────────
@@ -253,7 +257,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
        `(change)="toggleSelection(rowId(row))"`. */
 
   toggleSelection(id: string): void {
-    this.selected.update(set => {
+    this.selected.update((set) => {
       const next = new Set(set);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -263,8 +267,8 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
   /** Toggle every visible row in or out of the selection in one shot. */
   toggleAllSelection(): void {
-    const all = this.items().map(item => String(this.rowId(item)));
-    this.selected.update(set =>
+    const all = this.items().map((item) => String(this.rowId(item)));
+    this.selected.update((set) =>
       set.size === all.length ? new Set() : new Set(all),
     );
   }
@@ -421,7 +425,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
       headerKey,
       type: 'reference',
       referenceKey,
-      referenceValueField: valueField ?? rest.referenceValueField ?? 'id',
+      referenceValueField: valueField ?? rest.referenceValueField ?? 'code',
       referenceLabelField: labelField ?? rest.referenceLabelField ?? 'label',
     };
   }

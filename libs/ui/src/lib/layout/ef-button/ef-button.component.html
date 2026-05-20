@@ -9,7 +9,7 @@
         [class]="comptoirClass"
         [disabled]="disabled || loading"
         [style.color]="comptoirInlineColor"
-        [pTooltip]="tooltipKey ? (tooltipKey | translate) : tooltip"
+        [pTooltip]="effectiveTooltipKey ? (effectiveTooltipKey | translate) : effectiveTooltip"
         [tooltipPosition]="tooltipPosition"
         (click)="handleClick($event)"
     >
@@ -39,7 +39,7 @@
         [type]="type"
         [badge]="badge"
         [badgeSeverity]="badgeSeverity"
-        [pTooltip]="tooltipKey ? (tooltipKey | translate) : tooltip"
+        [pTooltip]="effectiveTooltipKey ? (effectiveTooltipKey | translate) : effectiveTooltip"
         [tooltipPosition]="tooltipPosition"
         (onClick)="handleClick($event)"
     />

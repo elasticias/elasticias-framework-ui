@@ -2236,6 +2236,73 @@
   margin-inline-start: auto;
 }
 
+/* Search-screen counterpart of `.detail-toolbar`. Same left | right
+   structure, but lives at the top of a list page so it doesn't
+   stick — the `.title-meta` block in the left slot stays in normal
+   flow above the smart-bar / data-card stack. */
+.search-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.search-toolbar h1 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 96,
+    'wght' 700,
+    'wdth' 80;
+  font-size: clamp(18px, 2vw, 22px);
+  // letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.search-toolbar .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.search-toolbar .sep {
+  color: var(--text-soft);
+}
+
+.search-toolbar .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+
+/* Icon-only collapse below the `EfViewportService` mobile breakpoint
+   (767px). Targets the Comptoir `.btn` rendered by `ef-button`, which
+   wraps its label in a plain `<span>` after the `<i>` icon. The
+   label's accessible name still reaches the user via pTooltip — the
+   button keeps `labelKey` and `ef-button` falls back to it when no
+   explicit `tooltipKey` is provided. */
+@media (max-width: 767px) {
+  .detail-toolbar .right .btn > span,
+  .search-toolbar .right .btn > span {
+    display: none;
+  }
+
+  /* Square up the icon-only button so the padding doesn't read as
+     "missing text". Mirrors the .btn-sm vertical padding on both
+     axes. */
+  .detail-toolbar .right .btn,
+  .search-toolbar .right .btn {
+    padding: 7px;
+    min-width: var(--hit-base, 32px);
+    justify-content: center;
+  }
+}
+
 /* 2/3 + 1/3 column grid that collapses below 1100px. */
 .detail-grid {
   display: grid;
@@ -2888,7 +2955,9 @@
   justify-content: center;
   flex-shrink: 0;
   min-width: 36px;
-  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 
 .ef-input-group button.ef-input-addon.is-stepper:last-child {
@@ -3107,8 +3176,14 @@ input.ef-input[type='number'] {
 }
 
 @keyframes es-in {
-  from { opacity: 0; transform: translateY(-4px) scale(0.99); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Filter container (overlay header) */
@@ -3165,7 +3240,9 @@ input.ef-input[type='number'] {
 }
 
 .es__panel .p-select-list-container::-webkit-scrollbar,
-.es__panel .p-multiselect-list-container::-webkit-scrollbar { width: 6px; }
+.es__panel .p-multiselect-list-container::-webkit-scrollbar {
+  width: 6px;
+}
 .es__panel .p-select-list-container::-webkit-scrollbar-thumb,
 .es__panel .p-multiselect-list-container::-webkit-scrollbar-thumb {
   background: var(--ink-300);
@@ -3413,16 +3490,31 @@ input.ef-input[type='number'] {
 /* ── Size modifiers ──────────────────────────────────────────
    Width presets driven by `[size]`. `--full` takes the whole
    viewport minus a comfortable gutter for the backdrop. */
-.es-dialog--sm.p-dialog   { width: 380px; max-width: 92vw; }
-.es-dialog--md.p-dialog   { width: 480px; max-width: 92vw; }
-.es-dialog--lg.p-dialog   { width: 640px; max-width: 92vw; }
-.es-dialog--xl.p-dialog   { width: 880px; max-width: 92vw; }
+.es-dialog--sm.p-dialog {
+  width: 380px;
+  max-width: 92vw;
+}
+.es-dialog--md.p-dialog {
+  width: 480px;
+  max-width: 92vw;
+}
+.es-dialog--lg.p-dialog {
+  width: 640px;
+  max-width: 92vw;
+}
+.es-dialog--xl.p-dialog {
+  width: 880px;
+  max-width: 92vw;
+}
 .es-dialog--full.p-dialog {
   width: calc(100vw - 48px);
   height: calc(100vh - 48px);
   max-width: none;
 }
-.es-dialog--full .p-dialog-content { max-height: none; flex: 1; }
+.es-dialog--full .p-dialog-content {
+  max-height: none;
+  flex: 1;
+}
 
 /* ── Header inner structure (rendered via #header content template).
    `flex:1` on the title-block keeps the close right-aligned with or
@@ -3445,11 +3537,26 @@ input.ef-input[type='number'] {
 
 /* Severity tints — colour the icon only; the panel stays paper-alt
    so the dialog never feels "shouty" (status spectrum cue is enough). */
-.es-dialog--danger  .es-dialog__icon { background: var(--st-cancelled-bg); color: var(--st-cancelled-fg); }
-.es-dialog--warn    .es-dialog__icon { background: var(--st-pending-bg);   color: var(--st-pending-fg); }
-.es-dialog--info    .es-dialog__icon { background: var(--st-processing-bg); color: var(--st-processing-fg); }
-.es-dialog--success .es-dialog__icon { background: var(--st-delivered-bg); color: var(--st-delivered-fg); }
-.es-dialog--tenant  .es-dialog__icon { background: var(--tenant-100);      color: var(--tenant-700); }
+.es-dialog--danger .es-dialog__icon {
+  background: var(--st-cancelled-bg);
+  color: var(--st-cancelled-fg);
+}
+.es-dialog--warn .es-dialog__icon {
+  background: var(--st-pending-bg);
+  color: var(--st-pending-fg);
+}
+.es-dialog--info .es-dialog__icon {
+  background: var(--st-processing-bg);
+  color: var(--st-processing-fg);
+}
+.es-dialog--success .es-dialog__icon {
+  background: var(--st-delivered-bg);
+  color: var(--st-delivered-fg);
+}
+.es-dialog--tenant .es-dialog__icon {
+  background: var(--tenant-100);
+  color: var(--tenant-700);
+}
 
 .es-dialog .es-dialog__title-block {
   display: grid;
@@ -3542,7 +3649,9 @@ input.ef-input[type='number'] {
   flex-shrink: 0;
 }
 
-.es-dialog .es-dialog__highlight .av.tenant { background: var(--tenant-500); }
+.es-dialog .es-dialog__highlight .av.tenant {
+  background: var(--tenant-500);
+}
 
 .es-dialog .es-dialog__highlight .body {
   display: grid;
@@ -3591,18 +3700,22 @@ input.ef-input[type='number'] {
   inset: 0;
   display: grid;
   place-items: center;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9' opacity='.3'/%3E%3Cpath d='M21 12a9 9 0 0 1-9 9'/%3E%3C/svg%3E") center/16px no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9' opacity='.3'/%3E%3Cpath d='M21 12a9 9 0 0 1-9 9'/%3E%3C/svg%3E")
+    center/16px no-repeat;
   animation: es-dialog-spin 1s linear infinite;
 }
 
 /* Spinner colour switches to ink on light-bg buttons (ghost). */
 .btn.btn-ghost.is-loading::after {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231d1f24' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9' opacity='.3'/%3E%3Cpath d='M21 12a9 9 0 0 1-9 9'/%3E%3C/svg%3E") center/16px no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231d1f24' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9' opacity='.3'/%3E%3Cpath d='M21 12a9 9 0 0 1-9 9'/%3E%3C/svg%3E")
+    center/16px no-repeat;
 }
 
 @keyframes es-dialog-spin {
-  from { transform: rotate(0); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

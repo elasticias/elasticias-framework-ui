@@ -211,7 +211,7 @@ export const EF_DATATABLE_COLUMN_DEFAULTS: Partial<EfDatatableColumn> = {
   minFractionDigits: 2,
   maxFractionDigits: 2,
   referenceValueField: 'code',
-  referenceLabelField: 'name',
+  referenceLabelField: 'label',
 };
 
 /**
