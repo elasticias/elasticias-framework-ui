@@ -24,6 +24,32 @@ import {
 } from '../../entities/search.entity';
 
 /**
+ * Declarative definition of an advanced-search select filter rendered in
+ * the filter drawer. One `<ef-select>` is rendered per entry; the screen
+ * stays type-agnostic — `key` is simply the criteria property name sent to
+ * the backend (which must expose a matching typed query prop, e.g.
+ * `CityIds: List<int>`, `ClientIds: List<string>`, a scalar code, …). Works
+ * for both single-select (`multiple` omitted/false → scalar value) and
+ * multi-select (`multiple: true` → array value).
+ */
+export interface AdvancedSelectFilter {
+  /** Criteria property name sent to the backend (must match a typed query prop). */
+  key: string;
+  /** Reference-data key supplying the options (e.g. `'cities'`). */
+  refKey: string;
+  /** i18n key for the field label (rendered by `ef-select`). */
+  labelKey: string;
+  /** Multi-select when `true` (array value); single-select otherwise (scalar). */
+  multiple?: boolean;
+  /** Option value field (default `'code'`). */
+  valueField?: string;
+  /** Option label field (default `'label'`). */
+  labelField?: string;
+  /** Placeholder i18n key (default `'common_all'`). */
+  placeholderKey?: string;
+}
+
+/**
  * Signal-first counterpart to {@link AbstractSearchScreenComponent}.
  *
  * Built for V2 + zoneless apps: state is exposed as signals
@@ -94,6 +120,31 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
   /** Active named filter chips shown in the smart-bar. */
   readonly activeFilters = signal<ActiveFilter[]>([]);
+
+  /* ── Advanced-filter selects (DRY) ──────────────────────────────
+       Declarative `<ef-select>` filters rendered in the filter drawer.
+       Override `advancedFilters` per screen; the base owns the value
+       state, the apply→criteria push, and the reset. Type-agnostic:
+       each `key` maps to a typed backend query prop of any shape. */
+
+  /** Advanced-filter select definitions. Empty = no advanced filters. */
+  readonly advancedFilters: AdvancedSelectFilter[] = [];
+
+  /** Live values per advanced filter, keyed by `AdvancedSelectFilter.key`. */
+  readonly advancedValues = signal<Record<string, unknown>>({});
+
+  /** Store the picked value(s) for one advanced filter (no search yet —
+   *  the drawer's `(apply)` runs it). */
+  setAdvancedValue(key: string, value: unknown): void {
+    this.advancedValues.update((v) => ({ ...v, [key]: value }));
+  }
+
+  /** Push every advanced-filter value into the criteria as typed
+   *  top-level props and re-run the search. Wired to the drawer's
+   *  `(apply)`. */
+  applyAdvancedFilters(): void {
+    this.patchCriteria({ ...this.advancedValues() });
+  }
 
   /* ── Selection (DRY) ────────────────────────────────────────────
        Per-row checkbox state, used by `ef-bulk-bar` and the auto
@@ -567,6 +618,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     this.statusFilter.set('all');
     this.drawerOpen.set(false);
     this.activeFilters.set([]);
+    this.advancedValues.set({});
     this.selected.set(new Set());
     this.resetDateRange();
 

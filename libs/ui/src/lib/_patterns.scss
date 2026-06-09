@@ -3196,6 +3196,21 @@ input.ef-input[type='number'] {
   position: relative;
 }
 
+/* Multiselect header carries the "select all" checkbox alongside the
+   filter — lay them out inline (single-select has no checkbox, so it
+   keeps the block layout above). The filter container already grows
+   (flex: 1 1 auto from PrimeNG); just make the header a flex row. */
+.es__panel .p-multiselect-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.es__panel .p-multiselect-header .p-multiselect-filter-container {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .es__panel .p-select-filter,
 .es__panel .p-multiselect-filter {
   width: 100%;
@@ -3313,7 +3328,28 @@ input.ef-input[type='number'] {
   color: var(--text);
 }
 
-.es__panel .p-multiselect-option .p-multiselect-checkbox {
+/* Checkbox — PrimeNG 21 renders a <p-checkbox> (.p-checkbox / .p-checkbox-box)
+   inside both the multiselect option rows and the header "select all".
+   The old .p-multiselect-checkbox markup is gone, so size + skin the real
+   element to the Comptoir tokens; otherwise it renders unstyled / oversized. */
+.es__panel .p-checkbox {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.es__panel .p-checkbox .p-checkbox-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.es__panel .p-checkbox .p-checkbox-box {
   width: 16px;
   height: 16px;
   border: 1.5px solid var(--ink-300);
@@ -3325,14 +3361,15 @@ input.ef-input[type='number'] {
   transition: all var(--t-fast) var(--ease-out);
 }
 
-.es__panel .p-multiselect-option-selected .p-multiselect-checkbox {
+.es__panel .p-checkbox.p-checkbox-checked .p-checkbox-box {
   background: var(--tenant-500);
   border-color: var(--tenant-500);
 }
 
-.es__panel .p-multiselect-checkbox-icon {
-  width: 9px;
-  height: 9px;
+.es__panel .p-checkbox .p-checkbox-icon {
+  width: 10px;
+  height: 10px;
+  font-size: 10px;
   color: var(--paper);
 }
 

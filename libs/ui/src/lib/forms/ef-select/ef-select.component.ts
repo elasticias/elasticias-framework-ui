@@ -136,6 +136,11 @@ export class EfSelectComponent
    *  in the trigger, individually removable) or `'comma'`. */
   @Input() multiDisplay: 'chip' | 'comma' = 'chip';
 
+  /** Multi-select header "select all" toggle. Off by default — the
+   *  Comptoir multiselect leads with the filter; opt in when bulk
+   *  select-all is genuinely useful. */
+  @Input({ transform: booleanAttribute }) showToggleAll = false;
+
   /* ── Empty state messages (i18n) ─────────────────────────────── */
 
   @Input() emptyMessage?: string;

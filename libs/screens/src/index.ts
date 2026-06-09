@@ -8,6 +8,7 @@ export { AbstractDetailScreenComponent } from './lib/abstract/screen/abstract-de
 export { AbstractSearchScreenComponent } from './lib/abstract/screen/abstract-search-screen.component';
 export type { ScreenDatatableColumn } from './lib/abstract/screen/abstract-search-screen.component';
 export { AbstractSearchScreenV2 } from './lib/abstract/screen/abstract-search-screen-v2.component';
+export type { AdvancedSelectFilter } from './lib/abstract/screen/abstract-search-screen-v2.component';
 export { AbstractDetailScreenV2 } from './lib/abstract/screen/abstract-detail-screen-v2.component';
 export { AbstractSubScreenComponent } from './lib/abstract/screen/abstract-sub-screen.component';
 
