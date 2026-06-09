@@ -301,14 +301,31 @@ export class EfDatepickerAdvancedComponent {
     }
 
     /** Anchor the panel's top-left to the trigger's bottom-left, using
-     *  page coords so the panel scrolls with the trigger naturally. */
+     *  page coords so the panel scrolls with the trigger naturally.
+     *  Flips to right-aligned (and clamps to the viewport) when the
+     *  default left-anchor would overflow the right edge — otherwise the
+     *  panel is clipped for triggers that sit near the right of the page. */
     private positionPanel(): void {
         if (!this.panelRoot || !this.triggerEl) return;
         const rect = this.triggerEl.nativeElement.getBoundingClientRect();
+        const margin = 8;
+        const viewportWidth = document.documentElement.clientWidth;
+        const panelWidth = this.panelRoot.offsetWidth || 320;
+
+        // Default: align panel's left edge to the trigger's left edge.
+        let left = rect.left;
+        // Flip to right-aligned (panel right edge ↔ trigger right edge)
+        // if the panel would spill past the right viewport edge.
+        if (left + panelWidth > viewportWidth - margin) {
+            left = rect.right - panelWidth;
+        }
+        // Never let it spill past the left edge either.
+        left = Math.max(margin, left);
+
         Object.assign(this.panelRoot.style, {
             position: 'absolute',
             top: `${window.scrollY + rect.bottom + 8}px`,
-            left: `${window.scrollX + rect.left}px`,
+            left: `${window.scrollX + left}px`,
             insetInlineEnd: 'auto',
         });
     }
