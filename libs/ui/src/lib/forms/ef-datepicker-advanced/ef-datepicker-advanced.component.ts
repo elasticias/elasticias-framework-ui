@@ -129,6 +129,17 @@ export class EfDatepickerAdvancedComponent {
     readonly open = signal(false);
     readonly view = signal<'presets' | 'custom'>('presets');
 
+    /**
+     * Custom view sub-mode: the day grid, the month picker, or the year
+     * picker. Clicking the month / year labels in the calendar header
+     * drills into the corresponding picker; selecting a cell returns to
+     * the day grid.
+     */
+    readonly calMode = signal<'days' | 'months' | 'years'>('days');
+
+    /** First year shown in the 12-cell year picker grid. */
+    readonly yearWindowStart = signal<number>(this.startOfYearWindow(new Date().getFullYear()));
+
     /** Custom view: month being displayed (1st of the month, 00:00). */
     readonly visibleMonth = signal<Date>(this.startOfMonth(new Date()));
 
@@ -166,11 +177,42 @@ export class EfDatepickerAdvancedComponent {
     });
     readonly yearLabel = computed(() => formatDate(this.visibleMonth(), 'yyyy', this.locale));
 
-    /** Live duration in days for the draft range. */
+    /** Range label for the year-picker header, e.g. `2024 – 2035`. */
+    readonly yearWindowLabel = computed(() => {
+        const start = this.yearWindowStart();
+        return `${start} – ${start + 11}`;
+    });
+
+    /** 12 abbreviated months for the month picker (Jan…Déc), CLDR-localised. */
+    readonly monthCells = computed(() => {
+        const visible = this.visibleMonth();
+        const today = new Date();
+        return Array.from({ length: 12 }, (_, m) => ({
+            month: m,
+            label: formatDate(new Date(2000, m, 1), 'LLL', this.locale)
+                .replace(/^./, c => c.toUpperCase()),
+            active: m === visible.getMonth(),
+            today: m === today.getMonth() && visible.getFullYear() === today.getFullYear(),
+        }));
+    });
+
+    /** 12 consecutive years for the year picker, starting at `yearWindowStart`. */
+    readonly yearCells = computed(() => {
+        const start = this.yearWindowStart();
+        const visibleYear = this.visibleMonth().getFullYear();
+        const todayYear = new Date().getFullYear();
+        return Array.from({ length: 12 }, (_, i) => {
+            const year = start + i;
+            return { year, active: year === visibleYear, today: year === todayYear };
+        });
+    });
+
+    /** Live duration in days for the draft range. Mirrors `applyCustomRange`:
+     *  a lone start is treated as a single-day range (→ "1 jour"). */
     readonly draftDurationDays = computed(() => {
         const s = this.draftStart();
-        const e = this.draftEnd();
-        if (!s || !e) return 0;
+        if (!s) return 0;
+        const e = this.draftEnd() ?? s;
         return Math.round((this.startOfDay(e).getTime() - this.startOfDay(s).getTime()) / 86_400_000) + 1;
     });
 
@@ -186,6 +228,7 @@ export class EfDatepickerAdvancedComponent {
         this.open.update(v => !v);
         if (this.open()) {
             this.view.set('presets');
+            this.calMode.set('days');
             this.seedDraftFromValue();
             this.opened.emit();
         } else {
@@ -213,8 +256,14 @@ export class EfDatepickerAdvancedComponent {
 
     @HostListener('document:keydown.escape')
     onEscape(): void {
+        // Drill back out one level at a time: year/month picker → day grid
+        // → presets → closed.
+        if (this.view() === 'custom' && this.calMode() !== 'days') {
+            this.calMode.set('days');
+            return;
+        }
         if (this.view() === 'custom') {
-            this.view.set('presets');
+            this.backToPresets();
             return;
         }
         this.close();
@@ -245,6 +294,7 @@ export class EfDatepickerAdvancedComponent {
 
     openCustomView(): void {
         this.view.set('custom');
+        this.calMode.set('days');
         this.seedDraftFromValue();
         const anchor = this.draftStart() ?? new Date();
         this.visibleMonth.set(this.startOfMonth(anchor));
@@ -252,14 +302,106 @@ export class EfDatepickerAdvancedComponent {
 
     backToPresets(): void {
         this.view.set('presets');
+        this.calMode.set('days');
     }
 
-    prevMonth(): void {
-        this.visibleMonth.update(d => this.addMonths(d, -1));
+    /* ── Calendar header navigation (context-aware) ─────────────────
+         The same ‹ / › chevrons step by month (day grid), by year
+         (month picker), or by 12-year page (year picker). */
+
+    headerPrev(): void {
+        this.stepHeader(-1);
     }
 
-    nextMonth(): void {
-        this.visibleMonth.update(d => this.addMonths(d, 1));
+    headerNext(): void {
+        this.stepHeader(1);
+    }
+
+    private stepHeader(dir: 1 | -1): void {
+        switch (this.calMode()) {
+            case 'days':
+                this.visibleMonth.update(d => this.addMonths(d, dir));
+                break;
+            case 'months':
+                this.visibleMonth.update(d => this.addMonths(d, dir * 12));
+                break;
+            case 'years':
+                this.yearWindowStart.update(y => y + dir * 12);
+                break;
+        }
+    }
+
+    /* ── Month / year pickers ───────────────────────────────────── */
+
+    /** Open the month picker (triggered by clicking the month label). */
+    openMonthPicker(): void {
+        this.calMode.set('months');
+    }
+
+    /** Open the year picker (triggered by clicking the year label). */
+    openYearPicker(): void {
+        this.yearWindowStart.set(this.startOfYearWindow(this.visibleMonth().getFullYear()));
+        this.calMode.set('years');
+    }
+
+    /** Pick a month → jump the day grid to it. */
+    selectMonth(month: number): void {
+        this.visibleMonth.update(d => new Date(d.getFullYear(), month, 1));
+        this.calMode.set('days');
+    }
+
+    /** Pick a year → keep the current month, return to the day grid. */
+    selectYear(year: number): void {
+        this.visibleMonth.update(d => new Date(year, d.getMonth(), 1));
+        this.calMode.set('days');
+    }
+
+    /* ── Editable Du / Au inputs ────────────────────────────────────
+         The text inputs are no longer read-only — the user can type a
+         `JJ/MM/AAAA` date. We commit on blur / Enter: a valid date updates
+         the matching draft (auto-swapping if end precedes start) and moves
+         the calendar to it; an invalid one reverts the field to canonical. */
+
+    /** Allow only digits and `/` for printable keys; Enter commits via blur. */
+    onDateKeydown(event: KeyboardEvent, el: HTMLInputElement): void {
+        if (event.key === 'Enter') {
+            el.blur();
+            return;
+        }
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        // Multi-char keys (Backspace, ArrowLeft, Tab, Delete, …) pass through.
+        if (event.key.length > 1) return;
+        if (!/[0-9/]/.test(event.key)) event.preventDefault();
+    }
+
+    /** Commit a typed `JJ/MM/AAAA` value to the start or end draft. */
+    commitDateInput(which: 'start' | 'end', el: HTMLInputElement): void {
+        const parsed = this.parseDayInput(el.value);
+        if (!parsed) {
+            // Invalid → restore the canonical text for this field.
+            el.value = which === 'start' ? this.fromText() : this.toText();
+            return;
+        }
+
+        if (which === 'start') {
+            this.draftStart.set(parsed);
+            const end = this.draftEnd();
+            // New start after the existing end → drop the now-invalid end.
+            if (end && parsed.getTime() > end.getTime()) this.draftEnd.set(null);
+        } else {
+            const start = this.draftStart();
+            if (start && parsed.getTime() < start.getTime()) {
+                // End before start → swap so the range stays ordered.
+                this.draftStart.set(parsed);
+                this.draftEnd.set(start);
+            } else {
+                this.draftEnd.set(parsed);
+            }
+        }
+
+        this.visibleMonth.set(this.startOfMonth(parsed));
+        // Re-sync to canonical (zero-padded) regardless of how it was typed.
+        el.value = which === 'start' ? this.fromText() : this.toText();
     }
 
     /* ── Portal (panel rendered as a child of <body>) ───────────── */
@@ -534,6 +676,29 @@ export class EfDatepickerAdvancedComponent {
     private formatDayInput(d: Date | null | undefined): string {
         if (!d) return '';
         return formatDate(d, 'dd/MM/yyyy', this.locale);
+    }
+
+    /** Parse a `J/M/AAAA`…`JJ/MM/AAAA` string to a start-of-day Date, or
+     *  null when malformed or out of range (e.g. `31/02/2026`). */
+    private parseDayInput(raw: string): Date | null {
+        const m = raw.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (!m) return null;
+        const day = +m[1];
+        const month = +m[2];
+        const year = +m[3];
+        if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+        const d = new Date(year, month - 1, day);
+        // Reject calendar overflow — JS rolls 31/02 into March.
+        if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) {
+            return null;
+        }
+        return this.startOfDay(d);
+    }
+
+    /** First year of the 12-cell window containing `year` (e.g. 2026 → 2016). */
+    private startOfYearWindow(year: number): number {
+        // -4 anchors the current year roughly in the second row of the grid.
+        return year - ((year - 4) % 12 + 12) % 12;
     }
 
     /** Stable trackBy across renders. */

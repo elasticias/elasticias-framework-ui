@@ -91,66 +91,124 @@
                         type="button"
                         class="dp__cal-nav"
                         [attr.aria-label]="'date_prev_month' | translate"
-                        (click)="prevMonth()"
+                        (click)="headerPrev()"
                     >
                         <i class="pi pi-chevron-left" aria-hidden="true"></i>
                     </button>
                     <div class="dp__cal-title">
-                        <span class="dp__cal-pick">{{ monthLabel() }}</span>
-                        <span class="dp__cal-pick">{{ yearLabel() }}</span>
+                        @switch (calMode()) {
+                            @case ('years') {
+                                <span class="dp__cal-pick is-static">{{ yearWindowLabel() }}</span>
+                            }
+                            @case ('months') {
+                                <button type="button" class="dp__cal-pick" (click)="openYearPicker()">
+                                    {{ yearLabel() }}
+                                </button>
+                            }
+                            @default {
+                                <button type="button" class="dp__cal-pick" (click)="openMonthPicker()">
+                                    {{ monthLabel() }}
+                                </button>
+                                <button type="button" class="dp__cal-pick" (click)="openYearPicker()">
+                                    {{ yearLabel() }}
+                                </button>
+                            }
+                        }
                     </div>
                     <button
                         type="button"
                         class="dp__cal-nav"
                         [attr.aria-label]="'date_next_month' | translate"
-                        (click)="nextMonth()"
+                        (click)="headerNext()"
                     >
                         <i class="pi pi-chevron-right" aria-hidden="true"></i>
                     </button>
                 </div>
 
-                <div class="dp__cal-dow-row">
-                    @for (label of dowLabels(); track trackByDow($index, label)) {
-                        <div class="dp__cal-dow">{{ label }}</div>
+                @switch (calMode()) {
+                    @case ('months') {
+                        <div class="dp__cal-cells">
+                            @for (cell of monthCells(); track cell.month) {
+                                <button
+                                    type="button"
+                                    class="dp__cal-cell"
+                                    [class.active]="cell.active"
+                                    [class.today]="cell.today"
+                                    (click)="selectMonth(cell.month)"
+                                >
+                                    {{ cell.label }}
+                                </button>
+                            }
+                        </div>
                     }
-                </div>
+                    @case ('years') {
+                        <div class="dp__cal-cells">
+                            @for (cell of yearCells(); track cell.year) {
+                                <button
+                                    type="button"
+                                    class="dp__cal-cell"
+                                    [class.active]="cell.active"
+                                    [class.today]="cell.today"
+                                    (click)="selectYear(cell.year)"
+                                >
+                                    {{ cell.year }}
+                                </button>
+                            }
+                        </div>
+                    }
+                    @default {
+                        <div class="dp__cal-dow-row">
+                            @for (label of dowLabels(); track trackByDow($index, label)) {
+                                <div class="dp__cal-dow">{{ label }}</div>
+                            }
+                        </div>
 
-                <div class="dp__cal-grid">
-                    @for (day of calendarGrid(); track trackByDay($index, day)) {
-                        <button
-                            type="button"
-                            class="dp__cal-day"
-                            [class.out]="day.out"
-                            [class.today]="day.today"
-                            [class.in-range]="day.inRange"
-                            [class.range-start]="day.rangeStart"
-                            [class.range-end]="day.rangeEnd"
-                            [attr.aria-label]="day.date | date:'fullDate'"
-                            (click)="selectDay(day.date)"
-                        >
-                            <span class="day-num">{{ day.day }}</span>
-                        </button>
+                        <div class="dp__cal-grid">
+                            @for (day of calendarGrid(); track trackByDay($index, day)) {
+                                <button
+                                    type="button"
+                                    class="dp__cal-day"
+                                    [class.out]="day.out"
+                                    [class.today]="day.today"
+                                    [class.in-range]="day.inRange"
+                                    [class.range-start]="day.rangeStart"
+                                    [class.range-end]="day.rangeEnd"
+                                    [attr.aria-label]="day.date | date:'fullDate'"
+                                    (click)="selectDay(day.date)"
+                                >
+                                    <span class="day-num">{{ day.day }}</span>
+                                </button>
+                            }
+                        </div>
                     }
-                </div>
+                }
             </div>
 
             <div class="dp__inputs">
                 <div class="dp__field">
                     <label>{{ 'date_from' | translate }}</label>
                     <input
+                        #fromInput
                         type="text"
-                        readonly
+                        inputmode="numeric"
+                        maxlength="10"
                         [value]="fromText()"
                         placeholder="JJ/MM/AAAA"
+                        (keydown)="onDateKeydown($event, fromInput)"
+                        (change)="commitDateInput('start', fromInput)"
                     />
                 </div>
                 <div class="dp__field">
                     <label>{{ 'date_to' | translate }}</label>
                     <input
+                        #toInput
                         type="text"
-                        readonly
+                        inputmode="numeric"
+                        maxlength="10"
                         [value]="toText()"
                         placeholder="JJ/MM/AAAA"
+                        (keydown)="onDateKeydown($event, toInput)"
+                        (change)="commitDateInput('end', toInput)"
                     />
                 </div>
             </div>
@@ -171,7 +229,7 @@
                     <button
                         type="button"
                         class="btn btn-primary btn-sm"
-                        [disabled]="!draftStart() || !draftEnd()"
+                        [disabled]="!draftStart()"
                         (click)="applyCustomRange()"
                     >
                         {{ 'common_apply' | translate }}
