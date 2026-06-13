@@ -377,17 +377,6 @@
       background: var(--paper);
     }
 
-    .ob-add {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 700;
-      color: var(--tenant-500);
-      cursor: pointer;
-
-      &:hover { color: var(--tenant-700); }
-    }
-
     .ob-count {
       color: var(--text-mute);
       font-weight: 600;
@@ -557,63 +546,6 @@
           font-size: 18px;
           font-variant-numeric: tabular-nums;
         }
-      }
-    }
-
-    // Timeline (historique)
-    .ob-tl {
-      display: grid;
-      gap: 9px;
-      padding: 14px 16px;
-
-      .it {
-        display: grid;
-        grid-template-columns: 12px 1fr;
-        gap: 10px;
-        align-items: start;
-        position: relative;
-
-        &:not(:last-child)::before {
-          content: '';
-          position: absolute;
-          left: 5px;
-          top: 14px;
-          bottom: -9px;
-          width: 2px;
-          background: var(--rule);
-        }
-
-        &.done .dot {
-          background: var(--st-delivered-fg);
-          border-color: var(--st-delivered-fg);
-        }
-
-        &.now .dot {
-          background: var(--module);
-          border-color: var(--module);
-          box-shadow: 0 0 0 4px color-mix(in srgb, var(--module) 18%, transparent);
-        }
-      }
-
-      .dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--paper);
-        border: 2px solid var(--ink-300);
-        margin-top: 2px;
-      }
-
-      .lab {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--text);
-      }
-
-      .mt {
-        font-size: 11px;
-        color: var(--text-mute);
-        margin-top: 1px;
       }
     }
 

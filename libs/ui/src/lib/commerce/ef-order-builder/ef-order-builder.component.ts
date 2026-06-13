@@ -73,7 +73,7 @@ export class EfOrderBuilderComponent implements OnInit {
 
   config = input<DocumentConfig>({
     documentType: 'order',
-    headerLabel: 'Commamnde',
+    headerLabel: 'Commande',
     dateLabel: 'Date de commande',
     customerLabel: 'Client',
     enableTax: true,
@@ -267,7 +267,6 @@ export class EfOrderBuilderComponent implements OnInit {
           this.order.set({ ...updatedOrder, productsSummary: summary });
         }
       },
-      { allowSignalWrites: true },
     );
 
     effect(() => {
