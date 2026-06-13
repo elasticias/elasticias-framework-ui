@@ -26,7 +26,7 @@ import {
  *   [products]="products()"
  *   productKeyField="id"
  *   placeholderKey="label.search_product"
- *   (select)="onPicked($event)" />
+ *   (productSelect)="onPicked($event)" />
  */
 @Component({
   selector: 'ef-product-typeahead',
@@ -44,7 +44,7 @@ export class EfProductTypeaheadComponent {
   currency = input<string>('MAD');
   locale = input<string>('fr-FR');
 
-  select = output<ProductTypeaheadSelection>();
+  productSelect = output<ProductTypeaheadSelection>();
 
   query = signal('');
   open = signal(false);
@@ -148,7 +148,7 @@ export class EfProductTypeaheadComponent {
   }
 
   selectRow(row: ProductTypeaheadRow): void {
-    this.select.emit({
+    this.productSelect.emit({
       product: row.product,
       variant: this.variantOf(row),
       unitPrice: this.priceOf(row),

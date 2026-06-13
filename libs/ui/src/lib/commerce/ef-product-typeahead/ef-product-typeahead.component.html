@@ -7,6 +7,7 @@
     type="text"
     autocomplete="off"
     role="combobox"
+    aria-controls="qa-listbox"
     [attr.aria-expanded]="open() && rows().length > 0"
     [disabled]="disabled()"
     [placeholder]="placeholderKey() ? (placeholderKey() | translate) : ''"
@@ -17,12 +18,13 @@
     (blur)="open.set(false)" />
 
   @if (open() && rows().length > 0) {
-    <div class="qa-menu" role="listbox">
+    <div id="qa-listbox" class="qa-menu" role="listbox">
       <div class="grp">{{ rows().length }} · « {{ query() }} »</div>
       @for (row of rows(); track row.key; let i = $index) {
         <div
           class="qa-opt"
           role="option"
+          [attr.aria-selected]="i === highlightedIndex()"
           [class.hl]="i === highlightedIndex()"
           (mouseenter)="highlightedIndex.set(i)"
           (mousedown)="$event.preventDefault(); selectRow(row)">

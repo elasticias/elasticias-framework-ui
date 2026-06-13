@@ -51,7 +51,7 @@
                   placeholderKey="label.search_product"
                   [currency]="currency()"
                   [locale]="locale()"
-                  (select)="onTypeaheadSelect($event)" />
+                  (productSelect)="onTypeaheadSelect($event)" />
               </div>
               <div class="qa-price">
                 <ef-label labelKey="label.sale_price" />
@@ -282,7 +282,7 @@
   </div>
 
   <!-- Floating summary FAB + backdrop -->
-  <div class="ob-backdrop" (click)="toggleRail(false)"></div>
+  <button type="button" class="ob-backdrop" aria-hidden="true" tabindex="-1" (click)="toggleRail(false)"></button>
   <div class="ob-fab" role="status">
     <div class="ft">
       <span class="k">{{ 'order_builder.total_units' | translate }} · {{ productsSummary().totalCount }}</span>

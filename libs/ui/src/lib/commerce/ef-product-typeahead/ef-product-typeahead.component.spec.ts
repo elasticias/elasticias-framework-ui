@@ -9,7 +9,7 @@ import { EfProductTypeaheadComponent } from './ef-product-typeahead.component';
   template: `<ef-product-typeahead
     [products]="products"
     productKeyField="id"
-    (select)="picked = $event" />`,
+    (productSelect)="picked = $event" />`,
 })
 class HostComponent {
   @ViewChild(EfProductTypeaheadComponent) ta!: EfProductTypeaheadComponent;
