@@ -89,4 +89,36 @@ describe('EfProductTypeaheadComponent', () => {
     expect(host.ta.open()).toBe(false);
     expect(host.ta.query()).toBe('');
   });
+
+  it('selecting a variant chip changes the active variant, price, and payload', () => {
+    host.ta.query.set('good');
+    const row = host.ta.rows()[0];
+    expect(host.ta.priceOf(row)).toBe(22.2); // default variant 0 (30 ml)
+
+    host.ta.setActiveVariant(row, 1); // 50 ml
+    const row2 = host.ta.rows()[0];
+    expect(host.ta.priceOf(row2)).toBe(34);
+
+    host.ta.selectRow(row2);
+    expect(host.picked).toEqual({
+      product: host.products[0],
+      variant: host.products[0]['variants']![1],
+      unitPrice: 34,
+    });
+  });
+
+  it('falls back to product unitPrice when a product has no variants', () => {
+    // Create the component directly to avoid NG0100 from host re-binding in zoneless Vitest
+    const f = TestBed.createComponent(EfProductTypeaheadComponent);
+    f.componentRef.setInput('products', [
+      { id: 'p3', displayName: 'Sac Cadeau', unitPrice: 5, variants: [] },
+    ]);
+    f.componentRef.setInput('productKeyField', 'id');
+    f.detectChanges();
+    const ta = f.componentInstance;
+    ta.query.set('sac');
+    const row = ta.rows()[0];
+    expect(ta.variantOf(row)).toBeNull();
+    expect(ta.priceOf(row)).toBe(5);
+  });
 });
