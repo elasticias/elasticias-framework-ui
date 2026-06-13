@@ -15,6 +15,8 @@ export { AbstractSubScreenComponent } from './lib/abstract/screen/abstract-sub-s
 // Services
 export { SCREEN_REF_DATA_SERVICE } from './lib/services/screen-reference-data.service';
 export type { ScreenReferenceDataService } from './lib/services/screen-reference-data.service';
+export { AUDIT_HISTORY_SERVICE } from './lib/services/audit-history.service';
+export type { AuditHistoryService } from './lib/services/audit-history.service';
 
 // Config
 export { ScreenStateEnum, StateUtilsEnum } from './lib/config/screen-state.enum';

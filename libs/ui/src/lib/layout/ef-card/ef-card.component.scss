@@ -12,3 +12,35 @@
     border-radius: var(--r-2xl);
     overflow: hidden;
 }
+
+.card-head-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-head.is-collapsible {
+    cursor: pointer;
+    user-select: none;
+}
+
+.card-collapse-btn {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-500, #64748b);
+    border-radius: var(--r-md, 8px);
+
+    &:hover {
+        background: var(--paper, #f1f5f9);
+        color: var(--ink-700, #334155);
+    }
+
+    .pi {
+        font-size: 12px;
+    }
+}

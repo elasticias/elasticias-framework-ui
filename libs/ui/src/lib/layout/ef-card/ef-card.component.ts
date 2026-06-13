@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, booleanAttribute, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, booleanAttribute, computed, input, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -31,7 +31,12 @@ import { TranslateModule } from '@ngx-translate/core';
     imports: [CommonModule, TranslateModule],
     template: `
         @if (showHead()) {
-            <div class="card-head" [class.tone-module]="tone() === 'module'">
+            <div
+                class="card-head"
+                [class.tone-module]="tone() === 'module'"
+                [class.is-collapsible]="collapsible()"
+                (click)="onHeadClick()"
+            >
                 <div>
                     @if (titleKey() || title()) {
                         <div class="title">
@@ -44,15 +49,34 @@ import { TranslateModule } from '@ngx-translate/core';
                         </div>
                     }
                 </div>
-                <ng-content select="[head-extra]"></ng-content>
+                <div class="card-head-actions" (click)="$event.stopPropagation()">
+                    <ng-content select="[head-extra]"></ng-content>
+                    @if (collapsible()) {
+                        <button
+                            type="button"
+                            class="card-collapse-btn"
+                            (click)="toggle()"
+                            [attr.aria-expanded]="!collapsed()"
+                        >
+                            <i
+                                class="pi"
+                                [class.pi-chevron-down]="collapsed()"
+                                [class.pi-chevron-up]="!collapsed()"
+                                aria-hidden="true"
+                            ></i>
+                        </button>
+                    }
+                </div>
             </div>
         }
 
-        <div class="card-body">
-            <ng-content></ng-content>
-        </div>
+        @if (!collapsed()) {
+            <div class="card-body">
+                <ng-content></ng-content>
+            </div>
+        }
 
-        @if (showFoot()) {
+        @if (showFoot() && !collapsed()) {
             <div class="card-foot">
                 <ng-content select="[foot]"></ng-content>
             </div>
@@ -81,9 +105,16 @@ export class EfCardComponent {
     /** Render the foot strip — set when projecting `[foot]` content. */
     readonly hasFoot = input(false, { transform: booleanAttribute });
 
+    /** When true, the head shows a chevron toggle and the body/foot collapse. */
+    readonly collapsible = input(false, { transform: booleanAttribute });
+
+    /** Collapsed state (two-way). Bind `[collapsed]="true"` to start collapsed. */
+    readonly collapsed = model(false);
+
     readonly showHead = computed(
         () =>
             this.forceHead() ||
+            this.collapsible() ||
             !!this.titleKey() ||
             !!this.title() ||
             !!this.metaKey() ||
@@ -91,4 +122,15 @@ export class EfCardComponent {
     );
 
     readonly showFoot = computed(() => this.hasFoot());
+
+    /** Toggle collapsed state (no-op when not collapsible). */
+    toggle(): void {
+        if (this.collapsible()) this.collapsed.set(!this.collapsed());
+    }
+
+    /** Clicking anywhere on a collapsible head (except the actions area, which
+     *  stops propagation) toggles the card. */
+    onHeadClick(): void {
+        this.toggle();
+    }
 }

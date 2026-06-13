@@ -15,6 +15,7 @@ import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { EfDetailToolbarAction } from '../../entities/detail-toolbar-action.entity';
 import { ViewModelEntity } from '../../entities/view-model.entity';
+import { AUDIT_HISTORY_SERVICE } from '../../services/audit-history.service';
 
 /**
  * Signal-first counterpart to {@link AbstractDetailScreenComponent}.
@@ -64,8 +65,17 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     protected readonly injector = inject(Injector);
     protected readonly location = inject(Location);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly auditHistoryService = inject(AUDIT_HISTORY_SERVICE, { optional: true });
 
     protected serviceInstance: any;
+
+    /**
+     * Change-history entries for the loaded record, newest first. Populated
+     * automatically when the config sets `AUDIT_ENTITY_TYPE` and an
+     * `AUDIT_HISTORY_SERVICE` is provided. Bind it directly:
+     * `<ef-change-history [entries]="auditEntries()" />`.
+     */
+    readonly auditEntries = signal<any[]>([]);
 
     /** Loaded entity. Empty object when on `/details` (create mode). */
     readonly entity = signal<TItem>(<TItem>{});
@@ -159,8 +169,9 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                 if (id) {
                     this.loadData();
                 } else {
-                    // New mode — reset to a fresh empty entity.
+                    // New mode — reset to a fresh empty entity, no history yet.
                     this.entity.set(<TItem>{});
+                    this.auditEntries.set([]);
                     this.afterLoad();
                 }
             });
@@ -198,6 +209,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                 this.entity.set(vm);
                 this.loading.set(false);
                 this.afterLoad();
+                this.loadAuditHistory();
             },
             error: (err: any) => {
                 console.error('AbstractDetailScreenV2.loadData failed', err);
@@ -328,6 +340,40 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     /** Subclass print hook — no-op default. */
     print(): void {}
 
+    /**
+     * Load the standardized change-history into `auditEntries` when the config
+     * opts in via `AUDIT_ENTITY_TYPE` and an `AUDIT_HISTORY_SERVICE` is provided.
+     * Called automatically after a successful `loadData()`. Failures degrade to
+     * an empty history rather than blocking the screen.
+     */
+    protected loadAuditHistory(): void {
+        this.auditEntries.set([]);
+
+        const entityType = this.getConfig()?.AUDIT_ENTITY_TYPE;
+        const id = this.entityId();
+
+        // No service provided, screen not opted in, or no id yet → empty box.
+        if (!this.auditHistoryService || !entityType || !id) {
+            return;
+        }
+
+        // Fully defensive: a missing/misconfigured audit client (no provider,
+        // wrong shape, get() throwing, or an HTTP failure) must never break the
+        // detail screen — it just leaves the history empty.
+        try {
+            const result$ = this.auditHistoryService.get(entityType, id);
+            if (!result$ || typeof result$.subscribe !== 'function') {
+                return;
+            }
+            result$.subscribe({
+                next: (entries) => this.auditEntries.set(entries ?? []),
+                error: () => this.auditEntries.set([]),
+            });
+        } catch {
+            this.auditEntries.set([]);
+        }
+    }
+
     /* ── Override hooks ─────────────────────────────────────────── */
 
     /**
@@ -361,6 +407,10 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         if (isCreate) {
             const newId = typeof result === 'object' ? (result?.id ?? result) : result;
             this.router.navigate([this.detailsBaseUrl(), newId]);
+        } else {
+            // Update succeeded in place — refresh the change-history so the new
+            // entry shows without a manual reload.
+            this.loadAuditHistory();
         }
     }
 

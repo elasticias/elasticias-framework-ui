@@ -36,7 +36,7 @@
     [ariaLabel]="effectiveAriaLabel || undefined"
   />
   @if (labelKey || label) {
-    <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" styleClass="form-label-left" />
+    <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" styleClass="form-label-left cursor-pointer" />
   }
 }
 @if (showRequired || serverErrors) {

@@ -1,0 +1,91 @@
+<ef-card
+    [titleKey]="titleKey()"
+    [collapsible]="collapsible()"
+    [collapsed]="startCollapsed()"
+>
+    <ng-container head-extra>
+        @if (hasMore()) {
+            <ef-button
+                variant="comptoir"
+                severity="ghost"
+                size="small"
+                icon="pi pi-window-maximize"
+                tooltipKey="audit_view_all"
+                (clickEvent)="openDialog($event)"
+            />
+        }
+    </ng-container>
+
+    <ng-container
+        *ngTemplateOutlet="timeline; context: { $implicit: previewRows() }"
+    ></ng-container>
+
+    @if (hasMore()) {
+        <button type="button" class="ch-more" (click)="openDialog()">
+            {{ 'audit_view_all' | translate }} ({{ rows().length }})
+        </button>
+    }
+</ef-card>
+
+<!-- "Show more" dialog — full timeline, roomy + scrollable -->
+<ef-dialog
+    [visible]="dialogVisible()"
+    (visibleChange)="dialogVisible.set($event)"
+    [headerKey]="titleKey()"
+    [defaultActions]="false"
+    size="lg"
+    [modal]="true"
+    position="center"
+>
+    <ng-container
+        *ngTemplateOutlet="timeline; context: { $implicit: rows() }"
+    ></ng-container>
+</ef-dialog>
+
+<ng-template #timeline let-items>
+    @if (items.length === 0) {
+        <p class="text-mute small">{{ emptyKey() | translate }}</p>
+    } @else {
+        <div class="timeline">
+            @for (row of items; track $index) {
+                <div class="item">
+                    <span class="dot" [class]="row.meta.cls" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="label">{{ row.operationLabel }}</div>
+                        <div class="meta">
+                            @if (row.entry.userName) {
+                                <span class="strong">{{ row.entry.userName }}</span> ·
+                            }
+                            {{ formatWhen(row.entry.occurredAt) }}
+                        </div>
+
+                        @if (row.entry.operation === 'status_changed' && (row.entry.fromStatus || row.entry.toStatus)) {
+                            <div class="ch-status small">
+                                <span class="text-mute">{{ row.entry.fromStatus || '—' }}</span>
+                                <i class="pi pi-arrow-right"></i>
+                                <span class="strong">{{ row.entry.toStatus || '—' }}</span>
+                            </div>
+                        }
+
+                        @if (row.entry.changes?.length) {
+                            <ul class="ch-changes small">
+                                @for (c of row.entry.changes; track c.field) {
+                                    <li>
+                                        <span class="ch-field">{{ fieldLabel(c.field) }}</span>
+                                        <span class="text-mute">{{ c.oldValue || '—' }}</span>
+                                        <i class="pi pi-arrow-right"></i>
+                                        <span class="strong">{{ c.newValue || '—' }}</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+
+                        @if (row.entry.note) {
+                            <div class="ch-note small">{{ row.entry.note }}</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</ng-template>
