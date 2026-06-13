@@ -475,10 +475,6 @@ export class EfOrderBuilderComponent implements OnInit {
       | undefined;
   }
 
-  private productKey(product: Record<string, unknown>): unknown {
-    return product[this.productKeyField()];
-  }
-
   getProduct(productId: unknown): Record<string, unknown> | undefined {
     const field = this.productKeyField();
     return this.products().find((p) => p[field] === productId);
