@@ -883,20 +883,9 @@
 
 /* ──────────── DETAIL TOOLBAR ───────────────────────────────────── */
 
-.detail-toolbar {
-  // position: sticky;
-  top: 48px;
-  z-index: 4;
-  background: var(--paper-alt);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-2xl);
-  box-shadow: var(--shadow-1, 0 1px 2px rgba(15, 17, 21, 0.04));
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  flex-wrap: wrap;
-}
+/* The authoritative `.detail-toolbar` base rule (flush, full-bleed square band)
+   lives in the "DETAIL SCREEN PRIMITIVES (Phase 7)" section below. Only the
+   sub-element rules (`.left` / `.ref` / `.name` / `.right`) live here. */
 
 .detail-toolbar .left {
   display: flex;
@@ -2244,16 +2233,28 @@
    Used by ef-detail-toolbar, ef-card, ef-form-grid, ef-totals,
    ef-stats, ef-timeline, ef-kpi-card. */
 
-/* Sticky toolbar at the top of every detail screen. */
+/* Detail toolbar: a flush, full-bleed header band welded under the breadcrumb
+   bar (`ef-app-top`, which sits outside the scroll area) at the top of every
+   detail screen — opaque + square so scrolled content tucks cleanly beneath it
+   (no peeking around floating-card corners).
+   It sticks inside the `.ef-app-main__content` scroller (padding
+   var(--s-5) top / var(--s-6) sides). The negative `margin` cancels that padding
+   for an edge-to-edge band; `top: calc(-1 * var(--s-5))` cancels the scroller's
+   padding-top so the bar pins FLUSH at the scrollport top when stuck (a plain
+   `top: 0` leaves a padding-top-sized strip where content bleeds above the bar —
+   verified). If a consuming app pads its detail-screen scroller differently,
+   override `margin` + `top` to match its padding. */
 .detail-toolbar {
   position: sticky;
-  top: 48px;
-  z-index: 4;
+  top: calc(-1 * var(--s-5));
+  z-index: 8;
+  margin: calc(-1 * var(--s-5)) calc(-1 * var(--s-6)) 0;
   background: var(--paper-alt);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-2xl);
-  box-shadow: var(--shadow-1);
-  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  box-shadow: 0 6px 16px -14px rgba(15, 17, 21, 0.3);
+  padding: 10px var(--s-6);
   display: flex;
   align-items: center;
   gap: var(--s-3);
