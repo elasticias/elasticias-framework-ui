@@ -7,6 +7,8 @@ export { EfPriceDisplayComponent } from './lib/commerce/ef-price-display.compone
 export { EfQuantitySelectorComponent } from './lib/commerce/ef-quantity-selector.component';
 export { EfOrderBuilderComponent } from './lib/commerce/ef-order-builder/ef-order-builder.component';
 export * from './lib/commerce/ef-order-builder/ef-order-builder.component.types';
+export { EfProductTypeaheadComponent } from './lib/commerce/ef-product-typeahead/ef-product-typeahead.component';
+export * from './lib/commerce/ef-product-typeahead/ef-product-typeahead.component.types';
 export { EfOrderSummaryComponent } from './lib/commerce/ef-order-summary/ef-order-summary.component';
 export type { ProductCountGroup, ProductCountGroupLabel, ProductWithCountGroup } from './lib/commerce/ef-order-summary/ef-order-summary.component';
 export { EfProductCatalogueFilterComponent } from './lib/commerce/ef-product-catalogue-filter/ef-product-catalogue-filter.component';
