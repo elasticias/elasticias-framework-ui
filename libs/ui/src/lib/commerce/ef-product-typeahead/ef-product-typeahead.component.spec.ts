@@ -66,4 +66,27 @@ describe('EfProductTypeaheadComponent', () => {
       { text: ' Girl', mark: false },
     ]);
   });
+
+  it('clamps the highlight to row bounds', () => {
+    host.ta.query.set('good'); // exactly 1 matching row
+    host.ta.highlightedIndex.set(0);
+    host.ta.moveHighlight(1);
+    expect(host.ta.highlightedIndex()).toBe(0);
+    host.ta.moveHighlight(-1);
+    expect(host.ta.highlightedIndex()).toBe(0);
+  });
+
+  it('emits select for the highlighted row on Enter, then clears + closes', () => {
+    host.ta.query.set('good');
+    host.ta.open.set(true);
+    host.ta.highlightedIndex.set(0);
+    host.ta.selectHighlighted();
+    expect(host.picked).toEqual({
+      product: host.products[0],
+      variant: host.products[0]['variants']![0],
+      unitPrice: 22.2,
+    });
+    expect(host.ta.open()).toBe(false);
+    expect(host.ta.query()).toBe('');
+  });
 });

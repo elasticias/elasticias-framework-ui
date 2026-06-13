@@ -96,4 +96,70 @@ export class EfProductTypeaheadComponent {
       { text: label.slice(at + nq.length), mark: false },
     ].filter((s) => s.text.length > 0);
   }
+
+  onInput(value: string): void {
+    this.query.set(value);
+    this.open.set(true);
+    this.highlightedIndex.set(0);
+  }
+
+  moveHighlight(delta: number): void {
+    const max = this.rows().length - 1;
+    if (max < 0) return;
+    const next = Math.min(max, Math.max(0, this.highlightedIndex() + delta));
+    this.highlightedIndex.set(next);
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.open.set(true);
+      this.moveHighlight(1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.moveHighlight(-1);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      this.selectHighlighted();
+    } else if (event.key === 'Escape') {
+      this.open.set(false);
+    }
+  }
+
+  /** Active variant index for a row (defaults to 0). */
+  variantIndexOf(row: ProductTypeaheadRow): number {
+    return this.activeVariant()[row.key] ?? 0;
+  }
+
+  variantOf(row: ProductTypeaheadRow): Record<string, unknown> | null {
+    return row.variants[this.variantIndexOf(row)] ?? null;
+  }
+
+  priceOf(row: ProductTypeaheadRow): number {
+    const variant = this.variantOf(row);
+    return (variant?.['price'] ??
+      row.product['unitPrice'] ??
+      row.product['salePrice'] ??
+      0) as number;
+  }
+
+  setActiveVariant(row: ProductTypeaheadRow, index: number): void {
+    this.activeVariant.update((m) => ({ ...m, [row.key]: index }));
+  }
+
+  selectRow(row: ProductTypeaheadRow): void {
+    this.select.emit({
+      product: row.product,
+      variant: this.variantOf(row),
+      unitPrice: this.priceOf(row),
+    });
+    this.query.set('');
+    this.open.set(false);
+    this.activeVariant.set({});
+  }
+
+  selectHighlighted(): void {
+    const row = this.rows()[this.highlightedIndex()];
+    if (row) this.selectRow(row);
+  }
 }
