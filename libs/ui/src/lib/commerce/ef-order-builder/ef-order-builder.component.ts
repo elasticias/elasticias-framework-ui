@@ -51,6 +51,9 @@ import { UuidUtils } from '@elasticias/utils';
  *   (orderChanged)="handleOrderChange($event)"
  * />
  */
+/** Numeric line columns that support inline click-to-edit. */
+type EditableLineField = 'price' | 'qty' | 'discount' | 'tva';
+
 @Component({
   selector: 'ef-order-builder',
   standalone: true,
@@ -79,9 +82,9 @@ export class EfOrderBuilderComponent implements OnInit {
     headerLabel: 'Commande',
     dateLabel: 'Date de commande',
     customerLabel: 'Client',
-    enableTax: true,
+    enableTax: false,
     enableDiscount: true,
-    showCatalogue: true,
+    showCatalogue: false,
     allowInlineEdit: true,
     currencyCode: 'MAD',
     locale: 'fr-FR',
@@ -112,7 +115,8 @@ export class EfOrderBuilderComponent implements OnInit {
   quickAddQuantity = signal<number>(1);
 
   quickAddDisabled = computed(
-    () => this.quickAddSelection() === null || (this.quickAddQuantity() ?? 0) <= 0,
+    () =>
+      this.quickAddSelection() === null || (this.quickAddQuantity() ?? 0) <= 0,
   );
 
   orderLines = computed(() => this.order().orderLines || []);
@@ -214,8 +218,51 @@ export class EfOrderBuilderComponent implements OnInit {
 
   hasChanges = computed(() => this.changeInfo()?.hasChanges ?? false);
 
-  focusMode = model(false);
+  focusMode = model(true);
   railOpen = signal(false);
+
+  /**
+   * Inline cell editing — lines render their numeric values as read-only text
+   * until the user clicks a value, which swaps just that cell to an input
+   * (V1 behaviour). One cell is editable at a time; blur / Enter / Escape /
+   * Tab commits and returns the cell to display.
+   */
+  editingCell = signal<{
+    id: OrderLineItem['id'];
+    field: EditableLineField;
+  } | null>(null);
+
+  /** Number of table columns, used for the empty-state colspan. */
+  colCount = computed(
+    () =>
+      5 +
+      (this.config().enableDiscount ? 1 : 0) +
+      (this.config().enableTax ? 1 : 0),
+  );
+
+  isEditingCell(item: OrderLineItem, field: EditableLineField): boolean {
+    const cell = this.editingCell();
+    return cell !== null && cell.id === item.id && cell.field === field;
+  }
+
+  startEditCell(item: OrderLineItem, field: EditableLineField): void {
+    if (this.readonly()) return;
+    this.editingCell.set({ id: item.id, field });
+  }
+
+  stopEditCell(): void {
+    this.editingCell.set(null);
+  }
+
+  onEditCellKeydown(event: KeyboardEvent): void {
+    if (
+      event.key === 'Enter' ||
+      event.key === 'Escape' ||
+      event.key === 'Tab'
+    ) {
+      this.stopEditCell();
+    }
+  }
 
   toggleFocus(): void {
     this.focusMode.update((v) => !v);
@@ -239,25 +286,22 @@ export class EfOrderBuilderComponent implements OnInit {
   });
 
   constructor() {
-    effect(
-      () => {
-        if (!this.initialized()) return;
+    effect(() => {
+      if (!this.initialized()) return;
 
-        const updatedOrder = OrderEntityHelper.calculateTotals(this.order());
-        const summary = this.productsSummary();
+      const updatedOrder = OrderEntityHelper.calculateTotals(this.order());
+      const summary = this.productsSummary();
 
-        if (
-          updatedOrder.grossTotal !== this.order().grossTotal ||
-          updatedOrder.discountTotal !== this.order().discountTotal ||
-          updatedOrder.taxTotal !== this.order().taxTotal ||
-          updatedOrder.finalTotal !== this.order().finalTotal ||
-          JSON.stringify(updatedOrder.productsSummary) !==
-            JSON.stringify(summary)
-        ) {
-          this.order.set({ ...updatedOrder, productsSummary: summary });
-        }
-      },
-    );
+      if (
+        updatedOrder.grossTotal !== this.order().grossTotal ||
+        updatedOrder.discountTotal !== this.order().discountTotal ||
+        updatedOrder.taxTotal !== this.order().taxTotal ||
+        updatedOrder.finalTotal !== this.order().finalTotal ||
+        JSON.stringify(updatedOrder.productsSummary) !== JSON.stringify(summary)
+      ) {
+        this.order.set({ ...updatedOrder, productsSummary: summary });
+      }
+    });
 
     effect(() => {
       const info = this.changeInfo();

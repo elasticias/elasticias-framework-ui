@@ -133,7 +133,7 @@
       flex: 0 1 132px;
     }
     .qa-qtyf {
-      flex: 0 0 auto;
+      flex: 0 0 132px;
     }
     .qa-go {
       flex: 0 0 auto;
@@ -178,9 +178,6 @@
 
     // ── Lines table (flows with page scroll; full-bleed in the card body) ──
     .ob-tbl {
-      // Negate the ef-card body x-padding (16px) so the header band and row
-      // dividers span the full card width; cell content re-aligns to 16px below.
-      width: calc(100% + 32px);
       margin-inline: -16px;
       border-collapse: separate;
       border-spacing: 0;
@@ -288,6 +285,45 @@
         font-family: 'JetBrains Mono', monospace;
         font-feature-settings: 'tnum';
         font-variant-numeric: tabular-nums;
+      }
+
+      // Read-only numeric value that reveals it's editable on hover/focus.
+      // Clicking swaps the cell to an ef-inputnumber (inline edit, V1 style).
+      .ln-val {
+        appearance: none;
+        width: 100%;
+        margin: 0;
+        padding: 5px 8px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        background: transparent;
+        font: inherit;
+        font-family: 'JetBrains Mono', monospace;
+        font-feature-settings: 'tnum';
+        font-variant-numeric: tabular-nums;
+        color: inherit;
+        text-align: end;
+        cursor: text;
+        transition:
+          background 0.12s ease,
+          border-color 0.12s ease;
+
+        &:hover:not(:disabled) {
+          background: var(--paper);
+          border-color: var(--rule);
+        }
+
+        &:focus-visible {
+          outline: none;
+          background: var(--paper);
+          border-color: var(--tenant, var(--rule));
+        }
+
+        &:disabled {
+          cursor: default;
+          background: transparent;
+          border-color: transparent;
+        }
       }
 
       .total {
