@@ -16,7 +16,6 @@ export interface ProductTypeaheadRow {
   key: string;
   product: Record<string, unknown>;
   label: string;
-  ref: string;
   variants: Record<string, unknown>[];
   segments: HighlightSegment[];
 }

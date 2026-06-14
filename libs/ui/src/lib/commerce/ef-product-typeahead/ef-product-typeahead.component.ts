@@ -43,6 +43,18 @@ export class EfProductTypeaheadComponent {
   disabled = input(false, { transform: booleanAttribute });
   currency = input<string>('MAD');
   locale = input<string>('fr-FR');
+  /**
+   * How variants are presented.
+   * - `true` (default): compact — one row per product with inline variant
+   *   chips (e.g. `30ml` / `50ml`); clicking a chip switches the active
+   *   variant + price.
+   * - `false`: V1 expanded — one row per active variant, with the variant
+   *   title composed into the label (`Name - 30ml`) and its own price.
+   *
+   * Display-only: the emitted `ProductTypeaheadSelection` (product + chosen
+   * variant + unit price) is identical either way.
+   */
+  showVariants = input(true, { transform: booleanAttribute });
 
   productSelect = output<ProductTypeaheadSelection>();
 
@@ -64,23 +76,46 @@ export class EfProductTypeaheadComponent {
     if (q.length < 2) return [];
     const keyField = this.productKeyField();
     const nq = EfProductTypeaheadComponent.norm(q);
+    const expand = !this.showVariants();
 
     return this.products()
-      .map((product) => {
-        const label = (product['displayName'] ||
+      .flatMap((product) => {
+        const baseLabel = (product['displayName'] ||
           product['name'] ||
           '') as string;
+        const key = String(product[keyField]);
         const variants = (
           (product['variants'] as Record<string, unknown>[] | undefined) ?? []
         ).filter((v) => v['isActive'] !== false);
-        return {
-          key: String(product[keyField]),
-          product,
-          label,
-          ref: (product['reference'] || product['code'] || '') as string,
-          variants,
-          segments: this.buildSegments(label, q),
-        };
+
+        // V1 expanded mode: one row per active variant, with the variant
+        // title composed into the label and resolved as the row's sole
+        // variant (so price + emitted payload follow it). A variant-less
+        // product still yields one base row.
+        if (expand && variants.length > 0) {
+          return variants.map((variant, vi) => {
+            const label = `${baseLabel} - ${variant['title']}`;
+            const variantId = variant['variantId'];
+            return {
+              key: variantId != null ? `${key}:${variantId}` : `${key}:${vi}`,
+              product,
+              label,
+              variants: [variant],
+              segments: this.buildSegments(label, q),
+            };
+          });
+        }
+
+        // Compact mode (variant chips), or a product with no variants.
+        return [
+          {
+            key,
+            product,
+            label: baseLabel,
+            variants,
+            segments: this.buildSegments(baseLabel, q),
+          },
+        ];
       })
       .filter((row) => EfProductTypeaheadComponent.norm(row.label).includes(nq));
   });
@@ -153,13 +188,22 @@ export class EfProductTypeaheadComponent {
       variant: this.variantOf(row),
       unitPrice: this.priceOf(row),
     });
-    this.query.set('');
+    // Keep the picked product visible in the field (the bar fills; the
+    // consumer adds the line explicitly). Just close the results menu.
+    this.query.set(row.label);
     this.open.set(false);
-    this.activeVariant.set({});
   }
 
   selectHighlighted(): void {
     const row = this.rows()[this.highlightedIndex()];
     if (row) this.selectRow(row);
+  }
+
+  /** Clear the field after the consumer has consumed the selection. */
+  reset(): void {
+    this.query.set('');
+    this.open.set(false);
+    this.highlightedIndex.set(0);
+    this.activeVariant.set({});
   }
 }

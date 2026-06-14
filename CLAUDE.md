@@ -57,6 +57,8 @@ All `ef-*` UI components expose `*Key` input variants for i18n: `labelKey`, `pla
 
 Always prefer the `ef-*` wrappers (`ef-button`, `ef-select`, `ef-inputnumber`, `ef-datepicker`, `ef-label`, `ef-fieldset`, `ef-datatable`, `ef-dialog`, ...) over raw PrimeNG primitives (`p-button`, `p-dropdown`, `p-inputnumber`, ...). This applies inside both the shared libs and consuming apps. The wrappers enforce the `*Key` i18n inputs, rounded styling defaults, and consistent severities/sizes. New components and templates should use `ef-*`; don't refactor existing `p-*` usages unless the task requires it.
 
+**Cards:** use the `ef-card` primitive (`titleKey`/`metaKey`/`tone`, slots `[head-extra]` / default body / `[foot]`) for every card container — even inside other shared components. **Do not hand-roll `.card` / `.card-head` / `.card-body` markup or duplicate card chrome in a component's own SCSS** — `ef-card` already provides the shell, head, 16px body padding, and separators (defined once in `_patterns.scss`). A component should only style the content it projects into the card body, not the card itself.
+
 ## Screen Abstractions
 
 Consuming apps build screens by extending the abstract base classes in `@elasticias/screens` — never as standalone components. The base classes own the `ef-toolbar` wiring, `ScreenContext`, reference-data loading, server-error handling, and the `ToastService` integration.

@@ -2,46 +2,46 @@
   class="order-builder"
   [class.ob-collapsed]="focusMode()"
   [class.ob-rail-open]="railOpen()">
-  <!-- Customer strip -->
-  <section class="card">
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="field col-6">
-          <ef-label labelKey="label.customer" for="ob-cust" [required]="true" />
-          <ef-select
-            inputId="ob-cust"
-            [options]="customers()"
-            optionLabel="companyName"
-            optionValue="customerId"
-            [ngModel]="order().customerId"
-            (ngModelChange)="updateCustomer($event)"
-            [disabled]="readonly()"
-            [showClear]="true"
-            placeholderKey="label.select_customer" />
-        </div>
-        <div class="field col-3">
-          <ef-label labelKey="label.order_date" for="ob-date" [required]="true" />
-          <ef-datepicker
-            inputId="ob-date"
-            [ngModel]="order().orderDate"
-            (ngModelChange)="updateOrderDate($event)"
-            [disabled]="readonly()" />
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Builder grid -->
   <div class="ob-grid">
     <div class="ob-main">
-      <!-- QUICK-ADD BAR -->
-      @if (!readonly()) {
-        <section class="card ob-qa">
-          <header class="card-head">
-            <span class="title">{{ 'order_builder.quick_add' | translate }}</span>
-            <span class="meta">{{ 'order_builder.quick_add_hint' | translate }}</span>
-          </header>
-          <div class="card-body">
+      <!-- Order header: customer + date + express add (one card) -->
+      <ef-card
+        titleKey="order_builder.section_order"
+        [metaKey]="readonly() ? '' : 'order_builder.quick_add_hint'"
+        [overflowVisible]="true">
+        <div class="ob-order-head">
+          <div class="form-grid">
+            <div class="field col-6">
+              <ef-label labelKey="label.customer" for="ob-cust" [required]="true" />
+              <ef-select
+                inputId="ob-cust"
+                [options]="customers()"
+                optionLabel="companyName"
+                optionValue="customerId"
+                [ngModel]="order().customerId"
+                (ngModelChange)="updateCustomer($event)"
+                [disabled]="readonly()"
+                [showClear]="true"
+                [filter]="true"
+                filterBy="companyName"
+                filterPlaceholderKey="label.search_customer"
+                appendTo="body"
+                placeholderKey="label.select_customer" />
+            </div>
+            <div class="field col-3">
+              <ef-label labelKey="label.order_date" for="ob-date" [required]="true" />
+              <ef-datepicker-advanced
+                mode="field"
+                selectionMode="single"
+                inputId="ob-date"
+                placeholderKey="date_select_date"
+                [ngModel]="order().orderDate"
+                (ngModelChange)="updateOrderDate($event)"
+                [disabled]="readonly()" />
+            </div>
+          </div>
+
+          @if (!readonly()) {
             <div class="qa-grid">
               <div class="qa-combo-wrap">
                 <ef-label labelKey="label.article" />
@@ -55,59 +55,62 @@
               </div>
               <div class="qa-price">
                 <ef-label labelKey="label.sale_price" />
-                <input
-                  class="qin"
-                  type="number"
-                  [ngModel]="quickAddPrice()"
-                  (ngModelChange)="quickAddPrice.set($event)" />
+                <ef-inputnumber
+                  variant="comptoir"
+                  [value]="quickAddPrice()"
+                  (valueChangeEvent)="quickAddPrice.set($event ?? 0)"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [locale]="locale()" />
               </div>
               <div class="qa-qtyf">
                 <ef-label labelKey="label.quantity" />
-                <ef-quantity-stepper
-                  [value]="quickAddQuantity()"
-                  (valueChange)="quickAddQuantity.set($event)"
-                  [min]="0" />
+                <ef-inputnumber
+                  id="quickAdd.quantity"
+                  name="quickAdd.quantity"
+                  [ngModel]="quickAddQuantity()"
+                  (ngModelChange)="quickAddQuantity.set($event)"
+                  [min]="0"
+                  [maxFractionDigits]="4"
+                  [locale]="locale()"
+                  [disabled]="readonly()"
+                  size="small"
+                />
               </div>
               <div class="qa-go">
                 <ef-button
                   labelKey="action.add"
                   icon="pi pi-plus"
-                  severity="primary"
+                  variant="comptoir"
+                  severity="tenant"
                   [disabled]="quickAddDisabled()"
                   (clickEvent)="addQuickProduct()" />
               </div>
             </div>
-          </div>
-        </section>
-      }
+          }
+        </div>
+      </ef-card>
 
-      <!-- LINES -->
-      <section class="card ob-lines">
-        <header class="card-head">
-          <span class="title">
-            {{ 'order_builder.lines' | translate }}
-            <span class="text-mute">· {{ orderLines().length }}</span>
-          </span>
-          <div class="head-actions">
-            @if (config().showCatalogue && !readonly()) {
-              <ef-button
-                labelKey="action.open_catalogue"
-                icon="pi pi-box"
-                severity="secondary"
-                [text]="true"
-                (clickEvent)="handleOpenCatalogue()" />
-            }
+      <!-- Lines -->
+      <ef-card titleKey="order_builder.lines" [meta]="'· ' + orderLines().length">
+        <div head-extra class="head-actions">
+          @if (config().showCatalogue && !readonly()) {
             <ef-button
-              [labelKey]="focusMode() ? 'order_builder.show_summary' : 'order_builder.fullscreen'"
-              icon="pi pi-window-maximize"
+              labelKey="action.open_catalogue"
+              icon="pi pi-box"
               severity="secondary"
               [text]="true"
-              (clickEvent)="toggleFocus()" />
-          </div>
-        </header>
+              (clickEvent)="handleOpenCatalogue()" />
+          }
+          <ef-button
+            [labelKey]="focusMode() ? 'order_builder.show_summary' : 'order_builder.fullscreen'"
+            icon="pi pi-window-maximize"
+            severity="secondary"
+            [text]="true"
+            (clickEvent)="toggleFocus()" />
+        </div>
 
-        <div class="ob-scroll">
-          <table class="ob-tbl">
+        <table class="ob-tbl">
             <thead>
               <tr>
                 <th class="col-prod">{{ 'label.article' | translate }}</th>
@@ -131,33 +134,42 @@
                       </span>
                     </div>
                   </td>
-                  <td class="num">
-                    <input
-                      class="ed"
-                      type="number"
+                  <td class="num w-[120px]">
+                    <ef-inputnumber
+                      [(ngModel)]="item.productUnitPrice"
+                      (ngModelChange)="onFieldChange(item)"
                       [disabled]="readonly()"
-                      [ngModel]="item.productUnitPrice"
-                      (ngModelChange)="item.productUnitPrice = $event; onFieldChange(item)" />
+                      [min]="0"
+                      [minFractionDigits]="2"
+                      [maxFractionDigits]="2"
+                      [locale]="locale()"
+                      size="small"
+                      class="!text-end" />
                   </td>
-                  <td class="num">
-                    <input
-                      class="qin"
-                      type="number"
-                      min="0"
+                  <td class="num w-[120px]">
+                    <ef-inputnumber
+                      [(ngModel)]="item.quantity"
+                      (ngModelChange)="onFieldChange(item)"
                       [disabled]="readonly()"
-                      [ngModel]="item.quantity"
-                      (ngModelChange)="item.quantity = $event; onFieldChange(item)" />
+                      [min]="0"
+                      [maxFractionDigits]="4"
+                      [locale]="locale()"
+                      size="small"
+                      class="!text-end" />
                   </td>
                   @if (config().enableDiscount) {
-                    <td class="num">
-                      <input
-                        class="ed"
-                        type="number"
-                        min="0"
-                        max="100"
+                    <td class="num w-[120px]">
+                      <ef-inputnumber
+                        [(ngModel)]="item.discount"
+                        (ngModelChange)="onFieldChange(item)"
                         [disabled]="readonly()"
-                        [ngModel]="item.discount"
-                        (ngModelChange)="item.discount = $event; onFieldChange(item)" />
+                        [min]="0"
+                        [max]="100"
+                        [maxFractionDigits]="2"
+                        suffix=" %"
+                        [locale]="locale()"
+                        size="small"
+                        class="!text-end" />
                     </td>
                   }
                   <td class="total">
@@ -182,49 +194,14 @@
                 </tr>
               }
             </tbody>
-          </table>
-        </div>
-
-        <div class="ob-lines-foot">
-          <span class="ob-count">
-            <b>{{ orderLines().length }}</b> {{ 'order_builder.lines' | translate }}
-          </span>
-        </div>
-      </section>
+        </table>
+      </ef-card>
     </div>
 
-    <!-- CONTEXT RAIL -->
+    <!-- CONTEXT RAIL (1/3) -->
     <aside class="ob-rail">
-      <ef-button
-        labelKey="action.close"
-        icon="pi pi-times"
-        severity="secondary"
-        [text]="true"
-        styleClass="ob-rail-close"
-        (clickEvent)="toggleRail(false)" />
-
-      <!-- État (display-only) -->
-      <section class="card">
-        <header class="card-head">
-          <span class="title">{{ 'order_builder.status' | translate }}</span>
-        </header>
-        <div class="ob-stat">
-          <div class="head">
-            <ef-status-chip [color]="$any(statusColor())" [label]="statusLabel()" />
-          </div>
-          <div class="row">
-            <span class="l">{{ 'label.order_date' | translate }}</span>
-            <span class="v">{{ order().orderDate | date: 'mediumDate' : undefined : locale() }}</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Totaux -->
-      <section class="card">
-        <header class="card-head">
-          <span class="title">{{ 'order_builder.totals' | translate }}</span>
-          <span class="key">{{ currency() }}</span>
-        </header>
+      <!-- Totaux (top) -->
+      <ef-card titleKey="order_builder.totals" [meta]="currency()">
         <div class="ob-totals">
           <div class="row">
             <span class="lbl">{{ 'order_builder.gross' | translate }}</span>
@@ -244,15 +221,11 @@
             <span class="v">{{ finalTotal() | number: '1.2-2' : locale() }}<span class="cur">{{ currency() }}</span></span>
           </div>
         </div>
-      </section>
+      </ef-card>
 
       <!-- Récapitulatif par format -->
       @if (productsSummary().items.length > 0) {
-        <section class="card">
-          <header class="card-head">
-            <span class="title">{{ 'order_builder.recap' | translate }}</span>
-            <span class="meta">{{ 'order_builder.auto' | translate }}</span>
-          </header>
+        <ef-card titleKey="order_builder.recap" metaKey="order_builder.auto">
           <div class="ob-recap">
             <div class="cols">
               @for (col of recapColumns(); track $index) {
@@ -271,7 +244,7 @@
               <span class="n">{{ productsSummary().totalCount | number: '1.0-0' : locale() }}</span>
             </div>
           </div>
-        </section>
+        </ef-card>
       }
 
       <!-- Historique (optional, component-owned) -->

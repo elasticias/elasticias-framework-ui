@@ -7,6 +7,7 @@ import {
   OnInit,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,11 +25,12 @@ import {
 } from './ef-order-builder.component.types';
 import { ProductCountGroupLabel } from '../ef-order-summary/ef-order-summary.component';
 import { EfSelectComponent } from '../../forms/ef-select/ef-select.component';
-import { EfDatepickerComponent } from '../../forms/ef-datepicker/ef-datepicker.component';
+import { EfDatepickerAdvancedComponent } from '../../forms/ef-datepicker-advanced/ef-datepicker-advanced.component';
+import { EfInputNumberComponent } from '../../forms/ef-inputnumber/ef-inputnumber.component';
 import { EfQuantityStepperComponent } from '../../forms/ef-quantity-stepper/ef-quantity-stepper.component';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
-import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
+import { EfCardComponent } from '../../layout/ef-card/ef-card.component';
 import { EfChangeHistoryComponent } from '../../data/ef-change-history/ef-change-history.component';
 import { EfChangeHistoryEntry } from '../../data/ef-change-history/ef-change-history.types';
 import { EfProductTypeaheadComponent } from '../ef-product-typeahead/ef-product-typeahead.component';
@@ -59,11 +61,12 @@ import { UuidUtils } from '@elasticias/utils';
     FormsModule,
     TranslateModule,
     EfSelectComponent,
-    EfDatepickerComponent,
+    EfDatepickerAdvancedComponent,
+    EfInputNumberComponent,
     EfQuantityStepperComponent,
     EfLabelComponent,
     EfButtonComponent,
-    EfStatusChipComponent,
+    EfCardComponent,
     EfChangeHistoryComponent,
     EfProductTypeaheadComponent,
   ],
@@ -93,10 +96,6 @@ export class EfOrderBuilderComponent implements OnInit {
   productKeyField = input<string>('id');
   backendErrors = input<{ [key: string]: string[] }>({});
 
-  /** Reference-data items for order statuses; État badge severity reads metadata.color. */
-  orderStatuses = input<
-    Array<{ code: string; label?: string; metadata?: Record<string, unknown> }>
-  >([]);
   /** Optional change-history entries; when non-empty the Historique rail card renders. */
   auditEntries = input<EfChangeHistoryEntry[]>([]);
 
@@ -215,7 +214,7 @@ export class EfOrderBuilderComponent implements OnInit {
 
   hasChanges = computed(() => this.changeInfo()?.hasChanges ?? false);
 
-  focusMode = signal(false);
+  focusMode = model(false);
   railOpen = signal(false);
 
   toggleFocus(): void {
@@ -225,15 +224,6 @@ export class EfOrderBuilderComponent implements OnInit {
     this.railOpen.set(open ?? !this.railOpen());
   }
 
-  private currentStatus = computed(() =>
-    this.orderStatuses().find((s) => s.code === (this.order().status ?? 'draft')),
-  );
-  statusColor = computed<string>(
-    () => (this.currentStatus()?.metadata?.['color'] as string) ?? 'secondary',
-  );
-  statusLabel = computed<string>(
-    () => this.currentStatus()?.label ?? (this.order().status ?? 'draft'),
-  );
   hasAudit = computed(() => this.auditEntries().length > 0);
 
   /** Récap items grouped into columns (column index from reference data). */
@@ -311,12 +301,16 @@ export class EfOrderBuilderComponent implements OnInit {
     this.openCatalogue.emit();
   }
 
-  /** Fill the quick-add bar from a typeahead pick, then add immediately. */
+  private readonly typeahead = viewChild(EfProductTypeaheadComponent);
+
+  /**
+   * Fill the quick-add bar from a typeahead pick. Does NOT add the line —
+   * the user reviews price/quantity then clicks "Ajouter" (addQuickProduct).
+   */
   onTypeaheadSelect(selection: ProductTypeaheadSelection): void {
     if (this.readonly()) return;
     this.quickAddSelection.set(selection);
     this.quickAddPrice.set(selection.unitPrice);
-    this.addQuickProduct();
   }
 
   addQuickProduct(): void {
@@ -346,6 +340,7 @@ export class EfOrderBuilderComponent implements OnInit {
     this.quickAddSelection.set(null);
     this.quickAddPrice.set(0);
     this.quickAddQuantity.set(1);
+    this.typeahead()?.reset();
   }
 
   addProductsFromCatalogue(

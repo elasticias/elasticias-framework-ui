@@ -6,7 +6,7 @@
   flex: 0 0 auto;
   height: 48px; /* prototype canon — compact app-top */
   padding: 0 20px;
-  background: var(--paper);
+  background: var(--paper-alt);
   border-bottom: 1px solid var(--rule);
   color: var(--text);
 }
@@ -41,14 +41,30 @@
   background: var(--m-admin);
   flex-shrink: 0;
 
-  &[data-module='sales']     { background: var(--m-sales); }
-  &[data-module='purchase']  { background: var(--m-purchase); }
-  &[data-module='stock']     { background: var(--m-stock); }
-  &[data-module='pos']       { background: var(--m-pos); }
-  &[data-module='marketing'] { background: var(--m-marketing); }
-  &[data-module='store']     { background: var(--m-store); }
-  &[data-module='finance']   { background: var(--m-finance); }
-  &[data-module='admin']     { background: var(--m-admin); }
+  &[data-module='sales'] {
+    background: var(--m-sales);
+  }
+  &[data-module='purchase'] {
+    background: var(--m-purchase);
+  }
+  &[data-module='stock'] {
+    background: var(--m-stock);
+  }
+  &[data-module='pos'] {
+    background: var(--m-pos);
+  }
+  &[data-module='marketing'] {
+    background: var(--m-marketing);
+  }
+  &[data-module='store'] {
+    background: var(--m-store);
+  }
+  &[data-module='finance'] {
+    background: var(--m-finance);
+  }
+  &[data-module='admin'] {
+    background: var(--m-admin);
+  }
 }
 
 .ef-app-top__crumb-root {

@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfProductTypeaheadComponent } from './ef-product-typeahead.component';
+import { ProductTypeaheadSelection } from './ef-product-typeahead.component.types';
 
 @Component({
   standalone: true,
@@ -76,7 +77,7 @@ describe('EfProductTypeaheadComponent', () => {
     expect(host.ta.highlightedIndex()).toBe(0);
   });
 
-  it('emits select for the highlighted row on Enter, then clears + closes', () => {
+  it('emits select on Enter, keeps the picked label visible, closes the menu', () => {
     host.ta.query.set('good');
     host.ta.open.set(true);
     host.ta.highlightedIndex.set(0);
@@ -87,7 +88,17 @@ describe('EfProductTypeaheadComponent', () => {
       unitPrice: 22.2,
     });
     expect(host.ta.open()).toBe(false);
+    // The field retains the picked product (fill-then-add flow); it is not cleared.
+    expect(host.ta.query()).toBe('Style Good Girl');
+  });
+
+  it('reset() clears the field after the consumer adds the line', () => {
+    host.ta.query.set('good');
+    host.ta.selectHighlighted();
+    expect(host.ta.query()).toBe('Style Good Girl');
+    host.ta.reset();
     expect(host.ta.query()).toBe('');
+    expect(host.ta.open()).toBe(false);
   });
 
   it('selecting a variant chip changes the active variant, price, and payload', () => {
@@ -105,6 +116,49 @@ describe('EfProductTypeaheadComponent', () => {
       variant: host.products[0]['variants']![1],
       unitPrice: 34,
     });
+  });
+
+  it('renders variant chips by default (showVariants=true)', () => {
+    const f = TestBed.createComponent(EfProductTypeaheadComponent);
+    f.componentRef.setInput('products', host.products);
+    f.componentRef.setInput('productKeyField', 'id');
+    f.componentRef.setInput('locale', 'en-US'); // registered in the test env
+    f.componentInstance.query.set('good');
+    f.componentInstance.open.set(true);
+    f.detectChanges();
+    expect(f.nativeElement.querySelectorAll('.qa-chip').length).toBe(2);
+  });
+
+  it('expands one row per variant when [showVariants]="false" (V1 mode)', () => {
+    const f = TestBed.createComponent(EfProductTypeaheadComponent);
+    f.componentRef.setInput('products', host.products);
+    f.componentRef.setInput('productKeyField', 'id');
+    f.componentRef.setInput('locale', 'en-US'); // registered in the test env
+    f.componentRef.setInput('showVariants', false);
+    const ta = f.componentInstance;
+    ta.query.set('good');
+    ta.open.set(true);
+    f.detectChanges();
+
+    // No chips — each variant is its own row instead.
+    expect(f.nativeElement.querySelectorAll('.qa-chip').length).toBe(0);
+
+    const rows = ta.rows();
+    expect(rows.length).toBe(2); // Good Girl × {30 ml, 50 ml}
+    expect(rows.map((r) => r.label)).toEqual([
+      'Style Good Girl - 30 ml',
+      'Style Good Girl - 50 ml',
+    ]);
+    // Each row carries its own variant + price.
+    expect(ta.priceOf(rows[0])).toBe(22.2);
+    expect(ta.priceOf(rows[1])).toBe(34);
+
+    // Selecting the 50 ml row emits that variant + its price.
+    let picked: ProductTypeaheadSelection | null = null;
+    ta.productSelect.subscribe((p) => (picked = p));
+    ta.selectRow(rows[1]);
+    expect(picked!.variant).toEqual(host.products[0]['variants']![1]);
+    expect(picked!.unitPrice).toBe(34);
   });
 
   it('falls back to product unitPrice when a product has no variants', () => {

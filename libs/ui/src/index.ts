@@ -18,6 +18,11 @@ export type { CatalogueProduct, CatalogueProductVariant } from './lib/commerce/e
 
 // Layout components
 export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
+export type {
+    EfDialogAction,
+    EfDialogSeverity,
+    EfDialogSize,
+} from './lib/layout/ef-dialog/ef-dialog.component';
 export { EfFieldsetComponent } from './lib/layout/ef-fieldset/ef-fieldset.component';
 export { EfButtonComponent } from './lib/layout/ef-button/ef-button.component';
 export type {
@@ -56,6 +61,7 @@ export { EfProfileChipComponent } from './lib/layout/ef-profile-chip/ef-profile-
 export { EfBlockUiComponent } from './lib/feedback/ef-block-ui/ef-block-ui.component';
 export { EfBlockableDivComponent } from './lib/feedback/ef-blockable-div/ef-blockable-div.component';
 export { EfPulseComponent } from './lib/feedback/ef-pulse/ef-pulse.component';
+export { EfPdfPreviewComponent } from './lib/feedback/ef-pdf-preview/ef-pdf-preview.component';
 export { EfStatusChipComponent } from './lib/feedback/ef-status-chip/ef-status-chip.component';
 export type { EfStatusColor, EfStatusReferenceItem } from './lib/feedback/ef-status-chip/ef-status-chip.types';
 export { EfToastRegionComponent } from './lib/feedback/ef-toast-region/ef-toast-region.component';
@@ -114,7 +120,10 @@ export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.compone
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
 export { EfPresetPillComponent } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
 export type { EfPresetItem } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
-export { EfDatepickerAdvancedComponent } from './lib/forms/ef-datepicker-advanced/ef-datepicker-advanced.component';
+export {
+    EfDatepickerAdvancedComponent,
+    type EfDateFieldValue,
+} from './lib/forms/ef-datepicker-advanced/ef-datepicker-advanced.component';
 export type {
     EfDatePreset,
     EfDatePresetKey,

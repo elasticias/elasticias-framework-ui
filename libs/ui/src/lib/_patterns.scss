@@ -94,6 +94,21 @@
   transform: scale(0.97);
 }
 
+/* Disabled state — the Comptoir `.btn` had none, so a disabled button
+   (ef-button comptoir variant or an ef-dialog action with `disabled: true`)
+   stayed at full colour with no affordance. Dim it and block the pointer.
+   `.is-loading` is excluded — that's a separate busy state with its own look. */
+.btn:disabled:not(.is-loading),
+.btn[disabled]:not(.is-loading) {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn:disabled:active,
+.btn[disabled]:active {
+  transform: none;
+}
+
 .btn-primary {
   background: var(--ink-active);
   color: var(--paper);
@@ -125,6 +140,32 @@
 
 .btn-ghost:hover {
   border-color: var(--text);
+}
+
+/* Brand-tinted action buttons (e.g. ef-pdf-preview footer). */
+.btn-whatsapp {
+  background: #25d366;
+  color: #fff;
+  border-color: #25d366;
+}
+.btn-whatsapp:hover {
+  background: #1ebe5b;
+  border-color: #1ebe5b;
+}
+.btn-download {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+.btn-download:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* Footer layout helper — pushes this button (and the gap) to the leading
+   edge so following actions stay right-aligned in a flex-end footer. */
+.btn-dialog-leading {
+  margin-inline-end: auto;
 }
 
 .btn-ico {
@@ -1552,6 +1593,96 @@
   transform: rotate(180deg);
 }
 
+/* ── Field mode (form control) ──────────────────────────────────────
+   `mode="field"` turns the picker into a Comptoir form control. The
+   `.dp--field` wrapper fills its column; `.dp__field-trigger` is the
+   bordered field box (matching ef-select / ef-input height + radius)
+   that replaces the rounded pill. */
+
+.dp--field {
+  display: block;
+  width: 100%;
+}
+
+.dp__field-trigger {
+  appearance: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 0 14px;
+  width: 100%;
+  min-height: var(--hit-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: start;
+  transition: all var(--t-fast) var(--ease-out);
+  letter-spacing: -0.005em;
+}
+
+.dp__field-trigger:hover:not(:disabled) {
+  border-color: var(--ink-400);
+}
+
+.dp__field-trigger:focus-visible,
+.dp__field-trigger.open {
+  outline: 0;
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 3px var(--tenant-100);
+}
+
+.dp__field-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dp__field-trigger .ico {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text-mute);
+}
+
+.dp__field-trigger .val {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Placeholder state — muted, lighter weight, like an empty input. */
+.dp__field-trigger.is-placeholder .val {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.dp__field-trigger .caret {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-mute);
+  transition: transform var(--t-base) var(--ease-spring);
+}
+
+.dp__field-trigger.open .caret {
+  transform: rotate(180deg);
+}
+
+/* Invalid (touched + failing validation) — red border + halo. */
+.dp__field-trigger.is-invalid {
+  border-color: var(--st-cancelled-fg);
+}
+.dp__field-trigger.is-invalid:focus-visible,
+.dp__field-trigger.is-invalid.open {
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
 .dp__panel {
   position: absolute;
   top: calc(100% + 8px);
@@ -1927,6 +2058,12 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--s-2);
   padding: var(--s-2) var(--s-3) 0;
+}
+
+/* Single-date field mode — one full-width input instead of Du / Au. */
+.dp__inputs--single {
+  grid-template-columns: 1fr;
+  padding-bottom: var(--s-3);
 }
 
 .dp__field {

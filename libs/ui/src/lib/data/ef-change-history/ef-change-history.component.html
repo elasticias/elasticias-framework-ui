@@ -17,7 +17,7 @@
     </ng-container>
 
     <ng-container
-        *ngTemplateOutlet="timeline; context: { $implicit: previewRows() }"
+        *ngTemplateOutlet="timeline; context: { $implicit: previewRows(), compact: true }"
     ></ng-container>
 
     @if (hasMore()) {
@@ -38,15 +38,15 @@
     position="center"
 >
     <ng-container
-        *ngTemplateOutlet="timeline; context: { $implicit: rows() }"
+        *ngTemplateOutlet="timeline; context: { $implicit: rows(), compact: false }"
     ></ng-container>
 </ef-dialog>
 
-<ng-template #timeline let-items>
+<ng-template #timeline let-items let-compact="compact">
     @if (items.length === 0) {
         <p class="text-mute small">{{ emptyKey() | translate }}</p>
     } @else {
-        <div class="timeline">
+        <div class="timeline" [class.timeline--compact]="compact">
             @for (row of items; track $index) {
                 <div class="item">
                     <span class="dot" [class]="row.meta.cls" aria-hidden="true"></span>

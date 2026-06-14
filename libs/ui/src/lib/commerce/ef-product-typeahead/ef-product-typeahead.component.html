@@ -17,6 +17,18 @@
     (focus)="open.set(true)"
     (blur)="open.set(false)" />
 
+  @if (query() && !disabled()) {
+    <button
+      type="button"
+      class="qa-clear"
+      [attr.aria-label]="'action.clear' | translate"
+      (mousedown)="$event.preventDefault(); reset()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M18 6 6 18M6 6l12 12" />
+      </svg>
+    </button>
+  }
+
   @if (open() && rows().length > 0) {
     <div id="qa-listbox" class="qa-menu" role="listbox">
       <div class="grp">{{ rows().length }} · « {{ query() }} »</div>
@@ -28,20 +40,21 @@
           [class.hl]="i === highlightedIndex()"
           (mouseenter)="highlightedIndex.set(i)"
           (mousedown)="$event.preventDefault(); selectRow(row)">
-          <span class="pref">{{ row.ref }}</span>
           <span class="nm">
             @for (seg of row.segments; track $index) {
               @if (seg.mark) { <mark>{{ seg.text }}</mark> } @else { {{ seg.text }} }
             }
           </span>
           <span class="var">
-            @for (variant of row.variants; track variant['variantId']; let vi = $index) {
-              <span
-                class="qa-chip"
-                [class.on]="vi === variantIndexOf(row)"
-                (mousedown)="$event.preventDefault(); $event.stopPropagation(); setActiveVariant(row, vi)">
-                {{ variant['title'] }}
-              </span>
+            @if (showVariants()) {
+              @for (variant of row.variants; track variant['variantId']; let vi = $index) {
+                <span
+                  class="qa-chip"
+                  [class.on]="vi === variantIndexOf(row)"
+                  (mousedown)="$event.preventDefault(); $event.stopPropagation(); setActiveVariant(row, vi)">
+                  {{ variant['title'] }}
+                </span>
+              }
             }
           </span>
           <span class="px">{{ priceOf(row) | number: '1.2-2' : locale() }}</span>

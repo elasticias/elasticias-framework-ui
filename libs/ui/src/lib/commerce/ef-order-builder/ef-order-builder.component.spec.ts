@@ -39,6 +39,7 @@ describe('EfOrderBuilderComponent (logic)', () => {
     const c = fixture.componentInstance;
     c.quickAddQuantity.set(3);
     c.onTypeaheadSelect({ product: PRODUCT, variant: PRODUCT.variants[0], unitPrice: 22.2 });
+    c.addQuickProduct();
 
     expect(c.order().orderLines.length).toBe(1);
     const line = c.order().orderLines[0];
@@ -54,6 +55,7 @@ describe('EfOrderBuilderComponent (logic)', () => {
     const c = fixture.componentInstance;
     c.quickAddQuantity.set(5);
     c.onTypeaheadSelect({ product: PRODUCT, variant: PRODUCT.variants[0], unitPrice: 22.2 });
+    c.addQuickProduct();
     expect(c.quickAddQuantity()).toBe(1);
   });
 
@@ -61,22 +63,8 @@ describe('EfOrderBuilderComponent (logic)', () => {
     const fixture = build({ readonly: true });
     const c = fixture.componentInstance;
     c.onTypeaheadSelect({ product: PRODUCT, variant: PRODUCT.variants[0], unitPrice: 22.2 });
+    c.addQuickProduct();
     expect(c.order().orderLines.length).toBe(0);
-  });
-
-  it('derives status color from metadata.color, defaulting to secondary', () => {
-    const fixture = build();
-    const c = fixture.componentInstance;
-
-    expect(c.statusColor()).toBe('secondary');
-
-    fixture.componentRef.setInput('orderStatuses', [
-      { code: 'draft', label: 'Brouillon', metadata: { color: 'warn' } },
-    ]);
-    fixture.detectChanges();
-
-    expect(c.statusColor()).toBe('warn');
-    expect(c.statusLabel()).toBe('Brouillon');
   });
 
   it('groups récap items into columns', () => {
@@ -84,6 +72,7 @@ describe('EfOrderBuilderComponent (logic)', () => {
     const c = fixture.componentInstance;
 
     c.onTypeaheadSelect({ product: PRODUCT, variant: PRODUCT.variants[0], unitPrice: 22.2 });
+    c.addQuickProduct();
 
     fixture.componentRef.setInput('countGroupLabels', [
       { code: '30ML-F', label: '30ML-F', column: 2, sortOrder: 1 },

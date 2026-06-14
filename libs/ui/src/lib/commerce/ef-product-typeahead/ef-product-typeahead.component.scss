@@ -6,14 +6,18 @@
 .qa-combo {
   position: relative;
 
+  // Match the comptoir `.ef-input` metrics (height/padding/font) so the
+  // typeahead lines up with ef-inputnumber / ef-select in the same row.
   .input {
     width: 100%;
-    padding: 8px 12px 8px 38px;
+    padding: 10px 36px 10px 38px;
     border: 1px solid var(--rule);
     border-radius: var(--r-md);
     background: var(--paper-alt);
     color: var(--text);
     font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
     min-height: var(--hit-base);
     outline: 0;
 
@@ -32,6 +36,30 @@
     height: 15px;
     color: var(--text-soft);
     pointer-events: none;
+  }
+
+  .qa-clear {
+    position: absolute;
+    inset-inline-end: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--text-soft);
+    cursor: pointer;
+
+    svg { width: 14px; height: 14px; }
+
+    &:hover {
+      background: var(--paper);
+      color: var(--text);
+    }
   }
 }
 
@@ -61,7 +89,7 @@
 
 .qa-opt {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
   padding: 8px 10px;
@@ -71,17 +99,6 @@
   &:hover,
   &.hl {
     background: color-mix(in srgb, var(--tenant-50) 75%, var(--paper-alt));
-  }
-
-  .pref {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    font-weight: 700;
-    color: var(--tenant-600);
-    background: var(--tenant-50);
-    border-radius: 6px;
-    padding: 4px 0;
-    text-align: center;
   }
 
   .nm {

@@ -1,5 +1,7 @@
 import {
+    AfterViewInit,
     ChangeDetectionStrategy,
+    ChangeDetectorRef,
     Component,
     DestroyRef,
     ElementRef,
@@ -17,13 +19,22 @@ import {
     output,
     signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, formatDate } from '@angular/common';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import {
     EfDatePreset,
     EfDatePresetKey,
     EfDateRange,
 } from './ef-datepicker-advanced.types';
+
+/** Value shape emitted / accepted by the field-mode ControlValueAccessor.
+ *  Mirrors PrimeNG's `p-datepicker`: a lone `Date` for single selection,
+ *  a `[start, end]` tuple for a range — so `ef-datepicker-advanced` is a
+ *  drop-in replacement for the legacy `ef-datepicker` in forms. */
+export type EfDateFieldValue = Date | [Date, Date] | null;
 
 /**
  * Comptoir period selector for smart-bars — a pill trigger ("Date — 30
@@ -51,20 +62,32 @@ import {
 @Component({
     selector: 'ef-datepicker-advanced',
     standalone: true,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslateModule, EfLabelComponent],
     templateUrl: './ef-datepicker-advanced.component.html',
     styleUrl: './ef-datepicker-advanced.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: { '[class.dp-host--field]': "mode() === 'field'" },
 })
-export class EfDatepickerAdvancedComponent {
+export class EfDatepickerAdvancedComponent implements ControlValueAccessor, AfterViewInit {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly locale = inject(LOCALE_ID);
     private readonly vcr = inject(ViewContainerRef);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly cdr = inject(ChangeDetectorRef);
 
-    /** Trigger button — used as the anchor for portal positioning. */
-    @ViewChild('triggerEl', { static: true })
-    private triggerEl!: ElementRef<HTMLButtonElement>;
+    /**
+     * Self-injected form control (present only when the consumer binds
+     * `[(ngModel)]` / `formControlName` in field mode). We register as its
+     * `valueAccessor` manually — same pattern as `ef-datepicker` — so no
+     * `NG_VALUE_ACCESSOR` provider is needed and there's no circular DI.
+     * `null` in filter mode (the output-only smart-bar usage).
+     */
+    readonly ngControl = inject(NgControl, { self: true, optional: true });
+
+    /** Always-present wrapper — the anchor for portal positioning (the
+     *  trigger itself lives behind an `@if`, so we anchor to the host box). */
+    @ViewChild('anchorEl', { static: true })
+    private anchorEl!: ElementRef<HTMLElement>;
 
     /** Panel template — instantiated and attached to <body> on open. */
     @ViewChild('panelTpl', { static: true })
@@ -76,6 +99,9 @@ export class EfDatepickerAdvancedComponent {
     private resizeHandler: (() => void) | null = null;
 
     constructor() {
+        // Register as our own NgControl's value accessor (field mode only).
+        if (this.ngControl) this.ngControl.valueAccessor = this;
+
         // React to `open` toggling: attach / detach the body-portaled panel.
         effect(() => {
             if (this.open()) this.attachPortal();
@@ -85,6 +111,20 @@ export class EfDatepickerAdvancedComponent {
         // Last-line cleanup if the host is destroyed while the panel is open
         // (route change, *ngIf collapse, …) — orphan DOM is the worst.
         this.destroyRef.onDestroy(() => this.detachPortal());
+    }
+
+    ngAfterViewInit(): void {
+        // Field-mode validation display (`showRequired` / `isInvalid` /
+        // `serverErrors`) reads NgControl state through plain getters. We're
+        // OnPush + signal-driven, so a parent flipping touched/validity —
+        // notably `form.markAllAsTouched()` on submit, which emits no value or
+        // status change — wouldn't re-render this component and the error /
+        // red border would go stale. Mirror the control's events (Angular 18+
+        // `AbstractControl.events`: value, status, touched, pristine) into
+        // change detection. No-op in filter mode (no NgControl).
+        this.ngControl?.control?.events
+            ?.pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.cdr.markForCheck());
     }
 
     /* ── Inputs ─────────────────────────────────────────────────── */
@@ -115,6 +155,52 @@ export class EfDatepickerAdvancedComponent {
 
     /** Show a `'Personnalisé…'` row that opens the calendar view. */
     readonly allowCustomRange = input(true, { transform: booleanAttribute });
+
+    /* ── Field mode (form control) ──────────────────────────────────
+       `'filter'` (default) is the existing smart-bar period selector:
+       preset list + custom range, output-only via `rangeChange`.
+       `'field'` turns the component into a Comptoir-styled form control
+       (ControlValueAccessor) that replaces the legacy `ef-datepicker`:
+       no presets, opens straight to the calendar, and binds with
+       `[(ngModel)]` / `formControlName`. */
+
+    /** Component behaviour: smart-bar filter vs. form field. */
+    readonly mode = input<'filter' | 'field'>('filter');
+
+    /** Field mode only — pick a single date or a `[start, end]` range. */
+    readonly selectionMode = input<'single' | 'range'>('range');
+
+    /** Field mode trigger appearance: a labelled field box (default) or
+     *  the rounded pill used by filter mode. */
+    readonly variant = input<'field' | 'pill'>('field');
+
+    /**
+     * Field mode only — also pick a time (24h `HH:mm`, free minutes).
+     * Single: the calendar no longer commits on day-click; a time field +
+     * Apply appear. Range: an `HH:mm` field sits under each of Du / Au.
+     * The committed value is a `Date` with hours/minutes set (not
+     * start-of-day) and the trigger renders `DD/MM/YYYY HH:mm`.
+     */
+    readonly showTime = input(false, { transform: booleanAttribute });
+
+    /** Field-mode visible label (i18n key preferred). */
+    readonly label = input<string>('');
+    readonly labelKey = input<string>('');
+
+    /** Field-mode placeholder shown when no value is selected. */
+    readonly placeholder = input<string>('');
+    readonly placeholderKey = input<string>('');
+
+    /** Screen-reader-only label when no visible label is rendered. */
+    readonly ariaLabel = input<string>('');
+    readonly ariaLabelKey = input<string>('');
+
+    /** Marks the field required (drives the `*` + required validation copy). */
+    readonly required = input(false, { transform: booleanAttribute });
+
+    /** Explicit DOM id / name for the field control (label association). */
+    readonly inputId = input<string>('');
+    readonly name = input<string>('');
 
     /* ── Outputs ────────────────────────────────────────────────── */
 
@@ -220,18 +306,202 @@ export class EfDatepickerAdvancedComponent {
     readonly fromText = computed(() => this.formatDayInput(this.draftStart()));
     readonly toText = computed(() => this.formatDayInput(this.draftEnd()));
 
+    /* ── Field mode: committed value (ControlValueAccessor) ──────────
+       The trigger in field mode renders THIS — the committed CVA value —
+       not the drafts (mid-selection) nor `resolvedRange()` (filter-only). */
+
+    /** Committed value pushed in via `writeValue` / day-pick / Apply. */
+    private readonly fieldValue = signal<EfDateFieldValue>(null);
+
+    /** Disabled state set through CVA's `setDisabledState`. */
+    private readonly cvaDisabled = signal(false);
+
+    /** Effective disabled: explicit `[disabled]` input OR form-driven. */
+    readonly isDisabled = computed(() => this.disabled() || this.cvaDisabled());
+
+    /** Committed start / end derived from `fieldValue`. */
+    readonly fieldStart = computed<Date | null>(() => {
+        const v = this.fieldValue();
+        if (!v) return null;
+        return Array.isArray(v) ? v[0] ?? null : v;
+    });
+    readonly fieldEnd = computed<Date | null>(() => {
+        const v = this.fieldValue();
+        return v && Array.isArray(v) ? v[1] ?? null : null;
+    });
+
+    /** Whether the field currently holds a value (vs. placeholder). */
+    readonly hasFieldValue = computed(() => this.fieldStart() != null);
+
+    /** Text rendered in the field-mode trigger (date, +time when enabled). */
+    readonly fieldDisplay = computed<string>(() => {
+        const s = this.fieldStart();
+        if (!s) return '';
+        const fmt = this.showTime() ? 'dd/MM/yyyy HH:mm' : 'dd/MM/yyyy';
+        const from = formatDate(s, fmt, this.locale);
+        if (this.selectionMode() === 'single') return from;
+        const e = this.fieldEnd();
+        return e ? `${from} — ${formatDate(e, fmt, this.locale)}` : from;
+    });
+
+    /* ── Time drafts (field mode + showTime) ────────────────────────
+       Tracked separately from the day drafts so the calendar stays
+       start-of-day internally; date + time are merged only at commit. */
+    readonly draftStartTime = signal<{ h: number; m: number }>({ h: 0, m: 0 });
+    readonly draftEndTime = signal<{ h: number; m: number }>({ h: 0, m: 0 });
+
+    /** Du / Au time inputs as `HH:mm` strings (kept in sync with drafts). */
+    readonly fromTimeText = computed(() => this.formatTime(this.draftStartTime()));
+    readonly toTimeText = computed(() => this.formatTime(this.draftEndTime()));
+
+    private onChange: (value: EfDateFieldValue) => void = () => { /* noop */ };
+    private onTouched: () => void = () => { /* noop */ };
+
+    /* ── a11y / identity (field mode) ───────────────────────────── */
+
+    private static _nextId = 0;
+    private readonly _autoId = `ef-dp-${++EfDatepickerAdvancedComponent._nextId}`;
+
+    /** Resolved DOM id so `<label for>` ↔ trigger `id` always matches. */
+    get effectiveId(): string {
+        return this.inputId() || this.name() || this._autoId;
+    }
+    /** Stable id for the error container (wired via `aria-describedby`). */
+    get errorsId(): string {
+        return `${this.effectiveId}-errors`;
+    }
+    /** Required error is shown once the control is touched. */
+    get showRequired(): boolean {
+        const ctrl = this.ngControl?.control;
+        return !!(ctrl?.hasError('required') && ctrl?.touched);
+    }
+    /** Backend validation messages stashed under `serverError`. */
+    get serverErrors(): string[] | null {
+        return (this.ngControl?.control?.errors?.['serverError'] as string[]) ?? null;
+    }
+    /** Invalid + interacted — drives the red border on the field box. */
+    get isInvalid(): boolean {
+        const ctrl = this.ngControl?.control;
+        return !!(ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
+    }
+
+    /* ── ControlValueAccessor ───────────────────────────────────── */
+
+    writeValue(value: Date | Date[] | string | number | null | undefined): void {
+        this.fieldValue.set(this.coerceValue(value));
+    }
+    registerOnChange(fn: (value: EfDateFieldValue) => void): void {
+        this.onChange = fn;
+    }
+    registerOnTouched(fn: () => void): void {
+        this.onTouched = fn;
+    }
+    setDisabledState(isDisabled: boolean): void {
+        this.cvaDisabled.set(isDisabled);
+    }
+
+    /** Normalise whatever a form pushes in to our internal value shape.
+     *  Tolerates `null`, `[start, null]`, strings/epochs, and stray
+     *  multi-element arrays (keeps the first two). */
+    private coerceValue(value: Date | Date[] | string | number | null | undefined): EfDateFieldValue {
+        if (value == null) return null;
+        if (Array.isArray(value)) {
+            const start = this.toDate(value[0]);
+            if (!start) return null;
+            const end = this.toDate(value[1]);
+            return end ? [start, end] : start;
+        }
+        return this.toDate(value);
+    }
+
+    private toDate(v: unknown): Date | null {
+        // Preserve the time component — `showTime` mode needs it; date-only
+        // paths re-normalise to start-of-day when they seed the calendar and
+        // when they commit, so nothing leaks the stray time.
+        if (v == null) return null;
+        if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+        if (typeof v === 'string' || typeof v === 'number') {
+            const d = new Date(v);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        return null;
+    }
+
+    /** Commit a field-mode value: update internal state, notify the form,
+     *  and close the popover. `single` → `Date`, `range` → `[start, end]`. */
+    private commitField(value: Date | [Date, Date]): void {
+        this.fieldValue.set(value);
+        this.onChange(value);
+        this.close();
+    }
+
+    /** Merge a day with a draft time. Returns start-of-day when `showTime`
+     *  is off, so date-only commits stay time-free. */
+    private composeDateTime(day: Date, time: { h: number; m: number }): Date {
+        const base = this.startOfDay(day);
+        if (this.showTime()) base.setHours(time.h, time.m, 0, 0);
+        return base;
+    }
+
+    /** Format a draft time as zero-padded `HH:mm`. */
+    private formatTime(t: { h: number; m: number }): string {
+        return `${String(t.h).padStart(2, '0')}:${String(t.m).padStart(2, '0')}`;
+    }
+
+    /** Parse `H:mm` … `HH:mm` (24h) → `{h, m}`, or null when out of range. */
+    private parseTimeInput(raw: string): { h: number; m: number } | null {
+        const m = raw.trim().match(/^(\d{1,2}):(\d{1,2})$/);
+        if (!m) return null;
+        const h = +m[1];
+        const min = +m[2];
+        if (h > 23 || min > 59) return null;
+        return { h, m: min };
+    }
+
+    /** Allow only digits and `:` while typing a time; Enter commits via blur. */
+    onTimeKeydown(event: KeyboardEvent, el: HTMLInputElement): void {
+        if (event.key === 'Enter') {
+            el.blur();
+            return;
+        }
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.key.length > 1) return;
+        if (!/[0-9:]/.test(event.key)) event.preventDefault();
+    }
+
+    /** Commit a typed `HH:mm` value to the start or end draft time. */
+    commitTimeInput(which: 'start' | 'end', el: HTMLInputElement): void {
+        const parsed = this.parseTimeInput(el.value);
+        if (!parsed) {
+            el.value = which === 'start' ? this.fromTimeText() : this.toTimeText();
+            return;
+        }
+        if (which === 'start') this.draftStartTime.set(parsed);
+        else this.draftEndTime.set(parsed);
+        el.value = which === 'start' ? this.fromTimeText() : this.toTimeText();
+    }
+
     /* ── Trigger / popover ──────────────────────────────────────── */
 
     toggle(event: MouseEvent): void {
         event.stopPropagation();
-        if (this.disabled()) return;
+        if (this.isDisabled()) return;
         this.open.update(v => !v);
         if (this.open()) {
-            this.view.set('presets');
             this.calMode.set('days');
-            this.seedDraftFromValue();
+            if (this.mode() === 'field') {
+                // No presets in field mode — open straight to the calendar.
+                this.view.set('custom');
+                this.seedDraftFromValue();
+                const anchor = this.draftStart() ?? new Date();
+                this.visibleMonth.set(this.startOfMonth(anchor));
+            } else {
+                this.view.set('presets');
+                this.seedDraftFromValue();
+            }
             this.opened.emit();
         } else {
+            this.onTouched();
             this.closed.emit();
         }
     }
@@ -239,6 +509,7 @@ export class EfDatepickerAdvancedComponent {
     close(): void {
         if (!this.open()) return;
         this.open.set(false);
+        this.onTouched();
         this.closed.emit();
     }
 
@@ -262,7 +533,8 @@ export class EfDatepickerAdvancedComponent {
             this.calMode.set('days');
             return;
         }
-        if (this.view() === 'custom') {
+        // Field mode has no preset view to drill back to — Escape closes.
+        if (this.view() === 'custom' && this.mode() !== 'field') {
             this.backToPresets();
             return;
         }
@@ -448,8 +720,8 @@ export class EfDatepickerAdvancedComponent {
      *  default left-anchor would overflow the right edge — otherwise the
      *  panel is clipped for triggers that sit near the right of the page. */
     private positionPanel(): void {
-        if (!this.panelRoot || !this.triggerEl) return;
-        const rect = this.triggerEl.nativeElement.getBoundingClientRect();
+        if (!this.panelRoot || !this.anchorEl) return;
+        const rect = this.anchorEl.nativeElement.getBoundingClientRect();
         const margin = 8;
         const viewportWidth = document.documentElement.clientWidth;
         const panelWidth = this.panelRoot.offsetWidth || 320;
@@ -472,8 +744,19 @@ export class EfDatepickerAdvancedComponent {
         });
     }
 
-    /** Click handling: 1st click sets start, 2nd click sets end (or swap). */
+    /** Click handling: 1st click sets start, 2nd click sets end (or swap).
+     *  Field single-date mode short-circuits — one click commits & closes. */
     selectDay(day: Date): void {
+        if (this.mode() === 'field' && this.selectionMode() === 'single') {
+            const picked = this.startOfDay(day);
+            this.draftStart.set(picked);
+            this.draftEnd.set(null);
+            // With a time field, wait for Apply so the user can set the time.
+            if (this.showTime()) return;
+            this.commitField(picked);
+            return;
+        }
+
         const start = this.draftStart();
         const end = this.draftEnd();
 
@@ -498,8 +781,39 @@ export class EfDatepickerAdvancedComponent {
         const s = this.draftStart();
         const e = this.draftEnd() ?? s;
         if (!s || !e) return;
+        if (this.mode() === 'field') {
+            // Commit as a form value (single → Date, range → [start, end]),
+            // merging the draft time(s) when `showTime` is on.
+            this.commitField(
+                this.selectionMode() === 'single'
+                    ? this.composeDateTime(s, this.draftStartTime())
+                    : [
+                          this.composeDateTime(s, this.draftStartTime()),
+                          this.composeDateTime(e, this.draftEndTime()),
+                      ],
+            );
+            return;
+        }
         this.rangeChange.emit(this.buildRange('custom', s, e));
         this.close();
+    }
+
+    /** Field single-date mode: commit a typed `JJ/MM/AAAA` value & close.
+     *  With `showTime`, only update the draft — Apply commits date + time. */
+    commitSingleInput(el: HTMLInputElement): void {
+        const parsed = this.parseDayInput(el.value);
+        if (!parsed) {
+            el.value = this.fromText();
+            return;
+        }
+        this.draftStart.set(parsed);
+        this.draftEnd.set(null);
+        this.visibleMonth.set(this.startOfMonth(parsed));
+        if (this.showTime()) {
+            el.value = this.fromText();
+            return;
+        }
+        this.commitField(parsed);
     }
 
     /* ── Internals ──────────────────────────────────────────────── */
@@ -516,6 +830,16 @@ export class EfDatepickerAdvancedComponent {
     ];
 
     private seedDraftFromValue(): void {
+        if (this.mode() === 'field') {
+            // Seed the calendar (day) + time drafts from the committed value.
+            const s = this.fieldStart();
+            const e = this.fieldEnd();
+            this.draftStart.set(s ? this.startOfDay(s) : null);
+            this.draftEnd.set(e ? this.startOfDay(e) : null);
+            this.draftStartTime.set(s ? { h: s.getHours(), m: s.getMinutes() } : { h: 0, m: 0 });
+            this.draftEndTime.set(e ? { h: e.getHours(), m: e.getMinutes() } : { h: 0, m: 0 });
+            return;
+        }
         const range = this.resolvedRange();
         this.draftStart.set(this.startOfDay(range.start));
         this.draftEnd.set(this.startOfDay(range.end));

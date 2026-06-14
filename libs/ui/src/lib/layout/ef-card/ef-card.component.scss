@@ -13,6 +13,11 @@
     overflow: hidden;
 }
 
+/* Allow in-body dropdowns/menus to escape the clip (see `overflowVisible`). */
+:host(.is-overflow-visible) {
+    overflow: visible;
+}
+
 .card-head-actions {
     display: inline-flex;
     align-items: center;

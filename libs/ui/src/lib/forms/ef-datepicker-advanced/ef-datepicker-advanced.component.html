@@ -1,28 +1,82 @@
-<div class="dp">
-    <!-- Trigger pill -->
-    <button
-        #triggerEl
-        type="button"
-        class="dp__trigger"
-        [class.open]="open()"
-        [disabled]="disabled()"
-        [attr.aria-haspopup]="'dialog'"
-        [attr.aria-expanded]="open()"
-        (click)="toggle($event)"
-    >
-        <i class="ico pi pi-calendar" aria-hidden="true"></i>
-        <span class="lbl">
-            {{ triggerLabelKey() ? (triggerLabelKey() | translate) : triggerLabel() }}
-        </span>
-        <span class="val">
-            @if (resolvedRange().labelKey; as key) {
-                {{ key | translate }}
-            } @else {
-                {{ resolvedRange().label }}
+<div class="dp" [class.dp--field]="mode() === 'field'" #anchorEl>
+    @if (mode() === 'field' && variant() === 'field') {
+        <!-- Field mode — labelled field-box trigger (form control) -->
+        @if (labelKey() || label()) {
+            <ef-label
+                [labelKey]="labelKey()"
+                [label]="label()"
+                [for]="effectiveId"
+                [required]="required()"
+            />
+        }
+        <div class="ef-field-control">
+            <button
+                type="button"
+                class="dp__field-trigger"
+                [id]="effectiveId"
+                [class.open]="open()"
+                [class.is-invalid]="isInvalid"
+                [class.is-placeholder]="!hasFieldValue()"
+                [disabled]="isDisabled()"
+                [attr.aria-haspopup]="'dialog'"
+                [attr.aria-expanded]="open()"
+                [attr.aria-required]="required() ? 'true' : null"
+                [attr.aria-invalid]="isInvalid ? 'true' : null"
+                [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+                [attr.aria-label]="(labelKey() || label()) ? null : (ariaLabelKey() ? (ariaLabelKey() | translate) : (ariaLabel() || null))"
+                (click)="toggle($event)"
+            >
+                <i class="ico pi pi-calendar" aria-hidden="true"></i>
+                <span class="val">
+                    {{ hasFieldValue() ? fieldDisplay() : (placeholderKey() ? (placeholderKey() | translate) : placeholder()) }}
+                </span>
+                <i class="caret pi pi-chevron-down" aria-hidden="true"></i>
+            </button>
+            @if (showRequired || serverErrors) {
+                <div [id]="errorsId" role="alert" aria-live="polite">
+                    @if (showRequired) {
+                        <small class="text-danger">{{ 'validation.required' | translate }}</small>
+                    }
+                    @if (serverErrors; as errors) {
+                        @for (error of errors; track error) {
+                            <small class="text-danger block">{{ error }}</small>
+                        }
+                    }
+                </div>
             }
-        </span>
-        <i class="caret pi pi-chevron-down" aria-hidden="true"></i>
-    </button>
+        </div>
+    } @else {
+        <!-- Pill trigger — filter mode, or field mode with variant="pill" -->
+        <button
+            type="button"
+            class="dp__trigger"
+            [class.open]="open()"
+            [disabled]="isDisabled()"
+            [attr.aria-haspopup]="'dialog'"
+            [attr.aria-expanded]="open()"
+            [attr.aria-label]="mode() === 'field' && !(labelKey() || label()) ? (ariaLabelKey() ? (ariaLabelKey() | translate) : (ariaLabel() || null)) : null"
+            (click)="toggle($event)"
+        >
+            <i class="ico pi pi-calendar" aria-hidden="true"></i>
+            @if (mode() === 'field') {
+                <span class="val">
+                    {{ hasFieldValue() ? fieldDisplay() : (placeholderKey() ? (placeholderKey() | translate) : placeholder()) }}
+                </span>
+            } @else {
+                <span class="lbl">
+                    {{ triggerLabelKey() ? (triggerLabelKey() | translate) : triggerLabel() }}
+                </span>
+                <span class="val">
+                    @if (resolvedRange().labelKey; as key) {
+                        {{ key | translate }}
+                    } @else {
+                        {{ resolvedRange().label }}
+                    }
+                </span>
+            }
+            <i class="caret pi pi-chevron-down" aria-hidden="true"></i>
+        </button>
+    }
 </div>
 
 <!--
@@ -70,17 +124,21 @@
         <!-- ── View 2 — custom range with calendar ── -->
         <div class="dp__view" [class.active]="view() === 'custom'">
             <div class="dp__custom-head">
-                <button
-                    type="button"
-                    class="dp__back"
-                    [attr.aria-label]="'common_back' | translate"
-                    (click)="backToPresets()"
-                >
-                    <i class="pi pi-chevron-left" aria-hidden="true"></i>
-                </button>
+                @if (mode() !== 'field') {
+                    <button
+                        type="button"
+                        class="dp__back"
+                        [attr.aria-label]="'common_back' | translate"
+                        (click)="backToPresets()"
+                    >
+                        <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                    </button>
+                } @else {
+                    <span></span>
+                }
                 <div class="dp__custom-title">
                     <span class="pulse-dot"></span>
-                    {{ 'date_custom_range' | translate }}
+                    {{ (mode() === 'field' && selectionMode() === 'single' ? 'date_select_date' : 'date_custom_range') | translate }}
                 </div>
                 <span></span>
             </div>
@@ -184,58 +242,132 @@
                 }
             </div>
 
-            <div class="dp__inputs">
-                <div class="dp__field">
-                    <label>{{ 'date_from' | translate }}</label>
-                    <input
-                        #fromInput
-                        type="text"
-                        inputmode="numeric"
-                        maxlength="10"
-                        [value]="fromText()"
-                        placeholder="JJ/MM/AAAA"
-                        (keydown)="onDateKeydown($event, fromInput)"
-                        (change)="commitDateInput('start', fromInput)"
-                    />
+            @if (mode() === 'field' && selectionMode() === 'single') {
+                <!-- Single-date field: date (+ time when enabled). Without time,
+                     picking a day commits & closes; with time, Apply commits. -->
+                <div class="dp__inputs" [class.dp__inputs--single]="!showTime()">
+                    <div class="dp__field">
+                        <label [attr.for]="effectiveId + '-single'">{{ 'date_select_date' | translate }}</label>
+                        <input
+                            #singleInput
+                            [id]="effectiveId + '-single'"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="10"
+                            [value]="fromText()"
+                            placeholder="JJ/MM/AAAA"
+                            (keydown)="onDateKeydown($event, singleInput)"
+                            (change)="commitSingleInput(singleInput)"
+                        />
+                    </div>
+                    @if (showTime()) {
+                        <div class="dp__field">
+                            <label [attr.for]="effectiveId + '-single-time'">{{ 'date_time' | translate }}</label>
+                            <input
+                                #singleTime
+                                [id]="effectiveId + '-single-time'"
+                                type="text"
+                                inputmode="numeric"
+                                maxlength="5"
+                                [value]="fromTimeText()"
+                                placeholder="HH:mm"
+                                (keydown)="onTimeKeydown($event, singleTime)"
+                                (change)="commitTimeInput('start', singleTime)"
+                            />
+                        </div>
+                    }
                 </div>
-                <div class="dp__field">
-                    <label>{{ 'date_to' | translate }}</label>
-                    <input
-                        #toInput
-                        type="text"
-                        inputmode="numeric"
-                        maxlength="10"
-                        [value]="toText()"
-                        placeholder="JJ/MM/AAAA"
-                        (keydown)="onDateKeydown($event, toInput)"
-                        (change)="commitDateInput('end', toInput)"
-                    />
+            } @else {
+                <div class="dp__inputs">
+                    <div class="dp__field">
+                        <label [attr.for]="effectiveId + '-from'">{{ 'date_from' | translate }}</label>
+                        <input
+                            #fromInput
+                            [id]="effectiveId + '-from'"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="10"
+                            [value]="fromText()"
+                            placeholder="JJ/MM/AAAA"
+                            (keydown)="onDateKeydown($event, fromInput)"
+                            (change)="commitDateInput('start', fromInput)"
+                        />
+                        @if (mode() === 'field' && showTime()) {
+                            <input
+                                #fromTime
+                                [attr.aria-label]="'date_time' | translate"
+                                type="text"
+                                inputmode="numeric"
+                                maxlength="5"
+                                [value]="fromTimeText()"
+                                placeholder="HH:mm"
+                                (keydown)="onTimeKeydown($event, fromTime)"
+                                (change)="commitTimeInput('start', fromTime)"
+                            />
+                        }
+                    </div>
+                    <div class="dp__field">
+                        <label [attr.for]="effectiveId + '-to'">{{ 'date_to' | translate }}</label>
+                        <input
+                            #toInput
+                            [id]="effectiveId + '-to'"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="10"
+                            [value]="toText()"
+                            placeholder="JJ/MM/AAAA"
+                            (keydown)="onDateKeydown($event, toInput)"
+                            (change)="commitDateInput('end', toInput)"
+                        />
+                        @if (mode() === 'field' && showTime()) {
+                            <input
+                                #toTime
+                                [attr.aria-label]="'date_time' | translate"
+                                type="text"
+                                inputmode="numeric"
+                                maxlength="5"
+                                [value]="toTimeText()"
+                                placeholder="HH:mm"
+                                (keydown)="onTimeKeydown($event, toTime)"
+                                (change)="commitTimeInput('end', toTime)"
+                            />
+                        }
+                    </div>
                 </div>
-            </div>
+            }
 
-            <div class="dp__actions">
-                <span class="duration">
-                    <span class="num">{{ draftDurationDays() }}</span>
-                    {{ 'date_days' | translate }}
-                </span>
-                <div class="right">
-                    <button
-                        type="button"
-                        class="btn btn-ghost btn-sm"
-                        (click)="backToPresets()"
-                    >
-                        {{ 'common_back' | translate }}
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-primary btn-sm"
-                        [disabled]="!draftStart()"
-                        (click)="applyCustomRange()"
-                    >
-                        {{ 'common_apply' | translate }}
-                    </button>
+            <!-- Footer: hidden only for single field WITHOUT time (commit on pick). -->
+            @if (!(mode() === 'field' && selectionMode() === 'single' && !showTime())) {
+                <div class="dp__actions">
+                    @if (mode() === 'field' && selectionMode() === 'single') {
+                        <span></span>
+                    } @else {
+                        <span class="duration">
+                            <span class="num">{{ draftDurationDays() }}</span>
+                            {{ 'date_days' | translate }}
+                        </span>
+                    }
+                    <div class="right">
+                        @if (mode() !== 'field') {
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-sm"
+                                (click)="backToPresets()"
+                            >
+                                {{ 'common_back' | translate }}
+                            </button>
+                        }
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            [disabled]="!draftStart()"
+                            (click)="applyCustomRange()"
+                        >
+                            {{ 'common_apply' | translate }}
+                        </button>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </ng-template>

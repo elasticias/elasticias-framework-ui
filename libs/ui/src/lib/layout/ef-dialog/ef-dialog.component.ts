@@ -31,6 +31,10 @@ export interface EfDialogAction {
   severity?: 'primary' | 'ghost' | 'tenant' | 'danger';
   /** PrimeNG icon class (e.g. `'pi pi-trash'`). Optional. */
   icon?: string;
+  /** Extra class(es) appended to the footer button — for brand-tinted
+   *  actions (e.g. `'btn-whatsapp'`) or layout helpers (`'btn-dialog-leading'`)
+   *  beyond the four standard severities. */
+  styleClass?: string;
   /** Click handler. Return a `Promise` to auto-toggle the loading
    *  spinner overlay on the button until it settles. */
   command?: () => void | Promise<void>;
@@ -250,7 +254,7 @@ export class EfDialogComponent {
       : sev === 'danger' ? 'btn-danger'
       : 'btn-ghost'
     );
-    return `btn ${variantClass} btn-sm${a.loading ? ' is-loading' : ''}`;
+    return `btn ${variantClass} btn-sm${a.loading ? ' is-loading' : ''}${a.styleClass ? ' ' + a.styleClass : ''}`;
   }
 
   /* ── Handlers ───────────────────────────────────────────── */

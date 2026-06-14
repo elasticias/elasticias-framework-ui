@@ -28,6 +28,7 @@ import { TranslateModule } from '@ngx-translate/core';
 @Component({
     selector: 'ef-card',
     standalone: true,
+    host: { '[class.is-overflow-visible]': 'overflowVisible()' },
     imports: [CommonModule, TranslateModule],
     template: `
         @if (showHead()) {
@@ -107,6 +108,11 @@ export class EfCardComponent {
 
     /** When true, the head shows a chevron toggle and the body/foot collapse. */
     readonly collapsible = input(false, { transform: booleanAttribute });
+
+    /** Let overlay content (custom dropdowns/menus rendered inside the body)
+     *  escape the card's `overflow: hidden`. PrimeNG overlays should prefer
+     *  `appendTo="body"`; use this for non-PrimeNG absolute-positioned menus. */
+    readonly overflowVisible = input(false, { transform: booleanAttribute });
 
     /** Collapsed state (two-way). Bind `[collapsed]="true"` to start collapsed. */
     readonly collapsed = model(false);

@@ -41,6 +41,14 @@
   margin-top: 4px;
 }
 
+// The timeline item is a `14px 1fr` grid; the `1fr` body track defaults to
+// min-width: auto, so a long unbreakable value (e.g. an entity id) expands the
+// track and blows the card out. Let the body column shrink so its content can
+// truncate / wrap instead.
+.item .body {
+  min-width: 0;
+}
+
 .ch-changes {
   list-style: none;
   padding: 0;
@@ -51,12 +59,44 @@
     align-items: center;
     gap: 6px;
     padding: 1px 0;
+    min-width: 0;
   }
 }
 
 .ch-field {
   font-weight: 600;
   min-width: 120px;
+}
+
+// Compact (inline card preview): each change value is a single ellipsised line
+// so long ids stay on one row — the full value is available in the "view all"
+// dialog. The field keeps its width; the two values share the remaining space.
+.timeline--compact .ch-changes {
+  .ch-field {
+    flex: 0 0 auto;
+  }
+
+  .text-mute,
+  .strong {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+// Full (dialog) timeline: never hide a value — let long ids wrap / break so the
+// whole before → after is readable in the roomier surface.
+.timeline:not(.timeline--compact) .ch-changes {
+  li {
+    flex-wrap: wrap;
+  }
+
+  .text-mute,
+  .strong {
+    overflow-wrap: anywhere;
+  }
 }
 
 .ch-changes .pi,
