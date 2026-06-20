@@ -2920,23 +2920,39 @@
 .ef-field textarea {
   font: inherit;
   font-size: 14px;
-  padding: 10px 12px;
+  /* Tight line-height + fixed height pins single-line controls to the
+     canonical hit target. Without this they inherit the body's 1.5
+     line-height and overflow `--hit-base` by 3-7px (and each native
+     control overflows by a different amount), breaking row alignment
+     with `.btn` (which sets line-height:1). See ADR-009. */
+  line-height: 1.2;
+  /* Own the box model so `height` includes the border (40px exactly),
+     instead of depending on the consuming app's global reset. Native
+     <input>/<textarea> default to content-box, so without this they
+     render 2px taller than <select>/<button>. */
+  box-sizing: border-box;
+  padding: 0 12px;
   background: var(--paper-alt);
   border: 1px solid var(--rule);
   border-radius: var(--r-md);
   color: var(--text);
   outline: 0;
-  line-height: 1.5;
-  min-height: 40px;
+  height: var(--hit-base);
   width: 100%;
   transition:
     border-color var(--t-fast) var(--ease-out),
     box-shadow var(--t-fast) var(--ease-out);
 }
 
+/* Textarea is the one multi-line exception: it must grow with its rows,
+   so it overrides the fixed height back to auto and restores readable
+   padding + line-height. */
 .ef-textarea,
 .ef-field textarea {
+  height: auto;
   min-height: 88px;
+  padding: 10px 12px;
+  line-height: 1.5;
   resize: vertical;
 }
 
@@ -2977,6 +2993,18 @@
 .ef-field textarea.is-invalid {
   border-color: var(--st-cancelled-fg);
   box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+/* Field-level validation message rendered under an ef-* control
+   (required hint + server/validation errors). Small + danger-toned,
+   matching the .is-invalid red ring (--st-cancelled-fg). */
+.text-danger {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--st-cancelled-fg);
 }
 
 /* Native select chevron — replaces the browser default. */

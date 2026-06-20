@@ -159,15 +159,18 @@ export class EfSelectComponent
 
   /**
    * Rendering variant.
-   * - `'primeng'` (default) — wraps `p-select` / `p-multiselect`.
-   *   All rich features (filter, group, virtualScroll, templates).
-   * - `'comptoir'`          — native `<select class="ef-select-native">`
-   *                           against the Comptoir pattern styles.
-   *                           No filter / virtualization / multi /
-   *                           group / templates — use `'primeng'` for
-   *                           those.
+   * - `'comptoir'` (default) — native `<select class="ef-select-native">`
+   *                           against the Comptoir pattern styles. Renders
+   *                           at the canonical `--hit-base` (40px) control
+   *                           height, guaranteed to align with inputs and
+   *                           buttons in a row. No filter / virtualization /
+   *                           multi / group / templates.
+   * - `'primeng'`            — wraps `p-select` / `p-multiselect` for the
+   *                           rich features (filter, group, virtualScroll,
+   *                           templates). Opt into this when you need them.
+   * See ADR-009 for why comptoir is the height-consistent default.
    */
-  @Input() variant: 'primeng' | 'comptoir' = 'primeng';
+  @Input() variant: 'primeng' | 'comptoir' = 'comptoir';
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
   @HostBinding('class.ef-select-host') readonly hostClass = true;
@@ -248,10 +251,11 @@ export class EfSelectComponent
   }
 
   get serverErrors(): string[] | null {
-    return this.ngControl?.control?.errors?.['serverError'] ?? null;
+    return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.['serverError'] ?? null;
   }
 
   get isInvalid(): boolean {
+    if (this.resolvedExternalErrors()?.length) return true;
     const ctrl = this.ngControl?.control;
     return !!(ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
   }

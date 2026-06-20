@@ -202,7 +202,17 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
   }
 
   setServerErrors(errors: { [key: string]: string[] }) {
-    this.serverErrors.set(errors || {});
+    // Backend (FluentValidation) keys are PascalCase (e.g. `ClientType`);
+    // template field bindings and the camelCased `setFormErrors` path use
+    // camelCase. Normalize here so screens can read `serverErrors()['clientType']`
+    // and pass it straight to an `ef-*` control's `[errors]` input.
+    const normalized: { [key: string]: string[] } = {};
+    if (errors) {
+      Object.keys(errors).forEach((key) => {
+        normalized[AppUtils.toCamelCase(key)] = errors[key];
+      });
+    }
+    this.serverErrors.set(normalized);
   }
 
   clearServerErrors() {

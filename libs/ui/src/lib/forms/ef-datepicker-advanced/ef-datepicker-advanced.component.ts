@@ -24,6 +24,7 @@ import { CommonModule, formatDate } from '@angular/common';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
+import { EfServerErrorsDirective, resolveExternalErrors } from '../ef-server-errors.directive';
 import {
     EfDatePreset,
     EfDatePresetKey,
@@ -202,6 +203,14 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
     readonly inputId = input<string>('');
     readonly name = input<string>('');
 
+    /** External (server) errors — explicit `[errors]` input or the enclosing
+     *  `[efServerErrors]` scope keyed by `name`. See {@link EfServerErrorsDirective}. */
+    readonly errors = input<string[] | null | undefined>(undefined);
+    private readonly serverErrorsScope = inject(EfServerErrorsDirective, { optional: true });
+    readonly resolvedExternalErrors = computed<string[] | null>(() =>
+        resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()),
+    );
+
     /* ── Outputs ────────────────────────────────────────────────── */
 
     /** Emitted whenever a preset or applied custom range changes. */
@@ -377,10 +386,11 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
     }
     /** Backend validation messages stashed under `serverError`. */
     get serverErrors(): string[] | null {
-        return (this.ngControl?.control?.errors?.['serverError'] as string[]) ?? null;
+        return this.resolvedExternalErrors() ?? (this.ngControl?.control?.errors?.['serverError'] as string[]) ?? null;
     }
     /** Invalid + interacted — drives the red border on the field box. */
     get isInvalid(): boolean {
+        if (this.resolvedExternalErrors()?.length) return true;
         const ctrl = this.ngControl?.control;
         return !!(ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
     }

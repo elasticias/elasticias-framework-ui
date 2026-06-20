@@ -1,8 +1,9 @@
-import { booleanAttribute, Component, HostBinding, inject, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { booleanAttribute, Component, computed, HostBinding, inject, input, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NgControl } from '@angular/forms';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
+import { EfServerErrorsDirective, resolveExternalErrors } from '../ef-server-errors.directive';
 
 @Component({
   selector: 'ef-multi-select',
@@ -39,6 +40,14 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
 
   selectedValues: any[] = [];
 
+  /** External (server) errors — explicit `[errors]` input or the enclosing
+   *  `[efServerErrors]` scope keyed by `name`. See {@link EfServerErrorsDirective}. */
+  readonly errors = input<string[] | null | undefined>(undefined);
+  private readonly serverErrorsScope = inject(EfServerErrorsDirective, { optional: true });
+  readonly resolvedExternalErrors = computed<string[] | null>(() =>
+    resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name),
+  );
+
   private propagateChange: (value: any[]) => void = () => { /* noop */ };
   private propagateTouched: () => void = () => { /* noop */ };
 
@@ -61,7 +70,7 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
   }
 
   get serverErrors(): string[] | null {
-    return this.ngControl?.control?.errors?.serverError ?? null;
+    return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.serverError ?? null;
   }
 
   writeValue(value: string[]): void {

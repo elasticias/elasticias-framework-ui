@@ -36,12 +36,15 @@ export class EfInputTextComponent
 
   /**
    * Rendering variant — same dual-mode pattern as `ef-button`.
-   * - `'primeng'` (default) — wraps `<input pInputText>` (v1).
-   * - `'comptoir'`          — native `<input class="ef-input">`
-   *                           against the Comptoir pattern styles.
+   * - `'comptoir'` (default) — native `<input class="ef-input">` against
+   *                           the Comptoir pattern styles. Renders at the
+   *                           canonical `--hit-base` (40px) control height.
    *                           Required for `prefix` / `suffix`.
+   * - `'primeng'`            — wraps `<input pInputText>` (v1). Opt in when
+   *                           you specifically need PrimeNG input behaviour.
+   * See ADR-009 for why comptoir is the height-consistent default.
    */
-  @Input() variant: 'primeng' | 'comptoir' = 'primeng';
+  @Input() variant: 'primeng' | 'comptoir' = 'comptoir';
 
   /** Inline prefix addon — e.g. `'/p/'` for slugs, `'$'` for prices.
    *  Renders only in the Comptoir variant; ignored otherwise. */
@@ -77,10 +80,11 @@ export class EfInputTextComponent
   }
 
   get serverErrors(): string[] | null {
-    return this.ngControl?.control?.errors?.['serverError'] ?? null;
+    return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.['serverError'] ?? null;
   }
 
   get isInvalid(): boolean {
+    if (this.resolvedExternalErrors()?.length) return true;
     const ctrl = this.ngControl?.control;
     return !!(ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
   }

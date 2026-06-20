@@ -97,6 +97,34 @@ const ComptoirPreset = definePreset(Lara, {
             900: '#1a0913',
             950: '#0d040a'
         },
+        /* ──────────────────────────────────────────────────────────────
+         * Control sizing (ADR-009). The native "comptoir" variant is the
+         * default render path and is pinned to --hit-base (40px) in CSS;
+         * these tokens align the OPT-IN PrimeNG variant (p-select filter,
+         * p-multiselect, p-inputnumber stepper, etc.) to the same canonical
+         * heights so the two paths agree:
+         *   base  → 40px (--hit-base)   sm → 32px (--hit)   lg → 48px (--hit-touch, POS/mobile)
+         * Lara form-field height ≈ paddingY*2 + lineHeight(1.5)*fontSize(14px) + 2px border.
+         *   base: 8px*2 + 21 + 2 ≈ 40px · sm: 5px*2 + ~18 + 2 ≈ 32px · lg: 12px*2 + 21 + 2 ≈ 48px
+         * NOTE: exact pixel height depends on the app's root font-size; the
+         * native default path is the verified one — confirm the PrimeNG
+         * opt-in controls visually in the running app and nudge paddingY if
+         * they read 1-2px off. Border radius matches --r-md (12px). */
+        formField: {
+            paddingX: '0.75rem',
+            paddingY: '0.5rem',
+            borderRadius: '12px',
+            sm: {
+                fontSize: '0.78rem',
+                paddingX: '0.625rem',
+                paddingY: '0.3125rem'
+            },
+            lg: {
+                fontSize: '0.9375rem',
+                paddingX: '0.875rem',
+                paddingY: '0.75rem'
+            }
+        },
         colorScheme: {
             light: {
                 primary: {

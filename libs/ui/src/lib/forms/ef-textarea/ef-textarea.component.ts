@@ -67,12 +67,13 @@ export class EfTextareaComponent
     }
 
     get isInvalid(): boolean {
+        if (this.resolvedExternalErrors()?.length) return true;
         const ctrl = this.ngControl?.control;
         return !!ctrl?.invalid && (!!ctrl?.touched || !!ctrl?.dirty);
     }
 
     get serverErrors(): string[] | null {
-        return this.ngControl?.control?.errors?.['serverError'] ?? null;
+        return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.['serverError'] ?? null;
     }
 
     get showRequired(): boolean {

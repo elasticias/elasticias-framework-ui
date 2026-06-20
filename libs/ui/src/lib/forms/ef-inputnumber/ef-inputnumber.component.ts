@@ -121,11 +121,14 @@ export class EfInputNumberComponent
 
   /**
    * Render variant.
-   * - `'primeng'` (default) — wraps `p-inputnumber`.
-   * - `'comptoir'`          — native `<input type="number">` styled
-   *                           against `.ef-input` / `.ef-input-group`.
+   * - `'comptoir'` (default) — native `<input type="number">` styled
+   *                           against `.ef-input` / `.ef-input-group`,
+   *                           at the canonical `--hit-base` (40px) height.
+   * - `'primeng'`            — wraps `p-inputnumber`. Opt in for PrimeNG's
+   *                           formatted stepper behaviour.
+   * See ADR-009 for why comptoir is the height-consistent default.
    */
-  @Input() variant: 'primeng' | 'comptoir' = 'primeng';
+  @Input() variant: 'primeng' | 'comptoir' = 'comptoir';
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
@@ -168,10 +171,11 @@ export class EfInputNumberComponent
   }
 
   get serverErrors(): string[] | null {
-    return this.ngControl?.control?.errors?.['serverError'] ?? null;
+    return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.['serverError'] ?? null;
   }
 
   get isInvalid(): boolean {
+    if (this.resolvedExternalErrors()?.length) return true;
     const ctrl = this.ngControl?.control;
     return this.invalid || !!(ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
   }

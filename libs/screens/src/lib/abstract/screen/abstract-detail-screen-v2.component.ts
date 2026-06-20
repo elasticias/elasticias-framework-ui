@@ -283,6 +283,10 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                             this.navigateBack();
                         }
                     },
+                    // The HTTP error interceptor surfaces the message (toast).
+                    // Swallow here so a rejected delete (e.g. a 422 business-rule
+                    // violation) doesn't bubble up as an unhandled error.
+                    error: () => undefined,
                 }),
             () => undefined,
         );

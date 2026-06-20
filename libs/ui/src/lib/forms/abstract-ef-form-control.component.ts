@@ -1,5 +1,6 @@
-import { booleanAttribute, Component, Input, inject } from '@angular/core';
+import { booleanAttribute, Component, Input, computed, inject, input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { EfServerErrorsDirective, resolveExternalErrors } from './ef-server-errors.directive';
 
 /**
  * Shared base for every Comptoir form control (`ef-input-text`,
@@ -82,6 +83,39 @@ export abstract class AbstractEfFormControl {
     @Input({ transform: booleanAttribute }) required = false;
     @Input({ transform: booleanAttribute }) readonly = false;
     @Input({ transform: booleanAttribute }) disabled = false;
+
+    /**
+     * Forms-independent server/validation errors for this field.
+     *
+     * The signal-based V2 detail screens bind values with `[value]` +
+     * `(valueChangeEvent)` and never register an `NgControl`, so the
+     * `ngControl`-based `serverError` path can't surface backend
+     * validation messages. Two ways to feed them in:
+     *
+     * - Explicit, per-field: `[errors]="serverErrors()['clientType']"`.
+     * - Automatic, by `name`: wrap the fields in `[efServerErrors]="serverErrors()"`
+     *   and the control links itself via {@link EfServerErrorsDirective}
+     *   (no per-field binding). See {@link resolvedExternalErrors}.
+     *
+     * Either way the control renders the messages and the invalid state.
+     * Falls back to the `NgControl` `serverError` path when neither is
+     * present, so `ngModel`-based (v1) screens keep working unchanged.
+     */
+    readonly errors = input<string[] | null | undefined>(undefined);
+
+    /** Optional enclosing `[efServerErrors]` scope (auto-link by `name`). */
+    private readonly serverErrorsScope = inject(EfServerErrorsDirective, { optional: true });
+
+    /**
+     * External (server) errors for this control, resolved reactively from
+     * either the explicit `[errors]` input (wins) or the enclosing
+     * `[efServerErrors]` scope keyed by `name`. A `computed` so reads inside
+     * the subclass `serverErrors` / `isInvalid` getters track the source
+     * signals under zoneless change detection.
+     */
+    readonly resolvedExternalErrors = computed<string[] | null>(() =>
+        resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name),
+    );
 
     /* ── Internals ────────────────────────────────────────────── */
 
