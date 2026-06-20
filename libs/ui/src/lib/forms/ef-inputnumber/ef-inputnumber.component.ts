@@ -99,7 +99,8 @@ export class EfInputNumberComponent
   /* ── Input attributes ────────────────────────────────────────── */
 
   @Input() inputSize?: number;
-  @Input() size?: 'small' | 'large' = 'small';
+  /** Default (undefined) = canonical `--hit-base` (40px); `'small'` = dense 32px. */
+  @Input() size?: 'small' | 'large';
   @Input() maxlength?: number;
   @Input() minlength?: number;
   @Input() pattern?: string;

@@ -103,7 +103,10 @@ export class EfSelectComponent
 
   /* ── Layout / size ───────────────────────────────────────────── */
 
-  @Input() size: 'small' | 'large' = 'small';
+  /** Control height. Default (undefined) = the canonical `--hit-base` (40px),
+   *  matching native inputs (ADR-009). `'small'` opts into the dense 32px
+   *  variant for compact contexts (e.g. table-row editors). */
+  @Input() size?: 'small' | 'large';
   @Input({ transform: booleanAttribute }) fluid = true;
   @Input({ transform: booleanAttribute }) inline = false;
   @Input() appendTo?: string;
@@ -159,18 +162,21 @@ export class EfSelectComponent
 
   /**
    * Rendering variant.
-   * - `'comptoir'` (default) — native `<select class="ef-select-native">`
-   *                           against the Comptoir pattern styles. Renders
-   *                           at the canonical `--hit-base` (40px) control
-   *                           height, guaranteed to align with inputs and
-   *                           buttons in a row. No filter / virtualization /
-   *                           multi / group / templates.
-   * - `'primeng'`            — wraps `p-select` / `p-multiselect` for the
-   *                           rich features (filter, group, virtualScroll,
-   *                           templates). Opt into this when you need them.
-   * See ADR-009 for why comptoir is the height-consistent default.
+   * - `'primeng'` (default) — wraps `p-select` / `p-multiselect`, skinned with
+   *                           the `.es` / `.es__panel` patterns (the custom
+   *                           dropdown: filter, styled options, animated panel
+   *                           — see `components.html` Section 04). Also pinned
+   *                           to the canonical `--hit-base` (40px) trigger
+   *                           height (`.es.p-select { min-height: --hit-base }`),
+   *                           so it aligns with inputs/buttons in a row.
+   * - `'comptoir'`           — lite native `<select class="ef-select-native">`.
+   *                           No filter / panel / multi / templates; use it for
+   *                           inline / dense contexts that want the plain native
+   *                           control (e.g. table-row editors).
+   * The `.es` dropdown is the default per the design system; opt into
+   * `comptoir` only when a native control is specifically wanted. See ADR-009.
    */
-  @Input() variant: 'primeng' | 'comptoir' = 'comptoir';
+  @Input() variant: 'primeng' | 'comptoir' = 'primeng';
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
   @HostBinding('class.ef-select-host') readonly hostClass = true;

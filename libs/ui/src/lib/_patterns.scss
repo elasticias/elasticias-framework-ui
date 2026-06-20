@@ -3305,22 +3305,37 @@ input.ef-input[type='number'] {
   font-weight: 500;
 }
 
-/* Inline clear ✕ on the trigger */
+/* Inline clear ✕ — rendered via the p-select/p-multiselect `#clearicon`
+   template as a shared stroke-X (`.es-clear`), identical to
+   ef-product-typeahead's clear so every clearable control uses one glyph.
+   The wrapping container PrimeNG provides is reset to a neutral inline box. */
 .es .p-select-clear-icon,
 .es .p-multiselect-clear-icon {
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.es .es-clear {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
   color: var(--text-soft);
   flex-shrink: 0;
   cursor: pointer;
   transition: all var(--t-fast) var(--ease-out);
 }
 
-.es .p-select-clear-icon:hover,
-.es .p-multiselect-clear-icon:hover {
+.es .es-clear svg {
+  width: 13px;
+  height: 13px;
+}
+
+.es .es-clear:hover {
   background: var(--ink-100);
   color: var(--text);
 }
@@ -3365,14 +3380,15 @@ input.ef-input[type='number'] {
 }
 
 .es .p-multiselect-token-icon {
-  width: 16px;
-  height: 16px;
+  box-sizing: content-box;
+  width: 9px;
+  height: 9px;
+  padding: 3px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
   color: var(--text-mute);
   flex-shrink: 0;
   cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
 }
 
 .es .p-multiselect-token-icon:hover {

@@ -29,7 +29,8 @@ export class EfPasswordComponent implements ControlValueAccessor {
   @Input() name?: string;
   @Input() placeholder?: string;
   @Input() placeholderKey?: string;
-  @Input() size: 'small' | 'large' = 'small';
+  /** Default (undefined) = canonical `--hit-base` (40px); `'small'` = dense 32px. */
+  @Input() size?: 'small' | 'large';
   @Input({ transform: booleanAttribute }) required = false;
   @Input({ transform: booleanAttribute }) fluid = true;
   @Input({ transform: booleanAttribute }) inline = false;
