@@ -286,7 +286,7 @@ export class EfSelectComponent
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.updateDisabledState(isDisabled);
   }
 
   handleSelectionChange(event: { originalEvent?: Event; value: any }): void {

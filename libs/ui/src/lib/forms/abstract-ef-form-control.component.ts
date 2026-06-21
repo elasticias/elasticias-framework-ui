@@ -1,4 +1,4 @@
-import { booleanAttribute, Component, Input, computed, inject, input } from '@angular/core';
+import { booleanAttribute, Component, computed, inject, input, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { EfServerErrorsDirective, resolveExternalErrors } from './ef-server-errors.directive';
 
@@ -43,46 +43,66 @@ import { EfServerErrorsDirective, resolveExternalErrors } from './ef-server-erro
  */
 @Component({ template: '', standalone: true })
 export abstract class AbstractEfFormControl {
-    /* ── Identity ─────────────────────────────────────────────── */
+    /* ── Identity ─────────────────────────────────────────────── *
+     * Signal inputs (`input()`) throughout, so signal-native subclasses
+     * (e.g. ef-datepicker-advanced) can extend this base and read everything
+     * reactively. Subclasses + templates read these as calls: `name()`,
+     * `isDisabled()`, etc. */
 
     /** Explicit DOM `id` for the inner control. Falls back to
      *  `name`, then to the auto-generated `_autoId`. */
-    @Input() inputId?: string;
+    readonly inputId = input<string>('');
 
     /** Form `name` attribute — also used as the id fallback. */
-    @Input() name?: string;
+    readonly name = input<string>('');
 
     /** Per-instance auto id used when neither `inputId` nor `name`
      *  is supplied. The static counter is shared across all
      *  AbstractEfFormControl subclasses, which is fine — uniqueness
      *  per-page is the only requirement. */
     private static _nextId = 0;
-    private readonly _autoId = `ef-ctrl-${++AbstractEfFormControl._nextId}`;
+    protected readonly _autoId = `ef-ctrl-${++AbstractEfFormControl._nextId}`;
 
     /* ── Visible label (i18n) ─────────────────────────────────── */
 
     /** Direct label text. Use `labelKey` for i18n. */
-    @Input() label?: string;
+    readonly label = input<string>('');
 
     /** Translation key for the label — preferred (memory:
      *  feedback_i18n_keys says always use `*Key`). */
-    @Input() labelKey?: string;
+    readonly labelKey = input<string>('');
 
     /* ── Placeholder (i18n) ───────────────────────────────────── */
 
-    @Input() placeholder?: string;
-    @Input() placeholderKey?: string;
+    readonly placeholder = input<string>('');
+    readonly placeholderKey = input<string>('');
 
     /* ── Screen-reader-only label (when no visible label) ─────── */
 
-    @Input() ariaLabel?: string;
-    @Input() ariaLabelKey?: string;
+    readonly ariaLabel = input<string>('');
+    readonly ariaLabelKey = input<string>('');
 
     /* ── State ────────────────────────────────────────────────── */
 
-    @Input({ transform: booleanAttribute }) required = false;
-    @Input({ transform: booleanAttribute }) readonly = false;
-    @Input({ transform: booleanAttribute }) disabled = false;
+    readonly required = input(false, { transform: booleanAttribute });
+    readonly readonly = input(false, { transform: booleanAttribute });
+
+    /** The `[disabled]` input. The **effective** disabled (input OR
+     *  form-driven via CVA) is {@link isDisabled} — bind that in templates. */
+    readonly disabled = input(false, { transform: booleanAttribute });
+
+    /** Form-driven disabled set by CVA `setDisabledState`, merged with the
+     *  `[disabled]` input. Writable signal (the input itself is read-only). */
+    private readonly _cvaDisabled = signal(false);
+
+    /** Effective disabled state — the `[disabled]` input OR a reactive-form
+     *  `disable()`. Templates/logic should use this, not `disabled()`. */
+    readonly isDisabled = computed(() => this.disabled() || this._cvaDisabled());
+
+    /** CVA hook for subclasses: `setDisabledState(d) { this.updateDisabledState(d); }`. */
+    protected updateDisabledState(disabled: boolean): void {
+        this._cvaDisabled.set(disabled);
+    }
 
     /* ── Clearable ────────────────────────────────────────────── */
 
@@ -92,12 +112,12 @@ export abstract class AbstractEfFormControl {
      * the field is editable (see {@link canClear}). Set `[showClear]="false"`
      * to opt a field out.
      */
-    @Input({ transform: booleanAttribute }) showClear = true;
+    readonly showClear = input(true, { transform: booleanAttribute });
 
     /** Whether the clear ✕ should currently render: opted in, the control
      *  holds a value ({@link hasValue}), and the field is editable. */
     get canClear(): boolean {
-        return this.showClear && this.hasValue && !this.disabled && !this.readonly;
+        return this.showClear() && this.hasValue && !this.isDisabled() && !this.readonly();
     }
 
     /** Subclasses report whether they currently hold a clearable value.
@@ -142,7 +162,7 @@ export abstract class AbstractEfFormControl {
      * signals under zoneless change detection.
      */
     readonly resolvedExternalErrors = computed<string[] | null>(() =>
-        resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name),
+        resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()),
     );
 
     /* ── Internals ────────────────────────────────────────────── */
@@ -152,15 +172,15 @@ export abstract class AbstractEfFormControl {
     /** Resolved DOM id. Always non-empty so `<label for>` and
      *  `<input id>` can match unambiguously. */
     get effectiveId(): string {
-        return this.inputId || this.name || this._autoId;
+        return this.inputId() || this.name() || this._autoId;
     }
 
     /** Translated placeholder (or empty string). */
     get effectivePlaceholder(): string {
-        if (this.placeholderKey) {
-            return this.translateService.instant(this.placeholderKey);
+        if (this.placeholderKey()) {
+            return this.translateService.instant(this.placeholderKey());
         }
-        return this.placeholder ?? '';
+        return this.placeholder() || '';
     }
 
     /**
@@ -170,11 +190,11 @@ export abstract class AbstractEfFormControl {
      * accessible name and duplicate `aria-label` would override it.
      */
     get effectiveAriaLabel(): string | null {
-        if (this.labelKey || this.label) return null;
-        if (this.ariaLabelKey) {
-            return this.translateService.instant(this.ariaLabelKey);
+        if (this.labelKey() || this.label()) return null;
+        if (this.ariaLabelKey()) {
+            return this.translateService.instant(this.ariaLabelKey());
         }
-        return this.ariaLabel ?? null;
+        return this.ariaLabel() || null;
     }
 
     /** Stable id for the error / hint container — wired through

@@ -1,5 +1,5 @@
-@if (labelKey || label) {
-  <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
+@if (labelKey() || label()) {
+  <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" [required]="required()" />
 }
 <div class="ef-field-control">
   @if (variant === 'comptoir') {
@@ -13,18 +13,18 @@
         }
         <input
           [id]="effectiveId"
-          [attr.name]="name || null"
+          [attr.name]="name() || null"
           [type]="type"
           [value]="value"
           (input)="handleInput($any($event.target).value)"
           (blur)="handleBlur()"
           [attr.placeholder]="effectivePlaceholder || null"
           [attr.maxlength]="maxlength ?? null"
-          [readonly]="readonly"
-          [disabled]="disabled"
+          [readonly]="readonly()"
+          [disabled]="isDisabled()"
           [attr.autocomplete]="autocomplete ?? null"
           [attr.aria-label]="effectiveAriaLabel"
-          [attr.aria-required]="required ? 'true' : null"
+          [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
           [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
         />
@@ -39,19 +39,19 @@
           class="ef-input"
           [class.has-clear]="canClear"
           [id]="effectiveId"
-          [attr.name]="name || null"
+          [attr.name]="name() || null"
           [type]="type"
           [value]="value"
           (input)="handleInput($any($event.target).value)"
           (blur)="handleBlur()"
           [attr.placeholder]="effectivePlaceholder || null"
           [attr.maxlength]="maxlength ?? null"
-          [readonly]="readonly"
-          [disabled]="disabled"
+          [readonly]="readonly()"
+          [disabled]="isDisabled()"
           [attr.autocomplete]="autocomplete ?? null"
           [class.is-invalid]="isInvalid"
           [attr.aria-label]="effectiveAriaLabel"
-          [attr.aria-required]="required ? 'true' : null"
+          [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
           [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
         />
@@ -68,7 +68,7 @@
     <!-- PrimeNG variant (default) — v1 styling. -->
     <input
       [id]="effectiveId"
-      [attr.name]="name || null"
+      [attr.name]="name() || null"
       [type]="type"
       pInputText
       [pSize]="size"
@@ -77,13 +77,13 @@
       (blur)="handleBlur()"
       [attr.placeholder]="effectivePlaceholder || null"
       [attr.maxlength]="maxlength ?? null"
-      [readonly]="readonly"
-      [disabled]="disabled"
+      [readonly]="readonly()"
+      [disabled]="isDisabled()"
       [attr.autocomplete]="autocomplete ?? null"
       [class.ng-invalid]="isInvalid"
       [class.ng-touched]="ngControl?.touched"
       [attr.aria-label]="effectiveAriaLabel"
-      [attr.aria-required]="required ? 'true' : null"
+      [attr.aria-required]="required() ? 'true' : null"
       [attr.aria-invalid]="isInvalid ? 'true' : null"
       [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
       fluid

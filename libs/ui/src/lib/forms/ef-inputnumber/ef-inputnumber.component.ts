@@ -17,6 +17,7 @@ import {
 import { Nullable } from 'primeng/ts-helpers';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
+import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 
 /**
@@ -53,7 +54,7 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
   standalone: true,
   templateUrl: './ef-inputnumber.component.html',
   styleUrls: ['./ef-inputnumber.component.scss'],
-  imports: [InputNumberModule, FormsModule, TranslateModule, EfLabelComponent],
+  imports: [InputNumberModule, FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
 })
 export class EfInputNumberComponent
   extends AbstractEfFormControl
@@ -149,6 +150,17 @@ export class EfInputNumberComponent
   @Output() keyDownEvent = new EventEmitter<KeyboardEvent>();
   @Output() clearEvent = new EventEmitter<void>();
 
+  /* ── Clearable (showClear / canClear inherited from the base) ── */
+
+  /** A number field is clearable when it holds any value (including 0). */
+  protected override get hasValue(): boolean {
+    return this.value != null;
+  }
+
+  override clearValue(): void {
+    this.handleClear();
+  }
+
   /* ── CVA ─────────────────────────────────────────────────────── */
 
   private onChange: (value: any) => void = () => { /* noop */ };
@@ -194,7 +206,7 @@ export class EfInputNumberComponent
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.updateDisabledState(isDisabled);
   }
 
   /* ── Event handlers ─────────────────────────────────────────── */

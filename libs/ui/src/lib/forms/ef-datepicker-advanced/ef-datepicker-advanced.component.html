@@ -32,6 +32,15 @@
                 </span>
                 <svg class="caret ef-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
             </button>
+            @if (canClear) {
+                <!-- Overlaid sibling (not nested in the trigger <button>) so it
+                     clears instead of toggling the calendar. -->
+                <ef-clear-button
+                    class="dp__field-clear"
+                    [ariaLabel]="'action.clear' | translate"
+                    (clear)="clearValue()"
+                />
+            }
             @if (showRequired || serverErrors) {
                 <div [id]="errorsId" role="alert" aria-live="polite">
                     @if (showRequired) {

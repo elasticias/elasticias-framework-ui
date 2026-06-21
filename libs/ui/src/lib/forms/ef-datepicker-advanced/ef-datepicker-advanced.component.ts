@@ -24,7 +24,8 @@ import { CommonModule, formatDate } from '@angular/common';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
-import { EfServerErrorsDirective, resolveExternalErrors } from '../ef-server-errors.directive';
+import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
+import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 import {
     EfDatePreset,
     EfDatePresetKey,
@@ -63,13 +64,15 @@ export type EfDateFieldValue = Date | [Date, Date] | null;
 @Component({
     selector: 'ef-datepicker-advanced',
     standalone: true,
-    imports: [CommonModule, TranslateModule, EfLabelComponent],
+    imports: [CommonModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
     templateUrl: './ef-datepicker-advanced.component.html',
     styleUrl: './ef-datepicker-advanced.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: { '[class.dp-host--field]': "mode() === 'field'" },
 })
-export class EfDatepickerAdvancedComponent implements ControlValueAccessor, AfterViewInit {
+export class EfDatepickerAdvancedComponent
+    extends AbstractEfFormControl
+    implements ControlValueAccessor, AfterViewInit {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly locale = inject(LOCALE_ID);
     private readonly vcr = inject(ViewContainerRef);
@@ -100,6 +103,7 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
     private resizeHandler: (() => void) | null = null;
 
     constructor() {
+        super();
         // Register as our own NgControl's value accessor (field mode only).
         if (this.ngControl) this.ngControl.valueAccessor = this;
 
@@ -151,8 +155,7 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
     /** Currently selected end. */
     readonly end = input<Date | null | undefined>(undefined);
 
-    /** Disable the trigger. */
-    readonly disabled = input(false, { transform: booleanAttribute });
+    /* `disabled` inherited from AbstractEfFormControl (effective = isDisabled). */
 
     /** Show a `'Personnalisé…'` row that opens the calendar view. */
     readonly allowCustomRange = input(true, { transform: booleanAttribute });
@@ -184,32 +187,9 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
      */
     readonly showTime = input(false, { transform: booleanAttribute });
 
-    /** Field-mode visible label (i18n key preferred). */
-    readonly label = input<string>('');
-    readonly labelKey = input<string>('');
-
-    /** Field-mode placeholder shown when no value is selected. */
-    readonly placeholder = input<string>('');
-    readonly placeholderKey = input<string>('');
-
-    /** Screen-reader-only label when no visible label is rendered. */
-    readonly ariaLabel = input<string>('');
-    readonly ariaLabelKey = input<string>('');
-
-    /** Marks the field required (drives the `*` + required validation copy). */
-    readonly required = input(false, { transform: booleanAttribute });
-
-    /** Explicit DOM id / name for the field control (label association). */
-    readonly inputId = input<string>('');
-    readonly name = input<string>('');
-
-    /** External (server) errors — explicit `[errors]` input or the enclosing
-     *  `[efServerErrors]` scope keyed by `name`. See {@link EfServerErrorsDirective}. */
-    readonly errors = input<string[] | null | undefined>(undefined);
-    private readonly serverErrorsScope = inject(EfServerErrorsDirective, { optional: true });
-    readonly resolvedExternalErrors = computed<string[] | null>(() =>
-        resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()),
-    );
+    /* label / labelKey / placeholder / placeholderKey / ariaLabel / ariaLabelKey
+       / required / inputId / name / errors (+ resolvedExternalErrors) all
+       inherited from AbstractEfFormControl. */
 
     /* ── Outputs ────────────────────────────────────────────────── */
 
@@ -322,11 +302,8 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
     /** Committed value pushed in via `writeValue` / day-pick / Apply. */
     private readonly fieldValue = signal<EfDateFieldValue>(null);
 
-    /** Disabled state set through CVA's `setDisabledState`. */
-    private readonly cvaDisabled = signal(false);
-
-    /** Effective disabled: explicit `[disabled]` input OR form-driven. */
-    readonly isDisabled = computed(() => this.disabled() || this.cvaDisabled());
+    /* isDisabled (the `[disabled]` input OR form-driven) and updateDisabledState
+       are inherited from AbstractEfFormControl. */
 
     /** Committed start / end derived from `fieldValue`. */
     readonly fieldStart = computed<Date | null>(() => {
@@ -366,19 +343,8 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
     private onChange: (value: EfDateFieldValue) => void = () => { /* noop */ };
     private onTouched: () => void = () => { /* noop */ };
 
-    /* ── a11y / identity (field mode) ───────────────────────────── */
+    /* effectiveId / errorsId / _autoId inherited from AbstractEfFormControl. */
 
-    private static _nextId = 0;
-    private readonly _autoId = `ef-dp-${++EfDatepickerAdvancedComponent._nextId}`;
-
-    /** Resolved DOM id so `<label for>` ↔ trigger `id` always matches. */
-    get effectiveId(): string {
-        return this.inputId() || this.name() || this._autoId;
-    }
-    /** Stable id for the error container (wired via `aria-describedby`). */
-    get errorsId(): string {
-        return `${this.effectiveId}-errors`;
-    }
     /** Required error is shown once the control is touched. */
     get showRequired(): boolean {
         const ctrl = this.ngControl?.control;
@@ -407,7 +373,21 @@ export class EfDatepickerAdvancedComponent implements ControlValueAccessor, Afte
         this.onTouched = fn;
     }
     setDisabledState(isDisabled: boolean): void {
-        this.cvaDisabled.set(isDisabled);
+        this.updateDisabledState(isDisabled);
+    }
+
+    /* ── Clearable (field + single mode only) ───────────────────── *
+     * showClear / canClear inherited from AbstractEfFormControl. Only offer
+     * the inline clear ✕ for a single-date field with a committed value —
+     * range clearing is intentionally left out. */
+    protected override get hasValue(): boolean {
+        return this.selectionMode() === 'single' && this.hasFieldValue();
+    }
+
+    override clearValue(): void {
+        this.fieldValue.set(null);
+        this.onChange(null);
+        this.onTouched();
     }
 
     /** Normalise whatever a form pushes in to our internal value shape.

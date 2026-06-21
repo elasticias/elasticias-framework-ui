@@ -90,7 +90,7 @@ export class EfPasswordComponent
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.updateDisabledState(isDisabled);
   }
 
   handleChange(value: string): void {

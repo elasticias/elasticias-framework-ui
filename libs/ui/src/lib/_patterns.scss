@@ -1674,6 +1674,20 @@
   transform: rotate(180deg);
 }
 
+/* Inline clear ✕ for the field-mode trigger (single mode only). Overlaid as a
+   sibling — not nested in the trigger <button> — just left of the caret,
+   vertically centred on the --hit-base trigger box. */
+.dp .ef-field-control {
+  position: relative;
+}
+
+.dp__field-clear {
+  position: absolute;
+  top: calc(var(--hit-base) / 2);
+  inset-inline-end: 30px;
+  transform: translateY(-50%);
+}
+
 /* Invalid (touched + failing validation) — red border + halo. */
 .dp__field-trigger.is-invalid {
   border-color: var(--st-cancelled-fg);
@@ -3352,6 +3366,24 @@ input.ef-input[type='number'] {
 .ef-clear:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Inline clear ✕ overlaid at the trailing edge of a single-line input
+   (ef-input-text / ef-inputnumber comptoir variants). */
+.ef-input-wrap {
+  position: relative;
+}
+
+.ef-input-wrap .ef-input.has-clear {
+  /* room for the clear button so text doesn't run under it */
+  padding-inline-end: 36px;
+}
+
+.ef-input-clear {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 /* Clearable textarea — clear ✕ pinned to the top-trailing corner (clear of

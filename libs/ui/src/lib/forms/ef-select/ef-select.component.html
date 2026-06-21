@@ -1,5 +1,5 @@
-@if (labelKey || label) {
-  <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
+@if (labelKey() || label()) {
+  <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" [required]="required()" />
 }
 <div class="ef-field-control">
   @if (variant === 'comptoir') {
@@ -9,11 +9,11 @@
     <select
       class="ef-select-native"
       [id]="effectiveId"
-      [attr.name]="name || null"
-      [disabled]="disabled"
+      [attr.name]="name() || null"
+      [disabled]="isDisabled()"
       [class.is-invalid]="isInvalid"
       [attr.aria-label]="effectiveAriaLabel"
-      [attr.aria-required]="required ? 'true' : null"
+      [attr.aria-required]="required() ? 'true' : null"
       [attr.aria-invalid]="isInvalid ? 'true' : null"
       [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
       (change)="handleNativeSelectChange($any($event.target).value)"
@@ -34,7 +34,7 @@
     <!-- ───── PrimeNG multi-select branch ───── -->
     <p-multiselect
       [inputId]="effectiveId"
-      [name]="name"
+      [name]="name()"
       [ngModel]="value"
       [ngModelOptions]="{standalone: true}"
       (onChange)="handleSelectionChange($event)"
@@ -56,7 +56,7 @@
       [autofocusFilter]="autofocusFilter"
       [filterBy]="filterBy ?? optionLabel"
       [showClear]="showClear"
-      [disabled]="disabled"
+      [disabled]="isDisabled()"
       [appendTo]="appendTo"
       [styleClass]="effectiveStyleClass"
       [panelStyleClass]="effectivePanelStyleClass"
@@ -134,7 +134,7 @@
     <!-- ───── PrimeNG single-select branch ───── -->
     <p-select
       [inputId]="effectiveId"
-      [name]="name"
+      [name]="name()"
       [ngModel]="value"
       [ngModelOptions]="{standalone: true}"
       (onChange)="handleSelectionChange($event)"
@@ -158,7 +158,7 @@
       [autofocusFilter]="autofocusFilter"
       [showClear]="showClear"
       [editable]="editable"
-      [disabled]="disabled"
+      [disabled]="isDisabled()"
       [appendTo]="appendTo"
       [styleClass]="effectiveStyleClass"
       [panelStyleClass]="effectivePanelStyleClass"

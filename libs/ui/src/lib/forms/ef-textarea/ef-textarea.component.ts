@@ -104,7 +104,7 @@ export class EfTextareaComponent
     }
 
     setDisabledState(isDisabled: boolean): void {
-        this.disabled = isDisabled;
+        this.updateDisabledState(isDisabled);
     }
 
     handleInput(value: string): void {

@@ -3,21 +3,21 @@
     <input
       type="checkbox"
       [id]="effectiveId"
-      [attr.name]="name || null"
+      [attr.name]="name() || null"
       [checked]="!!checked"
-      [disabled]="disabled"
+      [disabled]="isDisabled()"
       [class.is-invalid]="isInvalid"
       [attr.aria-label]="effectiveAriaLabel"
-      [attr.aria-required]="required ? 'true' : null"
+      [attr.aria-required]="required() ? 'true' : null"
       [attr.aria-invalid]="isInvalid ? 'true' : null"
       [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
       (change)="handleNativeChange($any($event.target).checked)"
     />
     <span class="ef-checkbox-box" aria-hidden="true"></span>
-    @if (labelKey || label) {
+    @if (labelKey() || label()) {
       <span class="ef-checkbox-label">
-        {{ labelKey ? (labelKey | translate) : label }}
-        @if (required) {
+        {{ labelKey() ? (labelKey() | translate) : label() }}
+        @if (required()) {
           <span class="ef-checkbox-required" aria-hidden="true">*</span>
         }
       </span>
@@ -26,17 +26,17 @@
 } @else {
   <p-checkbox
     [inputId]="effectiveId"
-    [name]="name"
+    [name]="name()"
     [ngModel]="checked"
     [ngModelOptions]="{standalone: true}"
     (onChange)="handleChange($event)"
     [value]="value"
     [binary]="binary"
-    [disabled]="disabled"
+    [disabled]="isDisabled()"
     [ariaLabel]="effectiveAriaLabel || undefined"
   />
-  @if (labelKey || label) {
-    <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" styleClass="form-label-left cursor-pointer" />
+  @if (labelKey() || label()) {
+    <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" styleClass="form-label-left cursor-pointer" />
   }
 }
 @if (showRequired || serverErrors) {

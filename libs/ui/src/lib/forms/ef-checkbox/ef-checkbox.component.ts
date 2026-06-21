@@ -111,7 +111,7 @@ export class EfCheckboxComponent
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.updateDisabledState(isDisabled);
   }
 
   /** Handler for PrimeNG's onChange event. */
