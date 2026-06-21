@@ -11,6 +11,7 @@ import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
+import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 
 @Component({
@@ -18,7 +19,7 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
   standalone: true,
   templateUrl: './ef-input-text.component.html',
   styleUrls: ['./ef-input-text.component.scss'],
-  imports: [InputTextModule, FormsModule, TranslateModule, EfLabelComponent],
+  imports: [InputTextModule, FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
 })
 export class EfInputTextComponent
   extends AbstractEfFormControl
@@ -33,6 +34,16 @@ export class EfInputTextComponent
   @Input({ transform: booleanAttribute }) fluid = true;
   @Input({ transform: booleanAttribute }) inline = false;
   @Input() autocomplete?: string;
+
+  /** Clearable (showClear / canClear) is inherited from AbstractEfFormControl;
+   *  we only supply the value predicate + the reset. */
+  protected override get hasValue(): boolean {
+    return !!this.value;
+  }
+
+  override clearValue(): void {
+    this.handleInput('');
+  }
 
   /**
    * Rendering variant — same dual-mode pattern as `ef-button`.

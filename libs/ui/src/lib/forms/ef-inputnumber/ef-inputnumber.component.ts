@@ -111,7 +111,7 @@ export class EfInputNumberComponent
   @Input() inputStyleClass?: string;
   @Input() style?: any;
   @Input() styleClass?: string;
-  @Input({ transform: booleanAttribute }) showClear = false;
+  /* showClear inherited from AbstractEfFormControl (default true). */
   /** PrimeNG visual variant (`'filled'` | `'outlined'`) — only
    *  honored when {@link variant} === 'primeng'. */
   @Input() primeNgVariant?: 'filled' | 'outlined';

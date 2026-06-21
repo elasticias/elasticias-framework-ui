@@ -17,3 +17,20 @@
     min-width: 0;
   }
 }
+
+/* Inline clear ✕ (showClear) — overlaid at the trailing edge of the input. */
+.ef-input-wrap {
+  position: relative;
+}
+
+.ef-input-wrap .ef-input.has-clear {
+  /* leave room for the clear button so text doesn't run under it */
+  padding-inline-end: 36px;
+}
+
+.ef-input-clear {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}

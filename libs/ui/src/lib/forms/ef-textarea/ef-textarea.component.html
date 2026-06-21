@@ -2,8 +2,10 @@
     <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
 }
 <div class="ef-field-control">
+  <div class="ef-textarea-wrap">
     <textarea
         class="ef-textarea"
+        [class.has-clear]="canClear"
         [id]="effectiveId"
         [attr.name]="name || null"
         [rows]="rows"
@@ -20,6 +22,14 @@
         (input)="handleInput($any($event.target).value)"
         (blur)="handleBlur()"
     ></textarea>
+    @if (canClear) {
+      <ef-clear-button
+        class="ef-textarea-clear"
+        [ariaLabel]="'action.clear' | translate"
+        (clear)="clearValue()"
+      />
+    }
+  </div>
     @if (showRequired || serverErrors) {
         <div [id]="errorsId" role="alert" aria-live="polite">
             @if (showRequired) {

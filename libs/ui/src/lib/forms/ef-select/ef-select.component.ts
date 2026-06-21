@@ -125,7 +125,8 @@ export class EfSelectComponent
   /** Auto-focus the filter input when the panel opens (default: true). */
   @Input({ transform: booleanAttribute }) autofocusFilter = true;
 
-  @Input({ transform: booleanAttribute }) showClear = false;
+  /* showClear is inherited from AbstractEfFormControl (default true →
+     clearable by default; PrimeNG only renders the ✕ when a value is set). */
   @Input({ transform: booleanAttribute }) editable = false;
   @Input({ transform: booleanAttribute }) loading = false;
 

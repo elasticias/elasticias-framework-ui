@@ -9,6 +9,7 @@ import {
 import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
+import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 
 /**
@@ -34,7 +35,7 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
     selector: 'ef-textarea',
     standalone: true,
     templateUrl: './ef-textarea.component.html',
-    imports: [FormsModule, TranslateModule, EfLabelComponent],
+    imports: [FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
 })
 export class EfTextareaComponent
     extends AbstractEfFormControl
@@ -49,6 +50,15 @@ export class EfTextareaComponent
     /** Two-way-bindable as `[value]` (one-way) or
      *  `[(value)]="signal()"` (set + listen via `valueChangeEvent`). */
     @Input() value = '';
+
+    /** Clearable (showClear / canClear) inherited from AbstractEfFormControl. */
+    protected override get hasValue(): boolean {
+        return !!this.value;
+    }
+
+    override clearValue(): void {
+        this.handleInput('');
+    }
 
     private onChange: (value: string) => void = () => {
         /* noop */

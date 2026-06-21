@@ -3317,12 +3317,19 @@ input.ef-input[type='number'] {
   flex-shrink: 0;
 }
 
+/* Shared clear ✕ — `ef-clear-button` (`.ef-clear`) and the p-select /
+   p-multiselect `#clearicon` template (`.es-clear`) share one look so every
+   clearable control (input, number, select, typeahead) is identical. */
+.ef-clear,
 .es .es-clear {
   display: inline-grid;
   place-items: center;
   box-sizing: border-box;
   width: 22px;
   height: 22px;
+  border: 0;
+  padding: 0;
+  background: transparent;
   border-radius: 50%;
   color: var(--text-soft);
   flex-shrink: 0;
@@ -3330,14 +3337,50 @@ input.ef-input[type='number'] {
   transition: all var(--t-fast) var(--ease-out);
 }
 
+.ef-clear svg,
 .es .es-clear svg {
   width: 13px;
   height: 13px;
 }
 
+.ef-clear:hover,
 .es .es-clear:hover {
   background: var(--ink-100);
   color: var(--text);
+}
+
+.ef-clear:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Clearable textarea — clear ✕ pinned to the top-trailing corner (clear of
+   the bottom-right resize handle); text gets trailing padding to dodge it. */
+.ef-textarea-wrap {
+  position: relative;
+}
+
+.ef-textarea-wrap .ef-textarea.has-clear {
+  padding-inline-end: 36px;
+}
+
+.ef-textarea-clear {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 8px;
+}
+
+/* Shared chevron — one glyph (the canonical stroke polyline) across every
+   control that drops down: ef-select / ef-multiselect (via the `#dropdownicon`
+   template), ef-datepicker-advanced, and the native <select> background image.
+   Sized + toned here; rotation is owned by each control's open state. The SVG
+   markup also carries width/height attributes so it can never stretch even if
+   this rule is missing. */
+.ef-chevron {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--text-mute);
 }
 
 /* Caret */
@@ -3351,6 +3394,14 @@ input.ef-input[type='number'] {
   border: 0;
   padding: 0;
   transition: transform var(--t-base) var(--ease-spring);
+}
+
+/* Constrain whatever icon PrimeNG / our #dropdownicon template renders to the
+   canonical 12px (PrimeNG's default chevron otherwise renders at 16px). */
+.es .p-select-dropdown svg,
+.es .p-multiselect-dropdown svg {
+  width: 12px;
+  height: 12px;
 }
 
 .es.p-select-open .p-select-dropdown,

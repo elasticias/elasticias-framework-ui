@@ -33,26 +33,36 @@
         }
       </div>
     } @else {
-      <!-- Comptoir variant — bare native input. -->
-      <input
-        class="ef-input"
-        [id]="effectiveId"
-        [attr.name]="name || null"
-        [type]="type"
-        [value]="value"
-        (input)="handleInput($any($event.target).value)"
-        (blur)="handleBlur()"
-        [attr.placeholder]="effectivePlaceholder || null"
-        [attr.maxlength]="maxlength ?? null"
-        [readonly]="readonly"
-        [disabled]="disabled"
-        [attr.autocomplete]="autocomplete ?? null"
-        [class.is-invalid]="isInvalid"
-        [attr.aria-label]="effectiveAriaLabel"
-        [attr.aria-required]="required ? 'true' : null"
-        [attr.aria-invalid]="isInvalid ? 'true' : null"
-        [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
-      />
+      <!-- Comptoir variant — bare native input (+ optional inline clear). -->
+      <div class="ef-input-wrap">
+        <input
+          class="ef-input"
+          [class.has-clear]="canClear"
+          [id]="effectiveId"
+          [attr.name]="name || null"
+          [type]="type"
+          [value]="value"
+          (input)="handleInput($any($event.target).value)"
+          (blur)="handleBlur()"
+          [attr.placeholder]="effectivePlaceholder || null"
+          [attr.maxlength]="maxlength ?? null"
+          [readonly]="readonly"
+          [disabled]="disabled"
+          [attr.autocomplete]="autocomplete ?? null"
+          [class.is-invalid]="isInvalid"
+          [attr.aria-label]="effectiveAriaLabel"
+          [attr.aria-required]="required ? 'true' : null"
+          [attr.aria-invalid]="isInvalid ? 'true' : null"
+          [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+        />
+        @if (canClear) {
+          <ef-clear-button
+            class="ef-input-clear"
+            [ariaLabel]="'action.clear' | translate"
+            (clear)="clearValue()"
+          />
+        }
+      </div>
     }
   } @else {
     <!-- PrimeNG variant (default) — v1 styling. -->

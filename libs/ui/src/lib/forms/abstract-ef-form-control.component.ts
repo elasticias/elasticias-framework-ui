@@ -84,6 +84,34 @@ export abstract class AbstractEfFormControl {
     @Input({ transform: booleanAttribute }) readonly = false;
     @Input({ transform: booleanAttribute }) disabled = false;
 
+    /* ── Clearable ────────────────────────────────────────────── */
+
+    /**
+     * Show the inline clear ✕ (the shared `ef-clear-button`). On by default —
+     * every control is clearable; the ✕ only appears when there's a value and
+     * the field is editable (see {@link canClear}). Set `[showClear]="false"`
+     * to opt a field out.
+     */
+    @Input({ transform: booleanAttribute }) showClear = true;
+
+    /** Whether the clear ✕ should currently render: opted in, the control
+     *  holds a value ({@link hasValue}), and the field is editable. */
+    get canClear(): boolean {
+        return this.showClear && this.hasValue && !this.disabled && !this.readonly;
+    }
+
+    /** Subclasses report whether they currently hold a clearable value.
+     *  Default `false` (controls that don't override never show a clear). */
+    protected get hasValue(): boolean {
+        return false;
+    }
+
+    /** Reset the control's value (and notify forms / `valueChangeEvent`).
+     *  Overridden by subclasses that support clearing. */
+    clearValue(): void {
+        /* no-op — overridden by clearable subclasses */
+    }
+
     /**
      * Forms-independent server/validation errors for this field.
      *

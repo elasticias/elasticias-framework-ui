@@ -116,6 +116,7 @@ export { EfEmptyStateComponent } from './lib/feedback/ef-empty-state/ef-empty-st
 export { EfSmartBarComponent } from './lib/data/ef-smart-bar/ef-smart-bar.component';
 export { EfFilterPillComponent } from './lib/forms/ef-filter-pill/ef-filter-pill.component';
 export { EfServerErrorsDirective } from './lib/forms/ef-server-errors.directive';
+export { EfClearButtonComponent } from './lib/forms/ef-clear-button/ef-clear-button.component';
 export { EfInputTextComponent } from './lib/forms/ef-input-text/ef-input-text.component';
 export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
