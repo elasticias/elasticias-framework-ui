@@ -42,6 +42,13 @@
           (blur)="handleBlur($event)"
           (keydown)="handleKeyDown($event)"
         />
+        @if (canClear) {
+          <ef-clear-button
+            class="ef-group-clear"
+            [ariaLabel]="'action.clear' | translate"
+            (clear)="clearValue()"
+          />
+        }
         @if (suffix) {
           <span class="ef-input-addon is-suffix" aria-hidden="true">{{ suffix }}</span>
         }

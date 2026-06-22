@@ -3368,6 +3368,16 @@ input.ef-input[type='number'] {
   cursor: not-allowed;
 }
 
+/* Clear ✕ inside an .ef-input-group (prefix / suffix / stepper variants of
+   ef-input-text + ef-inputnumber). Here the ✕ is a real flex sibling sitting
+   between the input and the trailing addon — no absolute positioning or
+   trailing-padding hack needed (unlike the bare .ef-input-wrap variant). */
+.ef-input-group .ef-group-clear {
+  align-self: center;
+  margin-inline: 2px;
+  flex-shrink: 0;
+}
+
 /* Inline clear ✕ overlaid at the trailing edge of a single-line input
    (ef-input-text / ef-inputnumber comptoir variants). */
 .ef-input-wrap {

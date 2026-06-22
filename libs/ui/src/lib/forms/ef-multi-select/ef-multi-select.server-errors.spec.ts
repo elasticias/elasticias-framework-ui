@@ -6,10 +6,10 @@ import { EfMultiSelectComponent } from './ef-multi-select.component';
 import { EfServerErrorsDirective } from '../ef-server-errors.directive';
 
 /**
- * Verifies the server-error retrofit on ef-multi-select (a standalone control
- * that doesn't extend AbstractEfFormControl — see ADR-010). It exposes
- * `serverErrors` (no `isInvalid`), so we assert the rendered message via the
- * explicit `[errors]` input and the enclosing `[efServerErrors]` scope.
+ * Verifies the server-error retrofit on ef-multi-select (now extends
+ * AbstractEfFormControl — see ADR-010). It exposes `serverErrors` (no
+ * `isInvalid`), so we assert the rendered message via the explicit `[errors]`
+ * input and the enclosing `[efServerErrors]` scope.
  */
 @Component({
   standalone: true,

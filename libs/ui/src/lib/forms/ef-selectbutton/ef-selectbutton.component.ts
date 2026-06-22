@@ -11,6 +11,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { CommonModule } from '@angular/common';
+import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 
 @Component({
   selector: 'ef-selectbutton',
@@ -18,18 +19,19 @@ import { CommonModule } from '@angular/common';
   templateUrl: './ef-selectbutton.component.html',
   imports: [SelectButtonModule, FormsModule, TranslateModule, CommonModule, EfLabelComponent],
 })
-export class EfSelectButtonComponent implements ControlValueAccessor {
-  /** Direct label text above the selectbutton (not translated) */
-  @Input() label?: string;
-  /** Translation key for label — takes priority over label */
-  @Input() labelKey?: string;
+export class EfSelectButtonComponent
+  extends AbstractEfFormControl
+  implements ControlValueAccessor
+{
+  /* identity / label / labelKey / disabled (isDisabled) all inherited from
+     AbstractEfFormControl. A selectbutton has no clearable concept, so the
+     base's `hasValue`/`clearValue` defaults (no ✕) are left untouched. */
 
   @Input() options: any[] = [];
   @Input() optionLabel = 'label';
   @Input() optionValue = 'value';
   @Input({ transform: booleanAttribute }) multiple = false;
   @Input({ transform: booleanAttribute }) allowEmpty = true;
-  @Input({ transform: booleanAttribute }) disabled = false;
   @Input() size: 'small' | 'large' = 'small';
   @Input() styleClass?: string;
 
@@ -43,6 +45,7 @@ export class EfSelectButtonComponent implements ControlValueAccessor {
   readonly ngControl = inject(NgControl, { self: true, optional: true });
 
   constructor() {
+    super();
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
@@ -61,7 +64,7 @@ export class EfSelectButtonComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.updateDisabledState(isDisabled);
   }
 
   handleChange(event: any): void {

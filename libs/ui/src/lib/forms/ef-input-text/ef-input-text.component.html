@@ -28,6 +28,13 @@
           [attr.aria-invalid]="isInvalid ? 'true' : null"
           [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
         />
+        @if (canClear) {
+          <ef-clear-button
+            class="ef-group-clear"
+            [ariaLabel]="'action.clear' | translate"
+            (clear)="clearValue()"
+          />
+        }
         @if (suffix) {
           <span class="ef-input-addon is-suffix" aria-hidden="true">{{ suffix }}</span>
         }

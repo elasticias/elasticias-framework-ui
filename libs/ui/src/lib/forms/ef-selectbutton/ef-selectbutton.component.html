@@ -1,5 +1,5 @@
-@if (labelKey || label) {
-  <ef-label [labelKey]="labelKey" [label]="label" />
+@if (labelKey() || label()) {
+  <ef-label [labelKey]="labelKey()" [label]="label()" />
 }
 <p-selectbutton
   [ngModel]="value"
@@ -10,7 +10,7 @@
   [optionValue]="optionValue"
   [multiple]="multiple"
   [allowEmpty]="allowEmpty"
-  [disabled]="disabled"
+  [disabled]="isDisabled()"
   [size]="size"
   [styleClass]="styleClass"
 >

@@ -1,9 +1,9 @@
-import { booleanAttribute, Component, computed, HostBinding, inject, input, Input, Output, EventEmitter, OnChanges } from '@angular/core';
+import { booleanAttribute, Component, HostBinding, inject, Input, Output, EventEmitter, OnChanges } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NgControl } from '@angular/forms';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
-import { EfServerErrorsDirective, resolveExternalErrors } from '../ef-server-errors.directive';
+import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 
 @Component({
   selector: 'ef-multi-select',
@@ -12,65 +12,54 @@ import { EfServerErrorsDirective, resolveExternalErrors } from '../ef-server-err
   standalone: true,
   imports: [FormsModule, MultiSelectModule, TranslateModule, EfLabelComponent],
 })
-export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
+export class EfMultiSelectComponent
+  extends AbstractEfFormControl
+  implements ControlValueAccessor, OnChanges
+{
+  /* identity (inputId / name) / label / labelKey / placeholder / placeholderKey /
+     required / disabled (isDisabled) / showClear / errors (resolvedExternalErrors)
+     all inherited from AbstractEfFormControl. The clear ✕ is rendered by
+     PrimeNG's own `[showClear]` (bound below), so the base's custom
+     `ef-clear-button` hooks (`hasValue`/`clearValue`) are left at their no-op
+     defaults — `(onClear)` drives `handleClear()` instead. */
+
   @Output() changeEvent = new EventEmitter<string[]>();
 
-  @Input() label?: string;
-  @Input() labelKey?: string;
-  @Input() id = '';
-  @Input() name = '';
   @Input() optionLabel = 'name';
   @Input() optionValue = 'id';
   @Input() options: any;
   @Input() filteredOptions: any;
   @Input() maxSelectedLabels = 3;
-  @Input() disabled = false;
   @Input() display: 'comma' | 'chip' = 'comma';
   @Input() size: 'large' | 'small';
   @Input() selectionLimit: any;
   @Input() filters: any;
-  @Input() placeholder = '';
-  @Input() placeholderKey?: string;
-  @Input({ transform: booleanAttribute }) showClear = false;
-  @Input() required = false;
   @Input({ transform: booleanAttribute }) inline = false;
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
-  @HostBinding('class.ef-required') get isRequired() { return this.required; }
+  @HostBinding('class.ef-required') get isRequired() { return this.required(); }
 
   selectedValues: any[] = [];
-
-  /** External (server) errors — explicit `[errors]` input or the enclosing
-   *  `[efServerErrors]` scope keyed by `name`. See {@link EfServerErrorsDirective}. */
-  readonly errors = input<string[] | null | undefined>(undefined);
-  private readonly serverErrorsScope = inject(EfServerErrorsDirective, { optional: true });
-  readonly resolvedExternalErrors = computed<string[] | null>(() =>
-    resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name),
-  );
 
   private propagateChange: (value: any[]) => void = () => { /* noop */ };
   private propagateTouched: () => void = () => { /* noop */ };
 
   readonly ngControl = inject(NgControl, { self: true, optional: true });
-  private readonly translateService = inject(TranslateService);
 
   constructor() {
+    super();
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
   }
 
-  get effectivePlaceholder(): string {
-    return this.placeholderKey ? this.translateService.instant(this.placeholderKey) : (this.placeholder ?? '');
-  }
-
   get showRequired(): boolean {
     const ctrl = this.ngControl?.control;
-    return ctrl?.hasError('required') && ctrl?.touched;
+    return !!(ctrl?.hasError('required') && ctrl?.touched);
   }
 
   get serverErrors(): string[] | null {
-    return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.serverError ?? null;
+    return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.['serverError'] ?? null;
   }
 
   writeValue(value: string[]): void {
@@ -92,7 +81,7 @@ export class EfMultiSelectComponent implements ControlValueAccessor, OnChanges {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.updateDisabledState(isDisabled);
   }
 
   onInternalModelChange(val: any[]): void {
