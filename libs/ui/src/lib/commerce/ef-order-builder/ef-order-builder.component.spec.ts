@@ -86,9 +86,11 @@ describe('EfOrderBuilderComponent (logic)', () => {
     const fixture = build();
     const c = fixture.componentInstance;
 
-    expect(c.focusMode()).toBe(false);
-    c.toggleFocus();
+    // Focus mode is the default collapsed view (see [class.ob-collapsed]);
+    // toggleFocus() flips it off.
     expect(c.focusMode()).toBe(true);
+    c.toggleFocus();
+    expect(c.focusMode()).toBe(false);
 
     c.toggleRail(true);
     expect(c.railOpen()).toBe(true);
