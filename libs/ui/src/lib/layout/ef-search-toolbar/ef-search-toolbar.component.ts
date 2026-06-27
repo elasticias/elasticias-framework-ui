@@ -9,7 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { ScreenContext } from '@elasticias/screens';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 import { EfButtonComponent } from '../ef-button/ef-button.component';
 import { EfSearchToolbarAction } from './ef-search-toolbar.types';
 
@@ -114,10 +114,10 @@ export class EfSearchToolbarComponent {
   });
 
   readonly canExport = computed(() =>
-    this.checkStandard(this.showExportAction(), PermissionsEnum.Export),
+    this.checkStandard(this.showExportAction(), Permissions.Export),
   );
   readonly canAdd = computed(() =>
-    this.checkStandard(this.showAddAction(), PermissionsEnum.Write),
+    this.checkStandard(this.showAddAction(), Permissions.Create),
   );
 
   readonly hasStandardActions = computed(
@@ -156,16 +156,16 @@ export class EfSearchToolbarComponent {
    *  granted by `context` (or no context bound). */
   private checkStandard(
     flag: boolean,
-    perm: PermissionsEnum.Export | PermissionsEnum.Write,
+    perm: Permissions.Export | Permissions.Create,
   ): boolean {
     if (!flag) return false;
     const ctx = this.context();
     if (!ctx) return true;
     switch (perm) {
-      case PermissionsEnum.Export:
+      case Permissions.Export:
         return ctx.hasExportPermission;
-      case PermissionsEnum.Write:
-        return ctx.hasWritePermission;
+      case Permissions.Create:
+        return ctx.hasCreatePermission;
     }
   }
 

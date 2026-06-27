@@ -24,14 +24,14 @@ import { EfRowAction } from './ef-row-actions.types';
  * ```ts
  * actions: ReadonlyArray<EfRowAction> = [
  *   { id: 'view',      labelKey: 'common_view',      icon: 'pi pi-eye',    kbd: '↵',
- *     permission: PermissionsEnum.Read,   command: () => view(row) },
+ *     permission: Permissions.Read,   command: () => view(row) },
  *   { id: 'edit',      labelKey: 'common_edit',      icon: 'pi pi-pencil', kbd: 'E',
- *     permission: PermissionsEnum.Edit,   command: () => edit(row) },
+ *     permission: Permissions.Edit,   command: () => edit(row) },
  *   { id: 'duplicate', labelKey: 'common_duplicate', icon: 'pi pi-copy',
  *                                         command: () => duplicate(row) },
  *   { separator: true },
  *   { id: 'delete',    labelKey: 'common_delete',    icon: 'pi pi-trash',  severity: 'danger',
- *     permission: PermissionsEnum.Delete, command: () => delete(row) },
+ *     permission: Permissions.Delete, command: () => delete(row) },
  * ];
  * ```
  *

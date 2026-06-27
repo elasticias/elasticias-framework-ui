@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ScreenContext } from '@elasticias/screens';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 
@@ -28,15 +28,15 @@ export class EfDatatableActionBarComponent {
   @Input() deleteButton = true;
 
   get hasReadPermission(): boolean {
-    return this.context?.isGranted(PermissionsEnum.Read) ?? false;
+    return this.context?.isGranted(Permissions.Read) ?? false;
   }
 
   get hasEditPermission(): boolean {
-    return this.context?.isGranted(PermissionsEnum.Edit) ?? false;
+    return this.context?.isGranted(Permissions.Edit) ?? false;
   }
 
   get hasDeletePermission(): boolean {
-    return this.context?.isGranted(PermissionsEnum.Delete) ?? false;
+    return this.context?.isGranted(Permissions.Delete) ?? false;
   }
 
   duplicateAction() {

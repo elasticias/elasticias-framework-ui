@@ -20,7 +20,7 @@ import {
     ScreenContext,
     ScreenReferenceDataService,
 } from '@elasticias/screens';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
 import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
 import { EfRowActionsComponent } from '../ef-row-actions/ef-row-actions.component';
@@ -221,7 +221,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 labelKey: 'common_view',
                 icon: 'pi pi-eye',
                 kbd: '↵',
-                permission: PermissionsEnum.Read,
+                permission: Permissions.Read,
                 command: () => this.rowAction.emit({ action: 'view', row }),
             });
         }
@@ -231,7 +231,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 labelKey: 'common_edit',
                 icon: 'pi pi-pencil',
                 kbd: 'E',
-                permission: PermissionsEnum.Edit,
+                permission: Permissions.Edit,
                 command: () => this.rowAction.emit({ action: 'edit', row }),
             });
         }
@@ -241,7 +241,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 labelKey: 'common_duplicate',
                 icon: 'pi pi-copy',
                 kbd: '⌘D',
-                permission: PermissionsEnum.Duplicate,
+                permission: Permissions.Duplicate,
                 command: () => this.rowAction.emit({ action: 'duplicate', row }),
             });
         }
@@ -253,7 +253,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 icon: 'pi pi-trash',
                 kbd: '⌫',
                 severity: 'danger',
-                permission: PermissionsEnum.Delete,
+                permission: Permissions.Delete,
                 command: () => this.rowAction.emit({ action: 'delete', row }),
             });
         }

@@ -1,6 +1,6 @@
 import { Signal, signal } from '@angular/core';
 import { AbstractEntity } from '../abstract/abstract.entity';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 
 /**
  * Abstract interface for reference data providers.
@@ -70,7 +70,7 @@ export class ScreenContext extends AbstractEntity {
     }
   }
 
-  isGranted(permission: PermissionsEnum): boolean {
+  isGranted(permission: Permissions): boolean {
     return this.grants?.some((value) => value === permission) ?? false;
   }
 
@@ -78,46 +78,46 @@ export class ScreenContext extends AbstractEntity {
      Shared components (ef-row-actions, ef-data-card auto actions cell,
      toolbars) read these to default-show / default-hide CRUD buttons
      against the current user's grants without re-importing
-     PermissionsEnum at every call site. */
+     Permissions at every call site. */
 
   get hasReadPermission(): boolean {
-    return this.isGranted(PermissionsEnum.Read);
+    return this.isGranted(Permissions.Read);
   }
 
-  get hasWritePermission(): boolean {
-    return this.isGranted(PermissionsEnum.Write);
+  get hasCreatePermission(): boolean {
+    return this.isGranted(Permissions.Create);
   }
 
   get hasEditPermission(): boolean {
-    return this.isGranted(PermissionsEnum.Edit);
+    return this.isGranted(Permissions.Edit);
   }
 
   get hasDeletePermission(): boolean {
-    return this.isGranted(PermissionsEnum.Delete);
+    return this.isGranted(Permissions.Delete);
   }
 
   get hasDuplicatePermission(): boolean {
-    return this.isGranted(PermissionsEnum.Duplicate);
+    return this.isGranted(Permissions.Duplicate);
   }
 
   get hasPrintPermission(): boolean {
-    return this.isGranted(PermissionsEnum.Print);
+    return this.isGranted(Permissions.Print);
   }
 
   get hasExportPermission(): boolean {
-    return this.isGranted(PermissionsEnum.Export);
+    return this.isGranted(Permissions.Export);
   }
 
   get hasImportPermission(): boolean {
-    return this.isGranted(PermissionsEnum.Import);
+    return this.isGranted(Permissions.Import);
   }
 
   isReadOnly(): boolean {
     return (
-      this.isGranted(PermissionsEnum.Read) &&
-      !this.isGranted(PermissionsEnum.Write) &&
-      !this.isGranted(PermissionsEnum.Edit) &&
-      !this.isGranted(PermissionsEnum.Delete)
+      this.isGranted(Permissions.Read) &&
+      !this.isGranted(Permissions.Create) &&
+      !this.isGranted(Permissions.Edit) &&
+      !this.isGranted(Permissions.Delete)
     );
   }
 }

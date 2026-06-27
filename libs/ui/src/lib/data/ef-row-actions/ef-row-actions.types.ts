@@ -1,4 +1,4 @@
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 
 /**
  * Declarative row-action item consumed by `ef-row-actions`.
@@ -43,7 +43,7 @@ export interface EfRowAction {
      * If set, the item is hidden unless the bound `ScreenContext`
      * grants this permission. Items with no `permission` always show.
      */
-    permission?: PermissionsEnum;
+    permission?: Permissions;
 
     /** Click handler. The container handles closing the popup. */
     command?: () => void;

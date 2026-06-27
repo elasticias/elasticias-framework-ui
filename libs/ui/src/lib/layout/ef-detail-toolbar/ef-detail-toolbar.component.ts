@@ -9,7 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { ScreenContext } from '@elasticias/screens';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 import { EfButtonComponent } from '../ef-button/ef-button.component';
 import { EfDetailToolbarAction } from './ef-detail-toolbar.types';
 
@@ -116,13 +116,13 @@ export class EfDetailToolbarComponent {
   });
 
   readonly canPrint = computed(() =>
-    this.checkStandard(this.showPrintAction(), PermissionsEnum.Print),
+    this.checkStandard(this.showPrintAction(), Permissions.Print),
   );
   readonly canDuplicate = computed(() =>
-    this.checkStandard(this.showDuplicateAction(), PermissionsEnum.Duplicate),
+    this.checkStandard(this.showDuplicateAction(), Permissions.Duplicate),
   );
   readonly canDelete = computed(() =>
-    this.checkStandard(this.showDeleteAction(), PermissionsEnum.Delete),
+    this.checkStandard(this.showDeleteAction(), Permissions.Delete),
   );
   readonly canSave = computed(() => this.showSaveAction());
 
@@ -167,19 +167,19 @@ export class EfDetailToolbarComponent {
   private checkStandard(
     flag: boolean,
     perm:
-      | PermissionsEnum.Duplicate
-      | PermissionsEnum.Print
-      | PermissionsEnum.Delete,
+      | Permissions.Duplicate
+      | Permissions.Print
+      | Permissions.Delete,
   ): boolean {
     if (!flag) return false;
     const ctx = this.context();
     if (!ctx) return true;
     switch (perm) {
-      case PermissionsEnum.Print:
+      case Permissions.Print:
         return ctx.hasPrintPermission;
-      case PermissionsEnum.Duplicate:
+      case Permissions.Duplicate:
         return ctx.hasDuplicatePermission;
-      case PermissionsEnum.Delete:
+      case Permissions.Delete:
         return ctx.hasDeletePermission;
     }
   }

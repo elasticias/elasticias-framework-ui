@@ -1,4 +1,4 @@
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 
 /**
  * Declarative custom action consumed by `ef-detail-toolbar`'s
@@ -52,7 +52,7 @@ export interface EfDetailToolbarAction {
      * grants this permission. Actions with no `permission` always
      * show (subject to `visible`).
      */
-    permission?: PermissionsEnum;
+    permission?: Permissions;
 
     /** Click handler. */
     command?: () => void;
