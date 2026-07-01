@@ -12,6 +12,17 @@
   }
 }
 
+/* Resolve `--module` from the active module (host carries `[data-module]`), so the
+   section-title accent tick tints to the current module. Mirrors ef-tabs. */
+:host[data-module='sales']     { --module: var(--m-sales); }
+:host[data-module='purchase']  { --module: var(--m-purchase); }
+:host[data-module='stock']     { --module: var(--m-stock); }
+:host[data-module='pos']       { --module: var(--m-pos); }
+:host[data-module='marketing'] { --module: var(--m-marketing); }
+:host[data-module='store']     { --module: var(--m-store); }
+:host[data-module='finance']   { --module: var(--m-finance); }
+:host[data-module='admin']     { --module: var(--m-admin); }
+
 .ef-module-side__scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -93,15 +104,36 @@
   gap: 2px;
 }
 
+/* Editorial section divider: module-accent tick · mono tracked caps · trailing
+   hairline that fades out. Recedes behind the nav links instead of competing. */
 .ef-module-side__section-title {
-  font-family: 'Manrope', system-ui, sans-serif;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 8px;
+  padding: 0 12px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-mute);
-  padding: 0 12px 4px;
-  margin: 0;
+  letter-spacing: 0.22em;
+  color: var(--text-soft);
+
+  &::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 13px;
+    height: 2px;
+    border-radius: var(--r-pill);
+    background: var(--module, var(--tenant-500));
+  }
+
+  &::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: linear-gradient(90deg, var(--rule), transparent);
+  }
 }
 
 .ef-module-side__list {
