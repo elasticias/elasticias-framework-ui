@@ -84,6 +84,9 @@ export { EfChangeHistoryComponent } from './lib/data/ef-change-history/ef-change
 export type { EfChangeHistoryEntry, EfChangeHistoryFieldChange } from './lib/data/ef-change-history/ef-change-history.types';
 export { EfKpiCardComponent } from './lib/data/ef-kpi-card/ef-kpi-card.component';
 export type { EfKpiSparkline, EfKpiDeltaTone } from './lib/data/ef-kpi-card/ef-kpi-card.types';
+export { EfChartComponent } from './lib/data/ef-chart/ef-chart.component';
+export { buildChartConfig, EF_CHART_PALETTE } from './lib/data/ef-chart/ef-chart.config';
+export type { EfChartSeries, EfChartType } from './lib/data/ef-chart/ef-chart.config';
 
 // Forms
 export * from './lib/forms';
