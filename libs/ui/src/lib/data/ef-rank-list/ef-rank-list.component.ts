@@ -15,13 +15,13 @@ export interface EfRankRow {
   imports: [CommonModule],
   template: `
     <ol class="rank">
-      @for (row of rows(); track row.label; let i = $index) {
+      @for (row of rows(); track $index; let i = $index) {
         <li class="rank-row">
           <span class="rank-idx">{{ i + 1 }}</span>
           <span class="rank-main">
             <span class="rank-label" [title]="row.label">{{ row.label }}</span>
             @if (row.secondary) { <span class="rank-secondary">{{ row.secondary }}</span> }
-            <span class="rank-bar"><i [style.width.%]="row.pct"></i></span>
+            <span class="rank-bar"><i [style.width.%]="clampPct(row.pct)"></i></span>
           </span>
           <span class="rank-value">{{ row.value }}</span>
         </li>
@@ -44,4 +44,8 @@ export interface EfRankRow {
 })
 export class EfRankListComponent {
   readonly rows = input<ReadonlyArray<EfRankRow>>([]);
+
+  clampPct(pct: number): number {
+    return Math.min(100, Math.max(0, pct));
+  }
 }
