@@ -24,12 +24,15 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
  * Comptoir number input.
  *
  * Two render variants share the same API:
- * - `'primeng'` (default) — wraps `p-inputnumber`. Full locale-aware
+ * - `'comptoir'` (default) — native `<input type="text" inputmode="decimal">`
+ *   styled against `.ef-input` / `.ef-input-group`. Lean, no locale
+ *   formatting on display, but data entry accepts both `,` and `.` as
+ *   the decimal separator (fr-MA users type commas) and ignores
+ *   space group separators; pair with `suffix="MAD"` for unit display
+ *   in dense grids (variants table, inventory adjustments, etc.).
+ *   See ADR-009.
+ * - `'primeng'`            — wraps `p-inputnumber`. Full locale-aware
  *   currency / decimal formatting, stepper buttons, prefix / suffix.
- * - `'comptoir'`          — native `<input type="number">` styled
- *   against `.ef-input` / `.ef-input-group`. Lean, no locale
- *   formatting; pair with `suffix="MAD"` for unit display in dense
- *   grids (variants table, inventory adjustments, etc.).
  *
  * Identity / label / placeholder / aria / required / readonly /
  * disabled are inherited from `AbstractEfFormControl`.
@@ -123,9 +126,10 @@ export class EfInputNumberComponent
 
   /**
    * Render variant.
-   * - `'comptoir'` (default) — native `<input type="number">` styled
-   *                           against `.ef-input` / `.ef-input-group`,
+   * - `'comptoir'` (default) — native `<input type="text" inputmode="decimal">`
+   *                           styled against `.ef-input` / `.ef-input-group`,
    *                           at the canonical `--hit-base` (40px) height.
+   *                           Accepts `,` and `.` as decimal separator.
    * - `'primeng'`            — wraps `p-inputnumber`. Opt in for PrimeNG's
    *                           formatted stepper behaviour.
    * See ADR-009 for why comptoir is the height-consistent default.
@@ -219,19 +223,52 @@ export class EfInputNumberComponent
     this.valueChangeEvent.emit(next);
   }
 
-  /** Comptoir native input handler — `<input type="number">` emits
-   *  a string; coerce to number or null (empty string). */
+  /** Comptoir native input handler — the text input emits a raw
+   *  string; normalize + coerce to number or null (empty / invalid). */
   handleNativeInput(raw: string): void {
-    let next: number | null;
-    if (raw === '' || raw == null) {
-      next = null;
-    } else {
-      const parsed = Number(raw);
-      next = Number.isFinite(parsed) ? parsed : null;
-    }
+    const next = this.parseComptoirValue(raw);
     this.value = next;
     this.onChange(next);
     this.valueChangeEvent.emit(next);
+  }
+
+  /**
+   * Parses comptoir free-text numeric entry.
+   *
+   * fr-MA users type commas as the decimal separator (`23,50`), while
+   * `Number()` only understands `.` — so a comma is normalized to a
+   * dot before parsing, and spaces (JS `\s` covers NBSP / narrow-NBSP
+   * group separators) are stripped. Both `23,50` and `23.50` parse to
+   * 23.5; unparseable text yields `null` (existing empty semantics).
+   */
+  private parseComptoirValue(raw: string): number | null {
+    if (raw == null) return null;
+    const normalized = raw.replace(/\s/g, '').replace(/,/g, '.');
+    if (normalized === '') return null;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  /**
+   * Blur-time clamp for the comptoir variant. The native input no
+   * longer carries `min` / `max` attributes (it's `type="text"`), so
+   * range enforcement — previously only advisory on `type="number"`
+   * anyway — happens here, and the field text is re-synced to the
+   * canonical parsed value (e.g. a dangling `23,` becomes `23`).
+   */
+  private clampAndReflect(el: HTMLInputElement | null): void {
+    const current = this.value ?? null;
+    let next = current;
+    if (next != null) {
+      if (this.min != null && next < this.min) next = this.min;
+      if (this.max != null && next > this.max) next = this.max;
+    }
+    if (next !== current) {
+      this.value = next;
+      this.onChange(next);
+      this.valueChangeEvent.emit(next);
+    }
+    if (el) el.value = next == null ? '' : String(next);
   }
 
   /** Comptoir stepper buttons handler — bumps `value` by `step`,
@@ -251,6 +288,9 @@ export class EfInputNumberComponent
   }
 
   handleBlur(event: Event): void {
+    if (this.variant === 'comptoir') {
+      this.clampAndReflect((event.target as HTMLInputElement | null) ?? null);
+    }
     this.onTouched();
     this.blurEvent.emit(event);
   }

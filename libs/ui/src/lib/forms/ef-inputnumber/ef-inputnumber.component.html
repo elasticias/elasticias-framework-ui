@@ -4,8 +4,11 @@
 <div class="ef-field-control">
   @if (variant === 'comptoir') {
     @if (prefix || suffix || showButtons) {
-      <!-- Comptoir variant — native <input type="number"> wrapped in
-           .ef-input-group when there's a prefix / suffix / stepper. -->
+      <!-- Comptoir variant — native text input (inputmode=decimal, accepts
+           "," or "." as decimal separator) wrapped in .ef-input-group when
+           there's a prefix / suffix / stepper. min/max are enforced by
+           blur-time clamping in the component (text inputs have no native
+           range semantics). -->
       <div class="ef-input-group" [class.is-invalid]="isInvalid">
         @if (showButtons) {
           <button
@@ -22,17 +25,15 @@
           <span class="ef-input-addon is-prefix" aria-hidden="true">{{ prefix }}</span>
         }
         <input
-          type="number"
+          type="text"
+          inputmode="decimal"
           [id]="effectiveId"
           [attr.name]="name() || null"
           [value]="value ?? ''"
-          [attr.min]="min ?? null"
-          [attr.max]="max ?? null"
-          [attr.step]="step ?? null"
           [attr.placeholder]="effectivePlaceholder || null"
           [readonly]="readonly()"
           [disabled]="isDisabled()"
-          [attr.autocomplete]="autocomplete ?? null"
+          [attr.autocomplete]="autocomplete ?? 'off'"
           [attr.aria-label]="effectiveAriaLabel"
           [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
@@ -65,22 +66,22 @@
         }
       </div>
     } @else {
-      <!-- Comptoir variant — bare native number input (+ optional inline clear). -->
+      <!-- Comptoir variant — bare native text input (inputmode=decimal,
+           accepts "," or "." as decimal separator; optional inline clear).
+           min/max are enforced by blur-time clamping in the component. -->
       <div class="ef-input-wrap">
         <input
-          type="number"
+          type="text"
+          inputmode="decimal"
           class="ef-input"
           [class.has-clear]="canClear"
           [id]="effectiveId"
           [attr.name]="name() || null"
           [value]="value ?? ''"
-          [attr.min]="min ?? null"
-          [attr.max]="max ?? null"
-          [attr.step]="step ?? null"
           [attr.placeholder]="effectivePlaceholder || null"
           [readonly]="readonly()"
           [disabled]="isDisabled()"
-          [attr.autocomplete]="autocomplete ?? null"
+          [attr.autocomplete]="autocomplete ?? 'off'"
           [class.is-invalid]="isInvalid"
           [attr.aria-label]="effectiveAriaLabel"
           [attr.aria-required]="required() ? 'true' : null"

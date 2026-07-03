@@ -3215,7 +3215,12 @@
   font-size: 11px;
 }
 
-/* Hide the native number spinners — we expose ours via .is-stepper. */
+/* Hide the native number spinners — we expose ours via .is-stepper.
+   Note: ef-inputnumber's comptoir input is now `type="text"
+   inputmode="decimal"` (comma-decimal entry), which renders no native
+   spinners, so these rules are inert for it; they're kept for any
+   stray `type="number"` inputs styled with .ef-input / .ef-input-group
+   so the comptoir visual stays identical either way. */
 .ef-input-group input[type='number']::-webkit-outer-spin-button,
 .ef-input-group input[type='number']::-webkit-inner-spin-button,
 .ef-input input[type='number']::-webkit-outer-spin-button,
