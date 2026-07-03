@@ -27,4 +27,30 @@ describe('CsvUtils.toCsv', () => {
     const csv = CsvUtils.toCsv<Row>([{ name: 'X', qty: 0, note: null }], columns as never, ',');
     expect(csv).toBe('Produit,Qté,Note\r\nX,0,');
   });
+
+  it('neutralizes a string value that looks like a formula (CSV injection guard)', () => {
+    const csv = CsvUtils.toCsv<Row>(
+      [{ name: '=HYPERLINK("http://evil")', qty: 1, note: null }],
+      columns as never,
+    );
+    expect(csv).toBe('Produit;Qté;Note\r\n"\'=HYPERLINK(""http://evil"")";1;');
+  });
+
+  it('leaves a negative NUMBER untouched — the formula guard only applies to strings', () => {
+    const csv = CsvUtils.toCsv<Row>([{ name: 'X', qty: -5, note: null }], columns as never);
+    expect(csv).toBe('Produit;Qté;Note\r\nX;-5;');
+  });
+
+  it('prefixes "@" and "+" led string values so Excel does not treat them as formulas', () => {
+    const csv = CsvUtils.toCsv<Row>(
+      [
+        { name: '@name', qty: 1, note: '+33612345678' },
+        { name: 'ok', qty: 2, note: null },
+      ],
+      columns as never,
+    );
+    expect(csv).toBe(
+      'Produit;Qté;Note\r\n"\'@name";1;"\'+33612345678"\r\nok;2;',
+    );
+  });
 });
