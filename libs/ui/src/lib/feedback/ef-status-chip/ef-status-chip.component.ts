@@ -16,20 +16,8 @@ import {
 import {
     EfStatusColor,
     EfStatusReferenceItem,
+    resolveEfStatusColor,
 } from './ef-status-chip.types';
-
-const KNOWN_COLORS: ReadonlyArray<EfStatusColor> = [
-    'pending',
-    'processing',
-    'shipped',
-    'delivered',
-    'cancelled',
-    'refunded',
-    'onhold',
-    'tenant',
-    'module',
-    'neutral',
-];
 
 /**
  * Comptoir status chip — single source of truth for any kind of
@@ -105,20 +93,18 @@ export class EfStatusChipComponent {
         );
     });
 
-    /** Chip tone — explicit override → metadata → code fallback. */
+    /** Chip tone — explicit override → metadata (canonical tone or
+     *  generic color-name alias, e.g. `green` → `delivered`) → code
+     *  fallback → `neutral`. */
     readonly resolvedColor = computed<EfStatusColor>(() => {
         const forced = this.color();
         if (forced) return forced as EfStatusColor;
 
-        const meta = this.entry()?.metadata?.color;
-        if (meta && KNOWN_COLORS.includes(meta as EfStatusColor)) {
-            return meta as EfStatusColor;
-        }
-
-        const codeFallback = (this.code() || '').toLowerCase();
-        return KNOWN_COLORS.includes(codeFallback as EfStatusColor)
-            ? (codeFallback as EfStatusColor)
-            : 'neutral';
+        return (
+            resolveEfStatusColor(this.entry()?.metadata?.color) ??
+            resolveEfStatusColor(this.code()) ??
+            'neutral'
+        );
     });
 
     /** Resolved label — labelKey input → label input → reference label → code. */

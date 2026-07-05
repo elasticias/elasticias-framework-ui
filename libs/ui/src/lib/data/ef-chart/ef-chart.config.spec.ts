@@ -46,4 +46,15 @@ describe('buildChartConfig', () => {
     const cfg = buildChartConfig('bar', ['a'], [{ data: [1], color: '#ff0000' }], '#1356a8');
     expect(cfg.data.datasets[0].backgroundColor).toBe('#ff0000');
   });
+
+  it('per-point colors win per slice, sparse entries fall back to the palette', () => {
+    const cfg = buildChartConfig(
+      'donut', ['Brouillon', 'Terminée', 'X'],
+      [{ data: [1, 2, 3], colors: ['#4f5560', '#16693a', undefined] }],
+      '#1356a8',
+    );
+    expect(cfg.data.datasets[0].backgroundColor).toEqual([
+      '#4f5560', '#16693a', EF_CHART_PALETTE[1],
+    ]);
+  });
 });

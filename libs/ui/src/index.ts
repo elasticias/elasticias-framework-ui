@@ -65,6 +65,11 @@ export { EfPulseComponent } from './lib/feedback/ef-pulse/ef-pulse.component';
 export { EfPdfPreviewComponent } from './lib/feedback/ef-pdf-preview/ef-pdf-preview.component';
 export { EfStatusChipComponent } from './lib/feedback/ef-status-chip/ef-status-chip.component';
 export type { EfStatusColor, EfStatusReferenceItem } from './lib/feedback/ef-status-chip/ef-status-chip.types';
+export {
+  EF_STATUS_COLORS,
+  EF_STATUS_COLOR_ALIASES,
+  resolveEfStatusColor,
+} from './lib/feedback/ef-status-chip/ef-status-chip.types';
 export { EfToastRegionComponent } from './lib/feedback/ef-toast-region/ef-toast-region.component';
 export type { EfToastRegionPosition } from './lib/feedback/ef-toast-region/ef-toast-region.component';
 export { EfSkeletonComponent } from './lib/feedback/ef-skeleton/ef-skeleton.component';

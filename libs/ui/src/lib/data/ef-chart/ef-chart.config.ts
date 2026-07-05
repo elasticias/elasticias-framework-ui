@@ -6,6 +6,10 @@ export interface EfChartSeries {
   label?: string;
   data: ReadonlyArray<number>;
   color?: string;
+  /** Per-point colors (donut slices / bars). Sparse entries fall back to
+   *  `color`, then the palette — use for status-keyed charts so slices
+   *  reuse the exact status-chip tokens (`--st-*-fg`) instead of accents. */
+  colors?: ReadonlyArray<string | undefined>;
 }
 
 /** Concrete hexes (canvas can't resolve CSS var() strings). Order matches the tenant accents.
@@ -36,7 +40,9 @@ export function buildChartConfig(
       return {
         label: s.label,
         data: [...s.data],
-        backgroundColor: s.data.map((_, j) => s.color ?? palette[j % palette.length]),
+        backgroundColor: s.data.map(
+          (_, j) => s.colors?.[j] ?? s.color ?? palette[j % palette.length],
+        ),
         borderWidth: 0,
       };
     }
@@ -52,7 +58,12 @@ export function buildChartConfig(
         borderWidth: 2,
       };
     }
-    return { label: s.label, data: [...s.data], backgroundColor: color, borderRadius: 4 };
+    return {
+      label: s.label,
+      data: [...s.data],
+      backgroundColor: s.colors ? s.data.map((_, j) => s.colors?.[j] ?? color) : color,
+      borderRadius: 4,
+    };
   });
 
   return {

@@ -35,3 +35,53 @@ export interface EfStatusReferenceItem {
         [key: string]: unknown;
     };
 }
+
+/** Canonical tone list — used for membership checks by the resolver. */
+export const EF_STATUS_COLORS: ReadonlyArray<EfStatusColor> = [
+    'pending',
+    'processing',
+    'shipped',
+    'delivered',
+    'cancelled',
+    'refunded',
+    'onhold',
+    'tenant',
+    'module',
+    'neutral',
+];
+
+/**
+ * Generic color-name aliases → Comptoir tones. Seeded `reference_data`
+ * commonly stores plain color names in `metadata.color` (e.g.
+ * `sales_order_status`: Draft=gray, Completed=green, Cancelled=red).
+ * Resolving them here keeps chips AND status-keyed charts on the same
+ * `--st-*` tokens without migrating tenant data.
+ */
+export const EF_STATUS_COLOR_ALIASES: Readonly<Record<string, EfStatusColor>> = {
+    gray: 'onhold',
+    grey: 'onhold',
+    slate: 'onhold',
+    yellow: 'refunded',
+    orange: 'pending',
+    blue: 'processing',
+    purple: 'shipped',
+    green: 'delivered',
+    red: 'cancelled',
+};
+
+/**
+ * Resolve a `metadata.color` value — a canonical tone OR a generic
+ * color-name alias — to its Comptoir tone. `undefined` when unknown,
+ * so callers can chain fallbacks (e.g. the status code itself, then
+ * `'neutral'`). Case-insensitive.
+ */
+export function resolveEfStatusColor(
+    value: string | null | undefined,
+): EfStatusColor | undefined {
+    if (!value) return undefined;
+    const v = value.toLowerCase();
+    if ((EF_STATUS_COLORS as ReadonlyArray<string>).includes(v)) {
+        return v as EfStatusColor;
+    }
+    return EF_STATUS_COLOR_ALIASES[v];
+}

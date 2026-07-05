@@ -63,6 +63,8 @@ Always prefer the `ef-*` wrappers (`ef-button`, `ef-select`, `ef-inputnumber`, `
 
 **Report/dashboard accent color:** the dominant color of report and dashboard visuals is the **active module's color** — the `--module` token set by `ef-app-main`'s `[data-module]` (Sales blue `--m-sales`, Purchase green, …). `ef-chart` resolves `--module` at render time and gives it the palette's first slot (chart.js canvases can't consume CSS `var()` strings); `ef-kpi-card` sparklines default to `var(--module)` directly. `EF_CHART_PALETTE` accents only color secondary series/slices, and an explicit per-series `color` still wins. Don't hardcode teal/tenant hues in report widgets — inherit the module color.
 
+**Status-keyed visuals reuse the status-chip colors:** whenever a chart's categories ARE statuses (e.g. the order-status donut), color each slice/bar with the same token the status chip renders with — resolve `metadata.color` through `resolveEfStatusColor()` (which also aliases generic seeded names: `gray`/`slate`→`onhold`, `green`→`delivered`, `red`→`cancelled`, `blue`→`processing`, `purple`→`shipped`, `orange`→`pending`, `yellow`→`refunded`) and read `--st-<tone>-fg`, passing the resolved hexes via `EfChartSeries.colors`. Never invent a second status palette — chips and charts must tell the same color story.
+
 ## Screen Abstractions
 
 Consuming apps build screens by extending the abstract base classes in `@elasticias/screens` — never as standalone components. The base classes own the `ef-toolbar` wiring, `ScreenContext`, reference-data loading, server-error handling, and the `ToastService` integration.
