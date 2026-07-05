@@ -67,6 +67,8 @@ export { EfStatusChipComponent } from './lib/feedback/ef-status-chip/ef-status-c
 export type { EfStatusColor, EfStatusReferenceItem } from './lib/feedback/ef-status-chip/ef-status-chip.types';
 export { EfToastRegionComponent } from './lib/feedback/ef-toast-region/ef-toast-region.component';
 export type { EfToastRegionPosition } from './lib/feedback/ef-toast-region/ef-toast-region.component';
+export { EfSkeletonComponent } from './lib/feedback/ef-skeleton/ef-skeleton.component';
+export type { EfSkeletonVariant } from './lib/feedback/ef-skeleton/ef-skeleton.component';
 
 // Phase 7 — detail-screen primitives
 export { EfCardComponent } from './lib/layout/ef-card/ef-card.component';

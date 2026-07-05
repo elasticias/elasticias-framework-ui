@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, booleanAttribute, computed, input, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { EfSkeletonComponent, EfSkeletonVariant } from '../../feedback/ef-skeleton/ef-skeleton.component';
 
 /**
  * Comptoir card primitive — `.card` shell with optional `.card-head`,
@@ -10,7 +11,8 @@ import { TranslateModule } from '@ngx-translate/core';
  *   `head-extra`  — projected on the right of the head row, after the
  *                   built-in title/meta. Use for a status chip,
  *                   action button, kbd hint, etc.
- *   default       — body content (always rendered).
+ *   default       — body content (replaced by the reusable
+ *                   `ef-skeleton` while `[loading]` is true).
  *   `foot`        — bottom strip with rule-soft separator + paper bg.
  *
  * ```html
@@ -29,7 +31,7 @@ import { TranslateModule } from '@ngx-translate/core';
     selector: 'ef-card',
     standalone: true,
     host: { '[class.is-overflow-visible]': 'overflowVisible()' },
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslateModule, EfSkeletonComponent],
     template: `
         @if (showHead()) {
             <div
@@ -72,8 +74,16 @@ import { TranslateModule } from '@ngx-translate/core';
         }
 
         @if (!collapsed()) {
-            <div class="card-body">
-                <ng-content></ng-content>
+            <div class="card-body" [attr.aria-busy]="loading() ? 'true' : null">
+                @if (loading()) {
+                    <ef-skeleton
+                        [variant]="skeleton()"
+                        [rows]="skeletonRows()"
+                        [height]="skeletonHeight()"
+                    />
+                } @else {
+                    <ng-content></ng-content>
+                }
             </div>
         }
 
@@ -113,6 +123,21 @@ export class EfCardComponent {
      *  escape the card's `overflow: hidden`. PrimeNG overlays should prefer
      *  `appendTo="body"`; use this for non-PrimeNG absolute-positioned menus. */
     readonly overflowVisible = input(false, { transform: booleanAttribute });
+
+    /** While true, the body renders the reusable `ef-skeleton` instead of
+     *  the projected content (and flags `aria-busy`). Bind each card's own
+     *  async state so widgets shimmer independently:
+     *  `[loading]="state().series === 'loading'"`. */
+    readonly loading = input(false, { transform: booleanAttribute });
+
+    /** Skeleton shape shown while `loading` — match the body content. */
+    readonly skeleton = input<EfSkeletonVariant>('text');
+
+    /** Line/row count for the `text` / `table` skeleton variants. */
+    readonly skeletonRows = input(4);
+
+    /** Block height (px) for the `chart` skeleton variant. */
+    readonly skeletonHeight = input(280);
 
     /** Collapsed state (two-way). Bind `[collapsed]="true"` to start collapsed. */
     readonly collapsed = model(false);
