@@ -59,6 +59,10 @@ Always prefer the `ef-*` wrappers (`ef-button`, `ef-select`, `ef-inputnumber`, `
 
 **Cards:** use the `ef-card` primitive (`titleKey`/`metaKey`/`tone`, slots `[head-extra]` / default body / `[foot]`) for every card container — even inside other shared components. **Do not hand-roll `.card` / `.card-head` / `.card-body` markup or duplicate card chrome in a component's own SCSS** — `ef-card` already provides the shell, head, 16px body padding, and separators (defined once in `_patterns.scss`). A component should only style the content it projects into the card body, not the card itself.
 
+**Async card bodies:** while a card's data is in flight, show the reusable `ef-skeleton` (variants `text` / `kpi` / `chart` / `table`) — never an empty body or bespoke spinners. Prefer `ef-card`'s `[loading]` + `skeleton` inputs (the card swaps its body and flags `aria-busy`); use `<ef-skeleton>` directly only for non-card shells like KPI tile rows.
+
+**Report/dashboard accent color:** the dominant color of report and dashboard visuals is the **active module's color** — the `--module` token set by `ef-app-main`'s `[data-module]` (Sales blue `--m-sales`, Purchase green, …). `ef-chart` resolves `--module` at render time and gives it the palette's first slot (chart.js canvases can't consume CSS `var()` strings); `ef-kpi-card` sparklines default to `var(--module)` directly. `EF_CHART_PALETTE` accents only color secondary series/slices, and an explicit per-series `color` still wins. Don't hardcode teal/tenant hues in report widgets — inherit the module color.
+
 ## Screen Abstractions
 
 Consuming apps build screens by extending the abstract base classes in `@elasticias/screens` — never as standalone components. The base classes own the `ef-toolbar` wiring, `ScreenContext`, reference-data loading, server-error handling, and the `ToastService` integration.

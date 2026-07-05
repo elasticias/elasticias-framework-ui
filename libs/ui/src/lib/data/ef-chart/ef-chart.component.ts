@@ -18,6 +18,12 @@ Chart.register(
  * Thin chart.js wrapper for report/dashboard visuals (line, bar, donut).
  * Labels/series are data — i18n happens in the parent. Zoneless-safe: the
  * effect below re-renders whenever inputs change; instance destroyed on cleanup.
+ *
+ * Color convention: the dominant series/slice color defaults to the **active
+ * module's color** — the component resolves `--module` (set by `ef-app-main`'s
+ * `[data-module]`, e.g. Sales blue) from the canvas at render time, since the
+ * chart.js canvas can't consume CSS `var()` strings. Secondary series fall back
+ * to `EF_CHART_PALETTE`; a series' explicit `color` always wins.
  */
 @Component({
   selector: 'ef-chart',
@@ -38,7 +44,12 @@ export class EfChartComponent implements OnDestroy {
 
   constructor() {
     effect(() => {
-      const cfg = buildChartConfig(this.type(), this.labels(), this.series());
+      // Resolve the module color from the inherited `--module` custom property
+      // (empty string outside any [data-module] scope → palette fallback).
+      const moduleColor =
+        getComputedStyle(this.canvas().nativeElement).getPropertyValue('--module').trim() ||
+        undefined;
+      const cfg = buildChartConfig(this.type(), this.labels(), this.series(), moduleColor);
       // Chart#config is a union that includes per-dataset-typed configs; ours is always a plain ChartConfiguration.
       if (this.chart && (this.chart.config as ChartConfiguration).type === cfg.type) {
         this.chart.data = cfg.data;

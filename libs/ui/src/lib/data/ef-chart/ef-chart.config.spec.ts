@@ -22,4 +22,28 @@ describe('buildChartConfig', () => {
     expect(cfg.data.datasets[0].backgroundColor).toBe('#ff0000');
     expect(cfg.data.datasets[1].backgroundColor).toBe(EF_CHART_PALETTE[1]);
   });
+
+  it('moduleColor takes the dominant (first) palette slot for lines and donut slices', () => {
+    const sales = '#1356a8';
+    const line = buildChartConfig('line', ['j1'], [{ data: [1] }], sales);
+    expect(line.data.datasets[0].borderColor).toBe(sales);
+
+    const donut = buildChartConfig('donut', ['A', 'B'], [{ data: [3, 7] }], sales);
+    expect(donut.data.datasets[0].backgroundColor).toEqual([sales, EF_CHART_PALETTE[0]]);
+  });
+
+  it('moduleColor never duplicates itself when it already exists in the palette', () => {
+    const cfg = buildChartConfig(
+      'donut', ['A', 'B'], [{ data: [1, 2] }], EF_CHART_PALETTE[0].toUpperCase(),
+    );
+    // First slice = module color; second = the NEXT accent, not the same hue again.
+    expect(cfg.data.datasets[0].backgroundColor).toEqual([
+      EF_CHART_PALETTE[0].toUpperCase(), EF_CHART_PALETTE[1],
+    ]);
+  });
+
+  it('explicit series color still wins over moduleColor', () => {
+    const cfg = buildChartConfig('bar', ['a'], [{ data: [1], color: '#ff0000' }], '#1356a8');
+    expect(cfg.data.datasets[0].backgroundColor).toBe('#ff0000');
+  });
 });

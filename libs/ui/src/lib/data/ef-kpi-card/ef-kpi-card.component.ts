@@ -21,9 +21,10 @@ import { EfKpiDeltaTone, EfKpiSparkline } from './ef-kpi-card.types';
  * ```
  *
  * Sparkline values are normalized to a fixed 200×28 viewBox; the
- * stroke colour follows `--tenant-500` by default — override via
- * `[sparkColor]="'var(--st-pending-fg)'"` for variants. Pass an
- * empty array to hide the sparkline.
+ * stroke colour follows the active module's color (`--module`, e.g.
+ * Sales blue) by default — the convention for report/dashboard
+ * accents — override via `[sparkColor]="'var(--st-pending-fg)'"` for
+ * variants. Pass an empty array to hide the sparkline.
  */
 @Component({
     selector: 'ef-kpi-card',
@@ -78,8 +79,10 @@ export class EfKpiCardComponent {
     /** Raw series for the sparkline. */
     readonly spark = input<EfKpiSparkline>([]);
 
-    /** Stroke color for the sparkline polyline. */
-    readonly sparkColor = input<string>('var(--tenant-500)');
+    /** Stroke color for the sparkline polyline. Defaults to the active
+     *  module's color (report-accent convention); SVG resolves the CSS
+     *  custom property natively. */
+    readonly sparkColor = input<string>('var(--module)');
 
     /** Computed `points="x,y x,y …"` attribute, normalized into the
      *  200×28 viewBox so the polyline always fits. Returns null

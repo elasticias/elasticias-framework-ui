@@ -8,7 +8,13 @@ export interface EfChartSeries {
   color?: string;
 }
 
-/** Concrete hexes (canvas can't resolve CSS var() strings). Order matches the tenant accents. */
+/** Concrete hexes (canvas can't resolve CSS var() strings). Order matches the tenant accents.
+ *
+ *  Convention: the DOMINANT color of report/dashboard visuals is the **active
+ *  module's color** (`--module`, e.g. Sales blue `--m-sales`). `ef-chart`
+ *  resolves the token at render time and passes it as `moduleColor`, which
+ *  takes the palette's first slot — these accents only color secondary
+ *  series/slices. A series' explicit `color` always wins. */
 export const EF_CHART_PALETTE: ReadonlyArray<string> = [
   '#0d9488', '#6366f1', '#f59e0b', '#ef4444', '#0ea5e9', '#a855f7',
 ];
@@ -17,15 +23,20 @@ export function buildChartConfig(
   type: EfChartType,
   labels: ReadonlyArray<string>,
   series: ReadonlyArray<EfChartSeries>,
+  /** Resolved `--module` color — becomes the palette's first (dominant) slot. */
+  moduleColor?: string,
 ): ChartConfiguration {
+  const palette: ReadonlyArray<string> = moduleColor
+    ? [moduleColor, ...EF_CHART_PALETTE.filter((c) => c.toLowerCase() !== moduleColor.toLowerCase())]
+    : EF_CHART_PALETTE;
   const chartType: ChartType = type === 'donut' ? 'doughnut' : type;
   const datasets = series.map((s, i) => {
-    const color = s.color ?? EF_CHART_PALETTE[i % EF_CHART_PALETTE.length];
+    const color = s.color ?? palette[i % palette.length];
     if (type === 'donut') {
       return {
         label: s.label,
         data: [...s.data],
-        backgroundColor: s.data.map((_, j) => s.color ?? EF_CHART_PALETTE[j % EF_CHART_PALETTE.length]),
+        backgroundColor: s.data.map((_, j) => s.color ?? palette[j % palette.length]),
         borderWidth: 0,
       };
     }
