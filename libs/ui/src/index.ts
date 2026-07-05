@@ -1,6 +1,7 @@
 // Pipes
 export { EfCurrencyPipe } from './lib/pipes/ef-currency.pipe';
 export { TruncatePipe } from './lib/pipes/truncate.pipe';
+export { EfCompactPipe } from './lib/pipes/ef-compact.pipe';
 
 // Commerce
 export { EfPriceDisplayComponent } from './lib/commerce/ef-price-display.component';
