@@ -3,7 +3,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 import { CacheService, ConfirmDialogService, ToastService } from '@elasticias/core';
+import { Permissions } from '@elasticias/types';
+import { CsvUtils, StorageUtils } from '@elasticias/utils';
 import {
   AbstractReportScreenV2,
   ReportWidget,
@@ -103,5 +106,41 @@ describe('AbstractReportScreenV2', () => {
     expect(monthStart.start.getDate()).toBe(1);
     const unknown = (screen as any).rangeFromPreset('nonsense');
     expect(unknown.presetKey).toBe('last_30_days');
+  });
+
+  it('canExport() reflects the Export grant on the config screen', () => {
+    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+      TestReports: { permissions: [Permissions.Export] },
+    });
+    fixture.detectChanges();
+    expect(screen.canExport()).toBe(true);
+  });
+
+  it('canExport() is false without the grant', () => {
+    fixture.detectChanges();
+    expect(screen.canExport()).toBe(false);
+  });
+
+  it('hasGrant() checks an arbitrary screen from the session grants', () => {
+    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+      SalesOrders: { permissions: [Permissions.Read] },
+    });
+    expect((screen as any).hasGrant('SalesOrders', Permissions.Read)).toBe(true);
+    expect((screen as any).hasGrant('SalesOrders', Permissions.Export)).toBe(false);
+  });
+
+  it('exportCsv() downloads only when the Export grant is held', () => {
+    const download = vi.spyOn(CsvUtils, 'download').mockImplementation(() => {});
+    fixture.detectChanges();
+    (screen as any).exportCsv('x.csv', [{ a: 1 }], [{ key: 'a', header: 'A' }]);
+    expect(download).not.toHaveBeenCalled();
+
+    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+      TestReports: { permissions: [Permissions.Export] },
+    });
+    screen.processGrants();
+    (screen as any).exportCsv('x.csv', [{ a: 1 }], [{ key: 'a', header: 'A' }]);
+    expect(download).toHaveBeenCalledTimes(1);
+    download.mockRestore();
   });
 });

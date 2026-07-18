@@ -8,6 +8,8 @@ import {
   signal,
 } from '@angular/core';
 import { Observable, take } from 'rxjs';
+import { Permissions } from '@elasticias/types';
+import { CsvUtils, StorageUtils } from '@elasticias/utils';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { EfDatePresetKey, EfDateRange } from '../../entities/date-range.entity';
@@ -191,6 +193,41 @@ export abstract class AbstractReportScreenV2
   /** Reload every registered widget against the current period. */
   loadAll(): void {
     for (const w of this.registeredWidgets) w.reload();
+  }
+
+  /* ── Grants + export ────────────────────────────────────────── */
+
+  /** Export grant (ADR-011) on this screen's own code. Grants are loaded
+   *  once by `processGrants()` in ngOnInit — safe to call from templates. */
+  canExport(): boolean {
+    return this.context?.isGranted(Permissions.Export) ?? false;
+  }
+
+  /**
+   * Grant check for ANY screen (not just this one) — e.g. an operational
+   * strip on a reports screen calling a differently-gated search endpoint.
+   */
+  protected hasGrant(screen: string, permission: Permissions): boolean {
+    const grants = StorageUtils.getSession<
+      Record<string, { permissions?: string[] }>
+    >('CURRENT_USER_GRANTS');
+    return !!grants?.[screen]?.permissions?.includes(permission);
+  }
+
+  /** CSV download gated by the Export grant — silently no-ops without it. */
+  protected exportCsv(
+    filename: string,
+    rows: object[],
+    columns: { key: string; header: string }[],
+  ): void {
+    if (!this.canExport()) return;
+    // `CsvColumn<T>['key']` is `keyof T & string`, which is `never` for the
+    // bare `object` type — widen to `Record<string, unknown>` so the
+    // generic infers a `string`-keyed column, matching `columns` as declared.
+    CsvUtils.download(
+      filename,
+      CsvUtils.toCsv(rows as Record<string, unknown>[], columns),
+    );
   }
 
   ngOnDestroy(): void {
