@@ -84,6 +84,11 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   protected readonly injector = inject(Injector);
   private serviceInstance: any;
 
+  /** Monotonic guard: bumped on every `search()` call so an
+   *  out-of-order (stale) response from an earlier search can be
+   *  dropped instead of overwriting the latest results. */
+  private searchSeq = 0;
+
   /** Current search results — populated after each `search()`. */
   readonly items = signal<TItem[]>([]);
   readonly totalCount = signal(0);
@@ -536,14 +541,20 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     this.loading.set(true);
     this.errorMsg.set(null);
 
+    // Stale responses are dropped so the latest issued search always
+    // wins, even if an earlier in-flight search resolves later.
+    const seq = ++this.searchSeq;
+
     this.serviceInstance.search(this.criteria()).subscribe({
       next: (result: any) => {
+        if (seq !== this.searchSeq) return;
         this.items.set((result?.items ?? []) as TItem[]);
         this.totalCount.set(result?.totalCount ?? 0);
         this.cacheService.setCache(this.screenStateKey, this.criteria());
         this.loading.set(false);
       },
       error: (err: any) => {
+        if (seq !== this.searchSeq) return;
         console.error('Search failed', err);
         this.errorMsg.set(err?.message ?? 'Erreur de chargement');
         this.loading.set(false);
