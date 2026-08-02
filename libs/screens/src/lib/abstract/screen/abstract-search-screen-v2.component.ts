@@ -135,6 +135,14 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   /** Advanced-filter select definitions. Empty = no advanced filters. */
   readonly advancedFilters: AdvancedSelectFilter[] = [];
 
+  /** Criteria key of the screen's activation tri-state filter
+   *  (`ef-activation-filter`), e.g. `'isActive'`. When set, the base
+   *  applies, baseline-clears, and cache-restores the boolean like any
+   *  declared advanced filter — the screen only binds the component to
+   *  `advancedValues()` / `setAdvancedValue()`. `null` = no activation
+   *  filter. */
+  protected readonly activationFilterKey: string | null = null;
+
   /** Live values per advanced filter, keyed by `AdvancedSelectFilter.key`. */
   readonly advancedValues = signal<Record<string, unknown>>({});
 
@@ -146,9 +154,15 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
   /** Push every advanced-filter value into the criteria as typed
    *  top-level props and re-run the search. Wired to the drawer's
-   *  `(apply)`. */
+   *  `(apply)`. Every DECLARED key is written on apply — a cleared
+   *  control must actively remove its (possibly cache-restored)
+   *  criteria value, not silently leave it behind. */
   applyAdvancedFilters(): void {
-    this.patchCriteria({ ...this.advancedValues() });
+    const patch: Record<string, any> = {};
+    for (const f of this.advancedFilters) patch[f.key] = undefined;
+    if (this.activationFilterKey) patch[this.activationFilterKey] = undefined;
+    Object.assign(patch, this.advancedValues());
+    this.patchCriteria(patch);
   }
 
   /* ── Selection (DRY) ────────────────────────────────────────────
@@ -499,12 +513,26 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         this.initializeReferenceKeys(cfg!.SEARCH_REFERENTIALS_KEYS);
       if (hasStaticLists) this.initializeStaticLists(cfg!.SEARCH_STATIC_LISTS);
       this.loadReferenceData(cfg!.REF_DATA_OPTIONS);
-      this.refDataLoaded$
-        .pipe(take(1))
-        .subscribe(() => this.bootstrapInitialSearch());
+      this.refDataLoaded$.pipe(take(1)).subscribe(() => {
+        this.bootstrapInitialSearch();
+        this.applyDeepLinkStatus();
+      });
     } else {
       this.bootstrapInitialSearch();
+      this.applyDeepLinkStatus();
     }
+  }
+
+  /**
+   * Deep-link support: `/<list>?status=<code>` pre-selects the status
+   * pill after the initial criteria bootstrap (so the reset doesn't
+   * clobber it). Runs through `setStatus()`, so a subclass override
+   * that pushes the status into the criteria (the usual pattern) gets
+   * the deep-linked value too. No-op without the query param.
+   */
+  private applyDeepLinkStatus(): void {
+    const status = this.queryParam('status');
+    if (status) this.setStatus(status);
   }
 
   /** Restore criteria from cache (returning to a screen) or seed defaults. */
@@ -512,6 +540,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     const cached = this.cacheService.getCache<any>(this.screenStateKey);
     if (cached) {
       this.criteria.set(new SearchEntity(cached));
+      this.restoreFilterUiFromCriteria(cached);
     } else {
       const cfg = this.getConfig();
       const fresh = new SearchEntity({});
@@ -530,6 +559,31 @@ export abstract class AbstractSearchScreenV2<TItem = any>
       this.criteria.set(fresh);
     }
     this.search();
+  }
+
+  /**
+   * Cache-restore sync: when a revisit restores cached criteria,
+   * reflect the restored filters back into the filter-bar UI state so
+   * what the drawer / search box displays matches what the search will
+   * actually send (otherwise a stale criteria filter keeps applying
+   * while every control reads "Tous"). Base handles the free-text
+   * input and the declared advanced filters; override (calling super)
+   * to sync screen-specific state — status pill, custom switches, ….
+   */
+  protected restoreFilterUiFromCriteria(cached: Record<string, any>): void {
+    this.searchQuery.set(cached['searchText'] ?? '');
+    const next: Record<string, unknown> = {};
+    for (const f of this.advancedFilters) {
+      const value = cached[f.key];
+      if (value !== undefined && value !== null) next[f.key] = value;
+    }
+    const activationKey = this.activationFilterKey;
+    if (activationKey && typeof cached[activationKey] === 'boolean') {
+      next[activationKey] = cached[activationKey];
+    }
+    if (Object.keys(next).length) {
+      this.advancedValues.update((cur) => ({ ...cur, ...next }));
+    }
   }
 
   /**
