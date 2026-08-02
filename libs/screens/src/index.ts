@@ -13,6 +13,7 @@ export { AbstractDetailScreenV2 } from './lib/abstract/screen/abstract-detail-sc
 export { AbstractReportScreenV2 } from './lib/abstract/screen/abstract-report-screen-v2.component';
 export type { ReportWidget, ReportWidgetStatus } from './lib/abstract/screen/abstract-report-screen-v2.component';
 export { AbstractSubScreenComponent } from './lib/abstract/screen/abstract-sub-screen.component';
+export { AbstractSubScreenV2 } from './lib/abstract/screen/abstract-sub-screen-v2.component';
 
 // Services
 export { SCREEN_REF_DATA_SERVICE } from './lib/services/screen-reference-data.service';

@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { Permissions } from '@elasticias/types';
-import { CsvUtils, StorageUtils } from '@elasticias/utils';
+import { CsvUtils } from '@elasticias/utils';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { EfDatePresetKey, EfDateRange } from '../../entities/date-range.entity';
@@ -201,17 +201,6 @@ export abstract class AbstractReportScreenV2
    *  once by `processGrants()` in ngOnInit — safe to call from templates. */
   canExport(): boolean {
     return this.context?.isGranted(Permissions.Export) ?? false;
-  }
-
-  /**
-   * Grant check for ANY screen (not just this one) — e.g. an operational
-   * strip on a reports screen calling a differently-gated search endpoint.
-   */
-  protected hasGrant(screen: string, permission: Permissions): boolean {
-    const grants = StorageUtils.getSession<
-      Record<string, { permissions?: string[] }>
-    >('CURRENT_USER_GRANTS');
-    return !!grants?.[screen]?.permissions?.includes(permission);
   }
 
   /** CSV download gated by the Export grant — silently no-ops without it. */
