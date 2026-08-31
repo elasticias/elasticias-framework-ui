@@ -1,0 +1,50 @@
+<div class="row-actions">
+    <button
+        type="button"
+        class="row-actions__trigger"
+        [class.open]="open()"
+        [disabled]="disabled() || visibleItems().length === 0"
+        [attr.aria-haspopup]="'menu'"
+        [attr.aria-expanded]="open()"
+        [attr.aria-label]="triggerAriaKey() | translate"
+        (click)="toggle($event)"
+        (dblclick)="onDblClick($event)"
+    >
+        <i [class]="triggerIcon()" aria-hidden="true"></i>
+    </button>
+
+    @if (open()) {
+        <div
+            class="row-actions__menu open"
+            [class.left]="menuLeft()"
+            role="menu"
+            [attr.aria-label]="triggerAriaKey() | translate"
+            (dblclick)="onDblClick($event)"
+        >
+            @for (action of visibleItems(); track trackByItem($index, action)) {
+                @if (action.separator) {
+                    <div class="row-actions__divider" role="separator"></div>
+                } @else {
+                    <button
+                        type="button"
+                        class="row-actions__item"
+                        [class.danger]="action.severity === 'danger'"
+                        [disabled]="action.disabled"
+                        role="menuitem"
+                        (click)="runCommand(action, $event)"
+                    >
+                        @if (action.icon) {
+                            <i class="ico" [class]="'ico ' + action.icon" aria-hidden="true"></i>
+                        }
+                        <span class="lbl">
+                            {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+                        </span>
+                        @if (action.kbd) {
+                            <span class="kbd" aria-hidden="true">{{ action.kbd }}</span>
+                        }
+                    </button>
+                }
+            }
+        </div>
+    }
+</div>

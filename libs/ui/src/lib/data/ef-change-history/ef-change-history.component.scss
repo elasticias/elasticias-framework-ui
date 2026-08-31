@@ -1,0 +1,137 @@
+:host {
+  display: block;
+}
+
+// Reuses the global `.timeline / .item / .dot / .body / .label / .meta`
+// classes from the Comptoir design system (same as ef-timeline). Dots are
+// plain solid colored circles (no icons), matching the prototype; only the
+// fill/border color varies per operation.
+
+.dot.op-created {
+  background: var(--st-delivered-fg, #16a34a);
+  border-color: var(--st-delivered-fg, #16a34a);
+}
+.dot.op-updated {
+  // Fixed blue (not --module) so "updated" stays distinct from the green
+  // "created" dot regardless of the active module's accent.
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.dot.op-status {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+.dot.op-deleted {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+.dot.op-note {
+  background: #64748b;
+  border-color: #64748b;
+}
+.dot.op-default {
+  background: var(--ink-300, #94a3b8);
+  border-color: var(--ink-300, #94a3b8);
+}
+
+.ch-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+// The timeline item is a `14px 1fr` grid; the `1fr` body track defaults to
+// min-width: auto, so a long unbreakable value (e.g. an entity id) expands the
+// track and blows the card out. Let the body column shrink so its content can
+// truncate / wrap instead.
+.item .body {
+  min-width: 0;
+}
+
+.ch-changes {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 0;
+    min-width: 0;
+  }
+}
+
+.ch-field {
+  font-weight: 600;
+  min-width: 120px;
+}
+
+// Compact (inline card preview): each change value is a single ellipsised line
+// so long ids stay on one row — the full value is available in the "view all"
+// dialog. The field keeps its width; the two values share the remaining space.
+.timeline--compact .ch-changes {
+  .ch-field {
+    flex: 0 0 auto;
+  }
+
+  .text-mute,
+  .strong {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+// Full (dialog) timeline: never hide a value — let long ids wrap / break so the
+// whole before → after is readable in the roomier surface.
+.timeline:not(.timeline--compact) .ch-changes {
+  li {
+    flex-wrap: wrap;
+  }
+
+  .text-mute,
+  .strong {
+    overflow-wrap: anywhere;
+  }
+}
+
+.ch-changes .pi,
+.ch-status .pi {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.ch-note {
+  margin-top: 4px;
+  padding-left: 8px;
+  border-left: 2px solid var(--rule-soft, #e2e8f0);
+  color: var(--ink-600, #475569);
+}
+
+// "View all (N)" link under the inline preview.
+.ch-more {
+    margin-top: 8px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 2px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--module, #2563eb);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+// RTL: flip the directional arrows so before→after reads correctly in Arabic.
+:host-context([dir='rtl']) {
+  .ch-changes .pi-arrow-right,
+  .ch-status .pi-arrow-right {
+    transform: scaleX(-1);
+  }
+}

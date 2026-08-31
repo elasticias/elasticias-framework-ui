@@ -12,6 +12,7 @@
     "@elasticias/utils": ">=0.0.1",
     "@ngx-translate/core": "^17.0.0",
     "@primeng/themes": "^21.0.0",
+    "chart.js": "^4.5.0",
     "primeng": "^21.0.0"
   },
   "sideEffects": false,

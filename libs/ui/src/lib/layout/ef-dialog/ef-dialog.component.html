@@ -1,40 +1,120 @@
 <p-dialog
-  [header]="headerKey ? (headerKey | translate) : header"
   [visible]="visible"
   (visibleChange)="handleVisibleChange($event)"
   [modal]="modal"
-  [closable]="closable"
   [draggable]="draggable"
   [resizable]="resizable"
+  [dismissableMask]="dismissableMask"
+  [closeOnEscape]="closeOnEscape"
   [style]="style"
-  [styleClass]="styleClass"
+  [styleClass]="effectiveStyleClass"
   [position]="position"
   [appendTo]="appendTo"
-  [footerTemplate]="defaultActions ? defaultFooterTpl : null"
+  [header]="variant === 'primeng' ? effectiveTitle : null"
+  [closable]="variant === 'primeng' ? closable : false"
+  [footerTemplate]="variant === 'primeng' && !useDynamicActions && defaultActions ? defaultFooterTpl : null"
   (onShow)="handleShow()"
   (onHide)="handleHide()"
 >
+  <!-- ─────────── COMPTOIR HEADER (content-child #header) ───────────
+       Replaces PrimeNG's default header strip with our icon + title
+       + subtitle + close X structure. Skipped in 'primeng' variant
+       (which uses the [header] string input + native close). -->
+  @if (variant === 'comptoir') {
+    <ng-template #header>
+      @if (effectiveIcon) {
+        <span class="es-dialog__icon" aria-hidden="true">
+          <i [class]="effectiveIcon"></i>
+        </span>
+      }
+      <div class="es-dialog__title-block">
+        <div class="es-dialog__title">{{ effectiveTitle }}</div>
+        @if (effectiveSubtitle) {
+          <div class="es-dialog__sub">{{ effectiveSubtitle }}</div>
+        }
+      </div>
+      @if (closable) {
+        <button
+          type="button"
+          class="es-dialog__close"
+          [attr.aria-label]="'common_close' | translate"
+          (click)="handleVisibleChange(false)"
+        >
+          <i class="pi pi-times"></i>
+        </button>
+      }
+    </ng-template>
+  }
+
+  <!-- Body — projected from <ef-dialog>…</ef-dialog> -->
   <ng-content />
+
+  <!-- ─────────── COMPTOIR FOOTER (content-child #footer) ───────────
+       Dynamic [actions] path takes precedence; falls back to the
+       backward-compat save+cancel pair when defaultActions is on. -->
+  @if (variant === 'comptoir' && hasFooter) {
+    <ng-template #footer>
+      @if (useDynamicActions) {
+        @for (a of actions; track $index) {
+          <button
+            type="button"
+            [class]="actionClass(a)"
+            [disabled]="a.disabled || a.loading"
+            (click)="handleActionClick(a, $index)"
+          >
+            @if (a.icon) {
+              <i [class]="a.icon"></i>
+            }
+            {{ actionLabel(a) }}
+          </button>
+        }
+      } @else {
+        <ef-button
+          variant="comptoir"
+          [severity]="cancelSeverity"
+          [labelKey]="cancelLabelKey"
+          [label]="cancelLabel"
+          [icon]="cancelIcon"
+          [styleClass]="cancelStyleClass"
+          (clickEvent)="onDefaultCancel()"
+        />
+        <ef-button
+          variant="comptoir"
+          [severity]="saveSeverity"
+          [labelKey]="saveLabelKey"
+          [label]="saveLabel"
+          [icon]="saveIcon"
+          [styleClass]="saveStyleClass"
+          [disabled]="saveDisabled"
+          (clickEvent)="onDefaultSave()"
+        />
+      }
+    </ng-template>
+  }
 </p-dialog>
 
-<!-- Default action footer. Declared outside <p-dialog> because its <ng-template>
-     is a view child of ef-dialog, not a content child of <p-dialog>; we hand it
-     to <p-dialog> via the [footerTemplate] input above. -->
+<!-- Default-action footer template for the 'primeng' variant (legacy path).
+     Declared outside <p-dialog> because the comptoir branch above already
+     provides its own content-child footer; this template is only consumed
+     when variant === 'primeng' via [footerTemplate] input binding. -->
 <ng-template #defaultFooter>
-  <div class="flex justify-end gap-2">
-    <ef-button
-      [labelKey]="cancelLabelKey"
-      [label]="cancelLabel"
-      [styleClass]="cancelStyleClass"
-      (clickEvent)="onDefaultCancel()"
-    />
-    <ef-button
-      [labelKey]="saveLabelKey"
-      [label]="saveLabel"
-      [icon]="saveIcon"
-      [styleClass]="saveStyleClass"
-      [disabled]="saveDisabled"
-      (clickEvent)="onDefaultSave()"
-    />
-  </div>
+  <ef-button
+    variant="primeng"
+    [severity]="cancelSeverity"
+    [labelKey]="cancelLabelKey"
+    [label]="cancelLabel"
+    [icon]="cancelIcon"
+    [styleClass]="cancelStyleClass"
+    (clickEvent)="onDefaultCancel()"
+  />
+  <ef-button
+    variant="primeng"
+    [severity]="saveSeverity"
+    [labelKey]="saveLabelKey"
+    [label]="saveLabel"
+    [icon]="saveIcon"
+    [styleClass]="saveStyleClass"
+    [disabled]="saveDisabled"
+    (clickEvent)="onDefaultSave()"
+  />
 </ng-template>

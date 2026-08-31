@@ -12,7 +12,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ScreenStateEnum, ScreenContext } from '@elasticias/screens';
 import { Router } from '@angular/router';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -81,27 +81,27 @@ export class EfToolbarComponent {
   }
 
   get hasReadPermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Read);
+    return this.context.isGranted(Permissions.Read);
   }
 
-  get hasWritePermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Write);
+  get hasCreatePermission(): boolean {
+    return this.context.isGranted(Permissions.Create);
   }
 
   get hasEditPermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Edit);
+    return this.context.isGranted(Permissions.Edit);
   }
 
   get hasDeletePermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Delete);
+    return this.context.isGranted(Permissions.Delete);
   }
 
   get hasDuplicatePermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Duplicate);
+    return this.context.isGranted(Permissions.Duplicate);
   }
 
   get hasExportPermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Export);
+    return this.context.isGranted(Permissions.Export);
   }
 
   get isDuplicateMode(): boolean {

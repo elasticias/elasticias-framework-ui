@@ -1,0 +1,11 @@
+/* All visual rules live in @elasticias/ui/styles/patterns under
+   `.dp__*`. The component contributes only host layout. */
+
+:host {
+    display: inline-block;
+}
+
+/* Field mode is a form control — fill the column like any other ef-* field. */
+:host(.dp-host--field) {
+    display: block;
+}

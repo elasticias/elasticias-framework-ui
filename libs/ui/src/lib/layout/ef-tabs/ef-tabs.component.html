@@ -1,0 +1,43 @@
+<div class="ef-tabs__list" role="tablist" [attr.aria-label]="ariaLabel">
+  @for (item of items; track trackValue($index, item); let i = $index) {
+    <button
+      #tabEl
+      type="button"
+      class="ef-tabs__tab"
+      role="tab"
+      [class.is-active]="item.value === value"
+      [class.is-disabled]="!!item.disabled"
+      [attr.aria-selected]="item.value === value"
+      [attr.aria-disabled]="item.disabled ? 'true' : null"
+      [disabled]="item.disabled"
+      [tabindex]="item.value === value ? 0 : -1"
+      (click)="select(item)"
+      (keydown)="onKeydown($event, i)"
+    >
+      @if (item.icon) {
+        <i class="ef-tabs__ico" [class]="item.icon" aria-hidden="true"></i>
+      }
+      <span class="ef-tabs__label">
+        @if (item.labelKey) {
+          {{ item.labelKey | translate }}
+        } @else {
+          {{ item.label }}
+        }
+      </span>
+      @if (!hideCounts && item.count !== undefined && item.count !== null) {
+        <span class="ef-tabs__count">{{ item.count }}</span>
+      }
+      @if (item.dirty) {
+        <span class="ef-tabs__dot" [attr.aria-label]="dirtyLabelKey | translate"></span>
+      }
+    </button>
+  }
+</div>
+
+@if (hasPanels()) {
+  <div class="ef-tabs__panels" role="tabpanel">
+    @if (activePanel(); as tpl) {
+      <ng-container [ngTemplateOutlet]="tpl"></ng-container>
+    }
+  </div>
+}

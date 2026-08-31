@@ -1,44 +1,246 @@
-@if (labelKey || label) {
-  <ef-label [labelKey]="labelKey" [label]="label" [for]="effectiveId" [required]="required" />
+@if (labelKey() || label()) {
+  <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" [required]="required()" />
 }
 <div class="ef-field-control">
-  <p-select
-    [inputId]="effectiveId"
-    [name]="name"
-    [ngModel]="value"
-    [ngModelOptions]="{standalone: true}"
-    (onChange)="handleSelectionChange($event)"
-    (onClear)="handleClear()"
-    [options]="filteredOptions"
-    [optionLabel]="optionLabel"
-    [optionValue]="optionValue"
-    [placeholder]="effectivePlaceholder"
-    [size]="size"
-    [filter]="filter"
-    [showClear]="showClear"
-    [disabled]="disabled"
-    [appendTo]="appendTo"
-    [class.ng-invalid]="isInvalid"
-    [class.ng-touched]="ngControl?.touched"
-    fluid
-  >
-    @if (itemTemplate) {
-      <ng-template #item let-item>
-        <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
+  @if (variant === 'comptoir') {
+    <!-- Comptoir variant — native <select> against the
+         .ef-select-native pattern. No filter / virtualization /
+         multi / templates; use the PrimeNG variant for those. -->
+    <select
+      class="ef-select-native"
+      [id]="effectiveId"
+      [attr.name]="name() || null"
+      [disabled]="isDisabled()"
+      [class.is-invalid]="isInvalid"
+      [attr.aria-label]="effectiveAriaLabel"
+      [attr.aria-required]="required() ? 'true' : null"
+      [attr.aria-invalid]="isInvalid ? 'true' : null"
+      [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+      (change)="handleNativeSelectChange($any($event.target).value)"
+    >
+      @if (effectivePlaceholder) {
+        <option value="" [selected]="value == null">— {{ effectivePlaceholder }} —</option>
+      }
+      @for (opt of filteredOptions; track $index) {
+        <option
+          [value]="optionValue ? opt[optionValue] : opt"
+          [selected]="(optionValue ? opt[optionValue] : opt) === value"
+        >
+          {{ opt[optionLabel] }}
+        </option>
+      }
+    </select>
+  } @else if (multiple) {
+    <!-- ───── PrimeNG multi-select branch ───── -->
+    <p-multiselect
+      [inputId]="effectiveId"
+      [name]="name()"
+      [ngModel]="value"
+      [ngModelOptions]="{standalone: true}"
+      (onChange)="handleSelectionChange($event)"
+      (onClear)="handleClear()"
+      (onFilter)="handleFilter($event)"
+      (onPanelShow)="handlePanelShow()"
+      (onPanelHide)="handlePanelHide()"
+      [options]="filteredOptions"
+      [optionLabel]="optionLabel"
+      [optionValue]="optionValue"
+      [optionDisabled]="optionDisabled"
+      [dataKey]="dataKey"
+      [group]="group"
+      [optionGroupLabel]="optionGroupLabel"
+      [optionGroupChildren]="optionGroupChildren"
+      [placeholder]="effectivePlaceholder"
+      [filter]="filter"
+      [filterPlaceHolder]="effectiveFilterPlaceholder"
+      [autofocusFilter]="autofocusFilter"
+      [filterBy]="filterBy ?? optionLabel"
+      [showClear]="showClear"
+      [disabled]="isDisabled()"
+      [appendTo]="appendTo"
+      [styleClass]="effectiveStyleClass"
+      [panelStyleClass]="effectivePanelStyleClass"
+      [scrollHeight]="scrollHeight"
+      [virtualScroll]="virtualScroll"
+      [virtualScrollItemSize]="virtualScrollItemSize"
+      [loading]="loading"
+      [emptyMessage]="effectiveEmptyMessage"
+      [emptyFilterMessage]="effectiveEmptyFilterMessage"
+      [display]="multiDisplay"
+      [showToggleAll]="showToggleAll"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-touched]="ngControl?.touched"
+      fluid
+    >
+      @if (itemTemplate) {
+        <ng-template #item let-item>
+          <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }" />
+        </ng-template>
+      }
+      @if (selectedItemTemplate) {
+        <ng-template #selectedItems let-items>
+          <ng-container *ngTemplateOutlet="selectedItemTemplate; context: { $implicit: items }" />
+        </ng-template>
+      }
+      @if (groupTemplate) {
+        <ng-template #group let-group>
+          <ng-container *ngTemplateOutlet="groupTemplate; context: { $implicit: group }" />
+        </ng-template>
+      }
+      @if (headerTemplate) {
+        <ng-template #header>
+          <ng-container *ngTemplateOutlet="headerTemplate" />
+        </ng-template>
+      }
+      @if (footerTemplate) {
+        <ng-template #footer>
+          <ng-container *ngTemplateOutlet="footerTemplate" />
+        </ng-template>
+      }
+      @if (emptyTemplate) {
+        <ng-template #empty>
+          <ng-container *ngTemplateOutlet="emptyTemplate" />
+        </ng-template>
+      }
+      @if (emptyFilterTemplate) {
+        <ng-template #emptyfilter>
+          <ng-container *ngTemplateOutlet="emptyFilterTemplate" />
+        </ng-template>
+      }
+      @if (filterTemplate) {
+        <ng-template #filter let-options="options">
+          <ng-container *ngTemplateOutlet="filterTemplate; context: { $implicit: options }" />
+        </ng-template>
+      }
+      @if (loaderTemplate) {
+        <ng-template #loader>
+          <ng-container *ngTemplateOutlet="loaderTemplate" />
+        </ng-template>
+      }
+      <ng-template #clearicon>
+        <span class="es-clear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </span>
       </ng-template>
-    }
-    @if (selectedItemTemplate) {
-      <ng-template #selectedItem let-item>
-        <ng-container *ngTemplateOutlet="selectedItemTemplate; context: { $implicit: item }"></ng-container>
+      <ng-template #dropdownicon>
+        <svg class="ef-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
       </ng-template>
-    }
-  </p-select>
-  @if (showRequired) {
-    <small class="text-danger">{{ 'validation.required' | translate }}</small>
+    </p-multiselect>
+  } @else {
+    <!-- ───── PrimeNG single-select branch ───── -->
+    <p-select
+      [inputId]="effectiveId"
+      [name]="name()"
+      [ngModel]="value"
+      [ngModelOptions]="{standalone: true}"
+      (onChange)="handleSelectionChange($event)"
+      (onClear)="handleClear()"
+      (onFilter)="handleFilter($event)"
+      (onShow)="handlePanelShow()"
+      (onHide)="handlePanelHide()"
+      [options]="filteredOptions"
+      [optionLabel]="optionLabel"
+      [optionValue]="optionValue"
+      [optionDisabled]="optionDisabled"
+      [dataKey]="dataKey"
+      [group]="group"
+      [optionGroupLabel]="optionGroupLabel"
+      [optionGroupChildren]="optionGroupChildren"
+      [placeholder]="effectivePlaceholder"
+      [size]="size"
+      [filter]="filter"
+      [filterPlaceholder]="effectiveFilterPlaceholder"
+      [filterBy]="filterBy ?? optionLabel"
+      [autofocusFilter]="autofocusFilter"
+      [showClear]="showClear"
+      [editable]="editable"
+      [disabled]="isDisabled()"
+      [appendTo]="appendTo"
+      [styleClass]="effectiveStyleClass"
+      [panelStyleClass]="effectivePanelStyleClass"
+      [scrollHeight]="scrollHeight"
+      [virtualScroll]="virtualScroll"
+      [virtualScrollItemSize]="virtualScrollItemSize"
+      [loading]="loading"
+      [emptyMessage]="effectiveEmptyMessage"
+      [emptyFilterMessage]="effectiveEmptyFilterMessage"
+      [class.ng-invalid]="isInvalid"
+      [class.ng-touched]="ngControl?.touched"
+      fluid
+    >
+      @if (itemTemplate) {
+        <ng-template #item let-item>
+          <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }" />
+        </ng-template>
+      }
+      @if (selectedItemTemplate) {
+        <ng-template #selectedItem let-item>
+          <ng-container *ngTemplateOutlet="selectedItemTemplate; context: { $implicit: item }" />
+        </ng-template>
+      }
+      @if (groupTemplate) {
+        <ng-template #group let-group>
+          <ng-container *ngTemplateOutlet="groupTemplate; context: { $implicit: group }" />
+        </ng-template>
+      }
+      @if (headerTemplate) {
+        <ng-template #header>
+          <ng-container *ngTemplateOutlet="headerTemplate" />
+        </ng-template>
+      }
+      @if (footerTemplate) {
+        <ng-template #footer>
+          <ng-container *ngTemplateOutlet="footerTemplate" />
+        </ng-template>
+      }
+      @if (emptyTemplate) {
+        <ng-template #empty>
+          <ng-container *ngTemplateOutlet="emptyTemplate" />
+        </ng-template>
+      }
+      @if (emptyFilterTemplate) {
+        <ng-template #emptyfilter>
+          <ng-container *ngTemplateOutlet="emptyFilterTemplate" />
+        </ng-template>
+      }
+      @if (filterTemplate) {
+        <ng-template #filter let-options="options">
+          <ng-container *ngTemplateOutlet="filterTemplate; context: { $implicit: options }" />
+        </ng-template>
+      }
+      @if (loaderTemplate) {
+        <ng-template #loader>
+          <ng-container *ngTemplateOutlet="loaderTemplate" />
+        </ng-template>
+      }
+      <ng-template #clearicon>
+        <span class="es-clear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </span>
+      </ng-template>
+      <ng-template #dropdownicon>
+        <svg class="ef-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </ng-template>
+    </p-select>
   }
-  @if (serverErrors; as errors) {
-    @for (error of errors; track error) {
-      <small class="text-danger block">{{ error }}</small>
-    }
+  @if (showRequired || serverErrors) {
+    <div [id]="errorsId" role="alert" aria-live="polite">
+      @if (showRequired) {
+        <small class="text-danger">{{ 'validation.required' | translate }}</small>
+      }
+      @if (serverErrors; as errors) {
+        @for (error of errors; track error) {
+          <small class="text-danger block">{{ error }}</small>
+        }
+      }
+    </div>
   }
 </div>

@@ -1,0 +1,53 @@
+<div class="left">
+    <ng-content></ng-content>
+</div>
+
+<div class="right">
+    <!-- Custom screen actions (before the standard group). -->
+    @for (action of visibleCustomActions(); track trackByAction($index, action)) {
+        <ef-button
+            variant="comptoir"
+            size="small"
+            [severity]="action.severity ?? 'ghost'"
+            [icon]="action.icon"
+            [label]="action.label"
+            [labelKey]="action.labelKey"
+            [disabled]="!!action.disabled"
+            (clickEvent)="onCustomClick(action)"
+        />
+    }
+
+    <!-- Full-template escape hatch — anything projected here renders
+         after the customActions array, before the standard group. -->
+    <ng-content select="[actions]"></ng-content>
+
+    <!-- Separator between custom and standard groups. -->
+    @if (showSeparator()) {
+        <span class="sep" aria-hidden="true">|</span>
+    }
+
+    <!-- Standard actions: Export → Add. -->
+    @if (canExport()) {
+        <ef-button
+            variant="comptoir"
+            severity="ghost"
+            size="small"
+            icon="pi pi-download"
+            [labelKey]="exportLabelKey()"
+            [disabled]="busy()"
+            (clickEvent)="export.emit()"
+        />
+    }
+
+    @if (canAdd()) {
+        <ef-button
+            variant="comptoir"
+            severity="tenant"
+            size="small"
+            icon="pi pi-plus"
+            [labelKey]="addLabelKey()"
+            [disabled]="busy()"
+            (clickEvent)="add.emit()"
+        />
+    }
+</div>
