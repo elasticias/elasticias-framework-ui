@@ -39,6 +39,7 @@ describe('AbstractReportScreenV2', () => {
 
   beforeEach(async () => {
     sessionStorage.clear();
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [TestReportScreen],
       providers: [
@@ -109,7 +110,7 @@ describe('AbstractReportScreenV2', () => {
   });
 
   it('canExport() reflects the Export grant on the config screen', () => {
-    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+    StorageUtils.setLocal('CURRENT_USER_GRANTS', {
       TestReports: { permissions: [Permissions.Export] },
     });
     fixture.detectChanges();
@@ -121,8 +122,8 @@ describe('AbstractReportScreenV2', () => {
     expect(screen.canExport()).toBe(false);
   });
 
-  it('hasGrant() checks an arbitrary screen from the session grants', () => {
-    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+  it('hasGrant() checks an arbitrary screen from the stored grants', () => {
+    StorageUtils.setLocal('CURRENT_USER_GRANTS', {
       SalesOrders: { permissions: [Permissions.Read] },
     });
     expect((screen as any).hasGrant('SalesOrders', Permissions.Read)).toBe(true);
@@ -135,7 +136,7 @@ describe('AbstractReportScreenV2', () => {
     (screen as any).exportCsv('x.csv', [{ a: 1 }], [{ key: 'a', header: 'A' }]);
     expect(download).not.toHaveBeenCalled();
 
-    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+    StorageUtils.setLocal('CURRENT_USER_GRANTS', {
       TestReports: { permissions: [Permissions.Export] },
     });
     screen.processGrants();

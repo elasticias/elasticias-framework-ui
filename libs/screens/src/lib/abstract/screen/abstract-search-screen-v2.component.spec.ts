@@ -36,6 +36,7 @@ describe('AbstractSearchScreenV2', () => {
 
   beforeEach(async () => {
     sessionStorage.clear();
+    localStorage.clear();
     fakeService = new FakeSearchClient();
     await TestBed.configureTestingModule({
       imports: [TestSearchScreen],
@@ -91,6 +92,7 @@ describe('AbstractSearchScreenV2', () => {
   it('applies a ?status= deep-link through setStatus after bootstrap', () => {
     TestBed.resetTestingModule();
     sessionStorage.clear();
+    localStorage.clear();
     fakeService = new FakeSearchClient();
     TestBed.configureTestingModule({
       imports: [TestSearchScreen],
@@ -137,6 +139,7 @@ describe('AbstractSearchScreenV2', () => {
   it('hydrates the filter UI from cache-restored criteria', () => {
     TestBed.resetTestingModule();
     sessionStorage.clear();
+    localStorage.clear();
     fakeService = new FakeSearchClient();
     TestBed.configureTestingModule({
       imports: [TestSearchScreen],
@@ -188,6 +191,7 @@ describe('AbstractSearchScreenV2', () => {
     function createActivationScreen(cached: Record<string, unknown> | null) {
       TestBed.resetTestingModule();
       sessionStorage.clear();
+    localStorage.clear();
       fakeService = new FakeSearchClient();
       TestBed.configureTestingModule({
         imports: [ActivationScreen],

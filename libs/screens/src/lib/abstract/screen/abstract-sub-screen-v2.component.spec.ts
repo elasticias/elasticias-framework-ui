@@ -31,6 +31,7 @@ describe('AbstractSubScreenV2', () => {
 
   beforeEach(async () => {
     sessionStorage.clear();
+    localStorage.clear();
     fakeService = new FakeClient();
     await TestBed.configureTestingModule({
       imports: [TestSubScreen],
@@ -78,7 +79,7 @@ describe('AbstractSubScreenV2', () => {
   });
 
   it('grants canRead from the config SCREEN code, not the host screen', () => {
-    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+    StorageUtils.setLocal('CURRENT_USER_GRANTS', {
       TestParentScreen: { permissions: ['Read'] },
     });
     fixture.detectChanges();
