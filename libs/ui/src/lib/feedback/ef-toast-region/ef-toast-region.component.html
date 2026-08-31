@@ -1,0 +1,62 @@
+<div
+    class="toast-region"
+    [class.top-right]="position() === 'top-right'"
+    [class.top-left]="position() === 'top-left'"
+    [class.top-center]="position() === 'top-center'"
+    [class.bottom-right]="position() === 'bottom-right'"
+    [class.bottom-left]="position() === 'bottom-left'"
+    [class.bottom-center]="position() === 'bottom-center'"
+    role="region"
+    aria-live="polite"
+    [attr.aria-label]="'ef_toast_region_aria' | translate"
+>
+    @for (toast of toasts(); track trackById($index, toast)) {
+        <div
+            [class]="severityClass(toast)"
+            [style]="progressStyle(toast)"
+            role="status"
+        >
+            <div class="toast__ico">
+                <i [class]="iconClass(toast)" aria-hidden="true"></i>
+            </div>
+
+            <div class="toast__body">
+                @if (toast.title) {
+                    <div class="toast__title">{{ toast.title }}</div>
+                }
+                @if (toast.text) {
+                    <div class="toast__text">{{ toast.text }}</div>
+                }
+
+                @if (toast.actions?.length) {
+                    <div class="toast__actions">
+                        @for (action of toast.actions; track action.label || action.labelKey) {
+                            <button
+                                type="button"
+                                class="btn btn-sm"
+                                [class.btn-primary]="action.severity === 'primary'"
+                                [class.btn-ghost]="(action.severity ?? 'ghost') === 'ghost'"
+                                (click)="onActionClick(toast, action)"
+                            >
+                                {{ action.labelKey ? (action.labelKey | translate) : action.label }}
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <button
+                type="button"
+                class="toast__close"
+                [attr.aria-label]="'ef_toast_close' | translate"
+                (click)="onClose(toast)"
+            >
+                <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+
+            @if (toast.life > 0 && !hideProgress()) {
+                <div class="toast__progress"></div>
+            }
+        </div>
+    }
+</div>

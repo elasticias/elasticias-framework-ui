@@ -1,0 +1,56 @@
+.ef-pill-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: transparent;
+}
+
+.ef-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--hit);
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-mute);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--t-fast, 140ms) var(--ease-out, ease-out),
+    color var(--t-fast, 140ms) var(--ease-out, ease-out);
+
+  &:hover:not(.is-active) {
+    background: color-mix(in srgb, var(--ink-active, #0f1115) 6%, transparent);
+    color: var(--text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--ink-active, #0f1115) 40%, transparent);
+    outline-offset: 1px;
+  }
+
+  &.is-active {
+    background: var(--ink-active, #0f1115);
+    color: var(--paper);
+
+    .ef-pill__sep,
+    .ef-pill__count { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+  }
+}
+
+.ef-pill__sep {
+  color: var(--text-soft);
+}
+
+.ef-pill__count {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-mute);
+}

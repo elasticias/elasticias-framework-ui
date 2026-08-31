@@ -7,11 +7,19 @@ export { AbstractScreenComponent } from './lib/abstract/screen/abstract-screen.c
 export { AbstractDetailScreenComponent } from './lib/abstract/screen/abstract-detail-screen.component';
 export { AbstractSearchScreenComponent } from './lib/abstract/screen/abstract-search-screen.component';
 export type { ScreenDatatableColumn } from './lib/abstract/screen/abstract-search-screen.component';
+export { AbstractSearchScreenV2 } from './lib/abstract/screen/abstract-search-screen-v2.component';
+export type { AdvancedSelectFilter } from './lib/abstract/screen/abstract-search-screen-v2.component';
+export { AbstractDetailScreenV2 } from './lib/abstract/screen/abstract-detail-screen-v2.component';
+export { AbstractReportScreenV2 } from './lib/abstract/screen/abstract-report-screen-v2.component';
+export type { ReportWidget, ReportWidgetStatus } from './lib/abstract/screen/abstract-report-screen-v2.component';
 export { AbstractSubScreenComponent } from './lib/abstract/screen/abstract-sub-screen.component';
+export { AbstractSubScreenV2 } from './lib/abstract/screen/abstract-sub-screen-v2.component';
 
 // Services
 export { SCREEN_REF_DATA_SERVICE } from './lib/services/screen-reference-data.service';
 export type { ScreenReferenceDataService } from './lib/services/screen-reference-data.service';
+export { AUDIT_HISTORY_SERVICE } from './lib/services/audit-history.service';
+export type { AuditHistoryService } from './lib/services/audit-history.service';
 
 // Config
 export { ScreenStateEnum, StateUtilsEnum } from './lib/config/screen-state.enum';
@@ -23,3 +31,15 @@ export type { ReferenceDataProvider } from './lib/config/screen-context';
 // Entities
 export { SearchEntity, SortDirectionEnum, PaginationEnum } from './lib/entities/search.entity';
 export { ViewModelEntity } from './lib/entities/view-model.entity';
+export type { EfDateRange, EfDatePresetKey } from './lib/entities/date-range.entity';
+export type { ActiveFilter } from './lib/entities/active-filter.entity';
+export type { EfDetailToolbarAction } from './lib/entities/detail-toolbar-action.entity';
+export type { EfSearchToolbarAction } from './lib/entities/search-toolbar-action.entity';
+export type {
+    EfDataCardColumn,
+    EfDataCardColumnType,
+    EfDataCardColumnAlign,
+    EfDataCardSort,
+    EfDataCardSortDirection,
+    EfReferenceColumnOpts,
+} from './lib/entities/data-card-column.entity';

@@ -1,0 +1,24 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--text);
+}
+
+.ef-app-main__stripe {
+  flex: 0 0 auto;
+  height: 3px;
+  background: var(--module);
+}
+
+.ef-app-main__content {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: var(--s-5) var(--s-6) var(--s-7); /* 20/24/32 — more breathing room */
+  display: grid;
+  align-content: start;
+}

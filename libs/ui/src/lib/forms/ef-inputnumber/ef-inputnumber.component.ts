@@ -15,42 +15,68 @@ import {
   InputNumberModule,
 } from 'primeng/inputnumber';
 import { Nullable } from 'primeng/ts-helpers';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
+import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
+import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 
+/**
+ * Comptoir number input.
+ *
+ * Two render variants share the same API:
+ * - `'comptoir'` (default) — native `<input type="text" inputmode="decimal">`
+ *   styled against `.ef-input` / `.ef-input-group`. Lean, no locale
+ *   formatting on display, but data entry accepts both `,` and `.` as
+ *   the decimal separator (fr-MA users type commas) and ignores
+ *   space group separators; pair with `suffix="MAD"` for unit display
+ *   in dense grids (variants table, inventory adjustments, etc.).
+ *   See ADR-009.
+ * - `'primeng'`            — wraps `p-inputnumber`. Full locale-aware
+ *   currency / decimal formatting, stepper buttons, prefix / suffix.
+ *
+ * Identity / label / placeholder / aria / required / readonly /
+ * disabled are inherited from `AbstractEfFormControl`.
+ *
+ * ```html
+ * <ef-inputnumber
+ *   labelKey="catalog.price"
+ *   variant="primeng"
+ *   mode="currency" currency="MAD" locale="fr-MA"
+ *   [(value)]="variant.price" />
+ *
+ * <ef-inputnumber
+ *   labelKey="catalog.inventory"
+ *   variant="comptoir"
+ *   [showButtons]="true" buttonLayout="horizontal"
+ *   [min]="0" [step]="1"
+ *   [(value)]="variant.inventoryQuantity" />
+ * ```
+ */
 @Component({
   selector: 'ef-inputnumber',
   standalone: true,
   templateUrl: './ef-inputnumber.component.html',
   styleUrls: ['./ef-inputnumber.component.scss'],
-  imports: [InputNumberModule, FormsModule, TranslateModule, EfLabelComponent],
+  imports: [InputNumberModule, FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
 })
-export class EfInputNumberComponent implements ControlValueAccessor {
+export class EfInputNumberComponent
+  extends AbstractEfFormControl
+  implements ControlValueAccessor
+{
   @ViewChild('inputNumber', { static: false }) inputNumber?: InputNumber;
 
-  // ============================================================================
-  // LABEL & VALIDATION
-  // ============================================================================
+  /* Identity / label / placeholder / aria / required / readonly /
+     disabled all inherited from AbstractEfFormControl. */
 
-  @Input() label?: string;
-  @Input() labelKey?: string;
-  @Input({ transform: booleanAttribute }) required = false;
-
-  // ============================================================================
-  // VALUE & MODEL
-  // ============================================================================
+  /* ── Value & state ──────────────────────────────────────────── */
 
   @Input() value?: Nullable<number>;
   @Input() invalid = false;
-  @Input() disabled?: boolean;
-  @Input() readonly = false;
 
-  // ============================================================================
-  // FORMAT & DISPLAY
-  // ============================================================================
+  /* ── Format & display (primeng variant) ──────────────────────── */
 
   @Input() format = true;
-  @Input() showButtons = false;
+  @Input({ transform: booleanAttribute }) showButtons = false;
   @Input() buttonLayout: 'stacked' | 'horizontal' | 'vertical' = 'stacked';
   @Input() incrementButtonClass?: string;
   @Input() decrementButtonClass?: string;
@@ -67,102 +93,108 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   @Input() minFractionDigits?: number;
   @Input() maxFractionDigits?: number;
 
-  // ============================================================================
-  // CONSTRAINTS
-  // ============================================================================
+  /* ── Constraints ─────────────────────────────────────────────── */
 
   @Input() min?: number;
   @Input() max?: number;
   @Input() step = 1;
   @Input() allowEmpty = true;
 
-  // ============================================================================
-  // INPUT ATTRIBUTES
-  // ============================================================================
+  /* ── Input attributes ────────────────────────────────────────── */
 
-  @Input() inputId?: string;
-  @Input() name?: string;
-  @Input() placeholder?: string;
-  @Input() placeholderKey?: string;
   @Input() inputSize?: number;
-  @Input() size?: 'small' | 'large' = 'small';
+  /** Default (undefined) = canonical `--hit-base` (40px); `'small'` = dense 32px. */
+  @Input() size?: 'small' | 'large';
   @Input() maxlength?: number;
   @Input() minlength?: number;
   @Input() pattern?: string;
   @Input() tabindex?: number;
   @Input() title?: string;
-  @Input() ariaLabel?: string;
   @Input() ariaLabelledBy?: string;
-  @Input() ariaDescribedBy?: string;
-  @Input() ariaRequired?: boolean;
   @Input() inputStyle?: any;
   @Input() inputStyleClass?: string;
   @Input() style?: any;
   @Input() styleClass?: string;
-  @Input() showClear = false;
-  @Input() variant?: 'filled' | 'outlined';
-  @Input() autofocus?: boolean;
+  /* showClear inherited from AbstractEfFormControl (default true). */
+  /** PrimeNG visual variant (`'filled'` | `'outlined'`) — only
+   *  honored when {@link variant} === 'primeng'. */
+  @Input() primeNgVariant?: 'filled' | 'outlined';
+  @Input({ transform: booleanAttribute }) autofocus = false;
   @Input() autocomplete?: string;
-  @Input() fluid?: boolean = true;
+  @Input() fluid: boolean = true;
   @Input({ transform: booleanAttribute }) inline = false;
+
+  /**
+   * Render variant.
+   * - `'comptoir'` (default) — native `<input type="text" inputmode="decimal">`
+   *                           styled against `.ef-input` / `.ef-input-group`,
+   *                           at the canonical `--hit-base` (40px) height.
+   *                           Accepts `,` and `.` as decimal separator.
+   * - `'primeng'`            — wraps `p-inputnumber`. Opt in for PrimeNG's
+   *                           formatted stepper behaviour.
+   * See ADR-009 for why comptoir is the height-consistent default.
+   */
+  @Input() variant: 'primeng' | 'comptoir' = 'comptoir';
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
-  // ============================================================================
-  // STYLING & CUSTOMIZATION
-  // ============================================================================
+  /* ── Styling pass-through (primeng variant) ─────────────────── */
 
   @Input() pt?: any;
   @Input() ptOptions?: any;
   @Input() dt?: any;
   @Input() unstyled?: boolean;
 
-  // ============================================================================
-  // EVENTS
-  // ============================================================================
+  /* ── Events ──────────────────────────────────────────────────── */
 
   @Output() inputEvent = new EventEmitter<InputNumberInputEvent>();
+  @Output() valueChangeEvent: EventEmitter<number | null> = new EventEmitter<number | null>();
   @Output() focusEvent = new EventEmitter<Event>();
   @Output() blurEvent = new EventEmitter<Event>();
   @Output() keyDownEvent = new EventEmitter<KeyboardEvent>();
   @Output() clearEvent = new EventEmitter<void>();
 
-  // ============================================================================
-  // CONTROL VALUE ACCESSOR
-  // ============================================================================
+  /* ── Clearable (showClear / canClear inherited from the base) ── */
+
+  /** A number field is clearable when it holds any value (including 0). */
+  protected override get hasValue(): boolean {
+    return this.value != null;
+  }
+
+  override clearValue(): void {
+    this.handleClear();
+  }
+
+  /* ── CVA ─────────────────────────────────────────────────────── */
 
   private onChange: (value: any) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
 
   readonly ngControl = inject(NgControl, { self: true, optional: true });
-  private readonly translateService = inject(TranslateService);
 
   constructor() {
+    super();
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
   }
 
-  get effectivePlaceholder(): string {
-    return this.placeholderKey ? this.translateService.instant(this.placeholderKey) : (this.placeholder ?? '');
-  }
-
-  get effectiveId(): string {
-    return this.inputId ?? this.name ?? '';
-  }
+  /* effectiveId / effectivePlaceholder / effectiveAriaLabel /
+     errorsId all inherited from AbstractEfFormControl. */
 
   get showRequired(): boolean {
     const ctrl = this.ngControl?.control;
-    return ctrl?.hasError('required') && ctrl?.touched;
+    return !!(ctrl?.hasError('required') && ctrl?.touched);
   }
 
   get serverErrors(): string[] | null {
-    return this.ngControl?.control?.errors?.serverError ?? null;
+    return this.resolvedExternalErrors() ?? this.ngControl?.control?.errors?.['serverError'] ?? null;
   }
 
   get isInvalid(): boolean {
+    if (this.resolvedExternalErrors()?.length) return true;
     const ctrl = this.ngControl?.control;
-    return this.invalid || (ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
+    return this.invalid || !!(ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
   }
 
   writeValue(value: any): void {
@@ -178,17 +210,77 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.updateDisabledState(isDisabled);
   }
 
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
+  /* ── Event handlers ─────────────────────────────────────────── */
 
   handleInput(event: InputNumberInputEvent): void {
-    this.value = event.value;
-    this.onChange(event.value);
+    const next = (event.value ?? null) as number | null;
+    this.value = next;
+    this.onChange(next);
     this.inputEvent.emit(event);
+    this.valueChangeEvent.emit(next);
+  }
+
+  /** Comptoir native input handler — the text input emits a raw
+   *  string; normalize + coerce to number or null (empty / invalid). */
+  handleNativeInput(raw: string): void {
+    const next = this.parseComptoirValue(raw);
+    this.value = next;
+    this.onChange(next);
+    this.valueChangeEvent.emit(next);
+  }
+
+  /**
+   * Parses comptoir free-text numeric entry.
+   *
+   * fr-MA users type commas as the decimal separator (`23,50`), while
+   * `Number()` only understands `.` — so a comma is normalized to a
+   * dot before parsing, and spaces (JS `\s` covers NBSP / narrow-NBSP
+   * group separators) are stripped. Both `23,50` and `23.50` parse to
+   * 23.5; unparseable text yields `null` (existing empty semantics).
+   */
+  private parseComptoirValue(raw: string): number | null {
+    if (raw == null) return null;
+    const normalized = raw.replace(/\s/g, '').replace(/,/g, '.');
+    if (normalized === '') return null;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  /**
+   * Blur-time clamp for the comptoir variant. The native input no
+   * longer carries `min` / `max` attributes (it's `type="text"`), so
+   * range enforcement — previously only advisory on `type="number"`
+   * anyway — happens here, and the field text is re-synced to the
+   * canonical parsed value (e.g. a dangling `23,` becomes `23`).
+   */
+  private clampAndReflect(el: HTMLInputElement | null): void {
+    const current = this.value ?? null;
+    let next = current;
+    if (next != null) {
+      if (this.min != null && next < this.min) next = this.min;
+      if (this.max != null && next > this.max) next = this.max;
+    }
+    if (next !== current) {
+      this.value = next;
+      this.onChange(next);
+      this.valueChangeEvent.emit(next);
+    }
+    if (el) el.value = next == null ? '' : String(next);
+  }
+
+  /** Comptoir stepper buttons handler — bumps `value` by `step`,
+   *  clamped to `min` / `max`. */
+  step$(direction: 1 | -1): void {
+    const current = this.value ?? 0;
+    let next = current + direction * (this.step ?? 1);
+    if (this.min != null) next = Math.max(this.min, next);
+    if (this.max != null) next = Math.min(this.max, next);
+    this.value = next;
+    this.onChange(next);
+    this.valueChangeEvent.emit(next);
   }
 
   handleFocus(event: Event): void {
@@ -196,6 +288,9 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   }
 
   handleBlur(event: Event): void {
+    if (this.variant === 'comptoir') {
+      this.clampAndReflect((event.target as HTMLInputElement | null) ?? null);
+    }
     this.onTouched();
     this.blurEvent.emit(event);
   }
@@ -207,12 +302,9 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   handleClear(): void {
     this.value = null;
     this.onChange(null);
+    this.valueChangeEvent.emit(null);
     this.clearEvent.emit();
   }
-
-  // ============================================================================
-  // PUBLIC METHODS
-  // ============================================================================
 
   focus(): void {
     this.inputNumber?.input?.nativeElement?.focus();
@@ -221,7 +313,7 @@ export class EfInputNumberComponent implements ControlValueAccessor {
   clear(): void {
     if (this.inputNumber) {
       this.inputNumber.clear();
-      this.handleClear();
     }
+    this.handleClear();
   }
 }

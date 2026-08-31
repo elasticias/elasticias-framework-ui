@@ -12,6 +12,15 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 
+/**
+ * @deprecated Wraps PrimeNG `p-datepicker`, which does not follow the
+ * Comptoir design system. Prefer `ef-datepicker-advanced` in **field
+ * mode** (`mode="field"`, `selectionMode="single" | "range"`) — it is a
+ * Comptoir-native form control (ControlValueAccessor) with the same
+ * `[(ngModel)]` / `formControlName` binding and a `Date` / `[start, end]`
+ * value shape. This wrapper is kept only for legacy V1 screens and will
+ * be removed once they are migrated.
+ */
 @Component({
   selector: 'ef-datepicker',
   standalone: true,
