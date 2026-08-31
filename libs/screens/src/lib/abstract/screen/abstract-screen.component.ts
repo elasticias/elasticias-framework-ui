@@ -91,7 +91,7 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
    * `context.isGranted(...)`.
    */
   protected hasGrant(screen: string, permission: Permissions): boolean {
-    const grants = StorageUtils.getSession<
+    const grants = StorageUtils.getLocal<
       Record<string, { permissions?: string[] }>
     >('CURRENT_USER_GRANTS');
     return !!grants?.[screen]?.permissions?.includes(permission);
