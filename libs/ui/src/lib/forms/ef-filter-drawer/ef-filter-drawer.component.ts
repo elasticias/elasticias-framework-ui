@@ -71,5 +71,9 @@ export class EfFilterDrawerComponent {
     readonly hideApply = input(false, { transform: booleanAttribute });
 
     readonly apply = output<void>();
+    // `reset` shadows a native DOM event name. Renaming this output would
+    // churn every consumer template, so the name stays and the rule is
+    // suppressed here deliberately.
+    // eslint-disable-next-line @angular-eslint/no-output-native
     readonly reset = output<void>();
 }

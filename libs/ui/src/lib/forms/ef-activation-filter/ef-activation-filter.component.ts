@@ -31,7 +31,7 @@ import { TranslateModule } from '@ngx-translate/core';
     imports: [TranslateModule],
     template: `
         <div class="field">
-            <label [id]="labelId">{{ labelKey() | translate }}</label>
+            <span class="field-label" [id]="labelId">{{ labelKey() | translate }}</span>
             <div class="pill-group" role="tablist" [attr.aria-labelledby]="labelId">
                 @for (bucket of buckets(); track bucket.key) {
                     <button

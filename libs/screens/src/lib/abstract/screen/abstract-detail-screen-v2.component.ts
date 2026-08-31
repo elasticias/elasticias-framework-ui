@@ -2,7 +2,6 @@ import {
     Component,
     DestroyRef,
     Injector,
-    OnDestroy,
     OnInit,
     computed,
     inject,
@@ -59,7 +58,7 @@ import { AUDIT_HISTORY_SERVICE } from '../../services/audit-history.service';
 @Component({ template: '', standalone: true })
 export abstract class AbstractDetailScreenV2<TItem extends object = any>
     extends AbstractScreenComponent
-    implements OnInit, OnDestroy
+    implements OnInit
 {
     protected readonly screenState = ScreenStateEnum.DETAIL;
     protected readonly injector = inject(Injector);
@@ -342,7 +341,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     }
 
     /** Subclass print hook — no-op default. */
-    print(): void {}
+    print(): void { /* no-op */ }
 
     /**
      * Load the standardized change-history into `auditEntries` when the config
@@ -390,7 +389,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     /** Override to post-process the loaded `entity` (or to refresh
      *  derived signals). Default: no-op. */
-    protected afterLoad(): void {}
+    protected afterLoad(): void { /* no-op */ }
 
     /**
      * Default post-save behaviour:
@@ -420,7 +419,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     /** Override to surface form-level validation errors after a 4xx
      *  response. Default: no-op (errors are already on `serverErrors`). */
-    protected onSaveError(_errors: { [key: string]: string[] }): void {}
+    protected onSaveError(_errors: { [key: string]: string[] }): void { /* no-op */ }
 
     /** Strip id (if present) from the entity before a duplicate save. */
     protected prepareEntityForDuplication(): any {
@@ -451,8 +450,4 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         return m ? m[1] : url;
     }
 
-    ngOnDestroy(): void {
-        // The route subscription is auto-unsubscribed via takeUntilDestroyed.
-        // Subclasses can override to release their own resources.
-    }
 }

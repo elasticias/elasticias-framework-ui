@@ -19,7 +19,7 @@
       (change)="handleNativeSelectChange($any($event.target).value)"
     >
       @if (effectivePlaceholder) {
-        <option value="" [selected]="value == null">— {{ effectivePlaceholder }} —</option>
+        <option value="" [selected]="value === null || value === undefined">— {{ effectivePlaceholder }} —</option>
       }
       @for (opt of filteredOptions; track $index) {
         <option

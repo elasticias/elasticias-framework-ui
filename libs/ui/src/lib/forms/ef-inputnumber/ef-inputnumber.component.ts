@@ -121,7 +121,7 @@ export class EfInputNumberComponent
   @Input() primeNgVariant?: 'filled' | 'outlined';
   @Input({ transform: booleanAttribute }) autofocus = false;
   @Input() autocomplete?: string;
-  @Input() fluid: boolean = true;
+  @Input() fluid = true;
   @Input({ transform: booleanAttribute }) inline = false;
 
   /**
