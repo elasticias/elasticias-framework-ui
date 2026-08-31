@@ -61,8 +61,12 @@ export interface EfPresetItem<T = string> {
                 @for (preset of presets(); track preset.key) {
                     <div
                         class="preset"
+                        role="button"
+                        tabindex="0"
                         [class.active]="preset.key === activeKey()"
                         (click)="select(preset); $event.stopPropagation()"
+                        (keydown.enter)="select(preset); $event.stopPropagation()"
+                        (keydown.space)="select(preset); $event.stopPropagation()"
                     >
                         <span>
                             {{ preset.labelKey ? (preset.labelKey | translate) : (preset.label ?? '') }}

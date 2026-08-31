@@ -2,7 +2,6 @@ import {
   Component,
   inject,
   Injector,
-  OnDestroy,
   OnInit,
   Signal,
   signal,
@@ -61,7 +60,7 @@ export interface ReportWidget<T> {
 @Component({ template: '', standalone: true })
 export abstract class AbstractReportScreenV2
   extends AbstractScreenComponent
-  implements OnInit, OnDestroy
+  implements OnInit
 {
   protected readonly screenState = ScreenStateEnum.REPORT;
   protected readonly injector = inject(Injector);
@@ -219,7 +218,4 @@ export abstract class AbstractReportScreenV2
     );
   }
 
-  ngOnDestroy(): void {
-    // NSwag observables complete after one emission — nothing to tear down.
-  }
 }

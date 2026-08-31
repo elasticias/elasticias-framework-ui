@@ -14,7 +14,7 @@
           <button
             type="button"
             class="ef-input-addon is-stepper"
-            [disabled]="isDisabled() || (min != null && (value ?? 0) <= min)"
+            [disabled]="isDisabled() || (min !== undefined && (value ?? 0) <= min)"
             (click)="step$(-1)"
             [attr.aria-label]="('ef_input_decrement' | translate) || 'Decrease'"
           >
@@ -57,7 +57,7 @@
           <button
             type="button"
             class="ef-input-addon is-stepper"
-            [disabled]="isDisabled() || (max != null && (value ?? 0) >= max)"
+            [disabled]="isDisabled() || (max !== undefined && (value ?? 0) >= max)"
             (click)="step$(1)"
             [attr.aria-label]="('ef_input_increment' | translate) || 'Increase'"
           >

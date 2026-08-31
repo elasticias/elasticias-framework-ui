@@ -2,7 +2,6 @@ import {
   Component,
   inject,
   Injector,
-  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
@@ -35,7 +34,7 @@ import { AbstractScreenComponent } from './abstract-screen.component';
 @Component({ template: '', standalone: true })
 export abstract class AbstractSubScreenV2
   extends AbstractScreenComponent
-  implements OnInit, OnDestroy
+  implements OnInit
 {
   protected readonly screenState = null;
   protected readonly injector = inject(Injector);
@@ -80,8 +79,4 @@ export abstract class AbstractSubScreenV2
     }
   }
 
-  ngOnDestroy(): void {
-    // NSwag observables complete after one emission — nothing to tear
-    // down; subclasses override when they hold live subscriptions.
-  }
 }

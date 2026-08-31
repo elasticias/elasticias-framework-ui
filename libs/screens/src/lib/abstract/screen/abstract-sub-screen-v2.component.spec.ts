@@ -10,7 +10,7 @@ import { SCREEN_REF_DATA_SERVICE } from '../../services/screen-reference-data.se
 class FakeClient {}
 
 class TestConfig extends ScreenConfig {
-  static SCREEN: string = 'TestParentScreen';
+  static SCREEN = 'TestParentScreen';
   static SERVICE: any = FakeClient;
 }
 
@@ -40,19 +40,19 @@ describe('AbstractSubScreenV2', () => {
         { provide: FakeClient, useValue: fakeService },
         {
           provide: CacheService,
-          useValue: { configure() {}, getCache: () => null, setCache() {} },
+          useValue: { configure() { /* no-op */ }, getCache: () => null, setCache() { /* no-op */ } },
         },
-        { provide: ToastService, useValue: { showSuccess() {}, showError() {} } },
-        { provide: ConfirmDialogService, useValue: { confirm() {} } },
+        { provide: ToastService, useValue: { showSuccess() { /* no-op */ }, showError() { /* no-op */ } } },
+        { provide: ConfirmDialogService, useValue: { confirm() { /* no-op */ } } },
         {
           provide: SCREEN_REF_DATA_SERVICE,
           useValue: {
             getReference: () => signal([]),
             hasReference: () => false,
-            loadReferenceKeys: async () => {},
-            loadStaticRefs: async () => {},
-            refreshKeys: async () => {},
-            invalidateKeys: async () => {},
+            loadReferenceKeys: async () => { /* no-op */ },
+            loadStaticRefs: async () => { /* no-op */ },
+            refreshKeys: async () => { /* no-op */ },
+            invalidateKeys: async () => { /* no-op */ },
           },
         },
       ],

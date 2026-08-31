@@ -17,7 +17,7 @@ import { SCREEN_REF_DATA_SERVICE } from '../../services/screen-reference-data.se
 class FakeReportsClient {}
 
 class TestConfig extends ScreenConfig {
-  static SCREEN: string = 'TestReports';
+  static SCREEN = 'TestReports';
   static SERVICE: any = FakeReportsClient;
   static DEFAULT_PERIOD = 'this_year';
 }
@@ -47,19 +47,19 @@ describe('AbstractReportScreenV2', () => {
         { provide: FakeReportsClient, useValue: new FakeReportsClient() },
         {
           provide: CacheService,
-          useValue: { configure() {}, getCache: () => null, setCache() {} },
+          useValue: { configure() { /* no-op */ }, getCache: () => null, setCache() { /* no-op */ } },
         },
-        { provide: ToastService, useValue: { showSuccess() {}, showError() {} } },
-        { provide: ConfirmDialogService, useValue: { confirm() {} } },
+        { provide: ToastService, useValue: { showSuccess() { /* no-op */ }, showError() { /* no-op */ } } },
+        { provide: ConfirmDialogService, useValue: { confirm() { /* no-op */ } } },
         {
           provide: SCREEN_REF_DATA_SERVICE,
           useValue: {
             getReference: () => signal([]),
             hasReference: () => false,
-            loadReferenceKeys: async () => {},
-            loadStaticRefs: async () => {},
-            refreshKeys: async () => {},
-            invalidateKeys: async () => {},
+            loadReferenceKeys: async () => { /* no-op */ },
+            loadStaticRefs: async () => { /* no-op */ },
+            refreshKeys: async () => { /* no-op */ },
+            invalidateKeys: async () => { /* no-op */ },
           },
         },
       ],
@@ -131,7 +131,7 @@ describe('AbstractReportScreenV2', () => {
   });
 
   it('exportCsv() downloads only when the Export grant is held', () => {
-    const download = vi.spyOn(CsvUtils, 'download').mockImplementation(() => {});
+    const download = vi.spyOn(CsvUtils, 'download').mockImplementation(() => { /* no-op */ });
     fixture.detectChanges();
     (screen as any).exportCsv('x.csv', [{ a: 1 }], [{ key: 'a', header: 'A' }]);
     expect(download).not.toHaveBeenCalled();

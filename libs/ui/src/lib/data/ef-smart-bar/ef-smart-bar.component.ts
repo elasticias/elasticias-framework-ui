@@ -110,6 +110,10 @@ export class EfSmartBarComponent {
     readonly hideSearch = input(false, { transform: booleanAttribute });
     readonly loading = input(false, { transform: booleanAttribute });
 
+    // `search` shadows a native DOM event name. Renaming this output would
+    // churn every consumer template, so the name stays and the rule is
+    // suppressed here deliberately.
+    // eslint-disable-next-line @angular-eslint/no-output-native
     readonly search = output<string>();
     readonly clear = output<void>();
 

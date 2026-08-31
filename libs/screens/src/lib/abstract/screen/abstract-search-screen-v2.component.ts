@@ -3,7 +3,6 @@ import {
   computed,
   inject,
   Injector,
-  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
@@ -78,7 +77,7 @@ export interface AdvancedSelectFilter {
 @Component({ template: '', standalone: true })
 export abstract class AbstractSearchScreenV2<TItem = any>
   extends AbstractScreenComponent
-  implements OnInit, OnDestroy
+  implements OnInit
 {
   protected readonly screenState = ScreenStateEnum.SEARCH;
   protected readonly injector = inject(Injector);
@@ -799,8 +798,4 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     });
   }
 
-  ngOnDestroy(): void {
-    // Subclasses can override to clean up subscriptions; nothing to
-    // tear down on the base since search subscriptions auto-complete.
-  }
 }

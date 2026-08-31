@@ -38,7 +38,11 @@ import { EfSkeletonComponent, EfSkeletonVariant } from '../../feedback/ef-skelet
                 class="card-head"
                 [class.tone-module]="tone() === 'module'"
                 [class.is-collapsible]="collapsible()"
+                [attr.role]="collapsible() ? 'button' : null"
+                [attr.tabindex]="collapsible() ? 0 : null"
                 (click)="onHeadClick()"
+                (keydown.enter)="onHeadClick()"
+                (keydown.space)="onHeadClick()"
             >
                 <div>
                     @if (titleKey() || title()) {
@@ -52,7 +56,13 @@ import { EfSkeletonComponent, EfSkeletonVariant } from '../../feedback/ef-skelet
                         </div>
                     }
                 </div>
-                <div class="card-head-actions" (click)="$event.stopPropagation()">
+                <!-- eslint-disable-next-line @angular-eslint/template/interactive-supports-focus -->
+                <div
+                    class="card-head-actions"
+                    (click)="$event.stopPropagation()"
+                    (keydown.enter)="$event.stopPropagation()"
+                    (keydown.space)="$event.stopPropagation()"
+                >
                     <ng-content select="[head-extra]"></ng-content>
                     @if (collapsible()) {
                         <button

@@ -52,6 +52,6 @@ export class NumberUtils {
       }
     }
 
-    return `${sign}${format(scaled, maxDecimals)} ${unit.suffix}`;
+    return `${sign}${format(scaled, maxDecimals)}\u00A0${unit.suffix}`;
   }
 }
