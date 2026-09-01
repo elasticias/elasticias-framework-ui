@@ -53,3 +53,6 @@ vitest.config.*.timestamp*
 # Secrets / env files with real credentials
 .env*
 *.env*
+
+# Never commit registry credentials; CI authenticates via NODE_AUTH_TOKEN.
+.npmrc
