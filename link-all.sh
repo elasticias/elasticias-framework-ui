@@ -14,6 +14,7 @@ ALL_LIBS=(types utils core screens ui)
 # All consumer apps
 CLIENT_APPS=(
   "$WORKSPACE_ROOT/apps/elasticerp/src/Web/ClientApp"
+  "$WORKSPACE_ROOT/apps/elasticerp/src/Web/ClientAppV2"
   "$WORKSPACE_ROOT/apps/ElasticStore/src/Web/ClientApp"
 )
 

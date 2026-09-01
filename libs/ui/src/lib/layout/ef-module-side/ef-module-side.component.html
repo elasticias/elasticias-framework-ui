@@ -1,0 +1,53 @@
+@if (module(); as m) {
+  <div class="ef-module-side__scroll">
+    <header class="ef-module-side__header">
+      <span
+        class="ef-module-side__header-icon"
+        [style.--m-color]="'var(--' + m.accent + ')'"
+        aria-hidden="true"
+      >
+        @if (m.icon) {
+          <i [class]="m.icon"></i>
+        }
+      </span>
+      <span class="ef-module-side__header-text">
+        <span class="ef-module-side__name">{{ m.labelKey | translate }}</span>
+        <span class="ef-module-side__meta">
+          <ng-content select="[side-header-meta]"></ng-content>
+        </span>
+      </span>
+    </header>
+
+    @for (section of visibleSections(); track section.id) {
+      <section class="ef-module-side__section">
+        @if (section.labelKey) {
+          <h3 class="ef-module-side__section-title">{{ section.labelKey | translate }}</h3>
+        }
+        <ul class="ef-module-side__list">
+          @for (item of section.items; track item.id) {
+            <li>
+              <a
+                class="ef-module-side__item"
+                [routerLink]="item.route"
+                routerLinkActive="is-active"
+                [routerLinkActiveOptions]="{ exact: false }"
+              >
+                @if (item.icon) {
+                  <i class="ef-module-side__icon" [class]="item.icon" aria-hidden="true"></i>
+                }
+                <span class="ef-module-side__label">{{ item.labelKey | translate }}</span>
+                @if (item.badge !== undefined && item.badge !== null) {
+                  <span class="ef-module-side__badge">{{ item.badge }}</span>
+                }
+              </a>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+
+  <div class="ef-module-side__footer">
+    <ng-content></ng-content>
+  </div>
+}

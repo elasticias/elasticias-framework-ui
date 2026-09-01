@@ -4,10 +4,10 @@ import {
   effect,
   input,
   model,
-  OnDestroy,
   OnInit,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,22 +23,19 @@ import {
   OrderProductsSummary,
   OrderSummaryItem,
 } from './ef-order-builder.component.types';
-import { TextareaModule } from 'primeng/textarea';
-import { TableModule } from 'primeng/table';
-import { FieldsetModule } from 'primeng/fieldset';
-import { DividerModule } from 'primeng/divider';
-import { TooltipModule } from 'primeng/tooltip';
-import {
-  EfOrderSummaryComponent,
-  ProductCountGroupLabel,
-} from '../ef-order-summary/ef-order-summary.component';
+import { ProductCountGroupLabel } from '../ef-order-summary/ef-order-summary.component';
 import { EfSelectComponent } from '../../forms/ef-select/ef-select.component';
-import { EfDatepickerComponent } from '../../forms/ef-datepicker/ef-datepicker.component';
+import { EfDatepickerAdvancedComponent } from '../../forms/ef-datepicker-advanced/ef-datepicker-advanced.component';
 import { EfInputNumberComponent } from '../../forms/ef-inputnumber/ef-inputnumber.component';
+import { EfQuantityStepperComponent } from '../../forms/ef-quantity-stepper/ef-quantity-stepper.component';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
-import { EfFieldsetComponent } from '../../layout/ef-fieldset/ef-fieldset.component';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
-import { UuidUtils, AppUtils } from '@elasticias/utils';
+import { EfCardComponent } from '../../layout/ef-card/ef-card.component';
+import { EfChangeHistoryComponent } from '../../data/ef-change-history/ef-change-history.component';
+import { EfChangeHistoryEntry } from '../../data/ef-change-history/ef-change-history.types';
+import { EfProductTypeaheadComponent } from '../ef-product-typeahead/ef-product-typeahead.component';
+import { ProductTypeaheadSelection } from '../ef-product-typeahead/ef-product-typeahead.component.types';
+import { UuidUtils } from '@elasticias/utils';
 
 /**
  * Reusable order builder component for orders, invoices, and quotes
@@ -54,6 +51,9 @@ import { UuidUtils, AppUtils } from '@elasticias/utils';
  *   (orderChanged)="handleOrderChange($event)"
  * />
  */
+/** Numeric line columns that support inline click-to-edit. */
+type EditableLineField = 'price' | 'qty' | 'discount' | 'tva';
+
 @Component({
   selector: 'ef-order-builder',
   standalone: true,
@@ -63,34 +63,28 @@ import { UuidUtils, AppUtils } from '@elasticias/utils';
     CommonModule,
     FormsModule,
     TranslateModule,
-    TextareaModule,
-    TableModule,
-    FieldsetModule,
-    DividerModule,
-    TooltipModule,
-    EfOrderSummaryComponent,
     EfSelectComponent,
-    EfDatepickerComponent,
+    EfDatepickerAdvancedComponent,
     EfInputNumberComponent,
+    EfQuantityStepperComponent,
     EfLabelComponent,
-    EfFieldsetComponent,
     EfButtonComponent,
+    EfCardComponent,
+    EfChangeHistoryComponent,
+    EfProductTypeaheadComponent,
   ],
 })
-export class EfOrderBuilderComponent implements OnInit, OnDestroy {
+export class EfOrderBuilderComponent implements OnInit {
   rowTrackBy = (_: number, item: OrderLineItem) => item.id;
-
-  // Expose AppUtils to template
-  protected readonly AppUtils = AppUtils;
 
   config = input<DocumentConfig>({
     documentType: 'order',
-    headerLabel: 'Commamnde',
+    headerLabel: 'Commande',
     dateLabel: 'Date de commande',
     customerLabel: 'Client',
-    enableTax: true,
+    enableTax: false,
     enableDiscount: true,
-    showCatalogue: true,
+    showCatalogue: false,
     allowInlineEdit: true,
     currencyCode: 'MAD',
     locale: 'fr-FR',
@@ -105,73 +99,27 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
   productKeyField = input<string>('id');
   backendErrors = input<{ [key: string]: string[] }>({});
 
+  /** Optional change-history entries; when non-empty the Historique rail card renders. */
+  auditEntries = input<EfChangeHistoryEntry[]>([]);
+
   openCatalogue = output<void>();
   orderChanged = output<OrderChangeInfo>();
   orderValidated = output<ValidationResult>();
   productsAdded = output<OrderLineItem[]>();
 
   private originalOrder = signal<OrderEntity | null>(null);
-  private updateTimeout: ReturnType<typeof setTimeout> | null = null;
   private initialized = signal(false);
 
-  quickAddProduct = signal<Record<string, unknown> | null>(null);
+  quickAddSelection = signal<ProductTypeaheadSelection | null>(null);
   quickAddPrice = signal<number>(0);
   quickAddQuantity = signal<number>(1);
 
   quickAddDisabled = computed(
     () =>
-      this.quickAddProduct() === null || (this.quickAddQuantity() ?? 0) <= 0,
+      this.quickAddSelection() === null || (this.quickAddQuantity() ?? 0) <= 0,
   );
 
   orderLines = computed(() => this.order().orderLines || []);
-
-  /**
-   * Flatten products → one option per active variant for the inline ef-select.
-   * Simple products (no variants) get a single row with the product label.
-   * Each option exposes `_displayLabel` for `optionLabel` and carries the
-   * underlying product/variant references for `onProductSelect`.
-   */
-  flattenedProductOptions = computed<Array<Record<string, unknown>>>(() => {
-    const keyField = this.productKeyField();
-    const list: Array<Record<string, unknown>> = [];
-
-    for (const product of this.products()) {
-      const variants = product['variants'] as
-        | Array<Record<string, unknown>>
-        | undefined;
-      const activeVariants = (variants ?? []).filter(
-        (v) => v['isActive'] !== false,
-      );
-      const productLabel = (product['displayName'] ||
-        product['name'] ||
-        '') as string;
-
-      if (activeVariants.length === 0) {
-        list.push({
-          _product: product,
-          _variant: null,
-          _displayLabel: productLabel,
-          _key: `${product[keyField]}::`,
-        });
-        continue;
-      }
-
-      for (const variant of activeVariants) {
-        const variantTitle = (variant['title'] || '') as string;
-        const label = variantTitle
-          ? `${productLabel} - ${variantTitle}`
-          : productLabel;
-        list.push({
-          _product: product,
-          _variant: variant,
-          _displayLabel: label,
-          _key: `${product[keyField]}::${variant['variantId']}`,
-        });
-      }
-    }
-
-    return list;
-  });
 
   grossTotal = computed(() => {
     return this.orderLines().reduce((total, item) => {
@@ -243,10 +191,6 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     return { items, totalCount };
   });
 
-  hasEditingRow = computed(() =>
-    this.orderLines().some((item) => item.isEditing),
-  );
-
   validationResult = computed(() => {
     return OrderEntityHelper.validate(this.order());
   });
@@ -274,27 +218,90 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
 
   hasChanges = computed(() => this.changeInfo()?.hasChanges ?? false);
 
+  focusMode = model(true);
+  railOpen = signal(false);
+
+  /**
+   * Inline cell editing — lines render their numeric values as read-only text
+   * until the user clicks a value, which swaps just that cell to an input
+   * (V1 behaviour). One cell is editable at a time; blur / Enter / Escape /
+   * Tab commits and returns the cell to display.
+   */
+  editingCell = signal<{
+    id: OrderLineItem['id'];
+    field: EditableLineField;
+  } | null>(null);
+
+  /** Number of table columns, used for the empty-state colspan. */
+  colCount = computed(
+    () =>
+      5 +
+      (this.config().enableDiscount ? 1 : 0) +
+      (this.config().enableTax ? 1 : 0),
+  );
+
+  isEditingCell(item: OrderLineItem, field: EditableLineField): boolean {
+    const cell = this.editingCell();
+    return cell !== null && cell.id === item.id && cell.field === field;
+  }
+
+  startEditCell(item: OrderLineItem, field: EditableLineField): void {
+    if (this.readonly()) return;
+    this.editingCell.set({ id: item.id, field });
+  }
+
+  stopEditCell(): void {
+    this.editingCell.set(null);
+  }
+
+  onEditCellKeydown(event: KeyboardEvent): void {
+    if (
+      event.key === 'Enter' ||
+      event.key === 'Escape' ||
+      event.key === 'Tab'
+    ) {
+      this.stopEditCell();
+    }
+  }
+
+  toggleFocus(): void {
+    this.focusMode.update((v) => !v);
+  }
+  toggleRail(open?: boolean): void {
+    this.railOpen.set(open ?? !this.railOpen());
+  }
+
+  hasAudit = computed(() => this.auditEntries().length > 0);
+
+  /** Récap items grouped into columns (column index from reference data). */
+  recapColumns = computed<OrderSummaryItem[][]>(() => {
+    const items = this.productsSummary().items;
+    const byCol = new Map<number, OrderSummaryItem[]>();
+    for (const it of items) {
+      const col = it.column ?? 1;
+      if (!byCol.has(col)) byCol.set(col, []);
+      byCol.get(col)!.push(it);
+    }
+    return [...byCol.keys()].sort((a, b) => a - b).map((k) => byCol.get(k)!);
+  });
+
   constructor() {
-    effect(
-      () => {
-        if (!this.initialized()) return;
+    effect(() => {
+      if (!this.initialized()) return;
 
-        const updatedOrder = OrderEntityHelper.calculateTotals(this.order());
-        const summary = this.productsSummary();
+      const updatedOrder = OrderEntityHelper.calculateTotals(this.order());
+      const summary = this.productsSummary();
 
-        if (
-          updatedOrder.grossTotal !== this.order().grossTotal ||
-          updatedOrder.discountTotal !== this.order().discountTotal ||
-          updatedOrder.taxTotal !== this.order().taxTotal ||
-          updatedOrder.finalTotal !== this.order().finalTotal ||
-          JSON.stringify(updatedOrder.productsSummary) !==
-            JSON.stringify(summary)
-        ) {
-          this.order.set({ ...updatedOrder, productsSummary: summary });
-        }
-      },
-      { allowSignalWrites: true },
-    );
+      if (
+        updatedOrder.grossTotal !== this.order().grossTotal ||
+        updatedOrder.discountTotal !== this.order().discountTotal ||
+        updatedOrder.taxTotal !== this.order().taxTotal ||
+        updatedOrder.finalTotal !== this.order().finalTotal ||
+        JSON.stringify(updatedOrder.productsSummary) !== JSON.stringify(summary)
+      ) {
+        this.order.set({ ...updatedOrder, productsSummary: summary });
+      }
+    });
 
     effect(() => {
       const info = this.changeInfo();
@@ -316,126 +323,17 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     this.initialized.set(true);
   }
 
-  ngOnDestroy(): void {
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-      this.updateTimeout = null;
-    }
-  }
-
-  addNewProductRow(): void {
-    if (this.readonly() || this.hasEditingRow()) {
-      return;
-    }
-
-    const newItem = OrderLineItemHelper.createEmptyItem();
-    this.updateOrderLines([...this.orderLines(), newItem]);
-  }
-
-  removeOrderLine(id: number | undefined): void {
+  removeOrderLine(id: string | number | undefined): void {
     if (this.readonly() || id === undefined) return;
 
     const updatedItems = this.orderLines().filter((item) => item.id !== id);
     this.updateOrderLines(updatedItems);
   }
 
-  onProductSelect(item: OrderLineItem): void {
-    if (this.readonly() || !item.product) return;
-
-    const items = this.orderLines();
-    const index = items.findIndex((i) => i.id === item.id);
-    if (index === -1) return;
-
-    // The dropdown emits a flattened option `{ _product, _variant, _displayLabel, _key }`.
-    const option = item.product as Record<string, unknown>;
-    const product = (option['_product'] as Record<string, unknown>) ?? option;
-    const variant =
-      (option['_variant'] as Record<string, unknown> | null | undefined) ??
-      undefined;
-
-    const unitPrice = (variant?.['price'] ??
-      product['unitPrice'] ??
-      product['salePrice'] ??
-      0) as number;
-    const countGroup = (variant?.['countGroup'] ??
-      product['countGroup'] ??
-      '') as string;
-
-    const updatedItem = OrderLineItemHelper.updateCalculations({
-      ...item,
-      product,
-      productId: this.productKey(product),
-      variantId: (variant?.['variantId'] as string) ?? null,
-      countGroup,
-      productDescription: OrderLineItemHelper.composeDescription(
-        product,
-        variant,
-      ),
-      productUnitPrice: unitPrice,
-      taxRate: (product['taxRate'] || 0) as number,
-      isEditing: false,
-    });
-
-    const updatedItems = [...items];
-    updatedItems[index] = updatedItem;
-    this.updateOrderLines(updatedItems);
-  }
-
-  startEditField(item: OrderLineItem, fieldName: string): void {
-    if (this.readonly() || !this.config().allowInlineEdit) return;
-
-    const items = this.orderLines();
-    const index = items.findIndex((i) => i.id === item.id);
-
-    if (index !== -1) {
-      const updatedItems = [...items];
-      updatedItems[index] = { ...item, editingField: fieldName };
-      this.updateOrderLines(updatedItems);
-    }
-  }
-
-  stopEditField(item: OrderLineItem): void {
-    item.editingField = null;
-
-    const updatedItem = OrderLineItemHelper.updateCalculations(item);
-    Object.assign(item, updatedItem);
-
-    if (this.updateTimeout) {
-      clearTimeout(this.updateTimeout);
-    }
-
-    this.updateTimeout = setTimeout(() => {
-      this.updateOrderLines([...this.orderLines()]);
-      this.updateTimeout = null;
-    }, 50);
-  }
-
   onFieldChange(item: OrderLineItem): void {
     const updatedItem = OrderLineItemHelper.updateCalculations(item);
     Object.assign(item, updatedItem);
     this.updateOrderLines([...this.orderLines()]);
-  }
-
-  saveEditingRow(item: OrderLineItem): void {
-    if (this.readonly()) return;
-
-    const validation = OrderLineItemHelper.validate(item);
-
-    if (validation.isValid) {
-      const items = this.orderLines();
-      const index = items.findIndex((i) => i.id === item.id);
-
-      if (index !== -1) {
-        const updatedItem = OrderLineItemHelper.updateCalculations({
-          ...item,
-          isEditing: false,
-        });
-
-        const updatedItems = [...items];
-        updatedItems[index] = updatedItem;
-        this.updateOrderLines(updatedItems);
-      }
-    }
   }
 
   calculateSubtotal(item: OrderLineItem): number {
@@ -447,56 +345,46 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     this.openCatalogue.emit();
   }
 
-  onQuickAddProductSelect(option: Record<string, unknown> | null): void {
-    this.quickAddProduct.set(option);
+  private readonly typeahead = viewChild(EfProductTypeaheadComponent);
 
-    if (!option) {
-      this.quickAddPrice.set(0);
-      return;
-    }
-
-    const product = (option['_product'] as Record<string, unknown>) ?? option;
-    const variant =
-      (option['_variant'] as Record<string, unknown> | null | undefined) ??
-      undefined;
-
-    const unitPrice = (variant?.['price'] ??
-      product['unitPrice'] ??
-      product['salePrice'] ??
-      0) as number;
-
-    this.quickAddPrice.set(unitPrice);
+  /**
+   * Fill the quick-add bar from a typeahead pick. Does NOT add the line —
+   * the user reviews price/quantity then clicks "Ajouter" (addQuickProduct).
+   */
+  onTypeaheadSelect(selection: ProductTypeaheadSelection): void {
+    if (this.readonly()) return;
+    this.quickAddSelection.set(selection);
+    this.quickAddPrice.set(selection.unitPrice);
   }
 
   addQuickProduct(): void {
-    if (this.readonly() || this.quickAddDisabled()) return;
-
-    const option = this.quickAddProduct() as Record<string, unknown>;
-    const product = (option['_product'] as Record<string, unknown>) ?? option;
-    const variant =
-      (option['_variant'] as Record<string, unknown> | null | undefined) ??
-      undefined;
+    const selection = this.quickAddSelection();
+    if (
+      this.readonly() ||
+      selection === null ||
+      (this.quickAddQuantity() ?? 0) <= 0
+    ) {
+      return;
+    }
     const variantId =
-      (variant?.['variantId'] as string | undefined) ?? undefined;
-
+      (selection.variant?.['variantId'] as string | undefined) ?? undefined;
     const newItem = OrderLineItemHelper.createFromProduct(
-      product,
+      selection.product,
       this.quickAddQuantity(),
       this.productKeyField(),
       variantId,
     );
-
-    const overriddenItem = OrderLineItemHelper.updateCalculations({
+    const overridden = OrderLineItemHelper.updateCalculations({
       ...newItem,
       productUnitPrice: this.quickAddPrice(),
     });
+    this.updateOrderLines([...this.orderLines(), overridden]);
+    this.productsAdded.emit([overridden]);
 
-    this.updateOrderLines([...this.orderLines(), overriddenItem]);
-    this.productsAdded.emit([overriddenItem]);
-
-    this.quickAddProduct.set(null);
+    this.quickAddSelection.set(null);
     this.quickAddPrice.set(0);
     this.quickAddQuantity.set(1);
+    this.typeahead()?.reset();
   }
 
   addProductsFromCatalogue(
@@ -623,10 +511,6 @@ export class EfOrderBuilderComponent implements OnInit, OnDestroy {
     return (customer?.['companyName'] || customer?.['name']) as
       | string
       | undefined;
-  }
-
-  private productKey(product: Record<string, unknown>): unknown {
-    return product[this.productKeyField()];
   }
 
   getProduct(productId: unknown): Record<string, unknown> | undefined {

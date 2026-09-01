@@ -12,7 +12,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ScreenStateEnum, ScreenContext } from '@elasticias/screens';
 import { Router } from '@angular/router';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -49,9 +49,12 @@ export class EfToolbarComponent {
 
   // Search Actions
   @Output() add = new EventEmitter();
-  // `search` collides with the native HTMLInputElement `search` event under
-  // @angular-eslint/no-output-native, but renaming would churn every consumer
-  // template — keep the name, suppress the rule for this line only.
+  // `search` collides with the native HTMLInputElement `search` event. The
+  // no-output-native rule is not enabled in this config, so there is nothing to
+  // suppress; renaming would churn every consumer template, so the name stays.
+  // `search` shadows a native DOM event name. Renaming this output would
+  // churn every consumer template, so the name stays and the rule is
+  // suppressed here deliberately.
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output() search = new EventEmitter();
   @Output() clear = new EventEmitter();
@@ -81,27 +84,27 @@ export class EfToolbarComponent {
   }
 
   get hasReadPermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Read);
+    return this.context.isGranted(Permissions.Read);
   }
 
-  get hasWritePermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Write);
+  get hasCreatePermission(): boolean {
+    return this.context.isGranted(Permissions.Create);
   }
 
   get hasEditPermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Edit);
+    return this.context.isGranted(Permissions.Edit);
   }
 
   get hasDeletePermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Delete);
+    return this.context.isGranted(Permissions.Delete);
   }
 
   get hasDuplicatePermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Duplicate);
+    return this.context.isGranted(Permissions.Duplicate);
   }
 
   get hasExportPermission(): boolean {
-    return this.context.isGranted(PermissionsEnum.Export);
+    return this.context.isGranted(Permissions.Export);
   }
 
   get isDuplicateMode(): boolean {

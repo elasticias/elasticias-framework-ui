@@ -1,0 +1,45 @@
+@if (labelKey() || label()) {
+    <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" [required]="required()" />
+}
+<div class="ef-field-control">
+  <div class="ef-textarea-wrap">
+    <textarea
+        class="ef-textarea"
+        [class.has-clear]="canClear"
+        [id]="effectiveId"
+        [attr.name]="name() || null"
+        [rows]="rows"
+        [value]="value"
+        [attr.placeholder]="effectivePlaceholder || null"
+        [attr.maxlength]="maxlength ?? null"
+        [readonly]="readonly()"
+        [disabled]="isDisabled()"
+        [class.is-invalid]="isInvalid"
+        [attr.aria-label]="effectiveAriaLabel"
+        [attr.aria-required]="required() ? 'true' : null"
+        [attr.aria-invalid]="isInvalid ? 'true' : null"
+        [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+        (input)="handleInput($any($event.target).value)"
+        (blur)="handleBlur()"
+    ></textarea>
+    @if (canClear) {
+      <ef-clear-button
+        class="ef-textarea-clear"
+        [ariaLabel]="'action.clear' | translate"
+        (clear)="clearValue()"
+      />
+    }
+  </div>
+    @if (showRequired || serverErrors) {
+        <div [id]="errorsId" role="alert" aria-live="polite">
+            @if (showRequired) {
+                <small class="text-danger">{{ 'validation.required' | translate }}</small>
+            }
+            @if (serverErrors; as errors) {
+                @for (error of errors; track error) {
+                    <small class="text-danger block">{{ error }}</small>
+                }
+            }
+        </div>
+    }
+</div>

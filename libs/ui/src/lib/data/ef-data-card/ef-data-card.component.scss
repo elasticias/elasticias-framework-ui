@@ -1,0 +1,19 @@
+/* ef-data-card uses .tbl-wrap / .tbl-head / .tbl from the lifted
+   _patterns.scss — only the sortable-header affordance lives here. */
+
+.tbl thead th.is-sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--t-fast, 140ms) var(--ease-out, ease-out);
+
+    &:hover {
+        color: var(--text);
+    }
+}
+
+/* Body rows when [rowDoubleClickable] is on — affordance for the
+   double-click-to-open interaction. Interactive cells (buttons,
+   inputs, links) keep their own cursor. */
+.tbl tbody tr.is-row-clickable {
+    cursor: pointer;
+}

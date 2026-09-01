@@ -1,6 +1,6 @@
 {
   "name": "@elasticias/core",
-  "version": "0.0.16",
+  "version": "1.0.0",
   "peerDependencies": {
     "@angular/common": "^21.0.0",
     "@angular/core": "^21.0.0",
@@ -9,7 +9,8 @@
     "@elasticias/types": ">=0.0.1",
     "@elasticias/utils": ">=0.0.1",
     "primeng": "^21.0.0",
-    "rxjs": "~7.8.0"
+    "rxjs": "~7.8.0",
+    "@ngx-translate/core": "^17.0.0"
   },
   "sideEffects": false,
   "repository": {

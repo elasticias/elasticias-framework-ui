@@ -1,0 +1,72 @@
+<div class="qa-combo">
+  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" />
+  </svg>
+  <input
+    class="input"
+    type="text"
+    autocomplete="off"
+    role="combobox"
+    aria-controls="qa-listbox"
+    [attr.aria-expanded]="open() && rows().length > 0"
+    [disabled]="disabled()"
+    [placeholder]="placeholderKey() ? (placeholderKey() | translate) : ''"
+    [ngModel]="query()"
+    (ngModelChange)="onInput($event)"
+    (keydown)="onKeydown($event)"
+    (focus)="open.set(true)"
+    (blur)="open.set(false)" />
+
+  @if (query() && !disabled()) {
+    <button
+      type="button"
+      class="qa-clear"
+      [attr.aria-label]="'action.clear' | translate"
+      (mousedown)="$event.preventDefault(); reset()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M18 6 6 18M6 6l12 12" />
+      </svg>
+    </button>
+  }
+
+  @if (open() && rows().length > 0) {
+    <div id="qa-listbox" class="qa-menu" role="listbox">
+      <div class="grp">{{ rows().length }} · « {{ query() }} »</div>
+      @for (row of rows(); track row.key; let i = $index) {
+        <div
+          class="qa-opt"
+          role="option"
+          [attr.aria-selected]="i === highlightedIndex()"
+          [class.hl]="i === highlightedIndex()"
+          (mouseenter)="highlightedIndex.set(i)"
+          (mousedown)="$event.preventDefault(); selectRow(row)">
+          <span class="nm">
+            @for (seg of row.segments; track $index) {
+              @if (seg.mark) { <mark>{{ seg.text }}</mark> } @else { {{ seg.text }} }
+            }
+          </span>
+          <span class="var">
+            @if (showVariants()) {
+              @for (variant of row.variants; track variant['variantId']; let vi = $index) {
+                <span
+                  class="qa-chip"
+                  [class.on]="vi === variantIndexOf(row)"
+                  (mousedown)="$event.preventDefault(); $event.stopPropagation(); setActiveVariant(row, vi)">
+                  {{ variant['title'] }}
+                </span>
+              }
+            }
+          </span>
+          <span class="px">{{ priceOf(row) | number: '1.2-2' : locale() }}</span>
+        </div>
+      }
+      <div class="qa-foot">
+        <span class="qa-hint">
+          <span class="kbd">↑</span><span class="kbd">↓</span>
+          {{ 'order_builder.qa_navigate' | translate }} ·
+          <span class="kbd">↵</span> {{ 'order_builder.qa_add' | translate }}
+        </span>
+      </div>
+    </div>
+  }
+</div>

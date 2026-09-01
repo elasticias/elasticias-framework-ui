@@ -1,539 +1,338 @@
-<!-- Order Header -->
-<p-fieldset [legend]="config().headerLabel">
-  <div class="grid grid-cols-12 items-baseline gap-2 mb-2">
-    <ef-label [label]="config().customerLabel" for="order.customerId" styleClass="col-span-12 md:col-span-6 form-label-left" required />
-    <ef-label [label]="config().dateLabel" for="order.orderDate" styleClass="col-span-3 form-label-left" required />
-  </div>
-  <div class="grid grid-cols-12 items-baseline gap-2 mb-2 mt-4">
-    <div class="col-span-12 md:col-span-6">
-      <ef-select
-        [ngModel]="order().customerId"
-        (ngModelChange)="updateCustomer($event)"
-        name="order.customerId"
-        inputId="order.customerId"
-        [options]="customers()"
-        optionValue="customerId"
-        optionLabel="companyName"
-        [placeholder]="config().customerLabel"
-        filter
-        showClear
-        [disabled]="readonly()"
-        required
-      />
-    </div>
-    <div class="col-span-3">
-      <ef-datepicker
-        [ngModel]="order().orderDate"
-        (ngModelChange)="updateOrderDate($event)"
-        name="order.orderDate"
-        inputId="order.orderDate"
-        [disabled]="readonly()"
-        required
-      />
-    </div>
-  </div>
-
-  @if (config().enableQuickAdd && !readonly()) {
-    <div class="grid grid-cols-12 items-baseline gap-2 mt-4 mb-2">
-      <ef-label labelKey="label.article" for="quickAdd.product" styleClass="col-span-12 md:col-span-6 form-label-left" />
-      <ef-label labelKey="label.sale_price" for="quickAdd.price" styleClass="col-span-2 form-label-left" />
-      <ef-label labelKey="label.quantity" for="quickAdd.quantity" styleClass="col-span-2 form-label-left" />
-    </div>
-    <div class="grid grid-cols-12 items-center gap-2">
-      <div class="col-span-12 md:col-span-6">
-        <ef-select
-          [ngModel]="quickAddProduct()"
-          (ngModelChange)="onQuickAddProductSelect($event)"
-          name="quickAdd.product"
-          inputId="quickAdd.product"
-          [options]="flattenedProductOptions()"
-          optionLabel="_displayLabel"
-          placeholderKey="placeholder.select_article"
-          filter
-          showClear
-          [disabled]="readonly()"
-        />
-      </div>
-      <div class="col-span-2">
-        <ef-inputnumber
-          id="quickAdd.price"
-          name="quickAdd.price"
-          [ngModel]="quickAddPrice()"
-          (ngModelChange)="quickAddPrice.set($event)"
-          mode="currency"
-          [currency]="currency()"
-          [locale]="locale()"
-          [min]="0"
-          [disabled]="readonly()"
-          size="small"
-        />
-      </div>
-      <div class="col-span-2">
-        <ef-inputnumber
-          id="quickAdd.quantity"
-          name="quickAdd.quantity"
-          [ngModel]="quickAddQuantity()"
-          (ngModelChange)="quickAddQuantity.set($event)"
-          [min]="0"
-          [maxFractionDigits]="4"
-          [locale]="locale()"
-          [disabled]="readonly()"
-          size="small"
-        />
-      </div>
-      <div class="col-span-2 flex justify-start gap-2">
-        <ef-button
-          icon="pi pi-plus"
-          [rounded]="true"
-          severity="primary"
-          tooltipKey="tooltip.add_article"
-          [disabled]="quickAddDisabled()"
-          (clickEvent)="addQuickProduct()"
-        />
-        @if (config().showCatalogue) {
-          <ef-button
-            icon="pi pi-search"
-            [rounded]="true"
-            severity="primary"
-            tooltipKey="tooltip.open_catalogue"
-            [disabled]="readonly()"
-            (clickEvent)="handleOpenCatalogue()"
-          />
-        }
-      </div>
-    </div>
-  }
-</p-fieldset>
-
-<div class="my-4"></div>
-
-<!-- Order Line Items -->
-<p-fieldset legend="Détails">
-  <p-table
-    #pTable
-    class="text-sm"
-    size="small"
-    [value]="orderLines()"
-    [rowsPerPageOptions]="[5, 10, 25, 50]"
-    [resizableColumns]="true"
-    [tableStyle]="{ 'min-width': '50rem' }"
-    columnResizeMode="expand"
-    [showCurrentPageReport]="true"
-    stateStorage="local"
-    dataKey="id"
-    [rowTrackBy]="rowTrackBy"
-  >
-    <ng-template #header>
-      <tr>
-        <th>{{ 'label.article' | translate }}</th>
-        <th class="w-[120px] !text-end">{{ 'label.sale_price' | translate }}</th>
-        <th class="w-[120px] !text-end">{{ 'label.quantity' | translate }}</th>
-        @if (config().enableTax) {
-          <th class="w-[120px] !text-end">TVA (%)</th>
-        }
-        @if (config().enableDiscount) {
-          <th class="w-[120px] !text-end">
-            Remise (%)
-          </th>
-        }
-        <th class="w-[120px] !text-end">Sous-Total</th>
-        @if (!readonly()) {
-          <th class="w-10 !text-end"></th>
-        }
-      </tr>
-    </ng-template>
-
-    <ng-template #body let-item let-rowIndex="rowIndex">
-      <!-- Editing mode for new row -->
-      @if (item.isEditing) {
-        <tr>
-          <td>
-            <div class="align-items-center flex gap-2">
+<div
+  class="order-builder"
+  [class.ob-collapsed]="focusMode()"
+  [class.ob-rail-open]="railOpen()">
+  <div class="ob-grid">
+    <div class="ob-main">
+      <!-- Order header: customer + date + express add (one card) -->
+      <ef-card
+        titleKey="order_builder.section_order"
+        [metaKey]="readonly() ? '' : 'order_builder.quick_add_hint'"
+        [overflowVisible]="true">
+        <div class="ob-order-head">
+          <div class="form-grid">
+            <div class="field col-6">
+              <ef-label labelKey="label.customer" for="ob-cust" [required]="true" />
               <ef-select
-                [(ngModel)]="item.product"
-                (ngModelChange)="onProductSelect(item)"
-                [name]="'item.product.' + rowIndex"
-                [inputId]="'item.product.' + rowIndex"
-                [options]="flattenedProductOptions()"
-                optionLabel="_displayLabel"
-                placeholderKey="placeholder.select_article"
-                filter
-                showClear
+                inputId="ob-cust"
+                [options]="customers()"
+                optionLabel="companyName"
+                optionValue="customerId"
+                [ngModel]="order().customerId"
+                (ngModelChange)="updateCustomer($event)"
                 [disabled]="readonly()"
+                [showClear]="true"
+                [filter]="true"
+                filterBy="companyName"
+                filterPlaceholderKey="label.search_customer"
                 appendTo="body"
-              />
+                placeholderKey="label.select_customer" />
             </div>
-          </td>
-          <td class="w-[120px]">
-            <ef-inputnumber
-              [id]="'item.productUnitPrice.' + rowIndex"
-              [name]="'item.productUnitPrice.' + rowIndex"
-              [(ngModel)]="item.productUnitPrice"
-              (ngModelChange)="onFieldChange(item)"
-              (onBlur)="stopEditField(item)"
-              mode="currency"
-              [currency]="currency()"
-              [locale]="locale()"
-              [disabled]="readonly()"
-              size="small"
-            />
-          </td>
-          <td class="w-[120px]">
-            <ef-inputnumber
-              [id]="'item.quantity.' + rowIndex"
-              [name]="'item.quantity.' + rowIndex"
-              [(ngModel)]="item.quantity"
-              (ngModelChange)="onFieldChange(item)"
-              (onBlur)="saveEditingRow(item)"
-              [min]="0"
-              [maxFractionDigits]="4"
-              [locale]="locale()"
-              [disabled]="readonly()"
-              size="small"
-            />
-          </td>
-          @if (config().enableTax) {
-            <td class="w-[120px] !text-end">
-              {{ item.taxRate || 0 }} %
-            </td>
-          }
-          @if (config().enableDiscount) {
-            <td class="w-[120px]">
-              <ef-inputnumber
-                [id]="'item.discount.' + rowIndex"
-                [name]="'item.discount.' + rowIndex"
-                [(ngModel)]="item.discount"
-                (ngModelChange)="onFieldChange(item)"
-                (onBlur)="saveEditingRow(item)"
-                [min]="0"
-                [max]="100"
-                suffix="%"
-                [disabled]="readonly()"
-                size="small"
-              />
-            </td>
-          }
-          <td class="w-[120px] !text-end">
-            {{ calculateSubtotal(item) | currency: currency() }}
-          </td>
-          @if (!readonly()) {
-            <td class="w-10 !text-end">
-              <ef-button
-                icon="pi pi-trash"
-                size="small"
-                [outlined]="true"
-                tooltip="Supprimer"
-                tooltipPosition="top"
-                (clickEvent)="removeOrderLine(item.id)"
-              />
-            </td>
-          }
-        </tr>
-      }
+            <div class="field col-3">
+              <ef-label labelKey="label.order_date" for="ob-date" [required]="true" />
+              <ef-datepicker-advanced
+                mode="field"
+                selectionMode="single"
+                inputId="ob-date"
+                placeholderKey="date_select_date"
+                [ngModel]="order().orderDate"
+                (ngModelChange)="updateOrderDate($event)"
+                [disabled]="readonly()" />
+            </div>
+          </div>
 
-      <!-- Display mode for saved row -->
-      @if (!item.isEditing) {
-        <tr>
-          <td>
-            <div
-              [innerHTML]="AppUtils.truncate(item.productDescription)"
-              [pTooltip]="item.productDescription"
-              tooltipPosition="top"
-            ></div>
-          </td>
-          <td
-            class="w-[120px]"
-            [class.cursor-pointer]="config().allowInlineEdit && !readonly()"
-            (click)="startEditField(item, 'productUnitPrice')"
-          >
-            @if (
-              item.editingField === 'productUnitPrice' &&
-                config().allowInlineEdit &&
-                !readonly()
-            ) {
-              <ef-inputnumber
-                [id]="'item.productUnitPrice.edit.' + rowIndex"
-                [name]="'item.productUnitPrice.edit.' + rowIndex"
-                [(ngModel)]="item.productUnitPrice"
-                (ngModelChange)="onFieldChange(item)"
-                (onBlur)="stopEditField(item)"
-                mode="currency"
-                [currency]="currency()"
-                [locale]="locale()"
-                size="small"
-                class="!text-end"
-              />
-            } @else {
-              <span
-                [class]="
-                  config().allowInlineEdit && !readonly()
-                    ? 'block cursor-pointer rounded px-2 py-1 text-end hover:bg-surface-100 dark:hover:bg-surface-700'
-                    : 'block px-2 py-1 text-end'
-                "
-              >
-                {{ item.productUnitPrice | currency: currency() }}
-              </span>
-            }
-          </td>
-          <td
-            class="w-[120px]"
-            [class.cursor-pointer]="config().allowInlineEdit && !readonly()"
-            (click)="startEditField(item, 'quantity')"
-          >
-            @if (
-              item.editingField === 'quantity' &&
-                config().allowInlineEdit &&
-                !readonly()
-            ) {
-              <ef-inputnumber
-                [id]="'item.quantity.edit.' + rowIndex"
-                [name]="'item.quantity.edit.' + rowIndex"
-                [(ngModel)]="item.quantity"
-                (ngModelChange)="onFieldChange(item)"
-                (onBlur)="stopEditField(item)"
-                [min]="0"
-                [maxFractionDigits]="4"
-                [locale]="locale()"
-                size="small"
-                class="!text-end"
-              />
-            } @else {
-              <span
-                [class]="
-                  config().allowInlineEdit && !readonly()
-                    ? 'block cursor-pointer rounded px-2 py-1 text-end hover:bg-surface-100 dark:hover:bg-surface-700'
-                    : 'block px-2 py-1 text-end'
-                "
-              >
-                {{ item.quantity | number: '1.4-4' : locale() }}
-              </span>
-            }
-          </td>
-          @if (config().enableTax) {
-            <td class="w-[120px] !text-end">
-              {{ item.taxRate || 0 }} %
-            </td>
-          }
-          @if (config().enableDiscount) {
-            <td
-              class="w-[120px]"
-              [class.cursor-pointer]="config().allowInlineEdit && !readonly()"
-              (click)="startEditField(item, 'discount')"
-            >
-              @if (
-                item.editingField === 'discount' &&
-                  config().allowInlineEdit &&
-                  !readonly()
-              ) {
+          @if (!readonly()) {
+            <div class="qa-grid">
+              <div class="qa-combo-wrap">
+                <ef-label labelKey="label.article" />
+                <ef-product-typeahead
+                  [products]="products()"
+                  [productKeyField]="productKeyField()"
+                  placeholderKey="label.search_product"
+                  [currency]="currency()"
+                  [locale]="locale()"
+                  (productSelect)="onTypeaheadSelect($event)"
+                  [showVariants]="false" />
+              </div>
+              <div class="qa-price">
+                <ef-label labelKey="label.sale_price" />
                 <ef-inputnumber
-                  [id]="'item.discount.edit.' + rowIndex"
-                  [name]="'item.discount.edit.' + rowIndex"
-                  [(ngModel)]="item.discount"
-                  (ngModelChange)="onFieldChange(item)"
-                  (onBlur)="stopEditField(item)"
+                  variant="comptoir"
+                  [value]="quickAddPrice()"
+                  (valueChangeEvent)="quickAddPrice.set($event ?? 0)"
+                  [minFractionDigits]="2"
+                  [maxFractionDigits]="2"
+                  [locale]="locale()"
+                  [disabled]="readonly()" />
+              </div>
+              <div class="qa-qtyf">
+                <ef-label labelKey="label.quantity" />
+                <ef-inputnumber
+                  variant="comptoir"
+                  [ngModel]="quickAddQuantity()"
+                  (ngModelChange)="quickAddQuantity.set($event)"
                   [min]="0"
-                  [max]="100"
-                  suffix="%"
-                  size="small"
-                  class="!text-end"
+                  [maxFractionDigits]="4"
+                  [locale]="locale()"
+                  [disabled]="readonly()"
                 />
-              } @else {
-                <span
-                  [class]="
-                    config().allowInlineEdit && !readonly()
-                      ? 'block cursor-pointer rounded px-2 py-1 text-end hover:bg-surface-100 dark:hover:bg-surface-700'
-                      : 'block px-2 py-1 text-end'
-                  "
-                >
-                  {{ item.discount || 0 }}%
-                </span>
-              }
-            </td>
-          }
-          <td class="w-[120px] !text-end">
-            {{ item.grossAmount | currency: currency() }}
-          </td>
-          @if (!readonly()) {
-            <td class="w-10 !text-end">
-              <ef-button
-                icon="pi pi-trash"
-                size="small"
-                [outlined]="true"
-                tooltip="Supprimer"
-                tooltipPosition="top"
-                (clickEvent)="removeOrderLine(item.id)"
-              />
-            </td>
-          }
-        </tr>
-      }
-    </ng-template>
-
-    <ng-template #footer>
-      @if (!readonly()) {
-        <tr>
-          <td
-            [attr.colspan]="
-              config().enableTax && config().enableDiscount
-                ? 7
-                : config().enableTax || config().enableDiscount
-                  ? 6
-                  : 5
-            "
-          >
-            <a
-              href="javascript:void(0)"
-              class="inline-flex items-center gap-2 text-sm font-medium text-primary-500 hover:text-primary-700"
-              [class.opacity-50]="hasEditingRow()"
-              [class.pointer-events-none]="hasEditingRow()"
-              (click)="addNewProductRow()"
-            >
-              <i class="pi pi-plus text-xs"></i>
-              Ajouter un article
-            </a>
-            @if (config().showCatalogue) {
-              <ng-container>
-                &nbsp; | &nbsp;
-                <a
-                  href="javascript:void(0)"
-                  class="inline-flex items-center gap-2 text-sm font-medium text-primary-500 hover:text-primary-700"
-                  (click)="handleOpenCatalogue()"
-                >
-                  <i class="pi pi-search text-xs"></i>
-                  Ouvrir le catalogue des articles
-                </a>
-              </ng-container>
-            }
-          </td>
-        </tr>
-      }
-
-      <!-- Totals Section -->
-      <tr class="border-t">
-        <td
-          [attr.colspan]="
-            config().enableTax && config().enableDiscount
-              ? 5
-              : config().enableTax || config().enableDiscount
-                ? 4
-                : 3
-          "
-        >
-          @if (config().showProductsSummary) {
-            <div class="w-[500px]">
-              <div class="my-4"></div>
-              <ef-order-summary
-                [orderLines]="orderLines()"
-                [countGroupLabels]="countGroupLabels()"
-                legend="Récapitulatif"
-              />
-            </div>
-          }
-        </td>
-        <td [attr.colspan]="readonly() ? 2 : 3" class="!text-end">
-          <p-fieldset [legend]="'Totaux'">
-            <div class="flex flex-col gap-2">
-              <div class="flex items-end justify-between gap-4">
-                <span
-                  class="font-semibold text-surface-700 dark:text-surface-300"
-                >
-                  Montant brut :
-                </span>
-                <span class="font-semibold">
-                  {{ grossTotal() | currency: currency() }}
-                </span>
               </div>
-              @if (config().enableDiscount) {
-                <div class="flex justify-between gap-4">
-                  <span
-                    class="font-semibold text-surface-700 dark:text-surface-300"
-                  >
-                    Remise :
-                  </span>
-                  <span class="font-semibold">
-                    {{ discountTotal() | currency: currency() }}
-                  </span>
-                </div>
-              }
-              @if (config().enableTax) {
-                <div class="flex justify-between gap-4">
-                  <span
-                    class="font-semibold text-surface-700 dark:text-surface-300"
-                  >
-                    TVA :
-                  </span>
-                  <span class="font-semibold">
-                    {{ tvaTotal() | currency: currency() }}
-                  </span>
-                </div>
-              }
-              <p-divider class="!my-1" />
-              <div class="flex justify-between gap-4">
-                <span class="text-lg font-bold text-primary">
-                  Montant Total :
-                </span>
-                <span class="text-lg font-bold text-primary">
-                  {{ finalTotal() | currency: currency() }}
-                </span>
+              <div class="qa-go">
+                <ef-button
+                  labelKey="action.add"
+                  icon="pi pi-plus"
+                  variant="comptoir"
+                  severity="tenant"
+                  [disabled]="quickAddDisabled()"
+                  (clickEvent)="addQuickProduct()" />
               </div>
             </div>
-          </p-fieldset>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
-</p-fieldset>
-
-<!-- Optional Notes Section -->
-@if (config().showNotes) {
-  <p-fieldset legend="Notes">
-    <textarea
-      pTextarea
-      id="order.notes"
-      name="order.notes"
-      [ngModel]="order().notes"
-      (ngModelChange)="updateNotes($event)"
-      [disabled]="readonly()"
-      [placeholder]="'common.notes_placeholder' | translate"
-      rows="5"
-      class="w-full"
-    ></textarea>
-  </p-fieldset>
-}
-
-<!-- Validation Messages -->
-@if (hasErrors()) {
-  <div
-    class="my-4 rounded border border-red-200 bg-red-50 p-4 dark:bg-red-900/20"
-  >
-    <div class="flex items-start gap-2">
-      <i
-        class="pi pi-exclamation-triangle mt-1 text-red-600 dark:text-red-400"
-      ></i>
-      <div class="flex-1">
-        <h4 class="mb-2 font-semibold text-red-800 dark:text-red-200">
-          Erreurs de validation
-        </h4>
-        <ul class="list-inside list-disc text-sm text-red-700 dark:text-red-300">
-          @for (error of combinedErrors() | keyvalue; track error.key) {
-            <li>
-              {{ error.value[0] }}
-            </li>
           }
-        </ul>
-      </div>
+        </div>
+      </ef-card>
+
+      <!-- Lines -->
+      <ef-card titleKey="order_builder.lines" [meta]="'· ' + orderLines().length">
+        <div head-extra class="head-actions">
+          @if (config().showCatalogue && !readonly()) {
+            <ef-button
+              labelKey="action.open_catalogue"
+              icon="pi pi-box"
+              severity="secondary"
+              [text]="true"
+              (clickEvent)="handleOpenCatalogue()" />
+          }
+          <ef-button
+            [labelKey]="focusMode() ? 'order_builder.show_summary' : 'order_builder.fullscreen'"
+            icon="pi pi-window-maximize"
+            severity="secondary"
+            [text]="true"
+            (clickEvent)="toggleFocus()" />
+        </div>
+
+        <table class="ob-tbl">
+            <thead>
+              <tr>
+                <th class="col-prod">{{ 'label.article' | translate }}</th>
+                <th>{{ 'label.sale_price' | translate }}</th>
+                <th>{{ 'label.quantity' | translate }}</th>
+                @if (config().enableDiscount) {
+                  <th>{{ 'label.discount' | translate }}</th>
+                }
+                @if (config().enableTax) {
+                  <th>{{ 'order_builder.tax' | translate }}</th>
+                }
+                <th>{{ 'label.subtotal' | translate }}</th>
+                <th class="col-act"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of orderLines(); track item.id; let i = $index) {
+                <tr>
+                  <td class="col-prod">
+                    <div class="p">
+                      <span class="ln">{{ i + 1 }}</span>
+                      <span class="pp">
+                        <span class="nm">{{ item.productDescription }}</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="num w-[120px]">
+                    @if (!readonly() && isEditingCell(item, 'price')) {
+                      <ef-inputnumber
+                        [(ngModel)]="item.productUnitPrice"
+                        (ngModelChange)="onFieldChange(item)"
+                        [showClear]="false"
+                        [autofocus]="true"
+                        (blurEvent)="stopEditCell()"
+                        (keyDownEvent)="onEditCellKeydown($event)"
+                        [min]="0"
+                        [minFractionDigits]="2"
+                        [maxFractionDigits]="2"
+                        [locale]="locale()"
+                        size="small"
+                        class="!text-end" />
+                    } @else {
+                      <button
+                        type="button"
+                        class="ln-val"
+                        [disabled]="readonly()"
+                        (click)="startEditCell(item, 'price')">
+                        {{ item.productUnitPrice | number: '1.2-2' : locale() }}
+                      </button>
+                    }
+                  </td>
+                  <td class="num w-[120px]">
+                    @if (!readonly() && isEditingCell(item, 'qty')) {
+                      <ef-inputnumber
+                        [(ngModel)]="item.quantity"
+                        (ngModelChange)="onFieldChange(item)"
+                        [showClear]="false"
+                        [autofocus]="true"
+                        (blurEvent)="stopEditCell()"
+                        (keyDownEvent)="onEditCellKeydown($event)"
+                        [min]="0"
+                        [maxFractionDigits]="4"
+                        [locale]="locale()"
+                        size="small"
+                        class="!text-end" />
+                    } @else {
+                      <button
+                        type="button"
+                        class="ln-val"
+                        [disabled]="readonly()"
+                        (click)="startEditCell(item, 'qty')">
+                        {{ item.quantity | number: '1.0-4' : locale() }}
+                      </button>
+                    }
+                  </td>
+                  @if (config().enableDiscount) {
+                    <td class="num w-[80px]">
+                      @if (!readonly() && isEditingCell(item, 'discount')) {
+                        <ef-inputnumber
+                          [(ngModel)]="item.discount"
+                          (ngModelChange)="onFieldChange(item)"
+                          [showClear]="false"
+                          [autofocus]="true"
+                          (blurEvent)="stopEditCell()"
+                          (keyDownEvent)="onEditCellKeydown($event)"
+                          [min]="0"
+                          [max]="100"
+                          [maxFractionDigits]="2"
+                          suffix=" %"
+                          [locale]="locale()"
+                          size="small"
+                          class="!text-end" />
+                      } @else {
+                        <button
+                          type="button"
+                          class="ln-val"
+                          [disabled]="readonly()"
+                          (click)="startEditCell(item, 'discount')">
+                          {{ item.discount | number: '1.0-2' : locale() }} %
+                        </button>
+                      }
+                    </td>
+                  }
+                  @if (config().enableTax) {
+                    <td class="num w-[80px]">
+                      @if (!readonly() && isEditingCell(item, 'tva')) {
+                        <ef-inputnumber
+                          [(ngModel)]="item.taxRate"
+                          (ngModelChange)="onFieldChange(item)"
+                          [showClear]="false"
+                          [autofocus]="true"
+                          (blurEvent)="stopEditCell()"
+                          (keyDownEvent)="onEditCellKeydown($event)"
+                          [min]="0"
+                          [max]="100"
+                          [maxFractionDigits]="2"
+                          suffix=" %"
+                          [locale]="locale()"
+                          size="small"
+                          class="!text-end" />
+                      } @else {
+                        <button
+                          type="button"
+                          class="ln-val"
+                          [disabled]="readonly()"
+                          (click)="startEditCell(item, 'tva')">
+                          {{ (item.taxRate ?? 0) | number: '1.0-2' : locale() }} %
+                        </button>
+                      }
+                    </td>
+                  }
+                  <td class="total">
+                    {{ calculateSubtotal(item) | number: '1.2-2' : locale() }}
+                  </td>
+                  <td class="col-act">
+                    @if (!readonly()) {
+                      <ef-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        styleClass="ob-del"
+                        (clickEvent)="removeOrderLine(item.id)" />
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td [attr.colspan]="colCount()">
+                    <div class="ob-empty">{{ 'order_builder.empty' | translate }}</div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+        </table>
+      </ef-card>
     </div>
-  </div>
-}
 
-<!-- Change Indicator -->
-@if (hasChanges()) {
-  <div
-    class="my-4 flex items-center gap-2 rounded border border-orange-200 bg-orange-50 p-3 dark:bg-orange-900/20"
-  >
-    <i class="pi pi-info-circle text-orange-600 dark:text-orange-400"></i>
-    <span class="text-sm text-orange-800 dark:text-orange-200">
-      Modifications non sauvegardées détectées
-    </span>
+    <!-- CONTEXT RAIL (1/3) -->
+    <aside class="ob-rail">
+      <!-- Totaux (top) -->
+      <ef-card titleKey="order_builder.totals" [meta]="currency()">
+        <div class="ob-totals">
+          <div class="row">
+            <span class="lbl">{{ 'order_builder.gross' | translate }}</span>
+            <span class="v">{{ grossTotal() | number: '1.2-2' : locale() }}</span>
+          </div>
+          <div class="row discount">
+            <span class="lbl">{{ 'order_builder.discount' | translate }}</span>
+            <span class="v">−{{ discountTotal() | number: '1.2-2' : locale() }}</span>
+          </div>
+          <div class="row">
+            <span class="lbl">{{ 'order_builder.tax' | translate }}</span>
+            <span class="v">{{ tvaTotal() | number: '1.2-2' : locale() }}</span>
+          </div>
+          <hr />
+          <div class="row grand">
+            <span class="lbl">{{ 'order_builder.grand_total' | translate }}</span>
+            <span class="v">{{ finalTotal() | number: '1.2-2' : locale() }}<span class="cur">{{ currency() }}</span></span>
+          </div>
+        </div>
+      </ef-card>
+
+      <!-- Récapitulatif par format -->
+      @if (productsSummary().items.length > 0) {
+        <ef-card titleKey="order_builder.recap" metaKey="order_builder.auto">
+          <div class="ob-recap">
+            <div class="cols">
+              @for (col of recapColumns(); track $index) {
+                <div class="grp">
+                  @for (seg of col; track seg.code) {
+                    <div class="seg">
+                      <span class="fmt">{{ seg.label }}</span>
+                      <span class="n">{{ seg.count | number: '1.0-0' : locale() }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+            <div class="tot">
+              <span class="l">{{ 'order_builder.total_units' | translate }}</span>
+              <span class="n">{{ productsSummary().totalCount | number: '1.0-0' : locale() }}</span>
+            </div>
+          </div>
+        </ef-card>
+      }
+
+      <!-- Historique (optional, component-owned) -->
+      @if (hasAudit()) {
+        <ef-change-history [entries]="auditEntries()" />
+      }
+    </aside>
   </div>
-}
+
+  <!-- Floating summary FAB + backdrop -->
+  <button type="button" class="ob-backdrop" aria-hidden="true" tabindex="-1" (click)="toggleRail(false)"></button>
+  <div class="ob-fab" role="status">
+    <div class="ft">
+      <span class="k">{{ 'order_builder.total_units' | translate }} · {{ productsSummary().totalCount }}</span>
+      <span class="vv">{{ finalTotal() | number: '1.2-2' : locale() }}<span class="cur">{{ currency() }}</span></span>
+    </div>
+    <button type="button" class="open" (click)="toggleRail(true)">
+      {{ 'order_builder.summary' | translate }}
+    </button>
+  </div>
+</div>

@@ -1,10 +1,10 @@
-@if (labelKey || label) {
-  <ef-label [labelKey]="labelKey" [label]="label" [for]="id" [required]="required" />
+@if (labelKey() || label()) {
+  <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" [required]="required()" />
 }
 <div class="ef-field-control">
   <p-multiSelect
-    [id]="id"
-    [name]="name"
+    [id]="effectiveId"
+    [name]="name()"
     [placeholder]="effectivePlaceholder"
     [options]="filteredOptions"
     [optionLabel]="optionLabel"
@@ -14,11 +14,11 @@
     [ngModelOptions]="{standalone: true}"
     (ngModelChange)="onInternalModelChange($event)"
     (onClear)="handleClear()"
-    [disabled]="disabled"
+    [disabled]="isDisabled()"
     [display]="display"
     [size]="size"
     [selectionLimit]="selectionLimit"
-    [showClear]="showClear"
+    [showClear]="showClear()"
     fluid
   />
   @if (showRequired) {

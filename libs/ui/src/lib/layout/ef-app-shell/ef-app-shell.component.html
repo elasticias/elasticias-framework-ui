@@ -1,0 +1,28 @@
+@if (isMobile()) {
+  <ef-app-shell-mobile>
+    <ng-content select="[breadcrumb]" breadcrumb></ng-content>
+    <ng-content select="[search]" search></ng-content>
+    <ng-content select="[actions]" actions></ng-content>
+    <ng-content select="[fab]" fab></ng-content>
+    <ng-content></ng-content>
+  </ef-app-shell-mobile>
+} @else {
+  <ef-module-rail>
+    <ng-content select="[logo]" logo></ng-content>
+  </ef-module-rail>
+  @if (showSide()) {
+    <ef-module-side>
+      <ng-content select="[side-header-meta]" side-header-meta></ng-content>
+      <ng-content select="[side-footer]" side-footer></ng-content>
+    </ef-module-side>
+  }
+  <div class="ef-app-shell__column">
+    <ef-app-top>
+      <ng-content select="[breadcrumb]" breadcrumb></ng-content>
+      <ng-content select="[actions]" actions></ng-content>
+    </ef-app-top>
+    <ef-app-main [stripe]="stripe">
+      <ng-content></ng-content>
+    </ef-app-main>
+  </div>
+}

@@ -3,6 +3,7 @@ export enum ScreenStateEnum {
   DETAIL = 'DETAIL',
   SEARCH = 'SEARCH',
   CUSTOM = 'CUSTOM',
+  REPORT = 'REPORT',
 }
 
 export enum StateUtilsEnum {
