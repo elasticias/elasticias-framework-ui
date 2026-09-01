@@ -2,7 +2,7 @@ import {
   Component,
   inject,
   Injector,
-  OnInit,
+  OnDestroy, OnInit,
   signal,
 } from '@angular/core';
 import { Permissions } from '@elasticias/types';
@@ -79,4 +79,12 @@ export abstract class AbstractSubScreenV2
     }
   }
 
+    // AbstractComponent declares `abstract ngOnDestroy()`, so this must exist.
+    // There is genuinely nothing to tear down here; removing it would push the
+    // requirement onto every consumer component.
+    // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
+    ngOnDestroy(): void {
+    // NSwag observables complete after one emission — nothing to tear
+    // down; subclasses override when they hold live subscriptions.
+    }
 }

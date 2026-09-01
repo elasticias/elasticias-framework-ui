@@ -2,7 +2,7 @@ import {
     Component,
     DestroyRef,
     Injector,
-    OnInit,
+    OnDestroy, OnInit,
     computed,
     inject,
     signal,
@@ -450,4 +450,12 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         return m ? m[1] : url;
     }
 
+    // AbstractComponent declares `abstract ngOnDestroy()`, so this must exist.
+    // There is genuinely nothing to tear down here; removing it would push the
+    // requirement onto every consumer component.
+    // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
+    ngOnDestroy(): void {
+        // The route subscription is auto-unsubscribed via takeUntilDestroyed.
+        // Subclasses can override to release their own resources.
+    }
 }
