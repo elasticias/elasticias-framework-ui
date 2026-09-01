@@ -1,5 +1,6 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { palette, updatePrimaryPalette } from '@primeng/themes';
 import { StorageUtils } from '@elasticias/utils';
 import { AppState, DEFAULT_APP_STATE } from './app-state';
 
@@ -29,34 +30,27 @@ export class EfThemeConfigService {
 
     transitionComplete = signal<boolean>(false);
 
-    private initialized = false;
-
     constructor() {
         const initialState = this.loadAppState();
         this.appState.set({ ...initialState });
+
+        // Apply preset class + RTL synchronously so the first paint has
+        // the right theme — the effect below picks up subsequent changes
+        // (including any subclass `appState.update()` issued before its
+        // first run).
         this.updatePresetClass(initialState);
-
-        effect(
-            () => {
-                const state = this.appState();
-
-                if (!this.initialized || !state) {
-                    this.initialized = true;
-                    return;
-                }
-                this.saveAppState(state);
-                this.updatePresetClass(state);
-                this.handleDarkModeTransition(state);
-                this.applyRTL(state);
-            },
-        );
-
-        // Apply RTL on initial load
-        if (isPlatformBrowser(this.platformId)) {
-            if (initialState?.RTL) {
-                this.document.documentElement.setAttribute('dir', 'rtl');
-            }
+        if (isPlatformBrowser(this.platformId) && initialState?.RTL) {
+            this.document.documentElement.setAttribute('dir', 'rtl');
         }
+
+        effect(() => {
+            const state = this.appState();
+            if (!state) return;
+            this.saveAppState(state);
+            this.updatePresetClass(state);
+            this.handleDarkModeTransition(state);
+            this.applyRTL(state);
+        });
     }
 
     private static readonly PRESET_CLASS_MAP: Record<string, string> = {
@@ -64,7 +58,10 @@ export class EfThemeConfigService {
         Lara: 'theme-modern',
         Material: 'theme-material',
         Nora: 'theme-classic',
+        Comptoir: 'theme-comptoir',
     };
+
+    private static readonly TENANT_RAMP_STOPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const;
 
     private static readonly ALL_THEME_CLASSES = Object.values(EfThemeConfigService.PRESET_CLASS_MAP);
 
@@ -194,6 +191,37 @@ export class EfThemeConfigService {
     private saveAppState(state: AppState): void {
         if (isPlatformBrowser(this.platformId)) {
             StorageUtils.setLocal(this.STORAGE_KEY, state);
+        }
+    }
+
+    /**
+     * Applies a tenant's brand color across both PrimeNG's primary palette
+     * and the Comptoir `--tenant-*` CSS variables.
+     *
+     * Generates a 50–950 ramp from the input hex via PrimeNG's `palette()`
+     * helper, hands the full ramp to `updatePrimaryPalette()`, and writes
+     * stops 50–900 onto `documentElement.style` so the SCSS layer's
+     * `var(--tenant-*)` references resolve to the tenant's color.
+     *
+     * Call this whenever the active tenant changes (e.g., from an effect
+     * watching `tenantService.storeConfig().primaryColor`).
+     */
+    setTenantAccent(hex: string): void {
+        if (!hex) return;
+
+        const ramp = palette(hex) as Record<string, string>;
+        if (!ramp) return;
+
+        updatePrimaryPalette(ramp);
+
+        if (isPlatformBrowser(this.platformId)) {
+            const root = this.document.documentElement;
+            for (const stop of EfThemeConfigService.TENANT_RAMP_STOPS) {
+                const value = ramp[String(stop)];
+                if (value) {
+                    root.style.setProperty(`--tenant-${stop}`, value);
+                }
+            }
         }
     }
 }

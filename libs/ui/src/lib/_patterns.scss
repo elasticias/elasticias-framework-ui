@@ -1,0 +1,4090 @@
+/* ────────────────────────────────────────────────────────────────────
+   Comptoir patterns — screen-level utility classes lifted from the
+   prototype `screens/_screens.css` so every consumer gets the same
+   smart-bar / filter-pill / drawer / table / pager / detail-toolbar
+   / card / form-grid surface without re-implementing it.
+
+   Depends on the token CSS vars defined in `_comptoir.scss`. Apps
+   include both partials via the `comptoir.scss` barrel:
+
+       @use '@elasticias/ui/styles/comptoir' as *;
+       @use '@elasticias/ui/styles/patterns' as *;
+   ──────────────────────────────────────────────────────────────────── */
+
+/* ── action-btn / action-btn-text ───────────────────────────────────
+   Inline-flex wrappers used by ef-toolbar, ef-datatable-actionbar,
+   and any consumer that wants compact action buttons. */
+
+.action-btn {
+  display: inline-flex;
+  margin: 0.1rem;
+}
+
+.action-btn-text {
+  display: inline-flex;
+  width: inherit;
+  height: var(--hit);
+  margin: 0.1rem;
+}
+
+/* ──────────── PAGE HEAD ROW (label + title + meta + actions) ───── */
+
+.page-head-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-3);
+  align-items: center;
+  margin-bottom: var(--s-3);
+}
+
+.page-head-row h1 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 96,
+    'wght' 700,
+    'wdth' 80;
+  font-size: clamp(18px, 2vw, 22px);
+  // letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.page-head-row .actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.title-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 14px;
+  row-gap: 2px;
+}
+
+.title-meta .meta {
+  font-size: 12px;
+  color: var(--text-mute);
+  margin: 0;
+}
+
+/* ──────────── BUTTON (lifted from _comptoir.css) ──────────────── */
+
+.btn {
+  appearance: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--t-base) var(--ease-spring);
+  letter-spacing: -0.005em;
+  min-height: var(--hit-base);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Disabled state — the Comptoir `.btn` had none, so a disabled button
+   (ef-button comptoir variant or an ef-dialog action with `disabled: true`)
+   stayed at full colour with no affordance. Dim it and block the pointer.
+   `.is-loading` is excluded — that's a separate busy state with its own look. */
+.btn:disabled:not(.is-loading),
+.btn[disabled]:not(.is-loading) {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn:disabled:active,
+.btn[disabled]:active {
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--ink-active);
+  color: var(--paper);
+  border-color: var(--ink-active);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2, 0 4px 14px -4px rgba(15, 17, 21, 0.1));
+}
+
+.btn-tenant {
+  background: var(--tenant-500);
+  color: #fff;
+  border-color: var(--tenant-500);
+}
+
+.btn-tenant:hover {
+  background: var(--tenant-600);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px -10px var(--tenant-200);
+}
+
+.btn-ghost {
+  background: var(--paper-alt);
+  color: var(--text);
+  border-color: var(--rule);
+}
+
+.btn-ghost:hover {
+  border-color: var(--text);
+}
+
+/* Brand-tinted action buttons (e.g. ef-pdf-preview footer). */
+.btn-whatsapp {
+  background: #25d366;
+  color: #fff;
+  border-color: #25d366;
+}
+.btn-whatsapp:hover {
+  background: #1ebe5b;
+  border-color: #1ebe5b;
+}
+.btn-download {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+.btn-download:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* Footer layout helper — pushes this button (and the gap) to the leading
+   edge so following actions stay right-aligned in a flex-end footer. */
+.btn-dialog-leading {
+  margin-inline-end: auto;
+}
+
+.btn-ico {
+  padding: 10px 12px;
+}
+
+.btn-sm {
+  font-size: 12px;
+  padding: 7px 14px;
+  min-height: 32px;
+}
+
+/* ──────────── PILL GROUP (status filters) ───────────────────────── */
+
+.pill-group {
+  display: inline-flex;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: 4px;
+  gap: 2px;
+}
+
+.pill-group button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-mute);
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all var(--t-base) var(--ease-spring);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pill-group button.active {
+  background: var(--ink-active);
+  color: var(--paper);
+}
+
+.pill-group button:not(.active):hover {
+  color: var(--text);
+}
+
+.pill-group .count {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: inherit;
+  opacity: 0.65;
+  margin-inline-start: 4px;
+}
+
+.pill-group button.active .count {
+  opacity: 0.75;
+}
+
+/* ──────────── CHIP ──────────────────────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+
+.chip-pending {
+  background: var(--st-pending-bg);
+  color: var(--st-pending-fg);
+}
+.chip-processing {
+  background: var(--st-processing-bg);
+  color: var(--st-processing-fg);
+}
+.chip-shipped {
+  background: var(--st-shipped-bg);
+  color: var(--st-shipped-fg);
+}
+.chip-delivered {
+  background: var(--st-delivered-bg);
+  color: var(--st-delivered-fg);
+}
+.chip-cancelled {
+  background: var(--st-cancelled-bg);
+  color: var(--st-cancelled-fg);
+}
+.chip-refunded {
+  background: var(--st-refunded-bg);
+  color: var(--st-refunded-fg);
+}
+.chip-onhold {
+  background: var(--st-onhold-bg);
+  color: var(--st-onhold-fg);
+}
+.chip-tenant {
+  background: var(--tenant-100);
+  color: var(--tenant-700);
+}
+.chip-module {
+  background: color-mix(in srgb, var(--module) 15%, var(--paper-alt));
+  color: var(--module);
+}
+
+/* ──────────── AVATAR ────────────────────────────────────────────── */
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--ink-active);
+  color: var(--paper);
+  display: grid;
+  place-items: center;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 80;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.avatar.tenant {
+  background: var(--tenant-500);
+}
+
+.avatar.sm {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+
+/* ──────────── TYPOGRAPHY UTILITIES ─────────────────────────────── */
+
+.label {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+}
+
+.label.tenant {
+  color: var(--tenant-500);
+}
+.label.module {
+  color: var(--module);
+}
+
+.text-mute {
+  color: var(--text-mute);
+}
+.text-soft {
+  color: var(--text-soft);
+}
+.text-tenant {
+  color: var(--tenant-500);
+}
+.text-module {
+  color: var(--module);
+}
+
+.small {
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.micro {
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.mono,
+.num {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-feature-settings: 'tnum', 'zero', 'ss01';
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* ──────────── SMART BAR + FILTER ROW ─────────────────────────── */
+
+.screen-search {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2xl);
+  box-shadow: var(--shadow-1, 0 1px 2px rgba(15, 17, 21, 0.04));
+  overflow: hidden;
+  margin-bottom: var(--s-3);
+}
+
+.smart-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-3);
+  align-items: stretch;
+  background: transparent;
+  padding: 6px 8px 6px 12px;
+}
+
+.smart-bar .search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.smart-bar .search::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  opacity: 0.5;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><circle cx='11' cy='11' r='7'/><path d='m20 20-3-3'/></svg>")
+    center/contain no-repeat;
+}
+
+.smart-bar .search input {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-xl);
+  padding: 8px 14px 8px 38px;
+  color: var(--text);
+  outline: 0;
+  min-height: 36px;
+  letter-spacing: -0.005em;
+}
+
+.smart-bar .search input::placeholder {
+  color: var(--text-soft);
+}
+
+.smart-bar .search .kbd {
+  position: absolute;
+  inset-inline-end: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 2px 7px;
+  line-height: 1;
+}
+
+.smart-bar .actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline-end: 6px;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
+  margin: 0;
+}
+
+.filter-row .sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--rule);
+  margin: 0 var(--s-1);
+}
+
+/* Filter pill — value-bearing button with optional caret. */
+
+.f-pill {
+  appearance: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
+  min-height: 32px;
+  letter-spacing: -0.005em;
+  position: relative;
+}
+
+.f-pill:hover {
+  border-color: var(--text);
+}
+.f-pill .ico {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+.f-pill .lbl {
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.f-pill .val {
+  color: var(--text);
+  font-weight: 700;
+}
+.f-pill .caret {
+  width: 10px;
+  height: 10px;
+  opacity: 0.5;
+}
+
+.f-pill.active {
+  background: var(--ink-active);
+  color: var(--paper);
+  border-color: var(--ink-active);
+}
+
+.f-pill.active .lbl,
+.f-pill.active .val,
+.f-pill.active .ico,
+.f-pill.active .caret {
+  color: var(--paper);
+  opacity: 0.9;
+}
+
+.f-pill.tenant {
+  background: var(--tenant-50);
+  border-color: var(--tenant-200);
+  color: var(--tenant-700);
+}
+
+.f-pill.tenant .lbl {
+  color: var(--tenant-600);
+}
+.f-pill.tenant .val {
+  color: var(--tenant-700);
+}
+
+.f-pill .clear {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(15, 17, 21, 0.08);
+  display: inline-grid;
+  place-items: center;
+  color: var(--text);
+  margin-inline-start: 2px;
+  flex-shrink: 0;
+}
+
+.f-pill .clear:hover {
+  background: rgba(15, 17, 21, 0.18);
+}
+.f-pill.active .clear {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--paper);
+}
+
+.f-more {
+  appearance: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+  background: transparent;
+  border: 1px dashed var(--rule);
+  border-radius: var(--r-pill);
+  padding: 7px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  min-height: 32px;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.f-more:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.f-more.open {
+  background: var(--paper-alt);
+  border-style: solid;
+  color: var(--text);
+}
+
+.f-clear {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--st-cancelled-fg);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--r-pill);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.f-clear:hover {
+  background: var(--st-cancelled-bg);
+}
+
+/* Advanced-filter drawer */
+
+.f-drawer {
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  padding: var(--s-4) var(--s-5);
+  display: none;
+  animation: ef-drawer-in var(--t-base) var(--ease-out);
+}
+
+.f-drawer.open {
+  display: grid;
+}
+
+@keyframes ef-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.f-drawer .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-4);
+}
+
+.f-drawer .foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+  gap: var(--s-3);
+}
+
+.f-drawer .foot .left {
+  font-size: 12px;
+  color: var(--text-mute);
+}
+
+/* Date-range / preset popover */
+
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-start: 0;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3, 0 16px 40px -16px rgba(15, 17, 21, 0.2));
+  padding: var(--s-3);
+  display: none;
+  z-index: 20;
+  min-width: 240px;
+}
+
+.popover.open {
+  display: grid;
+  gap: 4px;
+}
+
+.popover .preset {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+
+.popover .preset:hover {
+  background: var(--paper);
+}
+.popover .preset.active {
+  background: var(--ink-active);
+  color: var(--paper);
+}
+
+.popover .preset .hint {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--text-mute);
+  font-weight: 500;
+}
+
+.popover .preset.active .hint {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.f-pill.has-pop {
+  position: relative;
+}
+
+/* ──────────── RESULTS BAR + TABLE WRAPPER ──────────────────────── */
+
+.tbl-wrap {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2xl);
+  overflow: hidden;
+}
+
+.tbl-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--rule);
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.tbl thead th {
+  text-align: start;
+  padding: 12px 18px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--text-mute);
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+  white-space: nowrap;
+}
+
+.tbl tbody td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
+  vertical-align: middle;
+}
+
+.tbl tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tbl tbody tr {
+  transition: background-color var(--t-fast) var(--ease-out);
+  cursor: pointer;
+}
+
+.tbl tbody tr:hover {
+  background: var(--paper);
+}
+
+.tbl .who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tbl .ref {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tbl .num {
+  text-align: end;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+.tbl .total {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 85;
+  font-size: 14.5px;
+  font-feature-settings: 'tnum';
+}
+
+.tbl .stack {
+  display: grid;
+  gap: 2px;
+  line-height: 1.3;
+}
+
+.tbl .meta-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-mute);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.tbl .strong {
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+
+/* ──────────── PAGER ─────────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--rule);
+  background: var(--paper-alt);
+}
+
+.pager .pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pager .pg {
+  appearance: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-md);
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.pager .pg:hover {
+  background: var(--paper);
+  color: var(--text);
+}
+.pager .pg.active {
+  background: var(--ink-active);
+  color: var(--paper);
+}
+
+.pager .size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-mute);
+}
+
+.pager .size select {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 5px 8px;
+  color: var(--text);
+  min-height: 30px;
+}
+
+/* ──────────── BULK ACTIONS BAR ─────────────────────────────────── */
+
+.bulk {
+  background: var(--ink-active);
+  color: var(--paper);
+  border-radius: var(--r-pill);
+  padding: 6px 8px 6px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: var(--shadow-2, 0 4px 14px -4px rgba(15, 17, 21, 0.1));
+}
+
+.bulk .count {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bulk .btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--paper);
+  border: 0;
+  min-height: 28px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.bulk .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ──────────── EMPTY STATE ──────────────────────────────────────── */
+
+.empty {
+  padding: var(--s-9) var(--s-5);
+  text-align: center;
+  color: var(--text-mute);
+  display: grid;
+  gap: var(--s-3);
+  justify-items: center;
+}
+
+.empty .ic {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  border: 1px dashed var(--rule);
+  display: grid;
+  place-items: center;
+  color: var(--text-soft);
+}
+
+.empty .title {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* ──────────── DETAIL TOOLBAR ───────────────────────────────────── */
+
+/* The authoritative `.detail-toolbar` base rule (flush, full-bleed square band)
+   lives in the "DETAIL SCREEN PRIMITIVES (Phase 7)" section below. Only the
+   sub-element rules (`.left` / `.ref` / `.name` / `.right`) live here. */
+
+.detail-toolbar .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.detail-toolbar .ref {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.detail-toolbar .name {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 85;
+  font-size: 17px;
+  letter-spacing: -0.015em;
+}
+
+.detail-toolbar .right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+
+/* ──────────── DETAIL GRID + CARD ───────────────────────────────── */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+@media (min-width: 1100px) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  }
+}
+
+.detail-stack {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  min-width: 0;
+}
+
+.card {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2xl);
+  overflow: hidden;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
+  gap: var(--s-3);
+}
+
+.card-head .title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 88;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+
+.card-head .meta {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 16px;
+  display: grid;
+  gap: var(--s-3);
+}
+
+.card-foot {
+  padding: 10px 16px;
+  border-top: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-3);
+  background: var(--paper);
+}
+
+/* ──────────── FORM GRID + FIELD ────────────────────────────────── */
+
+.form-grid {
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.form-grid > .col-1 {
+  grid-column: span 1;
+}
+.form-grid > .col-2 {
+  grid-column: span 2;
+}
+.form-grid > .col-3 {
+  grid-column: span 3;
+}
+.form-grid > .col-4 {
+  grid-column: span 4;
+}
+.form-grid > .col-6 {
+  grid-column: span 6;
+}
+.form-grid > .col-12 {
+  grid-column: span 12;
+}
+
+@media (max-width: 720px) {
+  .form-grid > [class^='col-'] {
+    grid-column: span 12;
+  }
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.field label .req {
+  color: var(--st-cancelled-fg);
+  margin-inline-start: 2px;
+}
+
+.field .hint {
+  font-size: 11px;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+
+/* ──────────── BANNER ───────────────────────────────────────────── */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--st-pending-bg);
+  color: var(--st-pending-fg);
+  border-radius: var(--r-xl);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.banner.ok {
+  background: var(--st-delivered-bg);
+  color: var(--st-delivered-fg);
+}
+
+/* ──────────── PULSE ────────────────────────────────────────────── */
+
+.pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+}
+
+.pulse .dot {
+  width: 8px;
+  height: 8px;
+  background: var(--st-delivered-fg);
+  border-radius: 50%;
+  position: relative;
+}
+
+.pulse .dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--st-delivered-fg);
+  opacity: 0.5;
+  animation: ef-pulse 1.6s ease-out infinite;
+}
+
+@keyframes ef-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* ──────────── BOOLEAN INDICATOR ────────────────────────────────── */
+
+.bool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-mute);
+}
+
+.bool .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-300);
+}
+
+.bool.yes {
+  color: var(--st-delivered-fg);
+}
+.bool.yes .dot {
+  background: var(--st-delivered-fg);
+}
+.bool.no {
+  color: var(--text-mute);
+}
+.bool.no .dot {
+  background: var(--ink-300);
+}
+
+/* ──────────── CHECKBOX (table) ─────────────────────────────────── */
+
+.cb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--ink-300);
+  border-radius: 5px;
+  background: var(--paper-alt);
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  transition: all var(--t-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.cb:checked {
+  background: var(--ink-active);
+  border-color: var(--ink-active);
+}
+
+.cb:checked::after {
+  content: '';
+  width: 9px;
+  height: 9px;
+  background: var(--paper);
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3.5'><polyline points='5 12 10 17 19 7'/></svg>")
+    center/contain no-repeat;
+}
+
+/* ──────────── DASHBOARD KPI CARDS ───────────────────────────────── */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-3);
+}
+
+.kpi-card {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2xl);
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.kpi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpi-value {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 96,
+    'wght' 700,
+    'wdth' 80;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-feature-settings: 'tnum';
+  color: var(--text);
+}
+
+.kpi-value .unit {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.4em;
+  font-weight: 500;
+  color: var(--text-mute);
+  margin-inline-start: 6px;
+  letter-spacing: 0;
+}
+
+.spark {
+  width: 100%;
+  height: 28px;
+  margin-top: 4px;
+}
+
+.delta {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  letter-spacing: 0;
+}
+
+.delta.up {
+  background: var(--st-delivered-bg);
+  color: var(--st-delivered-fg);
+}
+
+.delta.down {
+  background: var(--st-cancelled-bg);
+  color: var(--st-cancelled-fg);
+}
+
+/* Lower-half dashboard grid (recent activity / pipeline / top lists). */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+@media (min-width: 1100px) {
+  .dash-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Pipeline-by-status row: chip · bar · count. */
+
+.pipeline-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 40px;
+  align-items: center;
+  gap: 12px;
+}
+
+.pipeline-row .bar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.pipeline-row .bar-fill {
+  position: absolute;
+  inset: 0;
+  width: var(--w, 0%);
+  border-radius: var(--r-pill);
+  transition: width var(--t-base) var(--ease-out);
+}
+
+/* ──────────── PRODUCT THUMB ────────────────────────────────────── */
+
+.thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--tenant-100), var(--tenant-50));
+  display: grid;
+  place-items: center;
+  color: var(--tenant-500);
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 75;
+  font-size: 14px;
+  flex-shrink: 0;
+  border: 1px solid var(--rule);
+}
+
+/* ──────────── ROW ACTIONS (per-row dropdown menu) ───────────────
+   Discreet trailing-cell ⋯ trigger that opens a small Comptoir-styled
+   menu. Source: docs/ux-ui/erp/screens/components.html (prototype canon).
+   Used by `ef-row-actions` from `@elasticias/ui`.                 */
+
+.row-actions {
+  position: relative;
+  display: inline-block;
+}
+
+.row-actions__trigger {
+  appearance: none;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  width: 34px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  display: inline-grid;
+  place-items: center;
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.row-actions__trigger:hover {
+  color: var(--text);
+  border-color: var(--ink-400);
+  background: var(--paper);
+}
+
+.row-actions__trigger:focus-visible {
+  outline: 0;
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+  color: var(--text);
+}
+
+.row-actions__trigger.open {
+  background: var(--ink-active);
+  border-color: var(--ink-active);
+  color: var(--paper);
+}
+
+.row-actions__trigger[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.row-actions__trigger .ico,
+.row-actions__trigger i {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.row-actions__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  min-width: 212px;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3);
+  padding: 6px;
+  z-index: 40;
+  display: none;
+  animation: row-actions-menu-in var(--t-base) var(--ease-spring);
+}
+
+.row-actions__menu.open {
+  display: grid;
+  gap: 1px;
+}
+
+.row-actions__menu.left {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+
+@keyframes row-actions-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.row-actions__item {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 100%;
+  text-align: start;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+
+.row-actions__item:hover,
+.row-actions__item:focus-visible {
+  background: var(--paper);
+  outline: 0;
+}
+
+.row-actions__item[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.row-actions__item .ico,
+.row-actions__item i {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-mute);
+  flex-shrink: 0;
+  transition: color var(--t-fast) var(--ease-out);
+  display: inline-grid;
+  place-items: center;
+}
+
+.row-actions__item:hover .ico,
+.row-actions__item:hover i,
+.row-actions__item:focus-visible .ico,
+.row-actions__item:focus-visible i {
+  color: var(--text);
+}
+
+.row-actions__item .kbd {
+  margin-inline-start: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-mute);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.row-actions__item.danger {
+  color: var(--st-cancelled-fg);
+}
+
+.row-actions__item.danger .ico,
+.row-actions__item.danger i {
+  color: var(--st-cancelled-fg);
+}
+
+.row-actions__item.danger:hover,
+.row-actions__item.danger:focus-visible {
+  background: var(--st-cancelled-bg);
+}
+
+.row-actions__divider {
+  height: 1px;
+  background: var(--rule);
+  margin: 4px;
+}
+
+/* When a row-actions menu is open inside a data card, the table-wrap
+   should let the popover escape its overflow. The data-card binds
+   .has-open-menu when any descendant trigger is in `.open` state. */
+.tbl-wrap.has-open-menu {
+  overflow: visible;
+}
+
+/* ──────────── DATEPICKER ADVANCED ───────────────────────────────
+   Smart-bar period pill: short label + bold value + popover with
+   preset list + custom-range calendar. Source:
+   docs/ux-ui/erp/screens/components.html.
+   Used by `ef-datepicker-advanced` from `@elasticias/ui`. */
+
+.dp {
+  position: relative;
+  display: inline-block;
+}
+
+.dp__trigger {
+  appearance: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: 8px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
+  min-height: 38px;
+  letter-spacing: -0.005em;
+}
+
+.dp__trigger:hover {
+  border-color: var(--ink-400);
+}
+
+.dp__trigger:focus-visible {
+  outline: 0;
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+}
+
+.dp__trigger.open {
+  border-color: var(--ink-active);
+}
+
+.dp__trigger .ico,
+.dp__trigger > i {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text-mute);
+}
+
+.dp__trigger .lbl {
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.dp__trigger .val {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.dp__trigger .caret,
+.dp__trigger > i.caret {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-mute);
+  transition: transform var(--t-base) var(--ease-spring);
+}
+
+.dp__trigger.open .caret {
+  transform: rotate(180deg);
+}
+
+/* ── Field mode (form control) ──────────────────────────────────────
+   `mode="field"` turns the picker into a Comptoir form control. The
+   `.dp--field` wrapper fills its column; `.dp__field-trigger` is the
+   bordered field box (matching ef-select / ef-input height + radius)
+   that replaces the rounded pill. */
+
+.dp--field {
+  display: block;
+  width: 100%;
+}
+
+.dp__field-trigger {
+  appearance: none;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 0 14px;
+  width: 100%;
+  min-height: var(--hit-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: start;
+  transition: all var(--t-fast) var(--ease-out);
+  letter-spacing: -0.005em;
+}
+
+.dp__field-trigger:hover:not(:disabled) {
+  border-color: var(--ink-400);
+}
+
+.dp__field-trigger:focus-visible,
+.dp__field-trigger.open {
+  outline: 0;
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 3px var(--tenant-100);
+}
+
+.dp__field-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dp__field-trigger .ico {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text-mute);
+}
+
+.dp__field-trigger .val {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Placeholder state — muted, lighter weight, like an empty input. */
+.dp__field-trigger.is-placeholder .val {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.dp__field-trigger .caret {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-mute);
+  transition: transform var(--t-base) var(--ease-spring);
+}
+
+.dp__field-trigger.open .caret {
+  transform: rotate(180deg);
+}
+
+/* Inline clear ✕ for the field-mode trigger (single mode only). Overlaid as a
+   sibling — not nested in the trigger <button> — just left of the caret,
+   vertically centred on the --hit-base trigger box. */
+.dp .ef-field-control {
+  position: relative;
+}
+
+.dp__field-clear {
+  position: absolute;
+  top: calc(var(--hit-base) / 2);
+  inset-inline-end: 30px;
+  transform: translateY(-50%);
+}
+
+/* Invalid (touched + failing validation) — red border + halo. */
+.dp__field-trigger.is-invalid {
+  border-color: var(--st-cancelled-fg);
+}
+.dp__field-trigger.is-invalid:focus-visible,
+.dp__field-trigger.is-invalid.open {
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+.dp__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-start: 0;
+  min-width: 320px;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3);
+  padding: 6px;
+  z-index: 40;
+  display: none;
+  animation: row-actions-menu-in var(--t-base) var(--ease-spring);
+}
+
+.dp__panel.open {
+  display: grid;
+  gap: 2px;
+}
+.dp__panel.wide {
+  min-width: 340px;
+}
+
+.dp__view {
+  display: none;
+}
+.dp__view.active {
+  display: grid;
+  gap: 0;
+}
+
+.dp__preset {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 100%;
+  text-align: start;
+  font: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+
+.dp__preset:hover,
+.dp__preset:focus-visible {
+  background: var(--paper);
+  outline: 0;
+}
+
+.dp__preset .hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-mute);
+  letter-spacing: -0.005em;
+}
+
+.dp__preset.active {
+  background: var(--ink-active);
+  color: var(--paper);
+  border-radius: var(--r-pill);
+}
+
+.dp__preset.active .hint {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dp__preset.muted {
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.dp__preset.muted .ico-lead,
+.dp__preset.muted i.ico-lead {
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.6;
+  margin-inline-end: 8px;
+}
+
+.dp__divider {
+  height: 1px;
+  background: var(--rule);
+  margin: 4px;
+}
+
+.dp__custom-head {
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 4px;
+}
+
+.dp__back,
+.dp__close {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.dp__back:hover,
+.dp__close:hover {
+  background: var(--paper);
+  color: var(--text);
+}
+.dp__back i,
+.dp__close i {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.dp__custom-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  letter-spacing: -0.005em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.dp__custom-title .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tenant-500);
+}
+
+.dp__cal {
+  padding: 0 6px 4px;
+  --band: var(--ink-100);
+}
+
+.p-dark .dp__cal,
+[data-theme='dark'] .dp__cal {
+  --band: rgba(255, 255, 255, 0.06);
+}
+
+.dp__cal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 4px;
+  gap: 8px;
+}
+
+.dp__cal-nav {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.dp__cal-nav:hover {
+  background: var(--paper);
+  color: var(--text);
+}
+.dp__cal-nav i {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.dp__cal-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dp__cal-pick {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.dp__cal-pick:hover {
+  background: var(--paper);
+}
+
+/* Year-window range label — looks like the pick buttons but is inert. */
+.dp__cal-pick.is-static {
+  cursor: default;
+}
+.dp__cal-pick.is-static:hover {
+  background: transparent;
+}
+
+/* Month / year picker grid — 3 columns of selectable cells, sized to
+   roughly match the height of the 6-row day grid above. */
+.dp__cal-cells {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 8px 2px;
+}
+
+.dp__cal-cell {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  height: 44px;
+  border-radius: var(--r-md);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.dp__cal-cell:hover {
+  background: var(--paper);
+}
+
+.dp__cal-cell.today {
+  box-shadow: inset 0 0 0 1.5px var(--ink-300);
+}
+
+.p-dark .dp__cal-cell.today,
+[data-theme='dark'] .dp__cal-cell.today {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.18);
+}
+
+.dp__cal-cell.active {
+  background: var(--ink-active);
+  color: var(--paper);
+}
+.dp__cal-cell.active:hover {
+  background: var(--ink-active);
+}
+
+.dp__cal-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0 2px 4px;
+}
+
+.dp__cal-dow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-mute);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 0;
+}
+
+.dp__cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px 0;
+  padding: 0 2px;
+}
+
+.dp__cal-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 36px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.dp__cal-day .day-num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  position: relative;
+  z-index: 1;
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.dp__cal-day:hover:not(.in-range):not(.range-start):not(.range-end) .day-num {
+  background: var(--paper);
+}
+
+.dp__cal-day.out .day-num {
+  color: var(--text-soft);
+  font-weight: 500;
+  opacity: 0.5;
+}
+
+.dp__cal-day.today .day-num {
+  box-shadow: inset 0 0 0 1.5px var(--ink-300);
+}
+
+.p-dark .dp__cal-day.today .day-num,
+[data-theme='dark'] .dp__cal-day.today .day-num {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.18);
+}
+
+.dp__cal-day.in-range {
+  background: var(--band);
+}
+.dp__cal-day.range-start {
+  background: linear-gradient(to right, transparent 50%, var(--band) 50%);
+}
+.dp__cal-day.range-end {
+  background: linear-gradient(to right, var(--band) 50%, transparent 50%);
+}
+.dp__cal-day.range-start.range-end {
+  background: transparent;
+}
+
+.dp__cal-day.range-start .day-num,
+.dp__cal-day.range-end .day-num {
+  background: var(--ink-active);
+  color: var(--paper);
+  box-shadow: none;
+}
+
+.dp__cal-day.in-range:nth-child(7n + 1) {
+  border-top-left-radius: var(--r-pill);
+  border-bottom-left-radius: var(--r-pill);
+}
+
+.dp__cal-day.in-range:nth-child(7n) {
+  border-top-right-radius: var(--r-pill);
+  border-bottom-right-radius: var(--r-pill);
+}
+
+.dp__cal-day.range-start:nth-child(7n) {
+  background: transparent;
+}
+.dp__cal-day.range-end:nth-child(7n + 1) {
+  background: transparent;
+}
+
+.dp__inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3) 0;
+}
+
+/* Single-date field mode — one full-width input instead of Du / Au. */
+.dp__inputs--single {
+  grid-template-columns: 1fr;
+  padding-bottom: var(--s-3);
+}
+
+.dp__field {
+  display: grid;
+  gap: 4px;
+}
+
+.dp__field label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-mute);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding-inline-start: 2px;
+}
+
+.dp__field input {
+  font: inherit;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  color: var(--text);
+  outline: 0;
+  width: 100%;
+  min-height: 32px;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.dp__field input:focus {
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 3px var(--tenant-100);
+  background: var(--paper-alt);
+}
+
+.dp__field input.invalid {
+  border-color: var(--st-cancelled-fg);
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+.dp__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-3) var(--s-2);
+}
+
+.dp__actions .duration {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+}
+
+.dp__actions .duration .num {
+  color: var(--text);
+  font-weight: 700;
+}
+.dp__actions .right {
+  display: flex;
+  gap: 6px;
+}
+
+/* ──────────── TOAST (ef-toast-region) ─────────────────────────────
+   Region anchored top-right (or whichever edge the consumer picks)
+   that stacks Comptoir-styled toasts. Source:
+   docs/ux-ui/erp/screens/components.html — four severities mapped
+   to the status spectrum. */
+
+.toast-region {
+  position: fixed;
+  top: var(--s-4);
+  inset-inline-end: var(--s-4);
+  z-index: 1000;
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+  pointer-events: none; /* the region itself is transparent */
+}
+
+.toast-region.bottom-right {
+  top: auto;
+  bottom: var(--s-4);
+}
+.toast-region.bottom-left {
+  top: auto;
+  bottom: var(--s-4);
+  inset-inline-end: auto;
+  inset-inline-start: var(--s-4);
+}
+.toast-region.top-left {
+  inset-inline-end: auto;
+  inset-inline-start: var(--s-4);
+}
+.toast-region.top-center,
+.toast-region.bottom-center {
+  inset-inline: 0;
+  justify-content: center;
+}
+.toast-region.bottom-center {
+  top: auto;
+  bottom: var(--s-4);
+}
+
+.toast {
+  --toast-fg: var(--ink-active);
+  --toast-bord: var(--rule);
+  position: relative;
+  background: var(--paper-alt);
+  /* Soft 1 px frame on three sides + thick coloured bar on the leading
+     edge. border-radius applies to the whole element so the bar's outer
+     corners round flush with the toast outline (matches PrimeNG p-toast).
+     Severities drive `--toast-fg` (bar) and `--toast-bord` (surround) via
+     custom props — see `.toast.info|success|warn|error` below. */
+  border: 1px solid var(--toast-bord);
+  border-inline-start: 6px solid var(--toast-fg);
+  border-radius: var(--r-xl);
+  padding: var(--s-4);
+  box-shadow: var(--shadow-2);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s-3);
+  align-items: start;
+  min-width: 280px;
+  max-width: 480px;
+  animation: toast-in var(--t-base) var(--ease-spring);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.toast.out {
+  animation: toast-out var(--t-base) var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: none;
+    max-height: 240px;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+    max-height: 0;
+    margin-top: calc(var(--s-2) * -1);
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+  }
+}
+
+.toast__ico {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-pill);
+  border: 1.75px solid var(--toast-fg);
+  color: var(--toast-fg);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.toast__ico i,
+.toast__ico .ico {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.toast__body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.toast__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--toast-fg);
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+
+.toast__text {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.toast__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.toast__actions .btn {
+  min-height: 30px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.toast__close {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-md);
+  color: var(--toast-fg);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.toast__close:hover {
+  background: color-mix(in srgb, var(--toast-fg) 14%, transparent);
+  opacity: 1;
+}
+
+.toast__close i {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.toast__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: color-mix(in srgb, var(--toast-fg) 14%, transparent);
+  overflow: hidden;
+}
+
+.toast__progress::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--toast-fg);
+  transform-origin: left center;
+  animation: toast-progress var(--toast-life, 5s) linear forwards;
+}
+
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Severity variants — mapped 1:1 to the status spectrum.
+   Each severity drives BOTH `--toast-fg` (the leading bar + icon + title)
+   and `--toast-bord` (the soft surround) via custom properties — so the
+   `border-color` shorthand isn't fighting the `border-inline-start`. */
+.toast.info {
+  background: var(--st-processing-bg);
+  --toast-fg: var(--st-processing-fg);
+  --toast-bord: color-mix(in srgb, var(--st-processing-fg) 22%, transparent);
+}
+
+.toast.success {
+  background: var(--st-delivered-bg);
+  --toast-fg: var(--st-delivered-fg);
+  --toast-bord: color-mix(in srgb, var(--st-delivered-fg) 22%, transparent);
+}
+
+.toast.warn {
+  background: var(--st-pending-bg);
+  --toast-fg: var(--st-pending-fg);
+  --toast-bord: color-mix(in srgb, var(--st-pending-fg) 22%, transparent);
+}
+
+.toast.error {
+  background: var(--st-cancelled-bg);
+  --toast-fg: var(--st-cancelled-fg);
+  --toast-bord: color-mix(in srgb, var(--st-cancelled-fg) 22%, transparent);
+}
+
+/* ──────────── DETAIL SCREEN PRIMITIVES (Phase 7) ─────────────────
+   Source: docs/ux-ui/erp/screens/{order,product,clients,user}-details.html
+   Used by ef-detail-toolbar, ef-card, ef-form-grid, ef-totals,
+   ef-stats, ef-timeline, ef-kpi-card. */
+
+/* Detail toolbar: a flush, full-bleed header band welded under the breadcrumb
+   bar (`ef-app-top`, which sits outside the scroll area) at the top of every
+   detail screen — opaque + square so scrolled content tucks cleanly beneath it
+   (no peeking around floating-card corners).
+   It sticks inside the `.ef-app-main__content` scroller (padding
+   var(--s-5) top / var(--s-6) sides). The negative `margin` cancels that padding
+   for an edge-to-edge band; `top: calc(-1 * var(--s-5))` cancels the scroller's
+   padding-top so the bar pins FLUSH at the scrollport top when stuck (a plain
+   `top: 0` leaves a padding-top-sized strip where content bleeds above the bar —
+   verified). If a consuming app pads its detail-screen scroller differently,
+   override `margin` + `top` to match its padding. */
+.detail-toolbar {
+  position: sticky;
+  top: calc(-1 * var(--s-5));
+  z-index: 8;
+  margin: calc(-1 * var(--s-5)) calc(-1 * var(--s-6)) 0;
+  background: var(--paper-alt);
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  box-shadow: 0 6px 16px -14px rgba(15, 17, 21, 0.3);
+  padding: 10px var(--s-6);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.detail-toolbar .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.detail-toolbar .ref {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.detail-toolbar .sep {
+  color: var(--text-soft);
+}
+
+.detail-toolbar .right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+
+/* Search-screen counterpart of `.detail-toolbar`. Same left | right
+   structure, but lives at the top of a list page so it doesn't
+   stick — the `.title-meta` block in the left slot stays in normal
+   flow above the smart-bar / data-card stack. */
+.search-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.search-toolbar h1 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 96,
+    'wght' 700,
+    'wdth' 80;
+  font-size: clamp(18px, 2vw, 22px);
+  // letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.search-toolbar .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.search-toolbar .sep {
+  color: var(--text-soft);
+}
+
+.search-toolbar .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+
+/* Icon-only collapse below the `EfViewportService` mobile breakpoint
+   (767px). Targets the Comptoir `.btn` rendered by `ef-button`, which
+   wraps its label in a plain `<span>` after the `<i>` icon. The
+   label's accessible name still reaches the user via pTooltip — the
+   button keeps `labelKey` and `ef-button` falls back to it when no
+   explicit `tooltipKey` is provided. */
+@media (max-width: 767px) {
+  .detail-toolbar .right .btn > span,
+  .search-toolbar .right .btn > span {
+    display: none;
+  }
+
+  /* Square up the icon-only button so the padding doesn't read as
+     "missing text". Mirrors the .btn-sm vertical padding on both
+     axes. */
+  .detail-toolbar .right .btn,
+  .search-toolbar .right .btn {
+    padding: 7px;
+    min-width: var(--hit-base, 32px);
+    justify-content: center;
+  }
+}
+
+/* 2/3 + 1/3 column grid that collapses below 1100px. */
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+@media (min-width: 1100px) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  }
+}
+
+.detail-stack {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  min-width: 0;
+}
+
+/* Card structural primitive. */
+.card {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2xl);
+  overflow: hidden;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule-soft);
+  gap: var(--s-3);
+}
+
+/* Module-tinted head (used on the order's Status card). */
+.card-head.tone-module {
+  background: color-mix(in srgb, var(--module) 8%, var(--paper-alt));
+  border-bottom-color: color-mix(in srgb, var(--module) 16%, var(--rule));
+}
+
+.card-head .title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 88;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.card-head .meta {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 16px;
+  display: grid;
+  gap: var(--s-3);
+}
+
+.card-foot {
+  padding: 10px 16px;
+  border-top: 1px solid var(--rule-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-3);
+  background: var(--paper);
+}
+
+/* Form grid — 12 cols, collapses to single col under 720px. */
+.ef-form-grid {
+  display: grid;
+  gap: var(--s-3);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.ef-form-grid > .col-2 {
+  grid-column: span 2;
+}
+.ef-form-grid > .col-3 {
+  grid-column: span 3;
+}
+.ef-form-grid > .col-4 {
+  grid-column: span 4;
+}
+.ef-form-grid > .col-6 {
+  grid-column: span 6;
+}
+.ef-form-grid > .col-8 {
+  grid-column: span 8;
+}
+.ef-form-grid > .col-9 {
+  grid-column: span 9;
+}
+.ef-form-grid > .col-12 {
+  grid-column: span 12;
+}
+
+@media (max-width: 720px) {
+  .ef-form-grid > [class^='col-'] {
+    grid-column: span 12;
+  }
+}
+
+/* Field row inside a form grid. */
+.ef-field {
+  display: grid;
+  gap: 4px;
+}
+
+.ef-field > label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ef-field .req {
+  color: var(--st-cancelled-fg);
+  margin-inline-start: 2px;
+}
+
+.ef-field .read {
+  font-size: 14px;
+  color: var(--text);
+  padding: 9px 0;
+  line-height: 1.2;
+}
+
+.ef-field .read.strong {
+  font-weight: 700;
+}
+
+/* Totals card — sidebar key-value rows with display-size grand row. */
+.totals {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+}
+
+.totals .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.totals .row .lbl {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+}
+
+.totals .row .v {
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.totals .row.discount .v {
+  color: var(--st-pending-fg);
+}
+
+.totals hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 6px 0;
+}
+
+.totals .grand-row {
+  padding-top: 4px;
+}
+
+.totals .grand-row .lbl {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 85;
+  font-size: 14px;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.totals .grand-row .v {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings:
+    'opsz' 96,
+    'wght' 700,
+    'wdth' 80;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.totals .currency {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.35em;
+  color: var(--text-mute);
+  margin-inline-start: 4px;
+}
+
+/* Stats card — mini-KPIs in a vertical list. */
+.stats {
+  padding: 4px 16px 16px;
+  display: grid;
+  gap: 0;
+}
+
+.stats .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  gap: 16px;
+}
+
+.stats .row:last-child {
+  border-bottom: 0;
+}
+
+.stats .row .l {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-mute);
+}
+
+.stats .row .v {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+.stats .row .v .unit {
+  color: var(--text-mute);
+  font-weight: 500;
+  margin-inline-start: 4px;
+  font-size: 11.5px;
+}
+
+.stats .row.big .v {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 80;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+/* Timeline — vertical history with done/now/upcoming dots. */
+.timeline {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.timeline .item {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+  align-items: start;
+  position: relative;
+}
+
+.timeline .item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 16px;
+  bottom: -10px;
+  width: 2px;
+  background: var(--rule);
+}
+
+.timeline .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--ink-300);
+  margin-top: 2px;
+}
+
+.timeline .item.done .dot {
+  background: var(--st-delivered-fg);
+  border-color: var(--st-delivered-fg);
+}
+
+.timeline .item.now .dot {
+  background: var(--module);
+  border-color: var(--module);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--module) 18%, transparent);
+}
+
+.timeline .body .label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.timeline .body .meta {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  margin-top: 1px;
+}
+
+/* KPI tile — dashboard headline with sparkline + delta. */
+.kpi {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2xl);
+  padding: var(--s-5);
+  display: grid;
+  gap: var(--s-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kpi-value {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-variation-settings:
+    'opsz' 96,
+    'wght' 700,
+    'wdth' 80;
+  font-size: clamp(32px, 4.5vw, 48px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-value .unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.32em;
+  font-weight: 500;
+  color: var(--text-mute);
+  letter-spacing: 0;
+  margin-inline-start: 6px;
+}
+
+.delta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.delta.up {
+  color: var(--st-delivered-fg);
+}
+.delta.down {
+  color: var(--st-cancelled-fg);
+}
+.delta.flat {
+  color: var(--text-mute);
+}
+
+.spark {
+  height: 28px;
+  opacity: 0.9;
+  display: block;
+  width: 100%;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--s-3);
+}
+
+/* ──────────── FORM LABEL (Comptoir typography) ─────────────────
+   Applied by `<ef-label>` (always) and to the field-label
+   convention used by raw `<label>` elements inside `.ef-field`.
+   The `.is-required` modifier appends a red asterisk via `::after`. */
+
+.ef-label {
+  display: inline-block;
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ef-label.is-required::after {
+  content: '*';
+  color: var(--st-cancelled-fg);
+  margin-inline-start: 4px;
+  font-weight: 700;
+}
+
+/* ──────────── NATIVE FORM CONTROLS (Comptoir variant) ──────────────
+   Shared styling for V2's native ef-input-text / ef-input-number /
+   ef-textarea / ef-select / ef-checkbox components and any raw
+   `<input>` / `<textarea>` / `<select>` placed inside an `.ef-field`. */
+
+.ef-input,
+.ef-select-native,
+.ef-textarea,
+.ef-field input:not([type='checkbox']):not([type='radio']),
+.ef-field select,
+.ef-field textarea {
+  font: inherit;
+  font-size: 14px;
+  /* Tight line-height + fixed height pins single-line controls to the
+     canonical hit target. Without this they inherit the body's 1.5
+     line-height and overflow `--hit-base` by 3-7px (and each native
+     control overflows by a different amount), breaking row alignment
+     with `.btn` (which sets line-height:1). See ADR-009. */
+  line-height: 1.2;
+  /* Own the box model so `height` includes the border (40px exactly),
+     instead of depending on the consuming app's global reset. Native
+     <input>/<textarea> default to content-box, so without this they
+     render 2px taller than <select>/<button>. */
+  box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  color: var(--text);
+  outline: 0;
+  height: var(--hit-base);
+  width: 100%;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    box-shadow var(--t-fast) var(--ease-out);
+}
+
+/* Textarea is the one multi-line exception: it must grow with its rows,
+   so it overrides the fixed height back to auto and restores readable
+   padding + line-height. */
+.ef-textarea,
+.ef-field textarea {
+  height: auto;
+  min-height: 88px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.ef-input:focus,
+.ef-select-native:focus,
+.ef-textarea:focus,
+.ef-field input:not([type='checkbox']):not([type='radio']):focus,
+.ef-field select:focus,
+.ef-field textarea:focus {
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+}
+
+.ef-input[disabled],
+.ef-select-native[disabled],
+.ef-textarea[disabled],
+.ef-field input[disabled]:not([type='checkbox']):not([type='radio']),
+.ef-field select[disabled],
+.ef-field textarea[disabled] {
+  background: var(--paper);
+  color: var(--text-mute);
+  cursor: not-allowed;
+}
+
+.ef-input[readonly],
+.ef-textarea[readonly],
+.ef-field input[readonly],
+.ef-field textarea[readonly] {
+  background: var(--paper);
+  color: var(--text);
+}
+
+.ef-input.is-invalid,
+.ef-select-native.is-invalid,
+.ef-textarea.is-invalid,
+.ef-field input.is-invalid,
+.ef-field select.is-invalid,
+.ef-field textarea.is-invalid {
+  border-color: var(--st-cancelled-fg);
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+/* Field-level validation message rendered under an ef-* control
+   (required hint + server/validation errors). Small + danger-toned,
+   matching the .is-invalid red ring (--st-cancelled-fg). */
+.text-danger {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--st-cancelled-fg);
+}
+
+/* Native select chevron — replaces the browser default. */
+.ef-select-native,
+.ef-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236c7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-inline-end: 36px;
+  cursor: pointer;
+}
+
+/* Native checkbox — keeps the underlying <input> for native keyboard
+   handling, hidden visually; the .ef-checkbox-box gets the visuals. */
+.ef-checkbox-native {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.ef-checkbox-native input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ef-checkbox-native .ef-checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: var(--paper-alt);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.ef-checkbox-native input[type='checkbox']:checked ~ .ef-checkbox-box {
+  background: var(--tenant-500);
+  border-color: var(--tenant-500);
+}
+
+.ef-checkbox-native input[type='checkbox']:checked ~ .ef-checkbox-box::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.ef-checkbox-native input[type='checkbox']:focus-visible ~ .ef-checkbox-box {
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+}
+
+.ef-checkbox-native input[type='checkbox'][disabled] ~ .ef-checkbox-box {
+  background: var(--paper);
+  border-color: var(--rule);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ef-checkbox-native input[type='checkbox'][disabled] ~ .ef-checkbox-label {
+  color: var(--text-mute);
+  cursor: not-allowed;
+}
+
+.ef-checkbox-native input[type='checkbox'].is-invalid ~ .ef-checkbox-box {
+  border-color: var(--st-cancelled-fg);
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+.ef-checkbox-native .ef-checkbox-required {
+  margin-inline-start: 4px;
+  color: var(--st-cancelled-fg);
+  font-weight: 700;
+}
+
+/* Input group — flex wrapper around an `<input>` plus optional
+   prefix / suffix addons (URL prefix, unit suffix, currency, …).
+   Used by `ef-input-text` when `[prefix]` or `[suffix]` is set. */
+
+.ef-input-group {
+  display: flex;
+  align-items: stretch;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  min-height: 40px;
+  width: 100%;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    box-shadow var(--t-fast) var(--ease-out);
+}
+
+.ef-input-group:focus-within {
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+}
+
+.ef-input-group.is-invalid {
+  border-color: var(--st-cancelled-fg);
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+.ef-input-group input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  outline: 0;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.ef-input-group .ef-input-addon {
+  background: var(--paper);
+  padding: 9px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  color: var(--text-mute);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ef-input-group .ef-input-addon.is-prefix {
+  border-inline-end: 1px solid var(--rule);
+}
+
+.ef-input-group .ef-input-addon.is-suffix {
+  border-inline-start: 1px solid var(--rule);
+}
+
+/* Stepper buttons (±) sit at either end of the group. They reuse the
+   addon base so border weights stay consistent; the button override
+   gives them affordance (cursor, hover/active feedback). */
+.ef-input-group button.ef-input-addon.is-stepper {
+  appearance: none;
+  background: var(--paper);
+  border: 0;
+  border-inline-end: 1px solid var(--rule);
+  color: var(--text-mute);
+  cursor: pointer;
+  font: inherit;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 36px;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.ef-input-group button.ef-input-addon.is-stepper:last-child {
+  border-inline-end: 0;
+  border-inline-start: 1px solid var(--rule);
+}
+
+.ef-input-group button.ef-input-addon.is-stepper:hover:not([disabled]) {
+  background: var(--tenant-50);
+  color: var(--tenant-500);
+}
+
+.ef-input-group button.ef-input-addon.is-stepper:active:not([disabled]) {
+  background: var(--tenant-100);
+}
+
+.ef-input-group button.ef-input-addon.is-stepper[disabled] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.ef-input-group button.ef-input-addon.is-stepper i {
+  font-size: 11px;
+}
+
+/* Hide the native number spinners — we expose ours via .is-stepper.
+   Note: ef-inputnumber's comptoir input is now `type="text"
+   inputmode="decimal"` (comma-decimal entry), which renders no native
+   spinners, so these rules are inert for it; they're kept for any
+   stray `type="number"` inputs styled with .ef-input / .ef-input-group
+   so the comptoir visual stays identical either way. */
+.ef-input-group input[type='number']::-webkit-outer-spin-button,
+.ef-input-group input[type='number']::-webkit-inner-spin-button,
+.ef-input input[type='number']::-webkit-outer-spin-button,
+.ef-input input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input.ef-input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* ──────────── EF-SELECT — COMPTOIR SKIN OVER P-SELECT ─────────────
+   Source: docs/ux-ui/erp/screens/components.html § Section 04.
+
+   The wrapper applies `[styleClass]="es"` to the PrimeNG root and
+   `[panelStyleClass]="es__panel"` to the overlay; these rules then
+   target both our class names AND PrimeNG's stable internal classes
+   (.p-select-*, .p-multiselect-*) so the wrapped <p-select> /
+   <p-multiselect> look exactly like the static prototype while
+   keeping all of PrimeNG's filter / virtualScroll / keyboard nav /
+   ARIA / RTL behaviour. */
+
+/* ── Trigger (root) ─────────────────────────────────────────── */
+
+.es.p-select,
+.es.p-multiselect {
+  width: 100%;
+  min-width: 200px;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  min-height: var(--hit-base);
+  padding: 0 10px 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    box-shadow var(--t-fast) var(--ease-out);
+}
+
+.es.p-select:not(.p-disabled):hover,
+.es.p-multiselect:not(.p-disabled):hover {
+  border-color: var(--ink-400);
+}
+
+.es.p-select.p-focus,
+.es.p-select.p-select-open,
+.es.p-multiselect.p-focus,
+.es.p-multiselect.p-multiselect-open {
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+  outline: 0;
+}
+
+.es.p-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--paper);
+}
+
+/* Small variant — match `.btn-sm` height */
+.es--sm.p-select,
+.es--sm.p-multiselect {
+  font-size: 12.5px;
+  min-height: 32px;
+  padding: 0 8px 0 12px;
+  border-radius: var(--r-sm);
+}
+
+/* Invalid state — drives the cancelled-status colour */
+.es.ng-invalid.ng-touched.p-select,
+.es.ng-invalid.ng-touched.p-multiselect {
+  border-color: var(--st-cancelled-fg);
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+/* Trigger value text */
+.es .p-select-label,
+.es .p-multiselect-label {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  color: var(--text);
+  font: inherit;
+  font-size: inherit;
+  background: transparent;
+  border: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.es .p-select-label.p-placeholder,
+.es .p-multiselect-label.p-placeholder {
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+/* Inline clear ✕ — rendered via the p-select/p-multiselect `#clearicon`
+   template as a shared stroke-X (`.es-clear`), identical to
+   ef-product-typeahead's clear so every clearable control uses one glyph.
+   The wrapping container PrimeNG provides is reset to a neutral inline box. */
+.es .p-select-clear-icon,
+.es .p-multiselect-clear-icon {
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* Shared clear ✕ — `ef-clear-button` (`.ef-clear`) and the p-select /
+   p-multiselect `#clearicon` template (`.es-clear`) share one look so every
+   clearable control (input, number, select, typeahead) is identical. */
+.ef-clear,
+.es .es-clear {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 50%;
+  color: var(--text-soft);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.ef-clear svg,
+.es .es-clear svg {
+  width: 13px;
+  height: 13px;
+}
+
+.ef-clear:hover,
+.es .es-clear:hover {
+  background: var(--ink-100);
+  color: var(--text);
+}
+
+.ef-clear:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Clear ✕ inside an .ef-input-group (prefix / suffix / stepper variants of
+   ef-input-text + ef-inputnumber). Here the ✕ is a real flex sibling sitting
+   between the input and the trailing addon — no absolute positioning or
+   trailing-padding hack needed (unlike the bare .ef-input-wrap variant). */
+.ef-input-group .ef-group-clear {
+  align-self: center;
+  margin-inline: 2px;
+  flex-shrink: 0;
+}
+
+/* Inline clear ✕ overlaid at the trailing edge of a single-line input
+   (ef-input-text / ef-inputnumber comptoir variants). */
+.ef-input-wrap {
+  position: relative;
+}
+
+.ef-input-wrap .ef-input.has-clear {
+  /* room for the clear button so text doesn't run under it */
+  padding-inline-end: 36px;
+}
+
+.ef-input-clear {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Clearable textarea — clear ✕ pinned to the top-trailing corner (clear of
+   the bottom-right resize handle); text gets trailing padding to dodge it. */
+.ef-textarea-wrap {
+  position: relative;
+}
+
+.ef-textarea-wrap .ef-textarea.has-clear {
+  padding-inline-end: 36px;
+}
+
+.ef-textarea-clear {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 8px;
+}
+
+/* Shared chevron — one glyph (the canonical stroke polyline) across every
+   control that drops down: ef-select / ef-multiselect (via the `#dropdownicon`
+   template), ef-datepicker-advanced, and the native <select> background image.
+   Sized + toned here; rotation is owned by each control's open state. The SVG
+   markup also carries width/height attributes so it can never stretch even if
+   this rule is missing. */
+.ef-chevron {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--text-mute);
+}
+
+/* Caret */
+.es .p-select-dropdown,
+.es .p-multiselect-dropdown {
+  width: 12px;
+  height: 12px;
+  color: var(--text-mute);
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  transition: transform var(--t-base) var(--ease-spring);
+}
+
+/* Constrain whatever icon PrimeNG / our #dropdownicon template renders to the
+   canonical 12px (PrimeNG's default chevron otherwise renders at 16px). */
+.es .p-select-dropdown svg,
+.es .p-multiselect-dropdown svg {
+  width: 12px;
+  height: 12px;
+}
+
+.es.p-select-open .p-select-dropdown,
+.es.p-multiselect-open .p-multiselect-dropdown {
+  transform: rotate(180deg);
+}
+
+/* Multi-select chips inside the trigger */
+.es .p-multiselect-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 9px;
+  border-radius: var(--r-pill);
+  background: var(--ink-100);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text);
+  max-width: 160px;
+  margin: 2px;
+}
+
+.es .p-multiselect-token-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.es .p-multiselect-token-icon {
+  box-sizing: content-box;
+  width: 9px;
+  height: 9px;
+  padding: 3px;
+  border-radius: 50%;
+  color: var(--text-mute);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.es .p-multiselect-token-icon:hover {
+  background: rgba(15, 17, 21, 0.12);
+  color: var(--text);
+}
+
+/* ── Overlay panel ─────────────────────────────────────────── */
+
+.es__panel.p-select-overlay,
+.es__panel.p-multiselect-overlay {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+  margin-top: 6px;
+  animation: es-in var(--t-base) var(--ease-spring);
+}
+
+@keyframes es-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Filter container (overlay header) */
+.es__panel .p-select-header,
+.es__panel .p-multiselect-header {
+  padding: 8px;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  display: block;
+  position: relative;
+}
+
+/* Multiselect header carries the "select all" checkbox alongside the
+   filter — lay them out inline (single-select has no checkbox, so it
+   keeps the block layout above). The filter container already grows
+   (flex: 1 1 auto from PrimeNG); just make the header a flex row. */
+.es__panel .p-multiselect-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.es__panel .p-multiselect-header .p-multiselect-filter-container {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.es__panel .p-select-filter,
+.es__panel .p-multiselect-filter {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 7px 30px 7px 32px;
+  color: var(--text);
+  outline: 0;
+  min-height: 32px;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.es__panel .p-select-filter:focus,
+.es__panel .p-multiselect-filter:focus {
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 3px var(--tenant-100);
+  background: var(--paper-alt);
+}
+
+.es__panel .p-select-filter-icon,
+.es__panel .p-multiselect-filter-icon {
+  position: absolute;
+  inset-inline-start: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 13px;
+  height: 13px;
+  color: var(--text-mute);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Scrollable list */
+.es__panel .p-select-list-container,
+.es__panel .p-multiselect-list-container {
+  padding: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.es__panel .p-select-list-container::-webkit-scrollbar,
+.es__panel .p-multiselect-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+.es__panel .p-select-list-container::-webkit-scrollbar-thumb,
+.es__panel .p-multiselect-list-container::-webkit-scrollbar-thumb {
+  background: var(--ink-300);
+  border-radius: 999px;
+}
+
+.es__panel .p-select-list,
+.es__panel .p-multiselect-list {
+  display: grid;
+  gap: 1px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Group headers */
+.es__panel .p-select-option-group,
+.es__panel .p-multiselect-option-group {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 10px 10px 4px;
+  margin-top: 2px;
+  background: transparent;
+}
+
+.es__panel .p-select-option-group:first-child,
+.es__panel .p-multiselect-option-group:first-child {
+  margin-top: 0;
+  padding-top: 6px;
+}
+
+/* Option row */
+.es__panel .p-select-option,
+.es__panel .p-multiselect-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  transition: background-color var(--t-fast) var(--ease-out);
+}
+
+.es__panel .p-select-option:hover,
+.es__panel .p-multiselect-option:hover,
+.es__panel .p-select-option.p-focus,
+.es__panel .p-multiselect-option.p-focus {
+  background: var(--paper);
+}
+
+.es__panel .p-select-option.p-select-option-selected {
+  background: var(--ink-active);
+  color: var(--paper);
+}
+
+/* Multi: lighter tenant-tinted bg + filled checkbox marks the state */
+.es__panel .p-multiselect-option.p-multiselect-option-selected {
+  background: color-mix(in srgb, var(--tenant-100) 60%, var(--paper));
+  color: var(--text);
+}
+
+/* Checkbox — PrimeNG 21 renders a <p-checkbox> (.p-checkbox / .p-checkbox-box)
+   inside both the multiselect option rows and the header "select all".
+   The old .p-multiselect-checkbox markup is gone, so size + skin the real
+   element to the Comptoir tokens; otherwise it renders unstyled / oversized. */
+.es__panel .p-checkbox {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.es__panel .p-checkbox .p-checkbox-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.es__panel .p-checkbox .p-checkbox-box {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--ink-300);
+  border-radius: 4px;
+  background: var(--paper-alt);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.es__panel .p-checkbox.p-checkbox-checked .p-checkbox-box {
+  background: var(--tenant-500);
+  border-color: var(--tenant-500);
+}
+
+.es__panel .p-checkbox .p-checkbox-icon {
+  width: 10px;
+  height: 10px;
+  font-size: 10px;
+  color: var(--paper);
+}
+
+/* Selected check-mark for single-select (the trailing ✓) */
+.es__panel .p-select-option-check-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--paper);
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+
+.es__panel .p-select-option[disabled],
+.es__panel .p-multiselect-option[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Empty / loading states */
+.es__panel .p-select-empty-message,
+.es__panel .p-multiselect-empty-message {
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--text-mute);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* ── RTL safety — PrimeNG handles direction; our Comptoir tokens
+   already use logical properties (inset-inline-start/end). No
+   extra rules needed beyond the ones above. */
+
+/* ──────────── EF-DIALOG — COMPTOIR SKIN OVER P-DIALOG ─────────────
+   Lifts the PrimeNG modal to Comptoir tokens: --paper-alt surface,
+   --rule borders, --r-xl radius, Bricolage Grotesque title, soft
+   elevation. The wrapper adds `[styleClass]="es-dialog"` to
+   <p-dialog>; rules target both our class and PrimeNG's stable
+   internal classes (.p-dialog-*) so the wrapped <p-dialog> looks
+   exactly like the Comptoir prototype while keeping all of
+   PrimeNG's focus trap, ESC handling, ARIA, and animation. */
+
+/* Backdrop — match the page-wide modal scrim used elsewhere. */
+.p-dialog-mask.p-overlay-mask {
+  background: color-mix(in srgb, var(--ink-900) 35%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+/* Root panel */
+.es-dialog.p-dialog {
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  box-shadow:
+    0 1px 2px rgba(15, 17, 21, 0.04),
+    0 24px 64px rgba(15, 17, 21, 0.18);
+  overflow: hidden;
+  /* PrimeNG sometimes injects an inline white background — neutralize. */
+  color: var(--text);
+}
+
+/* Header strip — flex layout so the custom header template
+   (icon + title-block + close) sits naturally. The title-block
+   takes `flex:1` so the close stays right-aligned regardless of
+   whether the icon is present. */
+.es-dialog .p-dialog-header {
+  background: var(--paper-alt);
+  border-bottom: 1px solid var(--rule);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.es-dialog .p-dialog-title,
+.es-dialog .p-dialog-header-title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 14,
+    'wght' 700,
+    'wdth' 85;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Close button — ghost icon, matches .btn-ghost severity. */
+.es-dialog .p-dialog-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.es-dialog .p-dialog-header-icon,
+.es-dialog .p-dialog-close-button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--text-mute);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.es-dialog .p-dialog-header-icon:hover,
+.es-dialog .p-dialog-close-button:hover {
+  background: var(--paper);
+  color: var(--text);
+}
+
+.es-dialog .p-dialog-header-icon:focus-visible,
+.es-dialog .p-dialog-close-button:focus-visible {
+  outline: 2px solid var(--tenant-400);
+  outline-offset: 2px;
+}
+
+.es-dialog .p-dialog-header-icon i,
+.es-dialog .p-dialog-close-button i,
+.es-dialog .p-dialog-header-icon .p-icon,
+.es-dialog .p-dialog-close-button .p-icon {
+  font-size: 14px;
+}
+
+/* Body — scrolls within the dialog if content overflows. */
+.es-dialog .p-dialog-content {
+  background: var(--paper-alt);
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+  color: var(--text);
+}
+
+/* Footer strip — rule-top separator, actions right-aligned. */
+.es-dialog .p-dialog-footer {
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  margin: 0;
+}
+
+/* Position variants — match p-dialog's offset for `position="top"`. */
+.p-dialog-mask.p-dialog-top .es-dialog.p-dialog {
+  margin-top: 60px;
+}
+
+/* ── Size modifiers ──────────────────────────────────────────
+   Width presets driven by `[size]`. `--full` takes the whole
+   viewport minus a comfortable gutter for the backdrop. */
+.es-dialog--sm.p-dialog {
+  width: 380px;
+  max-width: 92vw;
+}
+.es-dialog--md.p-dialog {
+  width: 480px;
+  max-width: 92vw;
+}
+.es-dialog--lg.p-dialog {
+  width: 640px;
+  max-width: 92vw;
+}
+.es-dialog--xl.p-dialog {
+  width: 880px;
+  max-width: 92vw;
+}
+.es-dialog--full.p-dialog {
+  width: calc(100vw - 48px);
+  height: calc(100vh - 48px);
+  max-width: none;
+}
+.es-dialog--full .p-dialog-content {
+  max-height: none;
+  flex: 1;
+}
+
+/* ── Header inner structure (rendered via #header content template).
+   `flex:1` on the title-block keeps the close right-aligned with or
+   without the leading icon. */
+.es-dialog .es-dialog__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  display: inline-grid;
+  place-items: center;
+  background: var(--ink-100);
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.es-dialog .es-dialog__icon i,
+.es-dialog .es-dialog__icon .p-icon {
+  font-size: 14px;
+}
+
+/* Severity tints — colour the icon only; the panel stays paper-alt
+   so the dialog never feels "shouty" (status spectrum cue is enough). */
+.es-dialog--danger .es-dialog__icon {
+  background: var(--st-cancelled-bg);
+  color: var(--st-cancelled-fg);
+}
+.es-dialog--warn .es-dialog__icon {
+  background: var(--st-pending-bg);
+  color: var(--st-pending-fg);
+}
+.es-dialog--info .es-dialog__icon {
+  background: var(--st-processing-bg);
+  color: var(--st-processing-fg);
+}
+.es-dialog--success .es-dialog__icon {
+  background: var(--st-delivered-bg);
+  color: var(--st-delivered-fg);
+}
+.es-dialog--tenant .es-dialog__icon {
+  background: var(--tenant-100);
+  color: var(--tenant-700);
+}
+
+.es-dialog .es-dialog__title-block {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.es-dialog .es-dialog__title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 14,
+    'wght' 700,
+    'wdth' 85;
+  font-size: 17px;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.es-dialog .es-dialog__sub {
+  font-size: 12.5px;
+  color: var(--text-mute);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Custom close button — used by the comptoir variant. Same look as
+   PrimeNG's built-in close button but driven by our markup so the
+   header layout stays predictable. */
+.es-dialog .es-dialog__close {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  color: var(--text-mute);
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.es-dialog .es-dialog__close:hover {
+  background: var(--paper);
+  color: var(--text);
+}
+
+.es-dialog .es-dialog__close:focus-visible {
+  outline: 2px solid var(--tenant-400);
+  outline-offset: 2px;
+}
+
+.es-dialog .es-dialog__close i {
+  font-size: 13px;
+}
+
+/* ── Entity highlight callout — opt-in markup for confirm dialogs.
+   Use inside the projected body to anchor "what's being modified". */
+.es-dialog .es-dialog__highlight {
+  padding: 12px 16px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+  font-size: 13px;
+}
+
+.es-dialog .es-dialog__highlight .av {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ink-active);
+  color: var(--paper);
+  display: grid;
+  place-items: center;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 80;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.es-dialog .es-dialog__highlight .av.tenant {
+  background: var(--tenant-500);
+}
+
+.es-dialog .es-dialog__highlight .body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.es-dialog .es-dialog__highlight .nm {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.es-dialog .es-dialog__highlight .meta {
+  font-size: 11.5px;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+
+/* ── Destructive primary CTA. Lifted from `components.html` so any
+   `.btn.btn-danger` in the framework picks it up (notably the dialog
+   action footer when an action declares `severity: 'danger'`). */
+.btn.btn-danger {
+  background: var(--st-cancelled-fg);
+  color: #fff;
+  border-color: var(--st-cancelled-fg);
+}
+
+.btn.btn-danger:hover {
+  background: color-mix(in srgb, var(--st-cancelled-fg) 88%, #000);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px -10px var(--st-cancelled-bg);
+}
+
+/* ── Per-action loading spinner overlay. The button auto-toggles
+   `.is-loading` while an async `command()` is in flight; the label
+   fades out and a centred SVG spinner takes its place. */
+.btn.is-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn.is-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9' opacity='.3'/%3E%3Cpath d='M21 12a9 9 0 0 1-9 9'/%3E%3C/svg%3E")
+    center/16px no-repeat;
+  animation: es-dialog-spin 1s linear infinite;
+}
+
+/* Spinner colour switches to ink on light-bg buttons (ghost). */
+.btn.btn-ghost.is-loading::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231d1f24' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9' opacity='.3'/%3E%3Cpath d='M21 12a9 9 0 0 1-9 9'/%3E%3C/svg%3E")
+    center/16px no-repeat;
+}
+
+@keyframes es-dialog-spin {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

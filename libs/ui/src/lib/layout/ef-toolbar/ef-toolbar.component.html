@@ -81,7 +81,7 @@
         (clickEvent)="duplicateAction()"
       />
     }
-    @if (isDetailState && saveButton && hasWritePermission) {
+    @if (isDetailState && saveButton && (hasCreatePermission || hasEditPermission)) {
       <ef-button
         icon="pi pi-save"
         severity="primary"
@@ -105,7 +105,7 @@
         (clickEvent)="exportAction()"
       />
     }
-    @if (isSearchState && addButton && hasWritePermission) {
+    @if (isSearchState && addButton && hasCreatePermission) {
       <ef-button
         icon="pi pi-plus"
         severity="primary"

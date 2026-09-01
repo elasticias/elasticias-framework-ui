@@ -1,0 +1,115 @@
+{
+  "$schema": "./schema/colors.schema.json",
+  "version": "0.2.0",
+  "name": "comptoir.colors",
+  "_conventions": {
+    "$ref": "Custom token-graph reference (NOT JSON Schema $ref). Resolves dotted paths within this file, e.g. { \"$ref\": \"ink.50\" } → \"#f8f9fb\". Phase 7 codegen must dereference these before exporting to platform-specific code."
+  },
+
+  "ink": {
+    "50":  "#f8f9fb",
+    "100": "#f1f3f6",
+    "200": "#e4e8ee",
+    "300": "#cdd3dd",
+    "400": "#9ca5b3",
+    "500": "#6c7280",
+    "600": "#4a4f5a",
+    "700": "#2f3239",
+    "800": "#1d1f24",
+    "900": "#0f1115",
+    "950": "#06070a"
+  },
+
+  "modules": {
+    "sales":     "#1356a8",
+    "purchase":  "#155b3a",
+    "stock":     "#4f5560",
+    "pos":       "#b34a00",
+    "marketing": "#7a4665",
+    "store":     "#5d3aa3",
+    "finance":   "#0d6e6a",
+    "admin":     "#0f1115"
+  },
+
+  "status": {
+    "pending":    { "fg": "#b34a00", "bg": "#fff1e0" },
+    "processing": { "fg": "#1356a8", "bg": "#e0ecfc" },
+    "shipped":    { "fg": "#5d3aa3", "bg": "#ece4fa" },
+    "delivered":  { "fg": "#16693a", "bg": "#d9efe1" },
+    "cancelled":  { "fg": "#a01b1b", "bg": "#f9dede" },
+    "refunded":   { "fg": "#826208", "bg": "#fdf1c8" },
+    "onhold":     { "fg": "#4f5560", "bg": "#e7e9ee" }
+  },
+
+  "tenant": {
+    "note": "Tenant ramps are generated at runtime from `storeConfig.primaryColor` via EfThemeConfigService.setTenantAccent(). The samples below match the showcase and are used for design references and onboarding seed data.",
+    "samples": {
+      "parfumerie": {
+        "primary": "#6f3257",
+        "ramp": {
+          "50":  "#f7f0f4",
+          "100": "#ecdce5",
+          "200": "#d8b4c5",
+          "300": "#b87a99",
+          "400": "#934e74",
+          "500": "#6f3257",
+          "600": "#54243f",
+          "700": "#401a30",
+          "800": "#2c1221",
+          "900": "#1a0913"
+        }
+      },
+      "boulangerie": {
+        "primary": "#925a10",
+        "ramp": {
+          "50":  "#fbf3e7",
+          "100": "#f5e2c2",
+          "200": "#e9c285",
+          "300": "#d8993e",
+          "400": "#b8761a",
+          "500": "#925a10",
+          "600": "#73460c",
+          "700": "#583509",
+          "800": "#3e2506",
+          "900": "#241502"
+        }
+      },
+      "espresso": {
+        "primary": "#155b3a",
+        "ramp": {
+          "50":  "#e9f3ee",
+          "100": "#c9e1d3",
+          "200": "#8dc1a3",
+          "300": "#4d9a72",
+          "400": "#23774f",
+          "500": "#155b3a",
+          "600": "#10472d",
+          "700": "#0c3623",
+          "800": "#082619",
+          "900": "#04150e"
+        }
+      }
+    }
+  },
+
+  "semantic": {
+    "light": {
+      "paper":      { "$ref": "ink.50" },
+      "paper-alt":  { "$ref": "ink.100" },
+      "rule":       { "$ref": "ink.200" },
+      "text":       { "$ref": "ink.900" },
+      "text-mute":  { "$ref": "ink.500" },
+      "text-soft":  { "$ref": "ink.400" },
+      "ink-active": { "$ref": "ink.900" }
+    },
+    "dark": {
+      "paper":      { "$ref": "ink.900" },
+      "paper-alt":  { "$ref": "ink.800" },
+      "rule":       { "$ref": "ink.700" },
+      "text":       { "$ref": "ink.50" },
+      "text-mute":  { "$ref": "ink.400" },
+      "text-soft":  { "$ref": "ink.500" },
+      "ink-active": { "$ref": "ink.50" }
+    }
+  }
+}

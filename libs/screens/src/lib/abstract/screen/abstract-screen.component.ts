@@ -5,6 +5,7 @@ import { ScreenConfig, LoadOptions } from '../../config/screen-config';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { AppUtils, StorageUtils } from '@elasticias/utils';
+import { Permissions } from '@elasticias/types';
 import { ToastService, ConfirmDialogService, CacheService } from '@elasticias/core';
 import { Subject } from 'rxjs';
 import { ScreenReferenceDataService, SCREEN_REF_DATA_SERVICE } from '../../services/screen-reference-data.service';
@@ -71,6 +72,29 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
 
   getConfig(): any {
     return null;
+  }
+
+  /**
+   * Read a query param from the activated route's snapshot. Shared
+   * accessor for deep-links on both search and detail screens (e.g.
+   * `?status=PendingApproval`, `?mode=duplicate`) so screens don't
+   * reach into `route.snapshot.queryParamMap` themselves.
+   */
+  protected queryParam(name: string): string | null {
+    return this.route.snapshot.queryParamMap.get(name);
+  }
+
+  /**
+   * Grant check for ANY screen (not just this one's `SCREEN` code) —
+   * e.g. an operational strip or report widget calling a
+   * differently-gated endpoint. For this screen's own grants prefer
+   * `context.isGranted(...)`.
+   */
+  protected hasGrant(screen: string, permission: Permissions): boolean {
+    const grants = StorageUtils.getLocal<
+      Record<string, { permissions?: string[] }>
+    >('CURRENT_USER_GRANTS');
+    return !!grants?.[screen]?.permissions?.includes(permission);
   }
 
   getBundleName(): string {
@@ -202,7 +226,17 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
   }
 
   setServerErrors(errors: { [key: string]: string[] }) {
-    this.serverErrors.set(errors || {});
+    // Backend (FluentValidation) keys are PascalCase (e.g. `ClientType`);
+    // template field bindings and the camelCased `setFormErrors` path use
+    // camelCase. Normalize here so screens can read `serverErrors()['clientType']`
+    // and pass it straight to an `ef-*` control's `[errors]` input.
+    const normalized: { [key: string]: string[] } = {};
+    if (errors) {
+      Object.keys(errors).forEach((key) => {
+        normalized[AppUtils.toCamelCase(key)] = errors[key];
+      });
+    }
+    this.serverErrors.set(normalized);
   }
 
   clearServerErrors() {

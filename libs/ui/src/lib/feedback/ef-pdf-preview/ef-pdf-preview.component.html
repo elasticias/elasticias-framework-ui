@@ -1,0 +1,17 @@
+<ef-dialog
+  [(visible)]="visible"
+  [headerKey]="titleKey()"
+  [subtitle]="fileName()"
+  icon="pi pi-file-pdf"
+  [style]="{ width: '92vw', 'max-width': '1280px' }"
+  styleClass="ef-pdf-preview-dialog"
+  [actions]="actions()"
+>
+  <div class="pdf-frame-wrap">
+    @if (safeUrl()) {
+      <iframe class="pdf-frame" [src]="safeUrl()" [title]="fileName()"></iframe>
+    } @else {
+      <div class="pdf-empty">{{ 'pdf_preview.empty' | translate }}</div>
+    }
+  </div>
+</ef-dialog>

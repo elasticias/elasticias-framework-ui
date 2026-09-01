@@ -1,0 +1,56 @@
+<ef-app-top>
+  <ng-content select="[breadcrumb]" breadcrumb></ng-content>
+  <ng-content select="[search]" search></ng-content>
+  <button
+    actions
+    type="button"
+    class="ef-app-shell-mobile__menu"
+    (click)="openSwitcher()"
+    aria-label="Modules"
+  >
+    <i class="pi pi-bars" aria-hidden="true"></i>
+  </button>
+  <ng-content select="[actions]" actions></ng-content>
+</ef-app-top>
+
+<ef-app-main [stripe]="true">
+  <ng-content></ng-content>
+</ef-app-main>
+
+<nav class="ef-app-shell-mobile__tabs" aria-label="Modules">
+  @for (module of tabs(); track module.id) {
+    <button
+      type="button"
+      class="ef-app-shell-mobile__tab"
+      [class.is-active]="activeId() === module.id"
+      [attr.data-module]="module.id"
+      [attr.aria-current]="activeId() === module.id ? 'page' : null"
+      (click)="onSelect(module)"
+    >
+      <i class="ef-app-shell-mobile__tab-icon" [class]="module.icon" aria-hidden="true"></i>
+      <span class="ef-app-shell-mobile__tab-label">{{ module.labelKey | translate }}</span>
+    </button>
+  }
+</nav>
+
+<ng-content select="[fab]"></ng-content>
+
+<ef-bottom-sheet [open]="switcherOpen()" (openChange)="onSwitcherChange($event)">
+  <h2 class="ef-app-shell-mobile__sheet-title">{{ 'modules.all' | translate }}</h2>
+  <ul class="ef-app-shell-mobile__sheet-list">
+    @for (module of allVisible(); track module.id) {
+      <li>
+        <button
+          type="button"
+          class="ef-app-shell-mobile__sheet-item"
+          [class.is-active]="activeId() === module.id"
+          [attr.data-module]="module.id"
+          (click)="onSelect(module)"
+        >
+          <i [class]="module.icon" aria-hidden="true"></i>
+          <span>{{ module.labelKey | translate }}</span>
+        </button>
+      </li>
+    }
+  </ul>
+</ef-bottom-sheet>

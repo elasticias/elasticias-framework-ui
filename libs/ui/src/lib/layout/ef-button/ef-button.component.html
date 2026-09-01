@@ -1,19 +1,46 @@
-<p-button
-  [label]="labelKey ? (labelKey | translate) : label"
-  [icon]="icon"
-  [severity]="severity"
-  [size]="size"
-  [disabled]="disabled"
-  [rounded]="rounded"
-  [outlined]="outlined"
-  [raised]="raised"
-  [text]="text"
-  [loading]="loading"
-  [styleClass]="styleClass"
-  [type]="type"
-  [badge]="badge"
-  [badgeSeverity]="badgeSeverity"
-  [pTooltip]="tooltipKey ? (tooltipKey | translate) : tooltip"
-  [tooltipPosition]="tooltipPosition"
-  (onClick)="handleClick($event)"
-/>
+@if (variant === 'comptoir') {
+    <!-- Comptoir variant — native button against the `.btn` pattern
+         in `@elasticias/ui/styles/patterns`. PrimeNG severities
+         (success/info/warn/help/contrast/secondary) fall through to
+         this branch only when explicitly passed with variant='comptoir';
+         they render as ghost since they have no Comptoir equivalent. -->
+    <button
+        [type]="type"
+        [class]="comptoirClass"
+        [disabled]="disabled || loading"
+        [style.color]="comptoirInlineColor"
+        [pTooltip]="effectiveTooltipKey ? (effectiveTooltipKey | translate) : effectiveTooltip"
+        [tooltipPosition]="tooltipPosition"
+        (click)="handleClick($event)"
+    >
+        @if (loading) {
+            <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+        } @else if (icon) {
+            <i [class]="icon" aria-hidden="true"></i>
+        }
+        @if (labelKey || label) {
+            <span>{{ labelKey ? (labelKey | translate) : label }}</span>
+        }
+    </button>
+} @else {
+    <!-- PrimeNG variant (default) — v1 styling via <p-button>. -->
+    <p-button
+        [label]="labelKey ? (labelKey | translate) : label"
+        [icon]="icon"
+        [severity]="$any(severity)"
+        [size]="size"
+        [disabled]="disabled"
+        [rounded]="rounded"
+        [outlined]="outlined"
+        [raised]="raised"
+        [text]="text"
+        [loading]="loading"
+        [styleClass]="styleClass"
+        [type]="type"
+        [badge]="badge"
+        [badgeSeverity]="badgeSeverity"
+        [pTooltip]="effectiveTooltipKey ? (effectiveTooltipKey | translate) : effectiveTooltip"
+        [tooltipPosition]="tooltipPosition"
+        (onClick)="handleClick($event)"
+    />
+}

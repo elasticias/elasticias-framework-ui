@@ -1,0 +1,25 @@
+<button
+  type="button"
+  class="ef-profile-chip"
+  [class.is-tenant]="tone === 'tenant'"
+  [class.is-readonly]="readonly"
+  [attr.aria-label]="name || null"
+  [attr.tabindex]="readonly ? -1 : null"
+  (click)="handleClick($event)"
+>
+  <span class="ef-profile-chip__avatar" aria-hidden="true">{{ computedInitial }}</span>
+  <span class="ef-profile-chip__text">
+    @if (name) {
+      <span class="ef-profile-chip__name">{{ name }}</span>
+    }
+    @if (roleKey || role) {
+      <span class="ef-profile-chip__role">
+        @if (roleKey) {
+          {{ roleKey | translate }}
+        } @else {
+          {{ role }}
+        }
+      </span>
+    }
+  </span>
+</button>

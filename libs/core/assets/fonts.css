@@ -1,0 +1,13 @@
+/* Comptoir fonts — vendored loading
+   Single source so consuming apps don't duplicate Google Fonts URLs.
+
+   Apps include this once in their global styles entry:
+     @import '@elasticias/core/assets/fonts.css';
+   …or list it in angular.json's "styles" array.
+
+   Variable axes loaded:
+     Bricolage Grotesque — opsz 12-96, wdth 75-100, wght 200-800
+     Manrope             — wght 200-800
+     JetBrains Mono      — wght 100-800 (regular + italic) */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Manrope:wght@200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');

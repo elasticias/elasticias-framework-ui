@@ -1,0 +1,8 @@
+/* ef-status-chip uses the .chip + .chip-* tones from _patterns.scss.
+   Host display tweak only — keeps the chip on a single line so it
+   sits cleanly inside table cells and meta-line stacks. */
+
+:host {
+    display: inline-flex;
+    vertical-align: middle;
+}

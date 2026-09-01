@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { StorageUtils } from '@elasticias/utils';
-import { PermissionsEnum } from '@elasticias/types';
+import { Permissions } from '@elasticias/types';
 
 /**
  * Configuration for the screen guard factory.
@@ -11,8 +11,8 @@ export interface ScreenGuardConfig {
   grantsStorageKey?: string;
   /** Route to redirect to when access is denied (default: '/') */
   deniedRedirect?: string;
-  /** Minimum required permission to access the screen (default: PermissionsEnum.Read) */
-  requiredPermission?: PermissionsEnum;
+  /** Minimum required permission to access the screen (default: Permissions.Read) */
+  requiredPermission?: Permissions;
   /** Storage type to read grants from (default: 'session') */
   storageType?: 'local' | 'session';
 }
@@ -41,7 +41,7 @@ export function screenGuard(config?: ScreenGuardConfig): CanActivateFn {
     const router = inject(Router);
     const grantsKey = config?.grantsStorageKey ?? 'CURRENT_USER_GRANTS';
     const deniedRedirect = config?.deniedRedirect ?? '/';
-    const requiredPermission = config?.requiredPermission ?? PermissionsEnum.Read;
+    const requiredPermission = config?.requiredPermission ?? Permissions.Read;
     const storageType = config?.storageType ?? 'local';
 
     const screenCode = getScreenCode(route);
@@ -89,7 +89,7 @@ function getScreenCode(route: ActivatedRouteSnapshot): string | undefined {
  */
 export function hasScreenPermission(
   screenCode: string,
-  permission: PermissionsEnum,
+  permission: Permissions,
   grantsStorageKey = 'CURRENT_USER_GRANTS',
   storageType: 'local' | 'session' = 'local'
 ): boolean {

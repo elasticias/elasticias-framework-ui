@@ -1,0 +1,69 @@
+:host {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 900;
+  pointer-events: none;
+}
+
+:host([data-position='bottom-right']) { right:  16px; }
+:host([data-position='bottom-left'])  { left:   16px; }
+:host([data-position='bottom-center']) {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ef-fab {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: var(--hit-touch);
+  height: var(--hit-touch);
+  padding: 0 16px;
+  background: var(--tenant-500);
+  color: #fff;
+  border: 0;
+  border-radius: var(--r-pill);
+  box-shadow: 0 8px 16px color-mix(in oklab, var(--tenant-700) 30%, transparent);
+  cursor: pointer;
+  transition: transform var(--t-fast) var(--ease-spring),
+              box-shadow var(--t-fast) var(--ease-out);
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.ef-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px color-mix(in oklab, var(--tenant-700) 35%, transparent);
+}
+
+.ef-fab:active {
+  transform: translateY(0);
+}
+
+.ef-fab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+:host(.is-extended) .ef-fab {
+  /* Extended FAB — content drives width. */
+}
+
+:host(:not(.is-extended)) .ef-fab {
+  width: var(--hit-touch);
+  padding: 0;
+}
+
+.ef-fab__icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ef-fab__label {
+  white-space: nowrap;
+}

@@ -1,0 +1,24 @@
+<div class="ef-pill-group" role="tablist" [attr.aria-label]="ariaLabel">
+  @for (item of items; track trackValue($index, item)) {
+    <button
+      type="button"
+      class="ef-pill"
+      role="tab"
+      [class.is-active]="item.value === value"
+      [attr.aria-selected]="item.value === value"
+      (click)="select(item)"
+    >
+      <span class="ef-pill__label">
+        @if (item.labelKey) {
+          {{ item.labelKey | translate }}
+        } @else {
+          {{ item.label }}
+        }
+      </span>
+      @if (!hideCounts && item.count !== undefined) {
+        <span class="ef-pill__sep" aria-hidden="true">·</span>
+        <span class="ef-pill__count">{{ item.count }}</span>
+      }
+    </button>
+  }
+</div>

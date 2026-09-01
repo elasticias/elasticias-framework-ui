@@ -1,0 +1,46 @@
+<button
+  type="button"
+  class="f-pill"
+  [class.active]="tone() === 'active'"
+  [class.tenant]="tone() === 'tenant'"
+  [class.has-pop]="hasPopover()"
+  [attr.aria-haspopup]="hasPopover() ? 'listbox' : null"
+  [attr.aria-expanded]="hasPopover() ? popoverOpen() : null"
+  (click)="onPillClick()"
+>
+  @if (icon()) {
+    <i class="ico" [class]="icon()" aria-hidden="true"></i>
+  }
+
+  @if (labelKey() || label()) {
+    <span class="lbl">
+      {{ labelKey() ? (labelKey() | translate) : label() }}
+    </span>
+  }
+
+  @if (value()) {
+    <span class="val">{{ value() }}</span>
+  }
+
+  @if (hasClear()) {
+    <span
+      class="clear"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="clearAriaKey() | translate"
+      (click)="onClearClick($event)"
+      (keydown.enter)="onClearClick($event)"
+      (keydown.space)="onClearClick($event)"
+    >
+      <i class="pi pi-times" aria-hidden="true" style="font-size: 8px;"></i>
+    </span>
+  } @else if (hasPopover()) {
+    <i class="caret pi pi-chevron-down" aria-hidden="true"></i>
+  }
+
+  @if (hasPopover()) {
+    <div class="popover" [class.open]="popoverOpen()" role="listbox">
+      <ng-content select="[popover]"></ng-content>
+    </div>
+  }
+</button>

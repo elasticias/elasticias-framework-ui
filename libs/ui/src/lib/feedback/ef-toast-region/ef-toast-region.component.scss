@@ -1,0 +1,8 @@
+/* Visual rules live in @elasticias/ui/styles/patterns under
+   `.toast-region` / `.toast` / `.toast__*`. The component itself
+   contributes only host invisibility — the region is positioned
+   fixed by the .toast-region class. */
+
+:host {
+    display: contents;
+}
