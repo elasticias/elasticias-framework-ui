@@ -3,7 +3,7 @@ import {
   computed,
   inject,
   Injector,
-  OnInit,
+  OnDestroy, OnInit,
   signal,
 } from '@angular/core';
 import { take } from 'rxjs';
@@ -798,4 +798,12 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     });
   }
 
+    // AbstractComponent declares `abstract ngOnDestroy()`, so this must exist.
+    // There is genuinely nothing to tear down here; removing it would push the
+    // requirement onto every consumer component.
+    // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
+    ngOnDestroy(): void {
+    // Subclasses can override to clean up subscriptions; nothing to
+    // tear down on the base since search subscriptions auto-complete.
+    }
 }

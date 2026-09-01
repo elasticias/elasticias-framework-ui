@@ -2,7 +2,7 @@ import {
   Component,
   inject,
   Injector,
-  OnInit,
+  OnDestroy, OnInit,
   Signal,
   signal,
 } from '@angular/core';
@@ -218,4 +218,11 @@ export abstract class AbstractReportScreenV2
     );
   }
 
+    // AbstractComponent declares `abstract ngOnDestroy()`, so this must exist.
+    // There is genuinely nothing to tear down here; removing it would push the
+    // requirement onto every consumer component.
+    // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
+    ngOnDestroy(): void {
+    // NSwag observables complete after one emission — nothing to tear down.
+    }
 }
