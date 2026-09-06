@@ -25,7 +25,7 @@ import { EfTooltipDirective } from '../../overlays/ef-tooltip.directive';
                     <span class="ef-build-stamp__owner">© {{ year }} {{ owner() }}</span>
                     <span class="ef-build-stamp__sep" aria-hidden="true">·</span>
                 }
-                <span class="ef-build-stamp__build">build {{ info.date }}</span>
+                <span class="ef-build-stamp__build">{{ label() }}</span>
             </span>
         }
     `,
@@ -39,12 +39,27 @@ export class EfBuildStampComponent {
 
     protected readonly year = new Date().getFullYear();
 
-    /** Commit and branch always identify a build; a version only appears when
-     *  the app actually maintains one, so an unversioned app shows no `v`. */
+    /**
+     * A released build is known by its version; an unreleased one has no
+     * version to be known by, so it shows what actually identifies it.
+     *
+     * That is not a cosmetic split. Only production is cut from a tag, so
+     * only production has a number a person can repeat back to you. On
+     * develop and staging the honest answer is where it came from and when.
+     */
+    protected readonly label = computed(() => {
+        if (!this.info) return '';
+        if (this.info.version) return `v${this.info.version}`;
+        return [this.info.environment, this.info.commit, this.info.date]
+            .filter(Boolean)
+            .join(' · ');
+    });
+
+    /** The rest of the identity, for when the label is only a version. */
     protected readonly detail = computed(() => {
         if (!this.info) return '';
-        const parts = [this.info.commit, this.info.branch];
-        if (this.info.version) parts.push(`v${this.info.version}`);
-        return parts.join(' · ');
+        return [this.info.commit, this.info.environment, this.info.date]
+            .filter(Boolean)
+            .join(' · ');
     });
 }

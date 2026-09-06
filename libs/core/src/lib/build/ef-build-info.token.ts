@@ -25,6 +25,13 @@ export interface EfBuildInfo {
 
     /** Branch the build came from, useful for telling develop from a release. */
     branch: string;
+
+    /**
+     * Which deployment this build was made for: `production`, `staging`,
+     * `develop`, or `local`. Decided at build time from the ref, because a
+     * production build is made from a tag rather than a branch.
+     */
+    environment: string;
 }
 
 export const EF_BUILD_INFO = new InjectionToken<EfBuildInfo>('EF_BUILD_INFO');
