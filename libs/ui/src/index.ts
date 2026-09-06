@@ -133,6 +133,7 @@ export { EfFilterPillComponent } from './lib/forms/ef-filter-pill/ef-filter-pill
 export { EfServerErrorsDirective } from './lib/forms/ef-server-errors.directive';
 export { EfClearButtonComponent } from './lib/forms/ef-clear-button/ef-clear-button.component';
 export { EfInputTextComponent } from './lib/forms/ef-input-text/ef-input-text.component';
+export { EfPasswordComponent } from './lib/forms/ef-password/ef-password.component';
 export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
 export { EfPresetPillComponent } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
