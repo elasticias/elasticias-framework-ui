@@ -19,6 +19,7 @@ export type { CatalogueProduct, CatalogueProductVariant } from './lib/commerce/e
 
 // Layout components
 export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
+export { EfConfirmDialogComponent } from './lib/layout/ef-confirm-dialog/ef-confirm-dialog.component';
 export type {
     EfDialogAction,
     EfDialogSeverity,
