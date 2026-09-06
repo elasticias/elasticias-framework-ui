@@ -17,3 +17,110 @@
 .tbl tbody tr.is-row-clickable {
     cursor: pointer;
 }
+
+/* ── Table tools: density + column picker ──────────────────────────
+   Mirrors the `.row-actions__menu` / `.row-actions__item` pattern from
+   _patterns.scss so these read as the same menu as every other popup in
+   the UI -- same 13.5px/600 type, same tokens, same 16px icon gutter.
+   `.tbl-wrap` lifts its overflow while one is open (see
+   [class.has-open-menu]) so they escape the card's rounded edges. */
+.tbl-tools {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.tbl-tool {
+    position: relative;
+
+    > .btn.open {
+        color: var(--text);
+        background: var(--paper);
+    }
+}
+
+.tbl-tool__menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    inset-inline-end: 0;
+    z-index: 40;
+    min-width: 212px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 6px;
+    display: grid;
+    gap: 1px;
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-3);
+    animation: row-actions-menu-in var(--t-base) var(--ease-spring);
+
+    &--wide {
+        min-width: 248px;
+    }
+
+    button {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        width: 100%;
+        text-align: start;
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 12px;
+        border-radius: var(--r-md);
+        cursor: pointer;
+        transition: background-color var(--t-fast) var(--ease-out);
+
+        &:hover,
+        &:focus-visible {
+            background: var(--paper);
+            outline: 0;
+        }
+
+        /* Fixed gutter so labels line up whether or not a row shows a
+           tick, matching .row-actions__item's icon sizing. */
+        > .pi {
+            width: 16px;
+            flex: none;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        &.is-active > .pi {
+            color: var(--module, var(--text));
+        }
+    }
+}
+
+.tbl-tool__label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tbl-tool__check {
+    color: var(--module, var(--text));
+}
+
+.tbl-tool__sep {
+    margin: 5px 2px;
+    border-top: 1px solid var(--rule);
+}
+
+/* Density presets. Only the vertical padding changes, so column widths
+   and alignment stay stable as the viewer switches. */
+.tbl-wrap[data-density='compact'] .tbl tbody td {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.tbl-wrap[data-density='comfortable'] .tbl tbody td {
+    padding-top: 16px;
+    padding-bottom: 16px;
+}

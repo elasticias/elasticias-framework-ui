@@ -53,6 +53,13 @@ export interface EfDataCardColumn {
     /** `'end'` is auto-applied for `'number'` / `'money'`. */
     align?: EfDataCardColumnAlign;
 
+    /**
+     * Set `false` to keep the column out of the Columns picker, so the
+     * viewer cannot hide it. Structural columns (`select`, `actions`) are
+     * always excluded regardless.
+     */
+    hideable?: boolean;
+
     /** Inline CSS width (e.g. `'40px'`, `'15%'`). */
     width?: string;
 

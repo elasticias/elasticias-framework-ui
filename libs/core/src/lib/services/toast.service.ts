@@ -143,6 +143,20 @@ export class EfToastService {
             actions: opts.actions,
         };
 
+        // Collapse a burst of identical toasts into one. A dashboard fans
+        // out to many independent queries, so one rejected filter used to
+        // stack the same message once per widget -- seven copies of "a
+        // validation error occurred", burying the screen. Only toasts that
+        // are still on screen dedupe, so the same message shown again later
+        // still appears.
+        const duplicate = this.toasts().find(
+            t =>
+                t.severity === toast.severity &&
+                t.title === toast.title &&
+                t.text === toast.text,
+        );
+        if (duplicate) return duplicate;
+
         this.toasts.update(list => [...list, toast]);
 
         // Forward to PrimeNG MessageService so v1's <p-toast> still

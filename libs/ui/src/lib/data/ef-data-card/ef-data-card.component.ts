@@ -21,6 +21,7 @@ import {
     ScreenReferenceDataService,
 } from '@elasticias/screens';
 import { Permissions } from '@elasticias/types';
+import { StorageUtils } from '@elasticias/utils';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
 import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
 import { EfRowActionsComponent } from '../ef-row-actions/ef-row-actions.component';
@@ -37,6 +38,9 @@ import {
 
 /** Action identifier emitted by `ef-data-card`'s auto row-actions cell. */
 export type EfDataCardRowAction = 'view' | 'edit' | 'duplicate' | 'delete';
+
+/** Row height presets offered by the Density control. */
+export type EfTableDensity = 'compact' | 'default' | 'comfortable';
 
 /**
  * Comptoir data card — column-driven `.tbl-wrap` with header (count
@@ -156,6 +160,22 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     readonly showDuplicateAction = input(true, { transform: booleanAttribute });
     readonly showDeleteAction = input(true, { transform: booleanAttribute });
 
+    /* ── Table tools (density / column picker) ──────────────────── */
+
+    /** Render the Density control in the head row. */
+    readonly showDensityControl = input(false, { transform: booleanAttribute });
+
+    /** Render the Columns picker in the head row. */
+    readonly showColumnPicker = input(false, { transform: booleanAttribute });
+
+    /**
+     * Stable key used to remember density and hidden columns for this
+     * table. Preferences are a per-viewer convenience, so they live in
+     * localStorage and are read defensively -- a private window or
+     * cleared site data simply falls back to the defaults.
+     */
+    readonly tableKey = input<string>('');
+
     /* ── Outputs ────────────────────────────────────────────────── */
 
     readonly pageChange = output<number>();
@@ -178,6 +198,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     private readonly headerTemplateMap = signal<Map<string, TemplateRef<unknown>>>(new Map());
 
     ngAfterContentInit(): void {
+        this.loadPreferences();
         this.bodyTemplateMap.set(toMap(this.bodyTemplates));
         this.headerTemplateMap.set(toMap(this.headerTemplates));
         this.bodyTemplates.changes.subscribe(() =>
@@ -194,14 +215,17 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      *  + the auto `'actions'` column when `[hasActionsColumn]` is on
      *  and the consumer hasn't declared one already. */
     readonly effectiveColumns = computed<ReadonlyArray<EfDataCardColumn>>(() => {
-        const declared = this.columns().map(col => ({
-            ...col,
-            type: col.type ?? 'text',
-            align:
-                col.align ??
-                (col.type === 'number' || col.type === 'money' ? 'end' : 'start'),
-            sortField: col.sortField ?? col.field ?? col.id,
-        }));
+        const hidden = this.hiddenColumnIds();
+        const declared = this.columns()
+            .filter(col => !hidden.includes(col.id))
+            .map(col => ({
+                ...col,
+                type: col.type ?? 'text',
+                align:
+                    col.align ??
+                    (col.type === 'number' || col.type === 'money' ? 'end' : 'start'),
+                sortField: col.sortField ?? col.field ?? col.id,
+            }));
 
         if (!this.hasActionsColumn()) return declared;
         if (declared.some(c => c.id === 'actions')) return declared;
@@ -324,6 +348,116 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         const min = col.minFractionDigits ?? 2;
         const max = col.maxFractionDigits ?? 2;
         return `1.${min}-${max}`;
+    }
+
+    /* ── Table tools state ──────────────────────────────────────── */
+
+    /** Which tools panel is open, if any. */
+    readonly openTool = signal<'density' | 'columns' | null>(null);
+
+    /** Row density. Applied as a class on `.tbl-wrap`. */
+    readonly density = signal<EfTableDensity>('default');
+
+    /** Column ids the viewer has hidden. */
+    readonly hiddenColumnIds = signal<ReadonlyArray<string>>([]);
+
+    readonly densityOptions: ReadonlyArray<{
+        value: EfTableDensity;
+        labelKey: string;
+        icon: string;
+    }> = [
+        { value: 'compact', labelKey: 'common_density_compact', icon: 'pi-align-justify' },
+        { value: 'default', labelKey: 'common_density_default', icon: 'pi-bars' },
+        { value: 'comfortable', labelKey: 'common_density_comfortable', icon: 'pi-list' },
+    ];
+
+    /** Columns the viewer may hide -- structural ones stay put, since
+     *  hiding the selection checkbox or the row-actions cell would strand
+     *  the bulk bar and the per-row menu with no way back. */
+    readonly hideableColumns = computed(() =>
+        // Derived from the DECLARED columns, not `effectiveColumns` --
+        // that one already drops hidden columns, so a hidden column would
+        // vanish from its own picker and could never be restored.
+        this.columns().filter(
+            c => c.id !== 'select' && c.id !== 'actions' && c.hideable !== false,
+        ),
+    );
+
+    toggleTool(tool: 'density' | 'columns'): void {
+        this.openTool.update(cur => (cur === tool ? null : tool));
+    }
+
+    setDensity(value: EfTableDensity): void {
+        this.density.set(value);
+        this.openTool.set(null);
+        this.savePreferences();
+    }
+
+    isColumnHidden(id: string): boolean {
+        return this.hiddenColumnIds().includes(id);
+    }
+
+    toggleColumn(id: string): void {
+        this.hiddenColumnIds.update(ids =>
+            ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id],
+        );
+        this.savePreferences();
+    }
+
+    resetColumns(): void {
+        this.hiddenColumnIds.set([]);
+        this.savePreferences();
+    }
+
+    /** Close an open panel on an outside click or Escape. */
+    @HostListener('document:click', ['$event'])
+    onDocumentClick(event: MouseEvent): void {
+        if (!this.openTool()) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('.tbl-tools')) return;
+        this.openTool.set(null);
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscape(): void {
+        this.openTool.set(null);
+    }
+
+    private storageKey(): string | null {
+        const key = this.tableKey();
+        return key ? `TABLE_PREFS_${key}` : null;
+    }
+
+    private loadPreferences(): void {
+        const key = this.storageKey();
+        if (!key) return;
+        try {
+            const saved = StorageUtils.getLocal<{
+                density?: EfTableDensity;
+                hiddenColumnIds?: string[];
+            }>(key);
+            if (!saved) return;
+            if (saved.density) this.density.set(saved.density);
+            if (Array.isArray(saved.hiddenColumnIds))
+                this.hiddenColumnIds.set(saved.hiddenColumnIds);
+        } catch {
+            // Storage can throw outright (blocked site data, previews) --
+            // the defaults are a perfectly good table.
+        }
+    }
+
+    private savePreferences(): void {
+        const key = this.storageKey();
+        if (!key) return;
+        try {
+            StorageUtils.setLocal(key, {
+                density: this.density(),
+                hiddenColumnIds: this.hiddenColumnIds(),
+            });
+        } catch {
+            // Preferences are a convenience; losing them must never break
+            // the table.
+        }
     }
 
     /** Tracks how many `ef-row-actions` are currently open inside this

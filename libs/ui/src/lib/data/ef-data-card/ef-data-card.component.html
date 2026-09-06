@@ -1,4 +1,4 @@
-<div class="tbl-wrap" [class.has-open-menu]="openMenuCount() > 0">
+<div class="tbl-wrap" [class.has-open-menu]="openMenuCount() > 0 || openTool() !== null" [attr.data-density]="density()">
   <!-- ── HEAD ROW ────────────────────────────────────────────── -->
   <div class="tbl-head">
     <div class="count small">
@@ -10,8 +10,82 @@
         <ng-content select="[tbl-head-info]"></ng-content>
       }
     </div>
-    <div style="display: flex; gap: 6px; align-items: center;">
+    <div class="tbl-tools">
       <ng-content select="[tbl-head-actions]"></ng-content>
+
+      @if (showDensityControl()) {
+        <div class="tbl-tool">
+          <button
+            class="btn btn-ghost btn-sm"
+            type="button"
+            [class.open]="openTool() === 'density'"
+            [attr.aria-expanded]="openTool() === 'density'"
+            aria-haspopup="menu"
+            (click)="toggleTool('density')"
+          >
+            <i class="pi pi-bars" aria-hidden="true"></i>
+            {{ 'common_density' | translate }}
+          </button>
+          @if (openTool() === 'density') {
+            <div class="tbl-tool__menu" role="menu">
+              @for (opt of densityOptions; track opt.value) {
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  [attr.aria-checked]="density() === opt.value"
+                  [class.is-active]="density() === opt.value"
+                  (click)="setDensity(opt.value)"
+                >
+                  <i class="pi" [ngClass]="opt.icon" aria-hidden="true"></i>
+                  <span class="tbl-tool__label">{{ opt.labelKey | translate }}</span>
+                  @if (density() === opt.value) {
+                    <i class="pi pi-check tbl-tool__check" aria-hidden="true"></i>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (showColumnPicker()) {
+        <div class="tbl-tool">
+          <button
+            class="btn btn-ghost btn-sm"
+            type="button"
+            [class.open]="openTool() === 'columns'"
+            [attr.aria-expanded]="openTool() === 'columns'"
+            aria-haspopup="menu"
+            (click)="toggleTool('columns')"
+          >
+            <i class="pi pi-th-large" aria-hidden="true"></i>
+            {{ 'common_columns' | translate }}
+          </button>
+          @if (openTool() === 'columns') {
+            <div class="tbl-tool__menu tbl-tool__menu--wide" role="menu">
+              @for (col of hideableColumns(); track col.id) {
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  [attr.aria-checked]="!isColumnHidden(col.id)"
+                  [class.is-active]="!isColumnHidden(col.id)"
+                  (click)="toggleColumn(col.id)"
+                >
+                  <i class="pi" [class.pi-check]="!isColumnHidden(col.id)" aria-hidden="true"></i>
+                  <span class="tbl-tool__label">{{
+                    col.headerKey ? (col.headerKey | translate) : (col.header || col.id)
+                  }}</span>
+                </button>
+              }
+              <div class="tbl-tool__sep"></div>
+              <button type="button" role="menuitem" (click)="resetColumns()">
+                <i class="pi pi-refresh" aria-hidden="true"></i>
+                <span class="tbl-tool__label">{{ 'common_columns_reset' | translate }}</span>
+              </button>
+            </div>
+          }
+        </div>
+      }
     </div>
   </div>
 

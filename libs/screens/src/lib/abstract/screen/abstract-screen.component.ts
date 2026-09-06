@@ -53,7 +53,7 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
   }
 
   processGrants() {
-    const userGrants: any = StorageUtils.getLocal('CURRENT_USER_GRANTS');
+    const userGrants: any = AbstractScreenComponent.readGrants();
     if (userGrants && userGrants[this.context.screenName] && userGrants[this.context.screenName].permissions) {
       this.context.grants = userGrants[this.context.screenName].permissions;
     } else {
@@ -91,10 +91,33 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
    * `context.isGranted(...)`.
    */
   protected hasGrant(screen: string, permission: Permissions): boolean {
-    const grants = StorageUtils.getLocal<
-      Record<string, { permissions?: string[] }>
-    >('CURRENT_USER_GRANTS');
+    const grants = AbstractScreenComponent.readGrants();
     return !!grants?.[screen]?.permissions?.includes(permission);
+  }
+
+  /**
+   * Screen grants, read from wherever the host app put them.
+   *
+   * Apps store these per tab in sessionStorage (they are refetched on a timer
+   * and must not outlive the tab), so sessionStorage is checked first. The
+   * localStorage fallback keeps apps working that persist them there instead.
+   *
+   * Reading only localStorage silently yielded `null` for every screen, which
+   * left `context.grants` empty and hid every permission-gated control -- the
+   * New and Export buttons and the row actions -- on every screen at once.
+   */
+  protected static readGrants(): Record<
+    string,
+    { permissions?: string[] }
+  > | null {
+    return (
+      StorageUtils.getSession<Record<string, { permissions?: string[] }>>(
+        'CURRENT_USER_GRANTS',
+      ) ??
+      StorageUtils.getLocal<Record<string, { permissions?: string[] }>>(
+        'CURRENT_USER_GRANTS',
+      )
+    );
   }
 
   getBundleName(): string {
