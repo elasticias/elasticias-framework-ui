@@ -21,6 +21,7 @@ export type { CatalogueProduct, CatalogueProductVariant } from './lib/commerce/e
 export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
 export { EfConfirmDialogComponent } from './lib/layout/ef-confirm-dialog/ef-confirm-dialog.component';
 export { EfThemeToggleComponent } from './lib/layout/ef-theme-toggle/ef-theme-toggle.component';
+export { EfBuildStampComponent } from './lib/layout/ef-build-stamp/ef-build-stamp.component';
 export type {
     EfDialogAction,
     EfDialogSeverity,
@@ -134,6 +135,7 @@ export { EfServerErrorsDirective } from './lib/forms/ef-server-errors.directive'
 export { EfClearButtonComponent } from './lib/forms/ef-clear-button/ef-clear-button.component';
 export { EfInputTextComponent } from './lib/forms/ef-input-text/ef-input-text.component';
 export { EfPasswordComponent } from './lib/forms/ef-password/ef-password.component';
+export { EfCheckboxComponent } from './lib/forms/ef-checkbox/ef-checkbox.component';
 export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
 export { EfPresetPillComponent } from './lib/forms/ef-preset-pill/ef-preset-pill.component';

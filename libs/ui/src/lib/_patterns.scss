@@ -800,6 +800,25 @@
   letter-spacing: -0.005em;
 }
 
+/* ──────────── BUILD STAMP ───────────────────────────────────────
+   Footer-weight metadata: mono, muted, never competing with the
+   content above it. */
+
+.ef-build-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.ef-build-stamp__sep {
+  opacity: 0.6;
+}
+
 /* ──────────── APP-BAR ICON ACTIONS ──────────────────────────────
    The theme switch and sign-out sit at the trailing edge of
    ef-app-top. They borrow the row-actions trigger's shape rather
