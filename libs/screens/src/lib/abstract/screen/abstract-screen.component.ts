@@ -4,7 +4,8 @@ import { ScreenContext } from '../../config/screen-context';
 import { ScreenConfig, LoadOptions } from '../../config/screen-config';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
-import { AppUtils, StorageUtils } from '@elasticias/utils';
+import { AppUtils, PersistedState, StorageUtils } from '@elasticias/utils';
+import { EfDatePresetKey, EfDateRange } from '../../entities/date-range.entity';
 import { Permissions } from '@elasticias/types';
 import { ToastService, ConfirmDialogService, CacheService } from '@elasticias/core';
 import { Subject } from 'rxjs';
@@ -260,6 +261,72 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
       });
     }
     this.serverErrors.set(normalized);
+  }
+
+  /* ── Persisted date range ───────────────────────────────────────
+       Opt-in. A screen that wants its period to survive a refresh
+       calls `restorePersistedDateRange()` once, before its first
+       load, and `persistDateRange()` from `onDateRangeChange()`.
+       `AbstractReportScreenV2` already does both; list screens can
+       opt in the same way. */
+
+  private _dateRangeState?: PersistedState<EfDateRange>;
+
+  /** Storage key for the persisted period. Namespaced by the screen
+   *  code so two dashboards never share a period. */
+  protected dateRangeStateKey(): string {
+    return `SCREEN_DATE_RANGE_${this.getConfig()?.SCREEN ?? 'UNKNOWN'}`;
+  }
+
+  protected dateRangeState(): PersistedState<EfDateRange> {
+    return (this._dateRangeState ??= this.persisted<EfDateRange>(this.dateRangeStateKey(), {
+      revive: raw => AbstractScreenComponent.reviveDateRange(raw),
+    }));
+  }
+
+  /**
+   * The period to open on: the one the user last chose, or `fallback`
+   * when there is nothing stored.
+   *
+   * A relative preset is recomputed rather than replayed — someone who
+   * picked "This month" in September and comes back in October means
+   * October, not a frozen September window. Only `'custom'` restores
+   * the literal dates, which is the case that has no other meaning.
+   * Pass `fromPreset` (a screen's own preset resolver) to get that;
+   * without it, a stored preset falls back to the default.
+   */
+  protected restorePersistedDateRange(
+    fallback: EfDateRange,
+    fromPreset?: (key: EfDatePresetKey) => EfDateRange,
+  ): EfDateRange {
+    const stored = this.dateRangeState().read();
+    if (!stored) return fallback;
+    if (stored.presetKey === 'custom') return stored;
+    return fromPreset ? fromPreset(stored.presetKey) : fallback;
+  }
+
+  protected persistDateRange(range: EfDateRange): void {
+    this.dateRangeState().write(range);
+  }
+
+  protected clearPersistedDateRange(): void {
+    this.dateRangeState().clear();
+  }
+
+  /** JSON gives back ISO strings; hand back real `Date`s or nothing. */
+  private static reviveDateRange(raw: unknown): EfDateRange | null {
+    const v = raw as Partial<EfDateRange> | null;
+    if (!v || typeof v !== 'object' || !v.presetKey) return null;
+    const start = new Date(v.start as unknown as string);
+    const end = new Date(v.end as unknown as string);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+    return {
+      start,
+      end,
+      presetKey: v.presetKey,
+      label: v.label ?? '',
+      labelKey: v.labelKey,
+    };
   }
 
   clearServerErrors() {

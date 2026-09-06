@@ -79,6 +79,12 @@ export abstract class AbstractReportScreenV2
     super.ngOnInit();
     this.reportsService = this.injector.get(this.getConfig()!.SERVICE as any);
 
+    // Reinstate the period the user last chose before anything loads, so the
+    // widgets fetch it once instead of fetching the default and refetching.
+    this.dateRange.set(
+      this.restorePersistedDateRange(this.dateRange(), key => this.rangeFromPreset(key)),
+    );
+
     const lists = this.getConfig()?.REPORT_STATIC_LISTS ?? [];
     if (lists.length > 0) {
       this.initializeStaticLists(lists);
@@ -94,6 +100,7 @@ export abstract class AbstractReportScreenV2
   /** Wired to `<ef-datepicker-advanced (rangeChange)>`. */
   onDateRangeChange(range: EfDateRange): void {
     this.dateRange.set(range);
+    this.persistDateRange(range);
     this.loadAll();
   }
 

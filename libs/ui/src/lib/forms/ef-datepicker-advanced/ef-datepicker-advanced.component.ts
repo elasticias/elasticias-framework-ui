@@ -485,6 +485,11 @@ export class EfDatepickerAdvancedComponent
                 this.seedDraftFromValue();
                 const anchor = this.draftStart() ?? new Date();
                 this.visibleMonth.set(this.startOfMonth(anchor));
+            } else if (this.activePreset() === 'custom') {
+                // The active range was hand-picked, so the preset list has
+                // nothing selected to show. Reopen where it was chosen, with
+                // the calendar already sitting on those dates.
+                this.openCustomView();
             } else {
                 this.view.set('presets');
                 this.seedDraftFromValue();
