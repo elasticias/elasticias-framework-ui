@@ -800,6 +800,40 @@
   letter-spacing: -0.005em;
 }
 
+/* ──────────── TOOLTIP — COMPTOIR SKIN OVER P-TOOLTIP ────────────
+   PrimeNG owns the positioning and the show/hide; these rules own the
+   look, so `efTooltip` and `ef-button`'s own tooltip read the same.
+   Ink-active ground rather than paper: a tooltip is an overlay on top
+   of the surface, not another surface. */
+
+.p-tooltip .p-tooltip-text {
+  background: var(--ink-active);
+  color: var(--paper);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  max-width: 260px;
+  box-shadow: var(--shadow-3);
+  white-space: normal;
+}
+
+/* The arrow is a bordered triangle per side; colour the one that shows. */
+.p-tooltip.p-tooltip-top .p-tooltip-arrow {
+  border-top-color: var(--ink-active);
+}
+.p-tooltip.p-tooltip-bottom .p-tooltip-arrow {
+  border-bottom-color: var(--ink-active);
+}
+.p-tooltip.p-tooltip-left .p-tooltip-arrow {
+  border-left-color: var(--ink-active);
+}
+.p-tooltip.p-tooltip-right .p-tooltip-arrow {
+  border-right-color: var(--ink-active);
+}
+
 /* ──────────── BUILD STAMP ───────────────────────────────────────
    Footer-weight metadata: mono, muted, never competing with the
    content above it. */
