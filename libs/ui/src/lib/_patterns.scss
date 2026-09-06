@@ -800,6 +800,45 @@
   letter-spacing: -0.005em;
 }
 
+/* ──────────── THEME TOGGLE ──────────────────────────────────────
+   Sits in the app-top actions row next to the live pulse, so it
+   borrows the row-actions trigger's shape rather than inventing a
+   third kind of icon button. */
+
+.ef-theme-toggle {
+  appearance: none;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  width: var(--hit);
+  height: var(--hit);
+  border-radius: var(--r-pill);
+  display: inline-grid;
+  place-items: center;
+  color: var(--text-mute);
+  cursor: pointer;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    border-color var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.ef-theme-toggle:hover {
+  color: var(--text);
+  border-color: var(--ink-400);
+}
+
+.ef-theme-toggle:focus-visible {
+  outline: 0;
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+  color: var(--text);
+}
+
+.ef-theme-toggle i {
+  font-size: 14px;
+  line-height: 1;
+}
+
 /* ──────────── PAGER ─────────────────────────────────────────────── */
 
 .pager {

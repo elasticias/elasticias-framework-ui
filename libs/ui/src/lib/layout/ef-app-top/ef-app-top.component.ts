@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfActiveModuleService } from '@elasticias/core';
+import { EfThemeToggleComponent } from '../ef-theme-toggle/ef-theme-toggle.component';
 
 /**
  * Top chrome bar for the desktop and mobile shells.
@@ -21,9 +22,19 @@ import { EfActiveModuleService } from '@elasticias/core';
     templateUrl: './ef-app-top.component.html',
     styleUrl: './ef-app-top.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslateModule, EfThemeToggleComponent],
 })
 export class EfAppTopComponent {
+    /**
+     * Show the light/dark switch at the trailing edge of the bar.
+     *
+     * It lives here rather than being projected through `[actions]`
+     * because that slot is declared once per viewport branch in
+     * `ef-app-shell` and only the mobile one receives content — so
+     * anything an app projects there never appears on desktop.
+     */
+    readonly themeToggle = input(true, { transform: booleanAttribute });
+
     private readonly active = inject(EfActiveModuleService);
 
     readonly module = this.active.activeModule;

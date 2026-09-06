@@ -14,4 +14,7 @@
 
 <div class="ef-app-top__slot ef-app-top__slot--actions">
   <ng-content select="[actions]"></ng-content>
+  @if (themeToggle()) {
+    <ef-theme-toggle />
+  }
 </div>
