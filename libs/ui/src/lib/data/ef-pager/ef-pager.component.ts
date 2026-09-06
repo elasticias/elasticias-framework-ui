@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { EfSelectComponent } from '../../forms/ef-select/ef-select.component';
 
 interface PageBtn {
     kind: 'page' | 'ellipsis';
@@ -33,7 +34,7 @@ interface PageBtn {
 @Component({
     selector: 'ef-pager',
     standalone: true,
-    imports: [CommonModule, TranslateModule],
+    imports: [CommonModule, TranslateModule, EfSelectComponent],
     templateUrl: './ef-pager.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -54,6 +55,17 @@ export class EfPagerComponent {
 
     readonly pageChange = output<number>();
     readonly pageSizeChange = output<number>();
+
+    /** Falls back to the first configured option if the value ever goes empty. */
+    private get defaultSize(): number {
+        return this.pageSizeOptions()[0] ?? this.pageSize();
+    }
+
+    /** `pageSizeOptions` shaped for `ef-select`, which reads a label and a
+     *  value off each option rather than taking bare primitives. */
+    readonly sizeOptions = computed(() =>
+        this.pageSizeOptions().map(n => ({ label: String(n), value: n })),
+    );
 
     readonly totalPages = computed(() => {
         const size = this.pageSize();
@@ -93,11 +105,19 @@ export class EfPagerComponent {
         this.pageChange.emit(page);
     }
 
-    onSizeChange(value: string): void {
-        const size = parseInt(value, 10);
-        if (!Number.isNaN(size) && size > 0 && size !== this.pageSize()) {
-            this.pageSizeChange.emit(size);
+    onSizeChange(value: number | string | null): void {
+        const size = typeof value === 'number' ? value : parseInt(value ?? '', 10);
+
+        if (Number.isNaN(size) || size <= 0) {
+            // "No page size" has no meaning. The control is not clearable
+            // (see the template), so this only guards a value arriving empty
+            // from somewhere else: fall back to the first configured option.
+            const fallback = this.defaultSize;
+            if (fallback !== this.pageSize()) this.pageSizeChange.emit(fallback);
+            return;
         }
+
+        if (size !== this.pageSize()) this.pageSizeChange.emit(size);
     }
 
     trackBtn(index: number, btn: PageBtn): string {

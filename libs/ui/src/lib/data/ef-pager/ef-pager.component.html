@@ -2,15 +2,17 @@
   @if (!hideSize()) {
     <div class="size">
       <span>{{ linesPerPageLabelKey() | translate }}</span>
-      <select
+      <ef-select
+        size="small"
+        appendTo="body"
+        optionLabel="label"
+        optionValue="value"
+        [options]="sizeOptions()"
         [value]="pageSize()"
-        [attr.aria-label]="linesPerPageLabelKey() | translate"
-        (change)="onSizeChange($any($event.target).value)"
-      >
-        @for (option of pageSizeOptions(); track option) {
-          <option [value]="option" [selected]="option === pageSize()">{{ option }}</option>
-        }
-      </select>
+        [ariaLabelKey]="linesPerPageLabelKey()"
+        [showClear]="false"
+        (selectionChangeEvent)="onSizeChange($event)"
+      />
       @if (totalCount() > 0) {
         <span>· {{ range().start }}–{{ range().end }} {{ ofLabelKey() | translate }} {{ totalCount() }}</span>
       }
