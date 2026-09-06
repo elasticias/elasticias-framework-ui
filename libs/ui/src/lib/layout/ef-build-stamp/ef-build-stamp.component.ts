@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { EF_BUILD_INFO } from '@elasticias/core';
+import { EfTooltipDirective } from '../../overlays/ef-tooltip.directive';
 
 /**
  * Which build is running, for a footer or an about box.
@@ -16,9 +17,10 @@ import { EF_BUILD_INFO } from '@elasticias/core';
 @Component({
     selector: 'ef-build-stamp',
     standalone: true,
+    imports: [EfTooltipDirective],
     template: `
         @if (info) {
-            <span class="ef-build-stamp" [attr.title]="detail()">
+            <span class="ef-build-stamp" [efTooltip]="detail()" efTooltipPosition="bottom">
                 @if (owner()) {
                     <span class="ef-build-stamp__owner">© {{ year }} {{ owner() }}</span>
                     <span class="ef-build-stamp__sep" aria-hidden="true">·</span>
