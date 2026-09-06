@@ -13,7 +13,8 @@ import { InjectionToken } from '@angular/core';
  * ```
  */
 export interface EfBuildInfo {
-    /** Package version, when the app maintains one. */
+    /** Release version. Empty when the app maintains none — consumers should
+     *  omit it rather than print a placeholder. */
     version: string;
 
     /** Short commit hash the build came from. */

@@ -39,7 +39,12 @@ export class EfBuildStampComponent {
 
     protected readonly year = new Date().getFullYear();
 
-    protected readonly detail = computed(() =>
-        this.info ? `${this.info.commit} · ${this.info.branch} · v${this.info.version}` : '',
-    );
+    /** Commit and branch always identify a build; a version only appears when
+     *  the app actually maintains one, so an unversioned app shows no `v`. */
+    protected readonly detail = computed(() => {
+        if (!this.info) return '';
+        const parts = [this.info.commit, this.info.branch];
+        if (this.info.version) parts.push(`v${this.info.version}`);
+        return parts.join(' · ');
+    });
 }
