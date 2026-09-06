@@ -43,6 +43,8 @@ import { EfRowAction } from './ef-row-actions.types';
  *
  * Behaviour:
  * - Click the trigger to toggle. Trigger gets `.open` (ink-active) while the menu is open.
+ * - Only one row menu is open at a time — opening one closes the last.
+ * - The menu flips above the trigger when there isn't room below it.
  * - Click outside or press `Escape` to close.
  * - Clicking an item runs its `command` then closes the menu.
  * - dblclick on the trigger or menu does NOT propagate, so the data-card's
@@ -99,11 +101,35 @@ export class EfRowActionsComponent {
     /** Open state. */
     readonly open = signal(false);
 
+    /** Menu renders above the trigger instead of below it. */
+    readonly dropUp = signal(false);
+
+    /**
+     * The one menu currently open, app-wide.
+     *
+     * The trigger click is stopped from reaching `document` so it can't
+     * select or open the row, which also means no other instance's
+     * outside-click listener ever sees it. Without an explicit hand-off
+     * every menu clicked stays open and they stack up on screen.
+     */
+    private static openInstance: EfRowActionsComponent | null = null;
+
     toggle(event: MouseEvent): void {
         event.stopPropagation();
         if (this.disabled() || this.visibleItems().length === 0) return;
         this.open.update(v => !v);
         const isOpen = this.open();
+
+        if (isOpen) {
+            EfRowActionsComponent.openInstance?.close();
+            EfRowActionsComponent.openInstance = this;
+            // Place it from an estimate first so it never renders in the
+            // wrong direction, then correct against the real height once
+            // the menu is in the DOM.
+            this.dropUp.set(this.shouldDropUp(this.estimateMenuHeight()));
+            this.correctPlacementAfterRender();
+        }
+
         this.dispatchToggle(isOpen);
         if (isOpen) this.opened.emit();
         else this.closed.emit();
@@ -119,8 +145,48 @@ export class EfRowActionsComponent {
     close(): void {
         if (!this.open()) return;
         this.open.set(false);
+        if (EfRowActionsComponent.openInstance === this) {
+            EfRowActionsComponent.openInstance = null;
+        }
         this.dispatchToggle(false);
         this.closed.emit();
+    }
+
+    /* ── Placement ──────────────────────────────────────────────── */
+
+    /** Gap between the trigger and the menu, plus a little breathing room
+     *  against the viewport edge. Matches `top: calc(100% + 8px)`. */
+    private static readonly EDGE_GAP = 16;
+
+    /**
+     * Drop upward when the menu would not fit below the trigger and there
+     * is more room above. On a short viewport where it fits neither way,
+     * below wins, which is where it has always been.
+     */
+    private shouldDropUp(menuHeight: number): boolean {
+        const rect = this.host.nativeElement.getBoundingClientRect();
+        const below = window.innerHeight - rect.bottom;
+        const above = rect.top;
+        return below < menuHeight + EfRowActionsComponent.EDGE_GAP && above > below;
+    }
+
+    /** Rough height before the menu exists: item padding + line box, with
+     *  dividers and the menu's own padding and border. */
+    private estimateMenuHeight(): number {
+        const items = this.visibleItems();
+        const separators = items.filter(a => a.separator).length;
+        return 14 + (items.length - separators) * 39 + separators * 10;
+    }
+
+    /** Re-decide against the rendered height — item labels wrap, and the
+     *  estimate can't know that. */
+    private correctPlacementAfterRender(): void {
+        requestAnimationFrame(() => {
+            if (!this.open()) return;
+            const menu = this.host.nativeElement.querySelector<HTMLElement>('.row-actions__menu');
+            if (!menu) return;
+            this.dropUp.set(this.shouldDropUp(menu.offsetHeight));
+        });
     }
 
     /** Bubbling DOM event so ancestors (e.g. ef-data-card) can react —

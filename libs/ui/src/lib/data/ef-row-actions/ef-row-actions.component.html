@@ -17,6 +17,7 @@
         <div
             class="row-actions__menu open"
             [class.left]="menuLeft()"
+            [class.up]="dropUp()"
             role="menu"
             [attr.aria-label]="triggerAriaKey() | translate"
             (dblclick)="onDblClick($event)"

@@ -1425,6 +1425,25 @@
   inset-inline-start: 0;
 }
 
+/* Not enough room below the trigger — flip above it, and reverse the
+   entry slide so the menu still moves away from its trigger. */
+.row-actions__menu.up {
+  top: auto;
+  bottom: calc(100% + 8px);
+  animation-name: row-actions-menu-in-up;
+}
+
+@keyframes row-actions-menu-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes row-actions-menu-in {
   from {
     opacity: 0;
