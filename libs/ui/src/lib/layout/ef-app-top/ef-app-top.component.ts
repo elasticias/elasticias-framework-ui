@@ -1,7 +1,7 @@
 import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
-import { EfActiveModuleService } from '@elasticias/core';
+import { EF_SESSION, EfActiveModuleService } from '@elasticias/core';
 import { EfThemeToggleComponent } from '../ef-theme-toggle/ef-theme-toggle.component';
 
 /**
@@ -34,6 +34,20 @@ export class EfAppTopComponent {
      * anything an app projects there never appears on desktop.
      */
     readonly themeToggle = input(true, { transform: booleanAttribute });
+
+    /**
+     * Show the sign-out button. It only renders when the app has provided
+     * `EF_SESSION`, so this input turns off a control the app opted into
+     * rather than being the thing that enables it.
+     */
+    readonly logout = input(true, { transform: booleanAttribute });
+
+    /** Present only when the app provides `EF_SESSION`. */
+    protected readonly session = inject(EF_SESSION, { optional: true });
+
+    protected signOut(): void {
+        this.session?.logout();
+    }
 
     private readonly active = inject(EfActiveModuleService);
 

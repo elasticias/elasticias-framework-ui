@@ -17,4 +17,15 @@
   @if (themeToggle()) {
     <ef-theme-toggle />
   }
+  @if (logout() && session) {
+    <button
+      type="button"
+      class="ef-app-top__logout"
+      [attr.aria-label]="'common_logout' | translate"
+      [attr.title]="'common_logout' | translate"
+      (click)="signOut()"
+    >
+      <i class="pi pi-sign-out" aria-hidden="true"></i>
+    </button>
+  }
 </div>

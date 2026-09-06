@@ -36,3 +36,5 @@ export type { EfViewport } from './lib/responsive/ef-viewport.service';
 // Auth
 export { EfPermissionService } from './lib/auth/ef-permission.service';
 export type { EfModulePermission, EfPermissionLevel } from './lib/auth/ef-permission.service';
+export { EF_SESSION } from './lib/auth/ef-session.token';
+export type { EfSession } from './lib/auth/ef-session.token';

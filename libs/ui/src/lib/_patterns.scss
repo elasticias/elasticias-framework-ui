@@ -800,12 +800,13 @@
   letter-spacing: -0.005em;
 }
 
-/* ──────────── THEME TOGGLE ──────────────────────────────────────
-   Sits in the app-top actions row next to the live pulse, so it
-   borrows the row-actions trigger's shape rather than inventing a
-   third kind of icon button. */
+/* ──────────── APP-BAR ICON ACTIONS ──────────────────────────────
+   The theme switch and sign-out sit at the trailing edge of
+   ef-app-top. They borrow the row-actions trigger's shape rather
+   than inventing a third kind of icon button. */
 
-.ef-theme-toggle {
+.ef-theme-toggle,
+.ef-app-top__logout {
   appearance: none;
   background: var(--paper-alt);
   border: 1px solid var(--rule);
@@ -822,19 +823,22 @@
     color var(--t-fast) var(--ease-out);
 }
 
-.ef-theme-toggle:hover {
+.ef-theme-toggle:hover,
+.ef-app-top__logout:hover {
   color: var(--text);
   border-color: var(--ink-400);
 }
 
-.ef-theme-toggle:focus-visible {
+.ef-theme-toggle:focus-visible,
+.ef-app-top__logout:focus-visible {
   outline: 0;
   border-color: var(--tenant-400);
   box-shadow: 0 0 0 4px var(--tenant-100);
   color: var(--text);
 }
 
-.ef-theme-toggle i {
+.ef-theme-toggle i,
+.ef-app-top__logout i {
   font-size: 14px;
   line-height: 1;
 }
