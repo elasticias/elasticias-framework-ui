@@ -7,8 +7,14 @@ import { EfAppTopComponent } from '../ef-app-top/ef-app-top.component';
 import { EfAppMainComponent } from '../ef-app-main/ef-app-main.component';
 import { EfBottomSheetComponent } from '../ef-bottom-sheet/ef-bottom-sheet.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { Router } from '@angular/router';
-import { EfActiveModuleService, EfPermissionService, EfModule } from '@elasticias/core';
+import { Router, RouterLink } from '@angular/router';
+import {
+    EfActiveModuleService,
+    EfPermissionService,
+    EfModule,
+    EfNavItem,
+    EfNavSection,
+} from '@elasticias/core';
 import { signal } from '@angular/core';
 
 /**
@@ -53,6 +59,7 @@ import { signal } from '@angular/core';
         EfAppMainComponent,
         EfBottomSheetComponent,
         TranslateModule,
+        RouterLink,
     ],
     host: {
         '[attr.data-viewport]': 'viewport()',
@@ -82,6 +89,32 @@ export class EfAppShellComponent {
     /** Five tabs is what fits a phone; the rest live in the sheet. */
     readonly tabs = computed<EfModule[]>(() => this.perms.visibleModules().slice(0, 5));
     readonly allVisible = this.perms.visibleModules;
+
+    /**
+     * The screens inside the active module, for the mobile sheet.
+     *
+     * On a phone the side nav is not rendered, and the tab bar switches
+     * modules — so without this there was no way to reach any screen except
+     * the module's default one. Same filtering as `ef-module-side`, because
+     * it answers the same question.
+     */
+    readonly moduleSections = computed<EfNavSection[]>(() => {
+        const m = this.active.activeModule();
+        if (!m) return [];
+        return m.navSections
+            .map(section => ({
+                ...section,
+                items: section.items.filter(item =>
+                    this.perms.can(m.id, item.requiredAction ?? 'read'),
+                ),
+            }))
+            .filter(section => section.items.length > 0);
+    });
+
+    onNavigate(item: EfNavItem): void {
+        this.router.navigateByUrl(item.route);
+        this.switcherOpen.set(false);
+    }
 
     openSwitcher(): void {
         this.switcherOpen.set(true);

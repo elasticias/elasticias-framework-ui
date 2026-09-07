@@ -79,3 +79,27 @@
 .ef-app-top__crumb-leaf {
   color: var(--text-mute);
 }
+
+/* A phone. The breadcrumb column was `minmax(0, auto)`, which lets it take
+   its content's width — so a long screen name ran under the actions instead
+   of yielding to them. The crumb gets what is left and truncates; the
+   controls keep their size. */
+@media (max-width: 767px) {
+  :host {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .ef-app-top__crumb {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .ef-app-top__crumb-leaf,
+  .ef-app-top__crumb-root {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

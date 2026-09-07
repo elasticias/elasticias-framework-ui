@@ -26,7 +26,7 @@
         type="button"
         class="ef-app-shell__menu"
         (click)="openSwitcher()"
-        [attr.aria-label]="'modules.all' | translate"
+        [attr.aria-label]="'common_modules' | translate"
       >
         <i class="pi pi-bars" aria-hidden="true"></i>
       </button>
@@ -39,7 +39,7 @@
   </ef-app-main>
 
   @if (isMobile()) {
-    <nav class="ef-app-shell__tabs" [attr.aria-label]="'modules.all' | translate">
+    <nav class="ef-app-shell__tabs" [attr.aria-label]="'common_modules' | translate">
       @for (module of tabs(); track module.id) {
         <button
           type="button"
@@ -61,7 +61,35 @@
 
 @if (isMobile()) {
   <ef-bottom-sheet [open]="switcherOpen()" (openChange)="onSwitcherChange($event)">
-    <h2 class="ef-app-shell__sheet-title">{{ 'modules.all' | translate }}</h2>
+    <!-- The screens first: the tab bar already switches modules, so this is
+         the only way to reach anything but a module's default screen. -->
+    @for (section of moduleSections(); track section.id) {
+      @if (section.labelKey) {
+        <h2 class="ef-app-shell__sheet-title">{{ section.labelKey | translate }}</h2>
+      }
+      <ul class="ef-app-shell__sheet-list">
+        @for (item of section.items; track item.id) {
+          <li>
+            <a
+              class="ef-app-shell__sheet-item"
+              [routerLink]="item.route"
+              routerLinkActive="is-active"
+              (click)="onNavigate(item)"
+            >
+              @if (item.icon) {
+                <i [class]="item.icon" aria-hidden="true"></i>
+              }
+              <span>{{ item.labelKey | translate }}</span>
+              @if (item.badge !== undefined && item.badge !== null) {
+                <span class="ef-app-shell__sheet-badge">{{ item.badge }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    }
+
+    <h2 class="ef-app-shell__sheet-title">{{ 'common_modules' | translate }}</h2>
     <ul class="ef-app-shell__sheet-list">
       @for (module of allVisible(); track module.id) {
         <li>

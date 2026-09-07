@@ -125,6 +125,9 @@
   background: var(--paper-alt);
   border: 0;
   border-radius: var(--r-md);
+  /* Screen entries are anchors so they can be opened in a new tab; without
+     this they arrive with the document's underline. */
+  text-decoration: none;
   color: var(--text);
   cursor: pointer;
   font-family: 'Manrope', system-ui, sans-serif;
@@ -147,4 +150,18 @@
   .ef-app-shell__rail {
     display: none;
   }
+}
+
+/* Sheet items carry a badge like the side nav does. */
+.ef-app-shell__sheet-badge {
+  margin-inline-start: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-mute);
+}
+
+.ef-app-shell__sheet-item.is-active {
+  background: var(--paper);
+  color: var(--text);
+  font-weight: 700;
 }
