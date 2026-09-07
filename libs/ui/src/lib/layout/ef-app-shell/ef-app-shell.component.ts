@@ -5,7 +5,11 @@ import { EfModuleRailComponent } from '../ef-module-rail/ef-module-rail.componen
 import { EfModuleSideComponent } from '../ef-module-side/ef-module-side.component';
 import { EfAppTopComponent } from '../ef-app-top/ef-app-top.component';
 import { EfAppMainComponent } from '../ef-app-main/ef-app-main.component';
-import { EfAppShellMobileComponent } from '../ef-app-shell-mobile/ef-app-shell-mobile.component';
+import { EfBottomSheetComponent } from '../ef-bottom-sheet/ef-bottom-sheet.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { Router } from '@angular/router';
+import { EfActiveModuleService, EfPermissionService, EfModule } from '@elasticias/core';
+import { signal } from '@angular/core';
 
 /**
  * Top-level Comptoir shell.
@@ -47,7 +51,8 @@ import { EfAppShellMobileComponent } from '../ef-app-shell-mobile/ef-app-shell-m
         EfModuleSideComponent,
         EfAppTopComponent,
         EfAppMainComponent,
-        EfAppShellMobileComponent,
+        EfBottomSheetComponent,
+        TranslateModule,
     ],
     host: {
         '[attr.data-viewport]': 'viewport()',
@@ -55,6 +60,9 @@ import { EfAppShellMobileComponent } from '../ef-app-shell-mobile/ef-app-shell-m
 })
 export class EfAppShellComponent {
     private readonly vp = inject(EfViewportService);
+    private readonly perms = inject(EfPermissionService);
+    private readonly active = inject(EfActiveModuleService);
+    private readonly router = inject(Router);
 
     /** Show the 3px module-color stripe at the top of the content area. */
     @Input() stripe = true;
@@ -62,4 +70,29 @@ export class EfAppShellComponent {
     readonly viewport = this.vp.current;
     readonly isMobile = this.vp.isMobile;
     readonly showSide = computed(() => !this.vp.isMobile());
+
+    /* ── Mobile chrome ───────────────────────────────────────────
+         Tabs and the module sheet live here rather than in a child
+         component: content has to be declared once, in one template,
+         and a child shell would mean declaring the slots twice. */
+
+    readonly activeId = this.active.activeModuleId;
+    readonly switcherOpen = signal(false);
+
+    /** Five tabs is what fits a phone; the rest live in the sheet. */
+    readonly tabs = computed<EfModule[]>(() => this.perms.visibleModules().slice(0, 5));
+    readonly allVisible = this.perms.visibleModules;
+
+    openSwitcher(): void {
+        this.switcherOpen.set(true);
+    }
+
+    onSwitcherChange(open: boolean): void {
+        this.switcherOpen.set(open);
+    }
+
+    onSelect(module: EfModule): void {
+        this.router.navigateByUrl(module.defaultRoute);
+        this.switcherOpen.set(false);
+    }
 }

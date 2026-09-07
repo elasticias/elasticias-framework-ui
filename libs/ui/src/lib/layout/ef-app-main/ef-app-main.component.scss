@@ -22,3 +22,11 @@
   display: grid;
   align-content: start;
 }
+
+/* Placed last: a media query adds no specificity, so it has to follow the
+   rule it overrides. Desktop's 24px gutters take a sixth of a 390px screen. */
+@media (max-width: 767px) {
+  .ef-app-main__content {
+    padding: var(--s-4) var(--s-4) var(--s-7);
+  }
+}

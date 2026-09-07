@@ -1,28 +1,82 @@
-@if (isMobile()) {
-  <ef-app-shell-mobile>
+<!-- One layout, one declaration per slot.
+     Angular binds projected content to the LAST matching <ng-content> in a
+     template, so declaring the same selector once per viewport branch meant the
+     branch that was actually rendered on a phone received nothing — every
+     screen came up blank inside working chrome. The layouts differ by CSS and
+     by which chrome is rendered, never by where the content is declared. -->
+
+<ef-module-rail class="ef-app-shell__rail">
+  <ng-content select="[logo]" logo></ng-content>
+</ef-module-rail>
+
+@if (showSide()) {
+  <ef-module-side class="ef-app-shell__side">
+    <ng-content select="[side-header-meta]" side-header-meta></ng-content>
+    <ng-content select="[side-footer]" side-footer></ng-content>
+  </ef-module-side>
+}
+
+<div class="ef-app-shell__column">
+  <ef-app-top>
     <ng-content select="[breadcrumb]" breadcrumb></ng-content>
     <ng-content select="[search]" search></ng-content>
+    @if (isMobile()) {
+      <button
+        actions
+        type="button"
+        class="ef-app-shell__menu"
+        (click)="openSwitcher()"
+        [attr.aria-label]="'modules.all' | translate"
+      >
+        <i class="pi pi-bars" aria-hidden="true"></i>
+      </button>
+    }
     <ng-content select="[actions]" actions></ng-content>
-    <ng-content select="[fab]" fab></ng-content>
+  </ef-app-top>
+
+  <ef-app-main [stripe]="stripe">
     <ng-content></ng-content>
-  </ef-app-shell-mobile>
-} @else {
-  <ef-module-rail>
-    <ng-content select="[logo]" logo></ng-content>
-  </ef-module-rail>
-  @if (showSide()) {
-    <ef-module-side>
-      <ng-content select="[side-header-meta]" side-header-meta></ng-content>
-      <ng-content select="[side-footer]" side-footer></ng-content>
-    </ef-module-side>
+  </ef-app-main>
+
+  @if (isMobile()) {
+    <nav class="ef-app-shell__tabs" [attr.aria-label]="'modules.all' | translate">
+      @for (module of tabs(); track module.id) {
+        <button
+          type="button"
+          class="ef-app-shell__tab"
+          [class.is-active]="activeId() === module.id"
+          [attr.data-module]="module.id"
+          [attr.aria-current]="activeId() === module.id ? 'page' : null"
+          (click)="onSelect(module)"
+        >
+          <i class="ef-app-shell__tab-icon" [class]="module.icon" aria-hidden="true"></i>
+          <span class="ef-app-shell__tab-label">{{ module.labelKey | translate }}</span>
+        </button>
+      }
+    </nav>
   }
-  <div class="ef-app-shell__column">
-    <ef-app-top>
-      <ng-content select="[breadcrumb]" breadcrumb></ng-content>
-      <ng-content select="[actions]" actions></ng-content>
-    </ef-app-top>
-    <ef-app-main [stripe]="stripe">
-      <ng-content></ng-content>
-    </ef-app-main>
-  </div>
+</div>
+
+<ng-content select="[fab]"></ng-content>
+
+@if (isMobile()) {
+  <ef-bottom-sheet [open]="switcherOpen()" (openChange)="onSwitcherChange($event)">
+    <h2 class="ef-app-shell__sheet-title">{{ 'modules.all' | translate }}</h2>
+    <ul class="ef-app-shell__sheet-list">
+      @for (module of allVisible(); track module.id) {
+        <li>
+          <button
+            type="button"
+            class="ef-app-shell__sheet-item"
+            [class.is-active]="activeId() === module.id"
+            [attr.data-module]="module.id"
+            (click)="onSelect(module)"
+          >
+            <i [class]="module.icon" aria-hidden="true"></i>
+            <span>{{ module.labelKey | translate }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  </ef-bottom-sheet>
 }

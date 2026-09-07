@@ -16,3 +16,135 @@
   min-height: 0;
   overflow: hidden;
 }
+
+/* ── Mobile chrome ───────────────────────────────────────────────
+   Rendered by this component now, so the projected screen is only
+   ever declared once. The rail and side are simply not rendered on
+   a phone (showSide()), and the tab bar takes their place. */
+
+.ef-app-shell__menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hit-touch);
+  height: var(--hit-touch);
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-md);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+
+  &:hover { background: var(--paper-alt); }
+}
+
+.ef-app-shell__tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  height: 64px;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+}
+
+.ef-app-shell__tab {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: 0;
+  color: var(--text-mute);
+  cursor: pointer;
+  padding: 6px 4px;
+  transition: color var(--t-fast) var(--ease-out);
+
+  &.is-active {
+    color: var(--text);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 3px;
+      background: var(--module);
+      border-radius: 0 0 var(--r-sm) var(--r-sm);
+    }
+  }
+}
+
+.ef-app-shell__tab-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.ef-app-shell__tab-label {
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ef-app-shell__sheet-title {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings: 'opsz' 96, 'wght' 600, 'wdth' 95;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  margin: 0 0 12px;
+  color: var(--text);
+}
+
+.ef-app-shell__sheet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.ef-app-shell__sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: var(--hit-touch);
+  padding: 0 16px;
+  background: var(--paper-alt);
+  border: 0;
+  border-radius: var(--r-md);
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  transition: background-color var(--t-fast) var(--ease-out);
+
+  &:hover { background: var(--rule); }
+
+  &.is-active {
+    border-left: 3px solid var(--module);
+    padding-left: 13px;
+  }
+}
+
+
+/* The rail is desktop chrome; a phone gets the tab bar instead. */
+@media (max-width: 767px) {
+  .ef-app-shell__rail {
+    display: none;
+  }
+}
