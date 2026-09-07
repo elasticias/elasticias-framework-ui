@@ -272,3 +272,29 @@
     border-bottom: 1px solid var(--rule);
   }
 }
+
+/* Expander affordance. The chevron only indicates state — the whole head
+   (row) or the button (card) is the control, so it stays aria-hidden. */
+.mrow__chevron {
+  font-size: 11px;
+  color: var(--text-soft);
+  transition: transform var(--t-fast) var(--ease-out);
+  flex-shrink: 0;
+
+  &.is-open {
+    transform: rotate(180deg);
+    color: var(--text-mute);
+  }
+}
+
+.mrow__head.is-tappable:focus-visible {
+  outline: 2px solid var(--tenant-400);
+  outline-offset: -2px;
+}
+
+.mrow__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}

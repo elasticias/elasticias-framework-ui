@@ -153,7 +153,12 @@
           <div
             class="mrow__head"
             [class.is-tappable]="hasDetail()"
+            [attr.role]="hasDetail() ? 'button' : null"
+            [attr.tabindex]="hasDetail() ? 0 : null"
+            [attr.aria-expanded]="hasDetail() ? isExpanded(row, i) : null"
             (click)="hasDetail() && toggleExpanded(row, i)"
+            (keydown.enter)="hasDetail() && toggleExpanded(row, i)"
+            (keydown.space)="hasDetail() && toggleExpanded(row, i)"
           >
             <div class="mrow__lead">
               @if (primaryColumn(); as pc) {
@@ -181,6 +186,15 @@
                   <ef-row-actions [items]="defaultRowActions(row)" [context]="rowActionsContext()" />
                 </span>
               }
+              @if (hasDetail() && effectiveMobileLayout() === 'row') {
+                <!-- Says the row opens, and which way it is now. Decorative:
+                     the whole head is the control, and it carries the state. -->
+                <i
+                  class="pi pi-chevron-down mrow__chevron"
+                  [class.is-open]="isExpanded(row, i)"
+                  aria-hidden="true"
+                ></i>
+              }
             </div>
           </div>
 
@@ -199,7 +213,8 @@
 
           @if (hasMoreThanPreview() && effectiveMobileLayout() === 'card') {
             <button class="mrow__more" type="button" (click)="toggleExpanded(row, i)">
-              {{ (isExpanded(row, i) ? 'common_view_less' : 'common_view_more') | translate }}
+              <span>{{ (isExpanded(row, i) ? 'common_view_less' : 'common_view_more') | translate }}</span>
+              <i class="pi pi-chevron-down mrow__chevron" [class.is-open]="isExpanded(row, i)" aria-hidden="true"></i>
             </button>
           }
         </li>

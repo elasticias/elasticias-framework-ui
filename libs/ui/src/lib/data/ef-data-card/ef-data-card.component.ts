@@ -159,6 +159,12 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     private readonly derivedPrimaryId = computed(() => {
         const cols = this.mobileColumns();
+        // Screens already mark the row's identity column `cellClass: 'strong'`
+        // so it reads as the row's title in the table — that is a better
+        // signal than position. Products, for one, leads with an external
+        // reference that is usually blank; its title is second.
+        const strong = cols.find(c => (c.cellClass ?? '').split(/\s+/).includes('strong'));
+        if (strong) return strong.id;
         const textish = cols.find(c => !c.type || c.type === 'text' || c.type === 'mono');
         return (textish ?? cols[0])?.id ?? '';
     });
