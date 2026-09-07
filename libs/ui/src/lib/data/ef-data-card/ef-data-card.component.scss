@@ -149,7 +149,10 @@
 
 .mrow__head {
   display: flex;
-  align-items: center;
+  /* Top, not centre: the trailing block belongs on the primary line, the one
+     that names the record. Centred against a two-line lead it floats between
+     the two and reads as belonging to neither. */
+  align-items: flex-start;
   gap: var(--s-3);
   padding: 12px var(--s-4);
   min-height: var(--hit-touch);
@@ -199,8 +202,11 @@
 .mrow__trail {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--s-2);
   flex-shrink: 0;
+  /* Sit on the primary line rather than the middle of the row. */
+  min-height: 20px;
 }
 
 /* The kebab opens its own menu; tapping it must not also expand the row. */

@@ -156,9 +156,9 @@
             [attr.role]="hasDetail() ? 'button' : null"
             [attr.tabindex]="hasDetail() ? 0 : null"
             [attr.aria-expanded]="hasDetail() ? isExpanded(row, i) : null"
-            (click)="hasDetail() && toggleExpanded(row, i)"
-            (keydown.enter)="hasDetail() && toggleExpanded(row, i)"
-            (keydown.space)="hasDetail() && toggleExpanded(row, i)"
+            (click)="onRowHeadActivate(row, i, $event)"
+            (keydown.enter)="onRowHeadActivate(row, i, $event)"
+            (keydown.space)="onRowHeadActivate(row, i, $event)"
           >
             <div class="mrow__lead">
               @if (primaryColumn(); as pc) {
@@ -182,7 +182,7 @@
                 <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: st }"></ng-container>
               }
               @if (hasActionsColumn()) {
-                <span class="mrow__actions" (click)="$event.stopPropagation()">
+                <span class="mrow__actions">
                   <ef-row-actions [items]="defaultRowActions(row)" [context]="rowActionsContext()" />
                 </span>
               }

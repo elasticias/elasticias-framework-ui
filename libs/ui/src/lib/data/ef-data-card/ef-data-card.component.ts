@@ -122,6 +122,20 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         return this.expandedRows().has(this.rowKey(row, index));
     }
 
+    /**
+     * The row head is the expander, but the actions menu lives inside it.
+     * Filtering here rather than stopping propagation on a wrapper keeps the
+     * wrapper a plain span — a click handler on one would need a keyboard
+     * equivalent and a tabindex to be usable, which a decorative box should
+     * not have.
+     */
+    protected onRowHeadActivate(row: unknown, index: number, event: Event): void {
+        if (!this.hasDetail()) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.closest('.mrow__actions')) return;
+        this.toggleExpanded(row, index);
+    }
+
     protected toggleExpanded(row: unknown, index: number): void {
         const key = this.rowKey(row, index);
         const next = new Set(this.expandedRows());
