@@ -109,5 +109,12 @@
         </li>
       }
     </ul>
+
+    <!-- App-level entries that live in the rail on a desktop and have nowhere
+         else to go on a phone: this sheet is the phone's menu. Declared only
+         in the mobile branch, so a desktop simply drops what is projected. -->
+    <div class="ef-app-shell__sheet-footer">
+      <ng-content select="[sheet-footer]" sheet-footer></ng-content>
+    </div>
   </ef-bottom-sheet>
 }

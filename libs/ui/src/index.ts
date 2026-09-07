@@ -22,6 +22,7 @@ export { EfDialogComponent } from './lib/layout/ef-dialog/ef-dialog.component';
 export { EfConfirmDialogComponent } from './lib/layout/ef-confirm-dialog/ef-confirm-dialog.component';
 export { EfThemeToggleComponent } from './lib/layout/ef-theme-toggle/ef-theme-toggle.component';
 export { EfBuildStampComponent } from './lib/layout/ef-build-stamp/ef-build-stamp.component';
+export { EfAboutDialogComponent } from './lib/layout/ef-about-dialog/ef-about-dialog.component';
 export { EfTooltipDirective } from './lib/overlays/ef-tooltip.directive';
 export type {
     EfDialogAction,

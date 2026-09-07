@@ -183,3 +183,17 @@
   color: var(--text);
   font-weight: 700;
 }
+
+/* App-level entries under the modules. Collapses whole when the app projects
+   nothing, so the separator never appears on its own. */
+.ef-app-shell__sheet-footer {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+
+  &:empty {
+    display: none;
+  }
+}

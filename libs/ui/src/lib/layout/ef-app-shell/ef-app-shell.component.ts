@@ -120,6 +120,20 @@ export class EfAppShellComponent {
         this.switcherOpen.set(true);
     }
 
+    /**
+     * Dismiss the module sheet from outside.
+     *
+     * Every item the shell itself renders in the sheet navigates, and
+     * navigating closes it. An app-level entry in the `[sheet-footer]` slot
+     * may do neither — "à propos" opens a dialog — and would otherwise leave
+     * the sheet standing behind it. The app owns that button, so the app says
+     * when the sheet is done: `<ef-app-shell #shell>` then
+     * `(click)="shell.closeSwitcher(); …"`.
+     */
+    closeSwitcher(): void {
+        this.switcherOpen.set(false);
+    }
+
     onSwitcherChange(open: boolean): void {
         this.switcherOpen.set(open);
     }

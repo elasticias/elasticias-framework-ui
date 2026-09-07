@@ -1,0 +1,140 @@
+:host {
+  display: contents;
+}
+
+/* The dialog is 380px wide and 92vw on a phone, so one column is the layout
+   at every width. What changes with width is nothing: that is the point. */
+.ef-about {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.ef-about__mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill, 999px);
+  background: var(--tenant-500);
+  color: #fff;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 80;
+  font-size: 22px;
+  line-height: 1;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.ef-about__product {
+  margin: 2px 0 0;
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 14,
+    'wght' 700,
+    'wdth' 90;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.ef-about__edition {
+  margin: -6px 0 0;
+  max-width: 100%;
+  font-size: 12px;
+  color: var(--text-mute);
+  overflow-wrap: anywhere;
+}
+
+/* ─── Rows ─── */
+
+.ef-about__rows {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 0 0;
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid var(--rule);
+  text-align: start;
+}
+
+/* `auto` for the label and `minmax(0, 1fr)` for the value: a grid item's
+   default min-width is auto, so a commit hash or a scoped package name would
+   otherwise size the column and widen the whole dialog. */
+.ef-about__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+
+  dt {
+    min-width: 0;
+    font-size: 12px;
+    color: var(--text-mute);
+    overflow-wrap: anywhere;
+  }
+
+  dd {
+    min-width: 0;
+    margin: 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--text);
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* The package list is the one part that can grow with the framework, so it
+   scrolls in its own box instead of pushing the footer off a short screen. */
+.ef-about__rows--scroll {
+  max-height: 40vh;
+  overflow-y: auto;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ef-about__group {
+  width: 100%;
+  margin: 4px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--text-soft);
+  text-align: start;
+}
+
+.ef-about__owner {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+/* Placed last: a media query adds no specificity, so it only wins if it
+   follows the rules it overrides. */
+@media (max-width: 767px) {
+  .ef-about__mark {
+    width: 48px;
+    height: 48px;
+    font-size: 19px;
+  }
+
+  /* A phone in landscape has almost no height to give a scrolling list. */
+  .ef-about__rows--scroll {
+    max-height: 32vh;
+  }
+}

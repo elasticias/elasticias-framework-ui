@@ -1,0 +1,51 @@
+<!-- appendTo="body": ef-app-main is `overflow: hidden`, so a dialog left in
+     place inside the content column is clipped by it. -->
+<ef-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  headerKey="common_about"
+  size="sm"
+  appendTo="body"
+  dismissableMask
+  [actions]="closeAction"
+>
+  <div class="ef-about">
+    <span class="ef-about__mark" aria-hidden="true">
+      @if (logoUrl()) {
+        <img [src]="logoUrl()" alt="" />
+      } @else {
+        {{ initial() }}
+      }
+    </span>
+
+    <p class="ef-about__product">{{ product() }}</p>
+    @if (edition()) {
+      <p class="ef-about__edition">{{ edition() }}</p>
+    }
+
+    @if (rows().length) {
+      <dl class="ef-about__rows">
+        @for (row of rows(); track row.labelKey) {
+          <div class="ef-about__row">
+            <dt>{{ row.labelKey | translate }}</dt>
+            <dd>{{ row.value }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    @if (packages().length) {
+      <h3 class="ef-about__group">{{ 'common_about_packages' | translate }}</h3>
+      <dl class="ef-about__rows ef-about__rows--scroll">
+        @for (pkg of packages(); track pkg.name) {
+          <div class="ef-about__row">
+            <dt>{{ pkg.name }}</dt>
+            <dd>{{ pkg.version }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    <p class="ef-about__owner">© {{ year }} {{ owner() }}</p>
+  </div>
+</ef-dialog>

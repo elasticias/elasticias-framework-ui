@@ -32,6 +32,25 @@ export interface EfBuildInfo {
      * production build is made from a tag rather than a branch.
      */
     environment: string;
+
+    /**
+     * The shared `@elasticias/*` packages this build was compiled against,
+     * in the order the app wants them listed.
+     *
+     * Optional: an app that ships no shared packages, or generates its stamp
+     * without resolving them, simply omits the key and consumers render
+     * nothing rather than an empty group.
+     */
+    packages?: EfBuildPackage[];
+}
+
+/** One shared package and the version that went into the build. */
+export interface EfBuildPackage {
+    /** Package name as it appears in `package.json`, e.g. `@elasticias/ui`. */
+    name: string;
+
+    /** The version actually installed, not the range the app declared. */
+    version: string;
 }
 
 export const EF_BUILD_INFO = new InjectionToken<EfBuildInfo>('EF_BUILD_INFO');
