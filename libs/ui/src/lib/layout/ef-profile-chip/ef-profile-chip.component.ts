@@ -48,7 +48,7 @@ export class EfProfileChipComponent {
     /** Translation key for the role line — takes priority over `role`. */
     @Input() roleKey?: string;
 
-    /** Override the avatar glyph. Defaults to the first letter of `name`. */
+    /** Override the avatar glyph (up to two characters). Defaults to the first letter of `name`. */
     @Input() initial?: string;
 
     /** Tenant tone uses `--tenant-500`; neutral uses `--ink-active`. */
@@ -60,8 +60,15 @@ export class EfProfileChipComponent {
     @Output() readonly clickEvent = new EventEmitter<Event>();
 
     get computedInitial(): string {
-        const source = (this.initial ?? this.name ?? '').trim();
-        return source ? source.charAt(0).toUpperCase() : '?';
+        /* An explicit `initial` is taken verbatim — callers pass real initials
+           ("AE"), and truncating them to one letter threw away the half that
+           tells two colleagues apart. Only the name fallback is a single letter. */
+        const explicit = (this.initial ?? '').trim();
+        if (explicit) {
+            return explicit.slice(0, 2).toUpperCase();
+        }
+        const name = (this.name ?? '').trim();
+        return name ? name.charAt(0).toUpperCase() : '?';
     }
 
     handleClick(event: Event): void {

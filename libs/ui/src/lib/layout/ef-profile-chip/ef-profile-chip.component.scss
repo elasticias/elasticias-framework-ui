@@ -41,11 +41,16 @@
   border-radius: var(--r-pill, 999px);
   background: var(--ink-active, #0f1115);
   color: var(--paper, #fff);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 13px;
-  font-weight: 600;
+  /* Same face as the `.avatar` pattern: this chip is now the only place the
+     signed-in user appears, so it reads as the identity mark, not as data. */
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings:
+    'opsz' 12,
+    'wght' 700,
+    'wdth' 80;
+  font-size: 12px;
   line-height: 1;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 .is-tenant .ef-profile-chip__avatar {
