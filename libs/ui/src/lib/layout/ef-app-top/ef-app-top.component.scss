@@ -86,20 +86,17 @@
    controls keep their size. */
 @media (max-width: 767px) {
   :host {
-    grid-template-columns: minmax(0, 1fr) auto;
+    /* Menu on the left, controls on the right, nothing competing between. */
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 8px;
     padding: 0 12px;
   }
 
+  /* The breadcrumb goes. The screen title is already the first thing in the
+     page body, so on a phone the bar was spending a third of its width
+     repeating it — and squeezing the controls that have nowhere else to be.
+     The leading slot carries the menu button instead. */
   .ef-app-top__crumb {
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .ef-app-top__crumb-leaf,
-  .ef-app-top__crumb-root {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: none;
   }
 }

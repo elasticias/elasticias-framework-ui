@@ -18,11 +18,12 @@
 
 <div class="ef-app-shell__column">
   <ef-app-top>
-    <ng-content select="[breadcrumb]" breadcrumb></ng-content>
-    <ng-content select="[search]" search></ng-content>
+    <!-- The menu takes the breadcrumb's slot on a phone: the breadcrumb is
+         hidden there (ef-app-top), so this is the leading position, which is
+         where a menu button belongs and where a thumb reaches. -->
     @if (isMobile()) {
       <button
-        actions
+        breadcrumb
         type="button"
         class="ef-app-shell__menu"
         (click)="openSwitcher()"
@@ -31,6 +32,8 @@
         <i class="pi pi-bars" aria-hidden="true"></i>
       </button>
     }
+    <ng-content select="[breadcrumb]" breadcrumb></ng-content>
+    <ng-content select="[search]" search></ng-content>
     <ng-content select="[actions]" actions></ng-content>
   </ef-app-top>
 
