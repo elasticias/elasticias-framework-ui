@@ -113,6 +113,8 @@ export { EfDatatableActionBarComponent } from './lib/data/ef-datatable-actionbar
 
 // Comptoir data primitives (Phase 6)
 export { EfDataCardComponent } from './lib/data/ef-data-card/ef-data-card.component';
+export { EF_DATA_CARD_MOBILE_LAYOUT } from './lib/data/ef-data-card/ef-data-card.mobile';
+export type { EfDataCardMobileLayout } from './lib/data/ef-data-card/ef-data-card.mobile';
 export type { EfDataCardRowAction } from './lib/data/ef-data-card/ef-data-card.component';
 export {
     EfColumnTemplateDirective,
@@ -121,6 +123,7 @@ export {
 export type {
     EfDataCardColumn,
     EfDataCardColumnType,
+    EfDataCardColumnMobileRole,
     EfDataCardColumnAlign,
     EfDataCardSort,
     EfDataCardSortDirection,

@@ -20,8 +20,14 @@
   overflow: auto;
   padding: var(--s-5) var(--s-6) var(--s-7); /* 20/24/32 — more breathing room */
   display: grid;
+  /* minmax(0, 1fr), not 1fr: a grid item's default min-width is auto, so a
+     single wide child — a filter bar, a table — stretches this column past
+     the viewport and drags every sibling with it. On a phone that turned
+     every screen into a 726px-wide page inside a 390px window. */
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
 }
+
 
 /* Placed last: a media query adds no specificity, so it has to follow the
    rule it overrides. Desktop's 24px gutters take a sixth of a 390px screen. */

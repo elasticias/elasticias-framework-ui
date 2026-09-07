@@ -368,11 +368,24 @@
 
 .smart-bar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--s-3);
   align-items: stretch;
   background: transparent;
   padding: 6px 8px 6px 12px;
+}
+
+/* On a phone the search and its buttons cannot share a line: the input
+   collapses to nothing or the buttons push the row off-screen. */
+@media (max-width: 767px) {
+  .smart-bar {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px;
+  }
+
+  .smart-bar .actions {
+    justify-content: flex-end;
+  }
 }
 
 .smart-bar .search {
@@ -692,6 +705,22 @@
 
 .f-pill.has-pop {
   position: relative;
+}
+
+/* ──────────── ROUTED SCREEN HOSTS ───────────────────────────────
+   Screens are single-column grids by convention, and a grid item's
+   default min-width is auto — so the screen's column sized itself to
+   its widest child (a filter bar, a table) and every sibling stretched
+   to match, which on a phone meant a 726px page inside a 390px window.
+
+   This lives in the global sheet rather than ef-app-main's own styles:
+   the screen is projected content, so a component-scoped rule there
+   never matches it. A screen that genuinely wants its own columns
+   declares them in its component styles, which win on specificity. */
+
+.ef-app-main__content > * {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* ──────────── RESULTS BAR + TABLE WRAPPER ──────────────────────── */

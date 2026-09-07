@@ -38,6 +38,7 @@ export type { EfSearchToolbarAction } from './lib/entities/search-toolbar-action
 export type {
     EfDataCardColumn,
     EfDataCardColumnType,
+    EfDataCardColumnMobileRole,
     EfDataCardColumnAlign,
     EfDataCardSort,
     EfDataCardSortDirection,

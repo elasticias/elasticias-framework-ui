@@ -31,6 +31,27 @@ export interface EfDataCardSort {
     direction: EfDataCardSortDirection;
 }
 
+/**
+ * Where a column goes when the table becomes a list on a phone.
+ *
+ * - `primary`   — the line you scan for. One per table; the first is used.
+ * - `secondary` — the muted line under it, joined with separators.
+ * - `status`    — rendered as a badge in the row header rather than a field.
+ * - `detail`    — only visible once the row is expanded.
+ * - `hidden`    — not shown on mobile at all.
+ *
+ * Leave it unset and `ef-data-card` derives one: the first text-ish column
+ * becomes `primary`, a `status`/`chip` column becomes `status`, money and
+ * dates become `secondary`, and everything else falls to `detail`. Set it
+ * only where the guess is wrong.
+ */
+export type EfDataCardColumnMobileRole =
+    | 'primary'
+    | 'secondary'
+    | 'status'
+    | 'detail'
+    | 'hidden';
+
 export interface EfDataCardColumn {
     /**
      * Stable column identifier. Used as the trackBy key, the
@@ -41,6 +62,9 @@ export interface EfDataCardColumn {
 
     /** Dotted path into the row (defaults to `id`). */
     field?: string;
+
+    /** Where this column goes in the mobile list. Derived when unset. */
+    mobile?: EfDataCardColumnMobileRole;
 
     /** Direct header text — used only when `headerKey` is empty. */
     header?: string;

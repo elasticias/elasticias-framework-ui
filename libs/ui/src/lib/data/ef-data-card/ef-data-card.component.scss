@@ -124,3 +124,151 @@
     padding-top: 16px;
     padding-bottom: 16px;
 }
+
+/* ──────────── MOBILE LIST ────────────────────────────────────────
+   Two shapes over the same data. `row` is dense — the line you scan
+   for, a muted line under it, status and actions on the right —
+   and expands in place. `card` shows every field labelled from the
+   start, which reads better for one record and costs about six
+   times the height. */
+
+.mlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.mrow {
+  border-top: 1px solid var(--rule);
+
+  &:first-child {
+    border-top: 0;
+  }
+}
+
+.mrow__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 12px var(--s-4);
+  min-height: var(--hit-touch);
+
+  &.is-tappable {
+    cursor: pointer;
+  }
+
+  &.is-tappable:active {
+    background: var(--paper);
+  }
+}
+
+.mrow__lead {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.mrow__primary {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mrow__secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+  font-size: 12.5px;
+  color: var(--text-mute);
+  min-width: 0;
+
+  /* Separator between the muted parts, never leading or trailing. */
+  .mrow__sec-part + .mrow__sec-part::before {
+    content: '·';
+    margin-inline-end: 6px;
+    color: var(--text-soft);
+  }
+}
+
+.mrow__trail {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-shrink: 0;
+}
+
+/* The kebab opens its own menu; tapping it must not also expand the row. */
+.mrow__actions {
+  display: inline-flex;
+}
+
+.mrow__detail {
+  margin: 0;
+  padding: 0 var(--s-4) 12px;
+  display: grid;
+  gap: 1px;
+}
+
+.mrow__field {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: 7px 0;
+  border-top: 1px solid var(--rule-soft);
+
+  dt {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    flex-shrink: 0;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--text);
+    text-align: end;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.mrow__more {
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--rule-soft);
+  padding: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tenant-500);
+  cursor: pointer;
+}
+
+/* Card shape: each record is its own panel rather than a list row. */
+.mlist[data-layout='card'] {
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-3) 0;
+
+  .mrow {
+    border: 1px solid var(--rule);
+    border-radius: var(--r-lg);
+    background: var(--paper-alt);
+    overflow: hidden;
+  }
+
+  .mrow__head {
+    border-bottom: 1px solid var(--rule);
+  }
+}

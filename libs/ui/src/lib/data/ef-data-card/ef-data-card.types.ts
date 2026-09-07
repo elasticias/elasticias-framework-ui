@@ -5,6 +5,7 @@
 export type {
     EfDataCardColumn,
     EfDataCardColumnType,
+    EfDataCardColumnMobileRole,
     EfDataCardColumnAlign,
     EfDataCardSort,
     EfDataCardSortDirection,

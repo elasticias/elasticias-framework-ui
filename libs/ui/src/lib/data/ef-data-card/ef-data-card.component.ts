@@ -22,6 +22,11 @@ import {
 } from '@elasticias/screens';
 import { Permissions } from '@elasticias/types';
 import { StorageUtils } from '@elasticias/utils';
+import { EfViewportService } from '@elasticias/core';
+import {
+    EF_DATA_CARD_MOBILE_LAYOUT,
+    EfDataCardMobileLayout,
+} from './ef-data-card.mobile';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
 import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
 import { EfRowActionsComponent } from '../ef-row-actions/ef-row-actions.component';
@@ -92,6 +97,120 @@ export type EfTableDensity = 'compact' | 'default' | 'comfortable';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EfDataCardComponent<TRow = any> implements AfterContentInit {
+    /* ── Mobile presentation ─────────────────────────────────────
+         Under 768px a table stops being readable: six columns on a
+         390px screen either overflow or squeeze to nothing. The rows
+         become a list instead, driven by the same column config —
+         each column declares (or is given) a role. */
+
+    private readonly viewport = inject(EfViewportService);
+    private readonly configuredMobileLayout = inject(EF_DATA_CARD_MOBILE_LAYOUT, { optional: true });
+
+    readonly isMobile = this.viewport.isMobile;
+
+    /** Per-screen override of the app-wide default. */
+    readonly mobileLayout = input<EfDataCardMobileLayout | null>(null);
+
+    protected readonly effectiveMobileLayout = computed<EfDataCardMobileLayout>(
+        () => this.mobileLayout() ?? this.configuredMobileLayout ?? 'row',
+    );
+
+    /** Rows currently showing their detail, keyed the same way as trackByRow. */
+    private readonly expandedRows = signal<ReadonlySet<unknown>>(new Set());
+
+    protected isExpanded(row: unknown, index: number): boolean {
+        return this.expandedRows().has(this.rowKey(row, index));
+    }
+
+    protected toggleExpanded(row: unknown, index: number): void {
+        const key = this.rowKey(row, index);
+        const next = new Set(this.expandedRows());
+        if (!next.delete(key)) next.add(key);
+        this.expandedRows.set(next);
+    }
+
+    private rowKey(row: unknown, index: number): unknown {
+        const id = (row as Record<string, unknown> | null)?.['id'];
+        return id ?? index;
+    }
+
+    /**
+     * Columns that carry data on mobile, in role order. Structural columns
+     * (select, actions) are handled by the row chrome, not as fields.
+     */
+    private readonly mobileColumns = computed(() =>
+        this.effectiveColumns().filter(c => c.id !== 'select' && c.id !== 'actions'),
+    );
+
+    /**
+     * The role a column plays on mobile. An explicit `mobile` wins; otherwise
+     * it is derived so every existing screen gets a sensible list without
+     * touching its column definitions: the first text-ish column is what you
+     * scan for, a status chip is a badge, money and dates sit on the muted
+     * line, and the rest waits behind the expander.
+     */
+    protected roleOf(col: { id: string; mobile?: string; type?: string }): string {
+        if (col.mobile) return col.mobile;
+        if (col.type === 'status' || col.type === 'chip') return 'status';
+        if (col.id === this.derivedPrimaryId()) return 'primary';
+        if (col.type === 'money' || col.type === 'date' || col.type === 'datetime') return 'secondary';
+        return 'detail';
+    }
+
+    private readonly derivedPrimaryId = computed(() => {
+        const cols = this.mobileColumns();
+        const textish = cols.find(c => !c.type || c.type === 'text' || c.type === 'mono');
+        return (textish ?? cols[0])?.id ?? '';
+    });
+
+    protected readonly primaryColumn = computed(() =>
+        this.mobileColumns().find(c => this.roleOf(c) === 'primary'),
+    );
+
+    protected readonly statusColumn = computed(() =>
+        this.mobileColumns().find(c => this.roleOf(c) === 'status'),
+    );
+
+    protected readonly secondaryColumns = computed(() =>
+        this.mobileColumns().filter(c => this.roleOf(c) === 'secondary'),
+    );
+
+    /**
+     * Fields shown once a row opens. The primary column is excluded: the
+     * header already carries it, and repeating it is the first thing you
+     * notice. Status is excluded for the same reason.
+     */
+    protected readonly detailColumns = computed(() =>
+        this.mobileColumns().filter(c => {
+            const role = this.roleOf(c);
+            return role === 'detail' || role === 'secondary';
+        }),
+    );
+
+    /** How many fields a card shows before "view more". */
+    private static readonly CARD_PREVIEW_FIELDS = 4;
+
+    /** Fields a collapsed card shows. A row shows none until it opens. */
+    protected readonly cardPreviewColumns = computed(() =>
+        this.detailColumns().slice(0, EfDataCardComponent.CARD_PREVIEW_FIELDS),
+    );
+
+    protected readonly hasDetail = computed(() => this.detailColumns().length > 0);
+
+    /** Only worth a toggle when opening actually reveals something. */
+    protected readonly hasMoreThanPreview = computed(
+        () => this.detailColumns().length > EfDataCardComponent.CARD_PREVIEW_FIELDS,
+    );
+
+    /** Fields visible for a row right now, given layout and open state. */
+    protected visibleDetail(row: unknown, index: number): ReadonlyArray<{ id: string }> {
+        const open = this.isExpanded(row, index);
+        if (this.effectiveMobileLayout() === 'card') {
+            return open ? this.detailColumns() : this.cardPreviewColumns();
+        }
+        return open ? this.detailColumns() : [];
+    }
+
     private readonly refDataService = inject<ScreenReferenceDataService | null>(
         SCREEN_REF_DATA_SERVICE,
         { optional: true },
