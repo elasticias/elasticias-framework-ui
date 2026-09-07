@@ -22,6 +22,24 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    /* A head full of filter pills used to size the card: inline-flex has an
+       intrinsic min-content width, so the row refused to shrink and pushed
+       the card, the screen and the page past the viewport. */
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+/* On a phone the title and its actions cannot share a line — either the
+   title truncates to nothing or the actions run off the edge. */
+@media (max-width: 767px) {
+    .card-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .card-head-actions {
+        justify-content: flex-start;
+    }
 }
 
 .card-head.is-collapsible {

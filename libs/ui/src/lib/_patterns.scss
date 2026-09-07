@@ -1068,6 +1068,7 @@
   flex-wrap: wrap;
 }
 
+
 .detail-toolbar .ref {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 14px;
@@ -1149,6 +1150,11 @@
 .card-body {
   padding: 16px;
   display: grid;
+  /* minmax(0, 1fr): a grid item's default min-width is auto, so a wide child
+     — a table, a nested data card — sized this column and pushed the card
+     past its own container. Same trap as the content area and the screen
+     host; this is the third place it bites. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -1189,8 +1195,8 @@
   grid-column: span 12;
 }
 
-@media (max-width: 720px) {
-  .form-grid > [class^='col-'] {
+@media (max-width: 767px) {
+  .form-grid > [class*='col-'] {
     grid-column: span 12;
   }
 }
@@ -2720,6 +2726,11 @@
 .card-body {
   padding: 16px;
   display: grid;
+  /* minmax(0, 1fr): a grid item's default min-width is auto, so a wide child
+     — a table, a nested data card — sized this column and pushed the card
+     past its own container. Same trap as the content area and the screen
+     host; this is the third place it bites. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-3);
 }
 
@@ -2762,8 +2773,8 @@
   grid-column: span 12;
 }
 
-@media (max-width: 720px) {
-  .ef-form-grid > [class^='col-'] {
+@media (max-width: 767px) {
+  .ef-form-grid > [class*='col-'] {
     grid-column: span 12;
   }
 }
@@ -4331,5 +4342,21 @@ input.ef-input[type='number'] {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ──────────── SMALL-SCREEN OVERRIDES ────────────────────────────
+   Last in the file on purpose: a media query adds no specificity, so a
+   rule declared later in the sheet beats it regardless of viewport.
+   Anything that overrides a base rule for small screens belongs here. */
+
+/* The detail toolbar is full-bleed — it cancels the content gutter with a
+   negative margin. That gutter is 16px on a phone, not 24px, so the bleed
+   has to match or the band hangs 16px off the right edge. */
+@media (max-width: 767px) {
+  .detail-toolbar {
+    top: calc(-1 * var(--s-4));
+    margin: calc(-1 * var(--s-4)) calc(-1 * var(--s-4)) 0;
+    padding: 10px var(--s-4);
   }
 }

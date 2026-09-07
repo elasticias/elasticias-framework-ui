@@ -54,7 +54,7 @@
         grid-column: span 6;
       }
 
-      @media (max-width: 760px) {
+      @media (max-width: 767px) {
         > [class^='col-'] {
           grid-column: span 12;
         }
@@ -229,7 +229,7 @@
         min-width: 186px;
       }
 
-      @media (max-width: 760px) {
+      @media (max-width: 767px) {
         .col-prod {
           min-width: 168px;
         }

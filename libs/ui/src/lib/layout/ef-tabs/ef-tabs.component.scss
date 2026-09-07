@@ -11,13 +11,22 @@
 
 .ef-tabs__list {
   position: relative;
-  display: inline-flex;
+  /* flex, not inline-flex: an inline-flex box sizes to its content, so the
+     strip grew past the viewport and overflow-x never had anything to do.
+     max-width pins it to the container so the tabs actually scroll. */
+  display: flex;
   align-items: stretch;
   gap: 2px;
   min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* Tabs keep their own width and scroll rather than squeezing to nothing. */
+.ef-tabs__list > * {
+  flex: 0 0 auto;
 }
 
 .ef-tabs__panels {
