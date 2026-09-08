@@ -63,6 +63,8 @@ export type {
 } from './lib/layout/ef-tabs/ef-tabs.component';
 export { EfTabPanelDirective } from './lib/layout/ef-tabs/ef-tab-panel.directive';
 export { EfProfileChipComponent } from './lib/layout/ef-profile-chip/ef-profile-chip.component';
+export { EfProfileMenuComponent } from './lib/layout/ef-profile-menu/ef-profile-menu.component';
+export type { EfProfileMenuItem } from './lib/layout/ef-profile-menu/ef-profile-menu.types';
 
 // Feedback components
 export { EfBlockUiComponent } from './lib/feedback/ef-block-ui/ef-block-ui.component';
@@ -146,6 +148,9 @@ export type { EfChangePasswordSubmit } from './lib/forms/ef-change-password/ef-c
 export { EfCheckboxComponent } from './lib/forms/ef-checkbox/ef-checkbox.component';
 export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
+// Present in the lib since before the public index existed, never exported.
+// The profile page's light/dark choice is the first consumer outside it.
+export { EfSelectButtonComponent } from './lib/forms/ef-selectbutton/ef-selectbutton.component';
 export { EfPresetPillComponent } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
 export type { EfPresetItem } from './lib/forms/ef-preset-pill/ef-preset-pill.component';
 export {
