@@ -36,7 +36,7 @@
 
     @if (packages().length) {
       <h3 class="ef-about__group">{{ 'common_about_packages' | translate }}</h3>
-      <dl class="ef-about__rows ef-about__rows--scroll">
+      <dl class="ef-about__rows ef-about__rows--tight">
         @for (pkg of packages(); track pkg.name) {
           <div class="ef-about__row">
             <dt>{{ pkg.name }}</dt>
@@ -44,6 +44,38 @@
           </div>
         }
       </dl>
+    }
+
+    <!-- The API's half of the answer. An app that exposes no such endpoint
+         passes no [server] and this whole block collapses. -->
+    @if (hasServer()) {
+      <h3 class="ef-about__group">{{ 'common_about_server' | translate }}</h3>
+      <dl class="ef-about__rows ef-about__rows--tight">
+        @for (row of serverRows(); track row.labelKey) {
+          <div class="ef-about__row">
+            <dt>{{ row.labelKey | translate }}</dt>
+            <dd>{{ row.value }}</dd>
+          </div>
+        }
+        @for (pkg of serverPackages(); track pkg.name) {
+          <div class="ef-about__row">
+            <dt>{{ pkg.name }}</dt>
+            <dd>{{ pkg.version }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    @if (websiteUrl()) {
+      <a
+        class="ef-about__link"
+        [href]="websiteUrl()"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span>{{ websiteLabel() || websiteUrl() }}</span>
+        <i class="pi pi-external-link" aria-hidden="true"></i>
+      </a>
     }
 
     <p class="ef-about__owner">© {{ year }} {{ owner() }}</p>

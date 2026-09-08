@@ -95,11 +95,10 @@
   }
 }
 
-/* The package list is the one part that can grow with the framework, so it
-   scrolls in its own box instead of pushing the footer off a short screen. */
-.ef-about__rows--scroll {
-  max-height: 40vh;
-  overflow-y: auto;
+/* Groups that follow their own heading have the rule above the heading, not
+   above the rows. The dialog body scrolls at 70vh on its own; a scrolling box
+   nested inside a scrolling box is a worse answer than one long panel. */
+.ef-about__rows--tight {
   padding-top: 0;
   border-top: 0;
 }
@@ -118,6 +117,37 @@
   text-align: start;
 }
 
+/* A real link, sized for a thumb: the row above it is 12px type, and this is
+   the one thing in the dialog a person is meant to press. */
+.ef-about__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  margin-top: 2px;
+  padding: 0 10px;
+  border-radius: var(--r-pill, 999px);
+  color: var(--tenant-600, var(--tenant-500));
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+
+  i {
+    font-size: 11px;
+    opacity: 0.75;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--tenant-500) 10%, transparent);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tenant-400);
+    outline-offset: 2px;
+  }
+}
+
 .ef-about__owner {
   margin: 6px 0 0;
   font-size: 11px;
@@ -133,8 +163,8 @@
     font-size: 19px;
   }
 
-  /* A phone in landscape has almost no height to give a scrolling list. */
-  .ef-about__rows--scroll {
-    max-height: 32vh;
+  /* A thumb, not a cursor. */
+  .ef-about__link {
+    min-height: var(--hit-touch, 48px);
   }
 }
