@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   EfChangePasswordComponent,
   EfChangePasswordSubmit,
 } from './ef-change-password.component';
+import { EfPasswordComponent } from '../ef-password/ef-password.component';
 
 describe('EfChangePasswordComponent', () => {
   let fixture: ComponentFixture<EfChangePasswordComponent>;
@@ -39,6 +41,24 @@ describe('EfChangePasswordComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('ef-password').length,
     ).toBe(2);
+  });
+
+  it('wires each rendered field to its own signal, not a neighbour', () => {
+    fixture.componentRef.setInput('requireCurrent', true);
+    fixture.detectChanges();
+
+    const fields = fixture.debugElement.queryAll(By.directive(EfPasswordComponent));
+    expect(fields.length).toBe(3);
+    const [currentField, newField, confirmField] = fields;
+
+    currentField.componentInstance.valueChangeEvent.emit('Ancien1!');
+    newField.componentInstance.valueChangeEvent.emit('Correct1Horse');
+    confirmField.componentInstance.valueChangeEvent.emit('Correct1Mouse');
+    fixture.detectChanges();
+
+    expect(component.currentPassword()).toBe('Ancien1!');
+    expect(component.newPassword()).toBe('Correct1Horse');
+    expect(component.confirmation()).toBe('Correct1Mouse');
   });
 
   it('reports the rule each password breaks', () => {
