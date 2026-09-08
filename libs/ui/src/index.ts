@@ -141,6 +141,8 @@ export { EfServerErrorsDirective } from './lib/forms/ef-server-errors.directive'
 export { EfClearButtonComponent } from './lib/forms/ef-clear-button/ef-clear-button.component';
 export { EfInputTextComponent } from './lib/forms/ef-input-text/ef-input-text.component';
 export { EfPasswordComponent } from './lib/forms/ef-password/ef-password.component';
+export { EfChangePasswordComponent } from './lib/forms/ef-change-password/ef-change-password.component';
+export type { EfChangePasswordSubmit } from './lib/forms/ef-change-password/ef-change-password.component';
 export { EfCheckboxComponent } from './lib/forms/ef-checkbox/ef-checkbox.component';
 export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
