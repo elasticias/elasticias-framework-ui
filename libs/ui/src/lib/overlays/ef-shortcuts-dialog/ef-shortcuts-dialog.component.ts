@@ -1,8 +1,22 @@
-import { ChangeDetectionStrategy, Component, inject, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
-import { EfShortcutService, formatShortcut, isMacPlatform } from '@elasticias/core';
+import { EfShortcutGroup, EfShortcutService, formatShortcut, isMacPlatform } from '@elasticias/core';
 import { EfDialogComponent, EfDialogAction } from '../../layout/ef-dialog/ef-dialog.component';
+
+/**
+ * The three tiers a shortcut can belong to, outer to inner: a Global
+ * shortcut works anywhere in the app, a Screen shortcut works anywhere on
+ * the current screen, a Row shortcut only while a row's menu is open.
+ * `list()` returns groups in registration order, which is really "whatever
+ * happened to construct first." This fixes the section order so it
+ * always reads outer to inner regardless of what rendered when.
+ */
+const GROUP_ORDER: readonly string[] = [
+    'shortcut_group_general',
+    'shortcut_group_screen',
+    'shortcut_group_row_actions',
+];
 
 /**
  * The keyboard-shortcuts reference: every registration currently sitting
@@ -33,10 +47,20 @@ export class EfShortcutsDialogComponent {
     /** Two-way open state. */
     readonly visible = model(false);
 
-    protected readonly groups = this.shortcutService.list;
+    /** `list()`, reordered Global → Screen → Row. An unrecognised group
+     *  (a future tier this component doesn't know about yet) sorts last
+     *  rather than being dropped. */
+    protected readonly groups = computed<EfShortcutGroup[]>(() => {
+        const rank = (group: string): number => {
+            const index = GROUP_ORDER.indexOf(group);
+            return index === -1 ? GROUP_ORDER.length : index;
+        };
+        return [...this.shortcutService.list()].sort((a, b) => rank(a.group) - rank(b.group));
+    });
 
-    /** Only macOS reads `⌘` at a glance. Everyone else needs the line
-     *  spelling out that it means Ctrl. */
+    /** Only macOS shows every chip already resolved to its own glyphs.
+     *  Everyone else gets a line saying the chips already match their
+     *  system, since nothing here prints a Mac glyph for them to decode. */
     protected readonly isMacPlatform = isMacPlatform;
 
     protected readonly closeAction: EfDialogAction[] = [
