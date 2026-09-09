@@ -22,7 +22,7 @@ import {
 } from '@elasticias/screens';
 import { Permissions } from '@elasticias/types';
 import { StorageUtils } from '@elasticias/utils';
-import { EfViewportService } from '@elasticias/core';
+import { EfViewportService, formatShortcut } from '@elasticias/core';
 import {
     EF_DATA_CARD_MOBILE_LAYOUT,
     EfDataCardMobileLayout,
@@ -374,7 +374,11 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     /** Items array for the auto row-actions cell. Rebuilt per call so
      *  the ef-row-actions component receives a fresh closure per row.
      *  Visibility is filtered later by ef-row-actions against
-     *  `rowActionsContext` (ScreenContext.isGranted). */
+     *  `rowActionsContext` (ScreenContext.isGranted).
+     *
+     *  `kbd` is rendered through `formatShortcut()`, not a literal glyph —
+     *  `ef-row-actions` binds these same keys for real while the row's
+     *  menu is open, and a hardcoded `'⌘D'` would lie to a Windows user. */
     defaultRowActions(row: TRow): ReadonlyArray<EfRowAction> {
         const items: EfRowAction[] = [];
 
@@ -383,7 +387,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 id: 'view',
                 labelKey: 'common_view',
                 icon: 'pi pi-eye',
-                kbd: '↵',
+                kbd: formatShortcut('enter'),
                 permission: Permissions.Read,
                 command: () => this.rowAction.emit({ action: 'view', row }),
             });
@@ -393,7 +397,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 id: 'edit',
                 labelKey: 'common_edit',
                 icon: 'pi pi-pencil',
-                kbd: 'E',
+                kbd: formatShortcut('e'),
                 permission: Permissions.Edit,
                 command: () => this.rowAction.emit({ action: 'edit', row }),
             });
@@ -403,7 +407,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 id: 'duplicate',
                 labelKey: 'common_duplicate',
                 icon: 'pi pi-copy',
-                kbd: '⌘D',
+                kbd: formatShortcut('mod+d'),
                 permission: Permissions.Duplicate,
                 command: () => this.rowAction.emit({ action: 'duplicate', row }),
             });

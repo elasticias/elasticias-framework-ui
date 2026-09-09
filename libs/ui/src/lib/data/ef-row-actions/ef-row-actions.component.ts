@@ -13,7 +13,18 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { ScreenContext } from '@elasticias/screens';
+import { EfShortcutService } from '@elasticias/core';
 import { EfRowAction } from './ef-row-actions.types';
+
+/** Row-scoped shortcuts, wired once per instance and gated on `open()` so
+ *  they're inert until this row's menu is on screen. The action `id` is a
+ *  convention shared with `ef-data-card.defaultRowActions()` — an instance
+ *  with no matching item is simply a no-op for that key. */
+const ROW_SHORTCUTS: ReadonlyArray<{ actionId: string; keys: string; labelKey: string }> = [
+    { actionId: 'view', keys: 'enter', labelKey: 'common_view' },
+    { actionId: 'edit', keys: 'e', labelKey: 'common_edit' },
+    { actionId: 'duplicate', keys: 'mod+d', labelKey: 'common_duplicate' },
+];
 
 /**
  * Row-actions dropdown — V2 successor to `ef-datatable-actionbar`.
@@ -23,11 +34,11 @@ import { EfRowAction } from './ef-row-actions.types';
  *
  * ```ts
  * actions: ReadonlyArray<EfRowAction> = [
- *   { id: 'view',      labelKey: 'common_view',      icon: 'pi pi-eye',    kbd: '↵',
+ *   { id: 'view',      labelKey: 'common_view',      icon: 'pi pi-eye',    kbd: formatShortcut('enter'),
  *     permission: Permissions.Read,   command: () => view(row) },
- *   { id: 'edit',      labelKey: 'common_edit',      icon: 'pi pi-pencil', kbd: 'E',
+ *   { id: 'edit',      labelKey: 'common_edit',      icon: 'pi pi-pencil', kbd: formatShortcut('e'),
  *     permission: Permissions.Edit,   command: () => edit(row) },
- *   { id: 'duplicate', labelKey: 'common_duplicate', icon: 'pi pi-copy',
+ *   { id: 'duplicate', labelKey: 'common_duplicate', icon: 'pi pi-copy',   kbd: formatShortcut('mod+d'),
  *                                         command: () => duplicate(row) },
  *   { separator: true },
  *   { id: 'delete',    labelKey: 'common_delete',    icon: 'pi pi-trash',  severity: 'danger',
@@ -53,6 +64,13 @@ import { EfRowAction } from './ef-row-actions.types';
  * Permission filtering: pass `[context]="..."` (a `ScreenContext`); items
  * declaring a `permission` are hidden unless that permission is granted.
  * Items with no `permission` always show.
+ *
+ * The `kbd` hint is decorative unless it's one of `view` / `edit` /
+ * `duplicate`: this component registers Enter, `E` and `mod+D` against
+ * `EfShortcutService`, gated on `open()`, so they only fire while this
+ * row's menu is on screen. Render `kbd` through `formatShortcut()` (as
+ * above) — a hardcoded `'⌘D'` is wrong for a Windows user, which is
+ * exactly the bug this wiring fixes.
  */
 @Component({
     selector: 'ef-row-actions',
@@ -64,6 +82,32 @@ import { EfRowAction } from './ef-row-actions.types';
 })
 export class EfRowActionsComponent {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+    private readonly shortcuts = inject(EfShortcutService);
+
+    /** Distinguishes this instance's registrations from every other row's —
+     *  each row on screen constructs its own component, and ids must not
+     *  collide or one row's disposer (and its `when`) would clobber
+     *  another's still-live registration. */
+    private static nextInstanceId = 0;
+    private readonly instanceId = EfRowActionsComponent.nextInstanceId++;
+
+    constructor() {
+        for (const { actionId, keys, labelKey } of ROW_SHORTCUTS) {
+            this.shortcuts.register({
+                id: `row-actions.${this.instanceId}.${actionId}`,
+                keys,
+                labelKey,
+                group: 'shortcut_group_row_actions',
+                when: () => this.open(),
+                handler: () => {
+                    const action = this.visibleItems().find(a => a.id === actionId);
+                    if (!action || action.disabled) return;
+                    action.command?.();
+                    this.close();
+                },
+            });
+        }
+    }
 
     /** Action descriptors. */
     readonly items = input<ReadonlyArray<EfRowAction>>([]);

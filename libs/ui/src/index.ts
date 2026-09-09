@@ -25,6 +25,7 @@ export { EfBuildStampComponent } from './lib/layout/ef-build-stamp/ef-build-stam
 export { EfAboutDialogComponent } from './lib/layout/ef-about-dialog/ef-about-dialog.component';
 export type { EfAboutServer } from './lib/layout/ef-about-dialog/ef-about-dialog.component';
 export { EfTooltipDirective } from './lib/overlays/ef-tooltip.directive';
+export { EfShortcutsDialogComponent } from './lib/overlays/ef-shortcuts-dialog/ef-shortcuts-dialog.component';
 export type {
     EfDialogAction,
     EfDialogSeverity,

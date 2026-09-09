@@ -40,3 +40,8 @@ export { EF_SESSION } from './lib/auth/ef-session.token';
 export { EF_BUILD_INFO } from './lib/build/ef-build-info.token';
 export type { EfBuildInfo, EfBuildPackage } from './lib/build/ef-build-info.token';
 export type { EfSession } from './lib/auth/ef-session.token';
+
+// Shortcuts
+export { EfShortcutService } from './lib/shortcuts/ef-shortcut.service';
+export { formatShortcut, isMacPlatform } from './lib/shortcuts/format-shortcut';
+export type { EfShortcut, EfShortcutGroup } from './lib/shortcuts/ef-shortcut.types';

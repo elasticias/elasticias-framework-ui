@@ -1,0 +1,35 @@
+<!-- appendTo="body": a dialog left inside the content column can be clipped
+     by an ancestor's overflow rule (see ef-about-dialog). -->
+<ef-dialog
+    [visible]="visible()"
+    (visibleChange)="visible.set($event)"
+    headerKey="shortcuts_dialog_title"
+    size="sm"
+    appendTo="body"
+    dismissableMask
+    [actions]="closeAction"
+>
+    <div class="shortcuts-dialog">
+        @if (!isMacPlatform) {
+            <p class="shortcuts-dialog__hint">{{ 'shortcuts_dialog_mod_hint' | translate }}</p>
+        }
+
+        @if (groups().length) {
+            @for (group of groups(); track group.group) {
+                <section class="shortcuts-dialog__group">
+                    <h3 class="shortcuts-dialog__group-title">{{ group.group | translate }}</h3>
+                    <ul class="shortcuts-dialog__list">
+                        @for (shortcut of group.shortcuts; track shortcut.id) {
+                            <li class="shortcuts-dialog__item">
+                                <span class="lbl">{{ shortcut.labelKey | translate }}</span>
+                                <span class="kbd" aria-hidden="true">{{ formatKeys(shortcut.keys) }}</span>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        } @else {
+            <p class="shortcuts-dialog__empty">{{ 'shortcuts_dialog_empty' | translate }}</p>
+        }
+    </div>
+</ef-dialog>
