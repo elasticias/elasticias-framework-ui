@@ -10,6 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Location } from '@angular/common';
 import { combineLatest } from 'rxjs';
+import { EfShortcutService } from '@elasticias/core';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { EfDetailToolbarAction } from '../../entities/detail-toolbar-action.entity';
@@ -65,8 +66,31 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     protected readonly location = inject(Location);
     private readonly destroyRef = inject(DestroyRef);
     private readonly auditHistoryService = inject(AUDIT_HISTORY_SERVICE, { optional: true });
+    private readonly shortcuts = inject(EfShortcutService);
+
+    /** Distinguishes this instance's registration from any other detail
+     *  screen alive at once (the outgoing and incoming routed component
+     *  can briefly coexist), the same convention ef-row-actions uses:
+     *  a shared static id would let one instance's disposer unregister
+     *  a still-live sibling's entry. */
+    private static nextInstanceId = 0;
+    private readonly instanceId = AbstractDetailScreenV2.nextInstanceId++;
 
     protected serviceInstance: any;
+
+    constructor() {
+        super();
+        // Every detail screen inherits mod+s with no per-screen wiring, and
+        // it doubles as the fix for the browser's own Save Page dialog
+        // otherwise popping up on top of it.
+        this.shortcuts.register({
+            id: `abstract-detail-screen-v2.${this.instanceId}.save`,
+            keys: 'mod+s',
+            labelKey: 'common_save',
+            group: 'shortcut_group_screen',
+            handler: () => this.save(),
+        });
+    }
 
     /**
      * Change-history entries for the loaded record, newest first. Populated
