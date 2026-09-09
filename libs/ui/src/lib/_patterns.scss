@@ -888,7 +888,8 @@
    than inventing a third kind of icon button. */
 
 .ef-theme-toggle,
-.ef-app-top__logout {
+.ef-app-top__logout,
+.ef-app-top__action {
   appearance: none;
   background: var(--paper-alt);
   border: 1px solid var(--rule);
@@ -906,13 +907,15 @@
 }
 
 .ef-theme-toggle:hover,
-.ef-app-top__logout:hover {
+.ef-app-top__logout:hover,
+.ef-app-top__action:hover {
   color: var(--text);
   border-color: var(--ink-400);
 }
 
 .ef-theme-toggle:focus-visible,
-.ef-app-top__logout:focus-visible {
+.ef-app-top__logout:focus-visible,
+.ef-app-top__action:focus-visible {
   outline: 0;
   border-color: var(--tenant-400);
   box-shadow: 0 0 0 4px var(--tenant-100);
@@ -920,7 +923,8 @@
 }
 
 .ef-theme-toggle i,
-.ef-app-top__logout i {
+.ef-app-top__logout i,
+.ef-app-top__action i {
   font-size: 14px;
   line-height: 1;
 }
