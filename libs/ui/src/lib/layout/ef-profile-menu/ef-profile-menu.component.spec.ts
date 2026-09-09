@@ -44,7 +44,7 @@ describe('EfProfileMenuComponent', () => {
     expect(fixture.nativeElement.querySelector('ef-profile-chip')).toBeNull();
     expect(fixture.nativeElement.querySelector('p-popover')).toBeNull();
     expect(
-      fixture.nativeElement.querySelectorAll('.ef-profile-menu__item').length,
+      fixture.nativeElement.querySelectorAll('.ef-menu__item').length,
     ).toBe(3);
   });
 
@@ -55,14 +55,14 @@ describe('EfProfileMenuComponent', () => {
   });
 
   it('shows the identity header', () => {
-    const head = fixture.nativeElement.querySelector('.ef-profile-menu__head');
+    const head = fixture.nativeElement.querySelector('.ef-menu__head');
     expect(head.textContent).toContain('Ayoub');
     expect(head.textContent).toContain('ayoub@example.com');
   });
 
-  it('marks the item that starts a group', () => {
-    const marked = fixture.nativeElement.querySelectorAll('.is-group-start');
-    expect(marked.length).toBe(1);
+  it('draws a separator where a group starts', () => {
+    const dividers = fixture.nativeElement.querySelectorAll('.ef-menu__divider');
+    expect(dividers.length).toBe(1);
   });
 
   it('runs the command and emits when a leaf is chosen', () => {
@@ -92,12 +92,12 @@ describe('EfProfileMenuComponent', () => {
   });
 
   it('renders children only while the parent is expanded', () => {
-    expect(fixture.nativeElement.querySelectorAll('.ef-profile-menu__item.is-child').length).toBe(0);
+    expect(fixture.nativeElement.querySelectorAll('.ef-menu__sublist .ef-menu__item').length).toBe(0);
 
     component.select(component.items()[1]);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelectorAll('.ef-profile-menu__item.is-child').length).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('.ef-menu__sublist .ef-menu__item').length).toBe(2);
   });
 
   it('hides the popover after a leaf is chosen', () => {

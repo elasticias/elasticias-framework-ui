@@ -1586,7 +1586,8 @@
   }
 }
 
-.row-actions__item {
+.row-actions__item,
+.ef-menu__item {
   appearance: none;
   background: transparent;
   border: 0;
@@ -1606,19 +1607,24 @@
 }
 
 .row-actions__item:hover,
-.row-actions__item:focus-visible {
+.row-actions__item:focus-visible,
+.ef-menu__item:hover,
+.ef-menu__item:focus-visible {
   background: var(--paper);
   outline: 0;
 }
 
-.row-actions__item[disabled] {
+.row-actions__item[disabled],
+.ef-menu__item[disabled] {
   opacity: 0.45;
   cursor: not-allowed;
   background: transparent;
 }
 
 .row-actions__item .ico,
-.row-actions__item i {
+.row-actions__item i,
+.ef-menu__item .ico,
+.ef-menu__item i {
   width: 16px;
   height: 16px;
   font-size: 16px;
@@ -1633,11 +1639,16 @@
 .row-actions__item:hover .ico,
 .row-actions__item:hover i,
 .row-actions__item:focus-visible .ico,
-.row-actions__item:focus-visible i {
+.row-actions__item:focus-visible i,
+.ef-menu__item:hover .ico,
+.ef-menu__item:hover i,
+.ef-menu__item:focus-visible .ico,
+.ef-menu__item:focus-visible i {
   color: var(--text);
 }
 
-.row-actions__item .kbd {
+.row-actions__item .kbd,
+.ef-menu__item .kbd {
   margin-inline-start: auto;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
@@ -1650,24 +1661,140 @@
   line-height: 1;
 }
 
-.row-actions__item.danger {
+.row-actions__item.danger,
+.ef-menu__item.danger {
   color: var(--st-cancelled-fg);
 }
 
 .row-actions__item.danger .ico,
-.row-actions__item.danger i {
+.row-actions__item.danger i,
+.ef-menu__item.danger .ico,
+.ef-menu__item.danger i {
   color: var(--st-cancelled-fg);
 }
 
 .row-actions__item.danger:hover,
-.row-actions__item.danger:focus-visible {
+.row-actions__item.danger:focus-visible,
+.ef-menu__item.danger:hover,
+.ef-menu__item.danger:focus-visible {
   background: var(--st-cancelled-bg);
 }
 
-.row-actions__divider {
+.row-actions__divider,
+.ef-menu__divider {
   height: 1px;
   background: var(--rule);
   margin: 4px;
+}
+
+/* ──────────── MENU (shared) ─────────────────────────────────────
+   The panel half of the menu language above, without the absolute
+   positioning `.row-actions__menu` needs for its own trigger. Anything
+   that already owns its placement (a popover, a bottom sheet) styles its
+   surface with `.ef-menu` and fills it with `.ef-menu__item`.         */
+
+.ef-menu {
+  display: grid;
+  /* A grid track defaults to auto, so one long row would size the column and
+     widen the whole panel. minmax(0, 1fr) is what lets a label truncate. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  min-width: 212px;
+  padding: 6px;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3);
+}
+
+/* Identity block at the top of a menu: a name and a secondary line.
+   Sized to sit level with the items rather than tower over them. */
+.ef-menu__head {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  padding: 8px 12px 7px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.ef-menu__head-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.ef-menu__head-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--text-mute);
+}
+
+/* A nested group, revealed by expanding its parent row. Indented to the
+   label column so the children line up under the text, not the icon. */
+/* Label takes the free space so a trailing chip or caret can sit at the
+   inline end, and a long name truncates instead of widening the panel. */
+.ef-menu__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ef-menu__item .ef-menu__caret {
+  margin-inline-start: auto;
+  width: 12px;
+  height: 12px;
+  font-size: 12px;
+}
+
+.ef-menu__item .ef-menu__badge {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  background: var(--st-cancelled-fg);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* A popover reduced to a placement mechanism. The `.ef-menu` inside draws
+   the surface, so PrimeNG must not draw a second panel or an arrow. */
+.p-popover.ef-menu-popover {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.p-popover.ef-menu-popover .p-popover-content {
+  padding: 0;
+}
+
+.p-popover.ef-menu-popover:before,
+.p-popover.ef-menu-popover:after {
+  display: none;
+}
+
+.ef-menu__sublist {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0 0 2px 28px;
+  list-style: none;
+  min-width: 0;
 }
 
 /* When a row-actions menu is open inside a data card, the table-wrap

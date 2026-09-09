@@ -1,126 +1,41 @@
+/* The menu language lives in `@elasticias/ui/styles/patterns` under
+   `.ef-menu__*`, shared with `ef-row-actions` so the two cannot drift into
+   different row heights and type sizes. This file contributes only what is
+   specific to the profile menu: host layout, a wider panel for real names,
+   and the phone's tap sizing. */
+
 :host {
   display: block;
   min-width: 0;
 }
 
-.ef-profile-menu__head {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-  padding: 12px 14px;
+/* Names and email addresses are longer than the row-actions verbs the
+   212px default was drawn for. */
+.ef-menu {
+  min-width: 232px;
+  /* Capped so a long display name truncates instead of stretching the panel
+     across the viewport. Without this the grid sizes to the name. */
+  max-width: 288px;
+  /* An expanded group makes the panel taller after it has been positioned.
+     The host realigns it, but a menu with several groups open could still
+     outgrow a short window, so it scrolls inside itself rather than off the
+     screen. */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 }
 
-.ef-profile-menu__name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.ef-profile-menu__secondary {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  color: var(--text-mute);
-}
-
-.ef-profile-menu__list,
-.ef-profile-menu__sublist {
-  display: grid;
-  gap: 2px;
-  margin: 0;
-  padding: 6px;
-  list-style: none;
-  min-width: 0;
-}
-
-.ef-profile-menu__sublist {
-  padding: 2px 0 2px 22px;
-}
-
-/* The rule that separates bands. Drawn on the item that opens a band, so
-   a caller reorders `items` without touching CSS. */
-.is-group-start {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--rule);
-}
-
-.ef-profile-menu__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-width: 0;
-  height: var(--hit-base, 40px);
-  padding: 0 10px;
-  background: transparent;
-  border: 0;
-  border-radius: var(--r-md, 8px);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 14px;
-  text-align: start;
-  cursor: pointer;
-
-  i {
-    flex: 0 0 auto;
-    font-size: 15px;
-    color: var(--text-mute);
-  }
-
-  &:hover {
-    background: color-mix(in srgb, var(--ink-active, #0f1115) 6%, transparent);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--tenant-400);
-    outline-offset: -2px;
-  }
-
-  &.is-danger {
-    color: var(--st-cancelled-fg, #b42318);
-
-    i {
-      color: inherit;
-    }
-  }
-}
-
-.ef-profile-menu__label {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ef-profile-menu__badge {
-  flex: 0 0 auto;
-  padding: 1px 7px;
-  border-radius: var(--r-pill, 999px);
-  background: var(--st-cancelled-fg, #b42318);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.ef-profile-menu__caret {
-  flex: 0 0 auto;
-  font-size: 12px;
-}
-
-/* Small screens last: a media query adds no specificity, so anything
-   declared after it would win at every width. */
+/* Small screens last: a media query adds no specificity, so a base rule
+   declared after it would win at every width.
+   The sheet is the only menu a phone has, so its rows are touch targets
+   rather than the desktop's 34px pointer rows. */
 @media (max-width: 767px) {
-  .ef-profile-menu__item {
-    height: var(--hit-touch, 48px);
-    padding: 0 14px;
+  .ef-menu {
+    min-width: 0;
+  }
+
+  .ef-menu__item {
+    min-height: var(--hit-touch);
+    padding-block: 0;
+    font-size: 14px;
   }
 }
