@@ -61,6 +61,21 @@ describe('EfShortcutService', () => {
         expect(handler).not.toHaveBeenCalled();
     });
 
+    it('runs a mod-combo handler even while the target is typing, and prevents the default', () => {
+        // Ctrl+S / Cmd+S saves from inside a form field in every application
+        // there is, and a field is the only place a save shortcut is ever
+        // actually pressed from. See AbstractDetailScreenV2.
+        const handler = vi.fn();
+        service.register({ id: 'test.mod-typing', keys: 'mod+s', labelKey: 'x', group: 'g', handler });
+
+        const input = document.createElement('input');
+        host.appendChild(input);
+        const event = fireKeydown(input, { code: 'KeyS', key: 's', ...modInit() });
+
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(event.defaultPrevented).toBe(true);
+    });
+
     // `isContentEditable` is part of the same guard (see `isTypingTarget`)
     // but jsdom does not implement it (the property reads `undefined`
     // regardless of the `contenteditable` attribute), so it cannot be

@@ -26,7 +26,11 @@ import { EfShortcut, EfShortcutGroup } from './ef-shortcut.types';
  *
  * Two things make this safe to leave switched on everywhere:
  * - The dispatcher ignores keydown while the target is an input, textarea,
- *   select, or anything `contenteditable`. See `isTypingTarget`.
+ *   select, or anything `contenteditable`, unless the combo includes
+ *   `mod`. A bare key or a Shift/Alt combo could be real typing (Alt and
+ *   AltGr both produce characters on several layouts this app ships), but
+ *   `mod` never does, and a save/search shortcut is normally pressed from
+ *   inside the very field it acts on. See `isTypingTarget`.
  * - `preventDefault` is only called once a registration actually matches,
  *   so an unmapped key never loses its browser default.
  *
@@ -115,9 +119,18 @@ export class EfShortcutService {
     }
 
     private readonly onKeydown = (event: KeyboardEvent): void => {
-        if (isTypingTarget(event.target)) return;
-
         const combo = comboFromEvent(event, isMacPlatform);
+
+        // A bare key, or one held with only Shift or Alt, is something the
+        // user could plausibly be typing (Alt/AltGr produces real
+        // characters on several layouts this app ships, French and
+        // Moroccan included), so those stay inert in a field. `mod` never
+        // types a character: Ctrl+S saves from inside a form field in
+        // every application there is, and a form field is the only place
+        // a save shortcut is ever actually pressed from.
+        const isModCombo = combo.split('+').includes('mod');
+        if (!isModCombo && isTypingTarget(event.target)) return;
+
         for (const shortcut of this.registry().values()) {
             if (shortcut.keys !== combo) continue;
             if (shortcut.when && !shortcut.when()) continue;
