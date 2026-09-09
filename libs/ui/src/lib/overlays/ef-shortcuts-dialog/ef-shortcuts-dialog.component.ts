@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
-import { EfShortcutGroup, EfShortcutService, formatShortcut, isMacPlatform } from '@elasticias/core';
+import { EfShortcutService, formatShortcut } from '@elasticias/core';
 import { EfDialogComponent, EfDialogAction } from '../../layout/ef-dialog/ef-dialog.component';
 
 /**
@@ -12,6 +12,18 @@ import { EfDialogComponent, EfDialogAction } from '../../layout/ef-dialog/ef-dia
  * happened to construct first." This fixes the section order so it
  * always reads outer to inner regardless of what rendered when.
  */
+/** One action and every key bound to it, which is what a reader wants: the
+ *  action once, its bindings beside it. */
+interface ShortcutActionView {
+    labelKey: string;
+    keys: string[];
+}
+
+interface ShortcutGroupView {
+    group: string;
+    actions: ShortcutActionView[];
+}
+
 const GROUP_ORDER: readonly string[] = [
     'shortcut_group_general',
     'shortcut_group_screen',
@@ -47,21 +59,39 @@ export class EfShortcutsDialogComponent {
     /** Two-way open state. */
     readonly visible = model(false);
 
-    /** `list()`, reordered Global → Screen → Row. An unrecognised group
-     *  (a future tier this component doesn't know about yet) sorts last
-     *  rather than being dropped. */
-    protected readonly groups = computed<EfShortcutGroup[]>(() => {
+    /** `list()`, reordered Global → Screen → Row, with the bindings for one
+     *  action collapsed onto a single row.
+     *
+     *  An action can be reachable by more than one key: opening this dialog
+     *  answers to both `?` and `mod+/`. Listing registrations verbatim
+     *  printed that action's name twice, once per binding, which reads as a
+     *  duplicate rather than as a choice. An unrecognised group (a future
+     *  tier this component does not know about) sorts last rather than
+     *  being dropped. */
+    protected readonly groups = computed<ShortcutGroupView[]>(() => {
         const rank = (group: string): number => {
             const index = GROUP_ORDER.indexOf(group);
             return index === -1 ? GROUP_ORDER.length : index;
         };
-        return [...this.shortcutService.list()].sort((a, b) => rank(a.group) - rank(b.group));
-    });
 
-    /** Only macOS shows every chip already resolved to its own glyphs.
-     *  Everyone else gets a line saying the chips already match their
-     *  system, since nothing here prints a Mac glyph for them to decode. */
-    protected readonly isMacPlatform = isMacPlatform;
+        return [...this.shortcutService.list()]
+            .sort((a, b) => rank(a.group) - rank(b.group))
+            .map(group => {
+                const byLabel = new Map<string, string[]>();
+                for (const shortcut of group.shortcuts) {
+                    const keys = byLabel.get(shortcut.labelKey);
+                    if (keys) {
+                        if (!keys.includes(shortcut.keys)) keys.push(shortcut.keys);
+                    } else {
+                        byLabel.set(shortcut.labelKey, [shortcut.keys]);
+                    }
+                }
+                return {
+                    group: group.group,
+                    actions: [...byLabel].map(([labelKey, keys]) => ({ labelKey, keys })),
+                };
+            });
+    });
 
     protected readonly closeAction: EfDialogAction[] = [
         { labelKey: 'common_close', severity: 'ghost' },

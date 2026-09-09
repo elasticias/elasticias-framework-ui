@@ -10,23 +10,24 @@
     [actions]="closeAction"
 >
     <div class="shortcuts-dialog">
-        @if (!isMacPlatform) {
-            <p class="shortcuts-dialog__hint">{{ 'shortcuts_dialog_mod_hint' | translate }}</p>
-        }
-
         @if (groups().length) {
             @for (group of groups(); track group.group) {
                 <section class="shortcuts-dialog__group">
                     <h3 class="shortcuts-dialog__group-title">{{ group.group | translate }}</h3>
                     <ul class="shortcuts-dialog__list">
-                        @for (shortcut of group.shortcuts; track shortcut.id) {
+                        @for (action of group.actions; track action.labelKey) {
                             <li class="shortcuts-dialog__item">
-                                <span class="lbl">{{ shortcut.labelKey | translate }}</span>
-                                <!-- Not aria-hidden here: the key IS the content this
-                                     dialog exists to say. Hiding it would leave a
-                                     screen-reader user hearing the action names and
-                                     never the shortcut that triggers them. -->
-                                <span class="kbd">{{ formatKeys(shortcut.keys) }}</span>
+                                <span class="lbl">{{ action.labelKey | translate }}</span>
+                                <!-- Not aria-hidden: the key IS the content this dialog
+                                     exists to say. Hiding it would leave a screen-reader
+                                     user hearing action names and never the shortcut.
+                                     One action can carry several bindings, so they sit
+                                     on one row rather than repeating the label. -->
+                                <span class="keys">
+                                    @for (keys of action.keys; track keys) {
+                                        <span class="kbd">{{ formatKeys(keys) }}</span>
+                                    }
+                                </span>
                             </li>
                         }
                     </ul>
