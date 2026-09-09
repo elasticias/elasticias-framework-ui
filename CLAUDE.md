@@ -83,6 +83,31 @@ Apps consume the backend via the NSwag-generated `web-api-client.ts` (regenerate
 
 Backend rule that keeps this working: file-upload endpoints take exactly one `IFormFile file` parameter (no sibling `[FromForm]` strings). NSwag's TypeScript template only appends named `[FromForm]` parts to FormData and silently drops the implicit file when both kinds coexist — leaving an upload that posts an empty body. If you need additional fields alongside a file, use `[FromQuery]` or expose a follow-up PUT.
 
+## Keyboard Shortcuts Convention
+
+A component never invents a shortcut. It accepts one and registers it. Any `ef-*` component that owns a control or an action takes an optional `shortcut` input (a normalised `EfShortcut['keys']` string, `null` to opt out). When set, the component registers it with `EfShortcutService` on construction, renders its hint chip through `formatShortcut()` (never a hardcoded glyph such as `⌘K`, which is wrong on every non-Mac platform), and performs the action itself, since it is the thing that owns it. Give the registration the `group` its tier belongs to (`shortcut_group_general` app-wide, `shortcut_group_screen` for the current screen, `shortcut_group_row_actions` while a row's menu is open) so `ef-shortcuts-dialog` files it correctly.
+
+```ts
+readonly shortcut = input<string | null>('mod+k');
+
+constructor() {
+    effect(onCleanup => {
+        const keys = this.shortcut();
+        if (!keys) return;
+        const dispose = this.shortcuts.register({
+            id: `my-component.${this.instanceId}.action`,
+            keys,
+            labelKey: 'common_search',
+            group: 'shortcut_group_screen',
+            handler: () => this.doTheThing(),
+        });
+        onCleanup(dispose);
+    });
+}
+```
+
+Use `effect()` (not a constructor-time call) when the shortcut comes from an input: an input's bound value isn't readable until after construction, and the effect's `onCleanup` handles disposal cleanly if a caller ever changes it. A shortcut that is always on regardless of any input (e.g. `ef-row-actions`'s Enter / E / mod+D, gated by `when`) can register directly in the constructor instead. Either way, give each instance its own id (an incrementing static counter, the way `ef-row-actions` and `ef-smart-bar` do): a shared id across two live instances means one's disposer unregisters the other's still-active entry.
+
 ## Nx Guidelines
 
 - Prefix nx commands with `npx` (no global install)
