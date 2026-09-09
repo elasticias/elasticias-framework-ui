@@ -162,7 +162,10 @@ export class EfSmartBarComponent {
             const dispose = this.shortcuts.register({
                 id: `smart-bar.${this.instanceId}.focus`,
                 keys,
-                labelKey: 'common_search',
+                // Not 'common_search': this shortcut focuses the field, it
+                // never submits, and the dialog is where a user learns
+                // what a key actually does.
+                labelKey: 'shortcut_focus_search',
                 group: 'shortcut_group_screen',
                 handler: () => this.searchInput()?.nativeElement.focus(),
             });
