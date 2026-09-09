@@ -16,6 +16,10 @@ import { EfProfileMenuItem } from './ef-profile-menu.types';
  *  structurally keeps the template ref usable and the tests free of PrimeNG. */
 interface Dismissible {
   hide: () => void;
+  /** PrimeNG positions a popover once, when it opens. Expanding a group
+   *  changes the panel's height afterwards, so the host has to ask for a
+   *  reposition or the panel grows past the edge it was anchored to. */
+  align?: () => void;
 }
 
 /**
@@ -84,6 +88,11 @@ export class EfProfileMenuComponent {
   select(item: EfProfileMenuItem, popover?: Dismissible): void {
     if (item.children?.length) {
       this.expandedId.update((current) => (current === item.id ? null : item.id));
+      // Reposition once the taller panel has actually rendered. Without this
+      // the panel keeps the top it was placed at and grows downward, which
+      // runs it off the bottom of the screen when the trigger sits in the
+      // side footer. Realigning lets it grow upward from the trigger instead.
+      setTimeout(() => popover?.align?.(), 0);
       return;
     }
     item.command?.();
