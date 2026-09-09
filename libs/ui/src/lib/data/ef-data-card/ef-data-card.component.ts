@@ -376,7 +376,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      *  Visibility is filtered later by ef-row-actions against
      *  `rowActionsContext` (ScreenContext.isGranted).
      *
-     *  `kbd` is rendered through `formatShortcut()`, not a literal glyph —
+     *  `kbd` is rendered through `formatShortcut()`, not a literal glyph:
      *  `ef-row-actions` binds these same keys for real while the row's
      *  menu is open, and a hardcoded `'⌘D'` would lie to a Windows user. */
     defaultRowActions(row: TRow): ReadonlyArray<EfRowAction> {

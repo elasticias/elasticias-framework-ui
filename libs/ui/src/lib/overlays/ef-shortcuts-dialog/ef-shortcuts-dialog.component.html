@@ -22,7 +22,11 @@
                         @for (shortcut of group.shortcuts; track shortcut.id) {
                             <li class="shortcuts-dialog__item">
                                 <span class="lbl">{{ shortcut.labelKey | translate }}</span>
-                                <span class="kbd" aria-hidden="true">{{ formatKeys(shortcut.keys) }}</span>
+                                <!-- Not aria-hidden here: the key IS the content this
+                                     dialog exists to say. Hiding it would leave a
+                                     screen-reader user hearing the action names and
+                                     never the shortcut that triggers them. -->
+                                <span class="kbd">{{ formatKeys(shortcut.keys) }}</span>
                             </li>
                         }
                     </ul>

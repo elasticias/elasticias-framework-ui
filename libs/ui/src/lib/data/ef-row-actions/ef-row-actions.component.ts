@@ -18,7 +18,7 @@ import { EfRowAction } from './ef-row-actions.types';
 
 /** Row-scoped shortcuts, wired once per instance and gated on `open()` so
  *  they're inert until this row's menu is on screen. The action `id` is a
- *  convention shared with `ef-data-card.defaultRowActions()` — an instance
+ *  convention shared with `ef-data-card.defaultRowActions()`: an instance
  *  with no matching item is simply a no-op for that key. */
 const ROW_SHORTCUTS: ReadonlyArray<{ actionId: string; keys: string; labelKey: string }> = [
     { actionId: 'view', keys: 'enter', labelKey: 'common_view' },
@@ -69,7 +69,7 @@ const ROW_SHORTCUTS: ReadonlyArray<{ actionId: string; keys: string; labelKey: s
  * `duplicate`: this component registers Enter, `E` and `mod+D` against
  * `EfShortcutService`, gated on `open()`, so they only fire while this
  * row's menu is on screen. Render `kbd` through `formatShortcut()` (as
- * above) — a hardcoded `'⌘D'` is wrong for a Windows user, which is
+ * above): a hardcoded `'⌘D'` is wrong for a Windows user, which is
  * exactly the bug this wiring fixes.
  */
 @Component({
@@ -84,7 +84,7 @@ export class EfRowActionsComponent {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly shortcuts = inject(EfShortcutService);
 
-    /** Distinguishes this instance's registrations from every other row's —
+    /** Distinguishes this instance's registrations from every other row's:
      *  each row on screen constructs its own component, and ids must not
      *  collide or one row's disposer (and its `when`) would clobber
      *  another's still-live registration. */
@@ -98,7 +98,13 @@ export class EfRowActionsComponent {
                 keys,
                 labelKey,
                 group: 'shortcut_group_row_actions',
-                when: () => this.open(),
+                // Gated on the trigger, not merely on `open()`: once a
+                // keyboard user tabs from the trigger into the menu itself,
+                // Enter is the button's own native activation key for
+                // whichever item has focus. Without this, the `enter`
+                // registration would run "view" from underneath the
+                // focused "delete" button and swallow its click.
+                when: () => this.open() && !this.isFocusInsideMenu(),
                 handler: () => {
                     const action = this.visibleItems().find(a => a.id === actionId);
                     if (!action || action.disabled) return;
@@ -107,6 +113,10 @@ export class EfRowActionsComponent {
                 },
             });
         }
+    }
+
+    private isFocusInsideMenu(): boolean {
+        return !!document.activeElement?.closest('.row-actions__menu');
     }
 
     /** Action descriptors. */

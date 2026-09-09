@@ -1,7 +1,7 @@
 /**
  * Key-combo parsing shared by `EfShortcutService` (matching a keydown event
  * against the registry) and `formatShortcut` (rendering a registration for
- * display). Kept internal to the shortcuts folder — neither export is part
+ * display). Kept internal to the shortcuts folder: neither export is part
  * of the public `@elasticias/core` surface.
  */
 
@@ -47,7 +47,7 @@ interface KeyEventLike {
     altKey: boolean;
 }
 
-/** The canonical key token for an event, independent of Shift — `KeyD`
+/** The canonical key token for an event, independent of Shift. `KeyD`
  *  is `'d'` whether or not Shift was held. */
 function keyToken(event: KeyEventLike): string {
     if (CODE_KEYS[event.code]) return CODE_KEYS[event.code];
@@ -73,7 +73,7 @@ export function comboFromEvent(event: KeyEventLike, isMac: boolean): string {
 /**
  * True while the event target is a place the user is typing: an input, a
  * textarea, a select, or anything `contenteditable`. The dispatcher checks
- * this before anything else — without it every shortcut key is a reserved
+ * this before anything else. Without it every shortcut key is a reserved
  * word in every text field in the app.
  */
 export function isTypingTarget(target: EventTarget | null): boolean {

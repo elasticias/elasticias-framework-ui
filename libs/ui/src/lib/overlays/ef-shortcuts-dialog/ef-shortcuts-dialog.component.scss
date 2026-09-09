@@ -65,7 +65,7 @@
     }
 
     /* Deliberately mirrors `.row-actions__item .kbd` / `.ef-menu__item .kbd`
-       in `_patterns.scss` — same chip, same values, duplicated here rather
+       in `_patterns.scss`. Same chip, same values, duplicated here rather
        than added to that (settled, do-not-touch) selector list, so the
        shortcut hint in a menu and the one in this dialog read as the same
        object. */

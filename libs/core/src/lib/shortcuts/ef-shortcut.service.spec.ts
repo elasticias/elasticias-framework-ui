@@ -64,7 +64,7 @@ describe('EfShortcutService', () => {
     // `isContentEditable` is part of the same guard (see `isTypingTarget`)
     // but jsdom does not implement it (the property reads `undefined`
     // regardless of the `contenteditable` attribute), so it cannot be
-    // exercised in this test environment — verified manually instead.
+    // exercised in this test environment. Verified manually instead.
 
     it('gates the handler on `when`', () => {
         let active = false;

@@ -12,7 +12,7 @@ import { EfShortcut, EfShortcutGroup } from './ef-shortcut.types';
  * private readonly shortcuts = inject(EfShortcutService);
  *
  * constructor() {
- *   // Auto-unregisters on this component's DestroyRef — called from a
+ *   // Auto-unregisters on this component's DestroyRef, called from a
  *   // constructor / field initializer, an active injection context.
  *   this.shortcuts.register({
  *     id: 'sales-order.save',
@@ -26,7 +26,7 @@ import { EfShortcut, EfShortcutGroup } from './ef-shortcut.types';
  *
  * Two things make this safe to leave switched on everywhere:
  * - The dispatcher ignores keydown while the target is an input, textarea,
- *   select, or anything `contenteditable` — see `isTypingTarget`.
+ *   select, or anything `contenteditable`. See `isTypingTarget`.
  * - `preventDefault` is only called once a registration actually matches,
  *   so an unmapped key never loses its browser default.
  *
@@ -43,7 +43,7 @@ export class EfShortcutService {
 
     /**
      * The registry, grouped for display and deduplicated by
-     * (group, label, keys) — several instances of the same conceptual
+     * (group, label, keys): several instances of the same conceptual
      * shortcut (one row-actions component per row, say) collapse to a
      * single line rather than repeating once per instance.
      */
@@ -74,7 +74,7 @@ export class EfShortcutService {
      * Registers a shortcut and returns a disposer. When `register` is
      * called from an active injection context (a component constructor or
      * field initializer), the shortcut also auto-unregisters when that
-     * context is destroyed — call it explicitly elsewhere (a plain method,
+     * context is destroyed. Call it explicitly elsewhere (a plain method,
      * a route resolver already outside construction) and dispose it
      * yourself.
      */
@@ -92,7 +92,7 @@ export class EfShortcutService {
         return dispose;
     }
 
-    /** Removes a registration by id. Safe to call twice — the disposer
+    /** Removes a registration by id. Safe to call twice: the disposer
      *  returned by `register` calls this. */
     unregister(id: string): void {
         this.registry.update(map => {

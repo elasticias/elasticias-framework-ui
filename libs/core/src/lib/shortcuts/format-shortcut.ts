@@ -40,7 +40,7 @@ const KEY_GLYPHS: Record<string, string> = {
 
 /**
  * A produced character that stands in for the whole combo. Shift plus the
- * physical `/` key always reads as the question mark it prints — showing
+ * physical `/` key always reads as the question mark it prints. Showing
  * it as `'Shift' + '/'` would describe the keys pressed rather than the
  * shortcut a person recognises.
  */

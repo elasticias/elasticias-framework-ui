@@ -5,14 +5,14 @@ import { EfShortcutService, formatShortcut, isMacPlatform } from '@elasticias/co
 import { EfDialogComponent, EfDialogAction } from '../../layout/ef-dialog/ef-dialog.component';
 
 /**
- * The keyboard-shortcuts reference — every registration currently sitting
+ * The keyboard-shortcuts reference: every registration currently sitting
  * in `EfShortcutService`, grouped and rendered with the same `.kbd` chip
  * `ef-row-actions` and `ef-menu` already use, so a chip means one thing
  * everywhere it appears.
  *
  * Reads `EfShortcutService.list()` directly, so it stays live: open it
  * while a row menu is on screen and its row-scoped shortcuts are already
- * listed under "Row actions" — close the row menu and, since a row's
+ * listed under "Row actions". Close the row menu and, since a row's
  * shortcuts unregister with it, they're gone from here too.
  *
  * ```html
@@ -35,7 +35,7 @@ export class EfShortcutsDialogComponent {
 
     protected readonly groups = this.shortcutService.list;
 
-    /** Only macOS reads `⌘` at a glance — everyone else needs the line
+    /** Only macOS reads `⌘` at a glance. Everyone else needs the line
      *  spelling out that it means Ctrl. */
     protected readonly isMacPlatform = isMacPlatform;
 
