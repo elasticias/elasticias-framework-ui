@@ -1,21 +1,26 @@
 import { normaliseKeys } from './shortcut-keys';
 
 /** Reads the platform once. `userAgentData` is the current standard; the
- *  `platform` string fallback covers browsers that don't expose it yet. */
-function detectMacPlatform(): boolean {
+ *  `platform` string fallback covers browsers that don't expose it yet.
+ *
+ *  The test is "Apple", not "Mac". An iPhone reports `iPhone` and an iPad
+ *  reports either `iPad` or, since iPadOS 13, the same `MacIntel` a desktop
+ *  does. A narrower `/mac/i` told every iOS device with a keyboard that the
+ *  modifier was Ctrl, which is the one thing it is not. */
+function detectApplePlatform(): boolean {
     if (typeof navigator === 'undefined') return false;
     const uaData = (navigator as Navigator & { userAgentData?: { platform?: string } })
         .userAgentData;
     const platform = uaData?.platform ?? navigator.platform ?? '';
-    return /mac/i.test(platform);
+    return /mac|iphone|ipad|ipod/i.test(platform);
 }
 
 /**
- * Detected once, at module load. `formatShortcut` uses it by default, and
- * `ef-shortcuts-dialog` reads it directly to decide whether its "Ctrl on
- * Windows and Linux" line is news (it isn't, on a Mac) or worth a sentence.
+ * Detected once, at module load. `formatShortcut` uses it to choose between
+ * the Command glyphs and the Ctrl words. True for every Apple platform, not
+ * just the desktop: an iPad with a keyboard sends Command like a Mac does.
  */
-export const isMacPlatform: boolean = detectMacPlatform();
+export const isMacPlatform: boolean = detectApplePlatform();
 
 const MAC_MODIFIER_GLYPHS: Record<string, string> = {
     mod: '⌘',
