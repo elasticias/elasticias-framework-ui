@@ -63,6 +63,15 @@
     <div class="tbl-tools">
       <ng-content select="[tbl-head-actions]"></ng-content>
 
+      @if (showExportControl()) {
+        <div class="tbl-tool">
+          <button class="btn btn-ghost btn-sm" type="button" (click)="requestExport()">
+            <i class="pi pi-download" aria-hidden="true"></i>
+            {{ 'common_export' | translate }}
+          </button>
+        </div>
+      }
+
       @if (showDensityControl()) {
         <div class="tbl-tool">
           <button
@@ -220,7 +229,9 @@
         </li>
       } @empty {
         <li class="mrow mrow--empty">
-          <ng-content select="[empty-state-mobile]"></ng-content>
+          <ng-content select="[empty-state-mobile]">
+            <ng-container *ngTemplateOutlet="defaultEmptyTpl"></ng-container>
+          </ng-content>
         </li>
       }
     </ul>
@@ -278,7 +289,9 @@
         } @empty {
           <tr>
             <td [attr.colspan]="effectiveColumns().length">
-              <ng-content select="[empty-state]"></ng-content>
+              <ng-content select="[empty-state]">
+                <ng-container *ngTemplateOutlet="defaultEmptyTpl"></ng-container>
+              </ng-content>
             </td>
           </tr>
         }
@@ -287,7 +300,10 @@
   }
 
   <!-- ── PAGER ─────────────────────────────────────────────── -->
-  @if (!hidePager()) {
+  <!-- Paging controls for an empty result set are chrome with nothing to
+       page, so they stay out of the way until there is something to move
+       through. -->
+  @if (!hidePager() && rows().length > 0) {
     <ef-pager
       [pageNumber]="pageNumber()"
       [pageSize]="pageSize()"
@@ -298,3 +314,33 @@
     />
   }
 </div>
+
+<!-- ── DEFAULT EMPTY STATE ──────────────────────────────────────
+     Rendered when a screen projects nothing into [empty-state] /
+     [empty-state-mobile]. It words itself from `searchTerm`, because
+     "nothing matched what you typed" and "there is nothing here yet"
+     are different situations needing different ways out. -->
+<ng-template #defaultEmptyTpl>
+  <div class="tbl-empty">
+    <i
+      class="pi tbl-empty__icon"
+      [class.pi-search]="!!searchTerm()"
+      [class.pi-inbox]="!searchTerm()"
+      aria-hidden="true"
+    ></i>
+
+    @if (searchTerm()) {
+      <p class="tbl-empty__title">
+        {{ 'common_empty_no_results' | translate: { term: searchTerm() } }}
+      </p>
+      <p class="tbl-empty__hint">{{ 'common_empty_no_results_hint' | translate }}</p>
+      <button class="btn btn-sm tbl-empty__action" type="button" (click)="clearSearch.emit()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+        {{ 'common_empty_clear_search' | translate }}
+      </button>
+    } @else {
+      <p class="tbl-empty__title">{{ 'common_empty_none_yet' | translate }}</p>
+      <p class="tbl-empty__hint">{{ 'common_empty_none_yet_hint' | translate }}</p>
+    }
+  </div>
+</ng-template>

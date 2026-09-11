@@ -37,6 +37,7 @@ import {
 } from './ef-column-template.directive';
 import {
     EfDataCardColumn,
+    EfDataCardExportRequest,
     EfDataCardSort,
     EfDataCardSortDirection,
 } from './ef-data-card.types';
@@ -308,6 +309,22 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     readonly showColumnPicker = input(false, { transform: booleanAttribute });
 
     /**
+     * Render the Export control beside Density and Columns. It sits here
+     * rather than in the page toolbar because it acts on the result set,
+     * the way density and the column picker do -- the toolbar is for
+     * page-level actions like creating a record.
+     */
+    readonly showExportControl = input(false, { transform: booleanAttribute });
+
+    /**
+     * The active free-text query, used only to word the empty state. When
+     * this is set, zero rows means "nothing matched what you typed" and the
+     * user is offered a way back; when it is empty, zero rows means the
+     * collection itself is empty, which is a different message.
+     */
+    readonly searchTerm = input<string>('');
+
+    /**
      * Stable key used to remember density and hidden columns for this
      * table. Preferences are a per-viewer convenience, so they live in
      * localStorage and are read defensively -- a private window or
@@ -324,6 +341,15 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     /** Emitted by the auto row-actions cell — `{ action, row }`. */
     readonly rowAction = output<{ action: EfDataCardRowAction; row: TRow }>();
+
+    /**
+     * Export the current result set. The card holds the columns but not the
+     * query, so the host screen fetches the rows and writes the file.
+     */
+    readonly exportRequest = output<EfDataCardExportRequest>();
+
+    /** Raised by the empty state's "clear search" action. */
+    readonly clearSearch = output<void>();
 
     /* ── Content children ──────────────────────────────────────── */
 
@@ -528,6 +554,49 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     toggleTool(tool: 'density' | 'columns'): void {
         this.openTool.update(cur => (cur === tool ? null : tool));
+    }
+
+    /**
+     * Hand the host screen everything it needs to write the file: the
+     * columns the viewer can actually see, in the order they see them, and
+     * the rows already on screen as a fallback for hosts that do not fetch.
+     * `select` and `actions` are chrome, never data, so they are dropped.
+     */
+    requestExport(): void {
+        this.exportRequest.emit({
+            columns: this.effectiveColumns().filter(
+                c => c.id !== 'select' && c.id !== 'actions',
+            ) as EfDataCardColumn[],
+            visibleRows: [...this.rows()] as unknown[],
+            resolveCell: (row, col) => this.exportCellValue(row as TRow, col),
+        });
+    }
+
+    /**
+     * Cell value as it belongs in a file rather than on screen.
+     *
+     * Numbers and dates stay raw, because a spreadsheet wants a number it
+     * can total and a date it can sort. Reference and status columns do
+     * not: their stored value is an id or a code, and a column of
+     * `71d4431cd16141338ffcf635` tells the reader nothing. Those resolve
+     * through the same lookup the table renders with, so the file says
+     * what the screen said.
+     */
+    private exportCellValue(row: TRow, col: EfDataCardColumn): unknown {
+        const raw = this.cellValue(row, col);
+        if (raw === null || raw === undefined) return '';
+
+        if (col.type === 'reference' || col.type === 'status') {
+            return this.resolveReference(raw, col);
+        }
+
+        // `Date.toString()` would write "Sat Sep 05 2026 08:02:57 GMT-0400
+        // (Eastern Daylight Time)" into the cell, which no spreadsheet parses
+        // and no reader wants. ISO 8601 sorts correctly and is unambiguous
+        // about the zone.
+        if (raw instanceof Date) return raw.toISOString();
+
+        return raw;
     }
 
     setDensity(value: EfTableDensity): void {

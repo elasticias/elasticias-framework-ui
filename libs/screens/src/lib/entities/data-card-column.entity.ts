@@ -84,6 +84,13 @@ export interface EfDataCardColumn {
      */
     hideable?: boolean;
 
+    /**
+     * Set `false` to keep this column out of a CSV export. Use it for
+     * columns that only make sense on screen — a thumbnail, a rendered
+     * badge with no underlying value. Defaults to exported.
+     */
+    exportable?: boolean;
+
     /** Inline CSS width (e.g. `'40px'`, `'15%'`). */
     width?: string;
 
@@ -130,4 +137,24 @@ export interface EfReferenceColumnOpts extends Partial<EfDataCardColumn> {
     valueField?: string;
     /** Shorthand for `referenceLabelField` (defaults to `'label'`). */
     labelField?: string;
+}
+
+/**
+ * Payload for `ef-data-card`'s `(exportRequest)`.
+ *
+ * The card knows which columns are visible and in what order; it does not
+ * know the query behind the rows, so it hands the host screen the column
+ * set and lets the screen fetch the full result set and write the file.
+ */
+export interface EfDataCardExportRequest {
+    /** Visible columns, in display order, minus the row-actions column. */
+    columns: EfDataCardColumn[];
+    /** The rows the card currently holds — the page the user can see. */
+    visibleRows: unknown[];
+    /**
+     * Resolves one cell for the file, using the same reference lookups the
+     * table renders with. Supplied by the card so label resolution lives in
+     * one place; the host applies it to the rows it fetches.
+     */
+    resolveCell: (row: unknown, col: EfDataCardColumn) => unknown;
 }

@@ -10,8 +10,11 @@ import { take } from 'rxjs';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { ActiveFilter } from '../../entities/active-filter.entity';
+import { CsvUtils } from '@elasticias/utils';
+import { TranslateService } from '@ngx-translate/core';
 import {
   EfDataCardColumn,
+  EfDataCardExportRequest,
   EfDataCardSort,
   EfReferenceColumnOpts,
 } from '../../entities/data-card-column.entity';
@@ -81,6 +84,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 {
   protected readonly screenState = ScreenStateEnum.SEARCH;
   protected readonly injector = inject(Injector);
+  protected readonly translate = inject(TranslateService);
   private serviceInstance: any;
 
   /** Monotonic guard: bumped on every `search()` call so an
@@ -688,6 +692,117 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
     this.cacheService.setCache(this.screenStateKey, fresh);
     this.search();
+  }
+
+  /* ── CSV export ───────────────────────────────────────────────── */
+
+  /**
+   * Rows fetched per request while exporting. The server rejects anything
+   * above 100 (`PaginationCriteriaValidator`), so this is the ceiling, not
+   * a preference.
+   */
+  private static readonly EXPORT_PAGE_SIZE = 100;
+
+  /**
+   * Upper bound on an export. A tenant with 20k orders would otherwise
+   * fire 200 sequential requests on one click. When the result set is
+   * larger, the file holds the first `EXPORT_MAX_ROWS` and the user is
+   * told so rather than handed a silently truncated file.
+   */
+  private static readonly EXPORT_MAX_ROWS = 5000;
+
+  readonly exporting = signal(false);
+
+  /**
+   * Write the current result set to a CSV, honouring the active search,
+   * filters and sort, with the columns the viewer can actually see.
+   *
+   * The card raises this because Export lives beside Density and Columns —
+   * all three act on the result set — but only the screen knows the query,
+   * so the fetching happens here.
+   */
+  exportCsv(request: EfDataCardExportRequest): void {
+    if (this.exporting()) return;
+
+    const columns = request.columns.filter((c) => c.exportable !== false);
+    if (columns.length === 0) return;
+
+    this.exporting.set(true);
+    void this.collectExportRows()
+      .then(({ rows, truncated }) => {
+        if (rows.length === 0) {
+          this.toastService.showInfo(this.translate.instant('common_export_empty'));
+          return;
+        }
+
+        const flattened = rows.map((row) => {
+          const record: Record<string, unknown> = {};
+          for (const col of columns) {
+            record[col.id] = request.resolveCell(row, col);
+          }
+          return record;
+        });
+
+        const csv = CsvUtils.toCsv(
+          flattened,
+          columns.map((col) => ({
+            key: col.id,
+            header: col.headerKey
+              ? this.translate.instant(col.headerKey)
+              : (col.header ?? col.id),
+          })),
+        );
+
+        CsvUtils.download(this.exportFileName(), csv);
+
+        if (truncated) {
+          this.toastService.showInfo(
+            this.translate.instant('common_export_truncated', {
+              count: AbstractSearchScreenV2.EXPORT_MAX_ROWS,
+            }),
+          );
+        }
+      })
+      .catch(() => this.toastService.showError(this.translate.instant('common_export_failed')))
+      .finally(() => this.exporting.set(false));
+  }
+
+  /** Page through the current criteria until the result set is exhausted. */
+  private async collectExportRows(): Promise<{ rows: any[]; truncated: boolean }> {
+    const pageSize = AbstractSearchScreenV2.EXPORT_PAGE_SIZE;
+    const max = AbstractSearchScreenV2.EXPORT_MAX_ROWS;
+    const rows: any[] = [];
+    let page = 1;
+
+    for (;;) {
+      const criteria = this.cloneCriteria(this.criteria(), { page, pageSize });
+      const result: any = await new Promise((resolve, reject) =>
+        this.serviceInstance
+          .search(criteria)
+          .pipe(take(1))
+          .subscribe({ next: resolve, error: reject }),
+      );
+
+      const batch: any[] = result?.items ?? [];
+      rows.push(...batch);
+
+      const total: number = result?.totalCount ?? rows.length;
+      if (rows.length >= max) return { rows: rows.slice(0, max), truncated: total > max };
+      if (batch.length < pageSize || rows.length >= total) return { rows, truncated: false };
+      page += 1;
+    }
+  }
+
+
+  /** `<screen>-YYYY-MM-DD-HHmm.csv`, so repeated exports do not collide. */
+  private exportFileName(): string {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const stamp =
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+      `-${pad(d.getHours())}${pad(d.getMinutes())}`;
+    const screen = (this.getConfig()?.SCREEN ?? 'export').toString().toLowerCase();
+    return `${screen}-${stamp}.csv`;
   }
 
   private cloneCriteria(

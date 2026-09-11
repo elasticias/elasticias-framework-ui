@@ -304,3 +304,67 @@
   justify-content: center;
   gap: 6px;
 }
+
+/* ── EMPTY STATE ───────────────────────────────────────────────────
+   Shown when a result set comes back with nothing in it. It has to do
+   two jobs the previous blank strip did neither of: say what happened,
+   and offer a way out of it.
+
+   The hint deliberately avoids --text-mute. That alias is light enough
+   to fail AA on paper, and this is the one moment where the user has
+   nothing else on screen to read. */
+.tbl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  padding: var(--s-9) var(--s-4);
+  text-align: center;
+
+  &__icon {
+    font-size: 28px;
+    line-height: 1;
+    color: var(--ink-400);
+    margin-block-end: var(--s-1);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    /* A long query must not stretch the table it sits inside. */
+    max-inline-size: 46ch;
+    overflow-wrap: break-word;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-600);
+    max-inline-size: 52ch;
+    text-wrap: pretty;
+  }
+
+  &__action {
+    margin-block-start: var(--s-3);
+    min-block-size: var(--hit-base);
+  }
+}
+
+/* The mobile list gives the row its own padding; the empty state brings
+   its own, so the row must not double it. */
+.mrow--empty {
+  padding: 0;
+}
+
+@media (max-width: 767px) {
+  .tbl-empty {
+    padding: var(--s-7) var(--s-4);
+
+    &__action {
+      min-block-size: var(--hit-touch);
+    }
+  }
+}

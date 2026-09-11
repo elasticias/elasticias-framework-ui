@@ -43,4 +43,5 @@ export type {
     EfDataCardSort,
     EfDataCardSortDirection,
     EfReferenceColumnOpts,
+    EfDataCardExportRequest,
 } from './lib/entities/data-card-column.entity';

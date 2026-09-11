@@ -10,4 +10,5 @@ export type {
     EfDataCardSort,
     EfDataCardSortDirection,
     EfReferenceColumnOpts,
+    EfDataCardExportRequest,
 } from '@elasticias/screens';
