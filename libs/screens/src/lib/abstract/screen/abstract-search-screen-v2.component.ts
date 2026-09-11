@@ -84,8 +84,22 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 {
   protected readonly screenState = ScreenStateEnum.SEARCH;
   protected readonly injector = inject(Injector);
-  protected readonly translate = inject(TranslateService);
   private serviceInstance: any;
+
+  /**
+   * Translate lazily, through the injector.
+   *
+   * Taking `TranslateService` as a field injection makes it a hard
+   * construction-time requirement of every screen that extends this base,
+   * which is more than the one method needing it deserves — and it is the
+   * same shape as the DI cycle ADR-021 records in the app. Resolving it
+   * here keeps the dependency optional: an app without ngx-translate gets
+   * the key back rather than a crash.
+   */
+  protected t(key: string, params?: Record<string, unknown>): string {
+    const translate = this.injector.get(TranslateService, null);
+    return translate ? translate.instant(key, params) : key;
+  }
 
   /** Monotonic guard: bumped on every `search()` call so an
    *  out-of-order (stale) response from an earlier search can be
@@ -731,7 +745,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     void this.collectExportRows()
       .then(({ rows, truncated }) => {
         if (rows.length === 0) {
-          this.toastService.showInfo(this.translate.instant('common_export_empty'));
+          this.toastService.showInfo(this.t('common_export_empty'));
           return;
         }
 
@@ -747,9 +761,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
           flattened,
           columns.map((col) => ({
             key: col.id,
-            header: col.headerKey
-              ? this.translate.instant(col.headerKey)
-              : (col.header ?? col.id),
+            header: col.headerKey ? this.t(col.headerKey) : (col.header ?? col.id),
           })),
         );
 
@@ -757,13 +769,13 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
         if (truncated) {
           this.toastService.showInfo(
-            this.translate.instant('common_export_truncated', {
+            this.t('common_export_truncated', {
               count: AbstractSearchScreenV2.EXPORT_MAX_ROWS,
             }),
           );
         }
       })
-      .catch(() => this.toastService.showError(this.translate.instant('common_export_failed')))
+      .catch(() => this.toastService.showError(this.t('common_export_failed')))
       .finally(() => this.exporting.set(false));
   }
 
