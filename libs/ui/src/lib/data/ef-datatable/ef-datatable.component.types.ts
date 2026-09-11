@@ -168,7 +168,14 @@ export interface EfDatatableConfig {
 
   // i18n
 
-  /** Message when no data (default: 'Aucune entree trouvee') */
+  /**
+   * Translation key for the no-data message. Prefer this over
+   * `emptyMessage`: the old default was a hardcoded, unaccented French
+   * string that rendered in every language.
+   */
+  emptyMessageKey?: string;
+
+  /** @deprecated Untranslatable. Use `emptyMessageKey`. */
   emptyMessage?: string;
 
   /** Pagination report template */
@@ -193,7 +200,8 @@ export const EF_DATATABLE_DEFAULTS: Required<EfDatatableConfig> = {
   size: 'small',
   styleClass: 'text-sm',
   tableStyle: { 'min-width': '50rem' },
-  emptyMessage: 'Aucune entree trouvee',
+  emptyMessageKey: 'common_empty_none_yet',
+  emptyMessage: '',
   currentPageReportTemplate: '{currentPage} de {totalPages}',
 };
 

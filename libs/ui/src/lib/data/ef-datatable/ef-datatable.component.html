@@ -1,3 +1,6 @@
+<!-- The pager's report slot reports; it is not where an empty state belongs.
+     It used to carry both, which is why a table with no rows printed
+     untranslated French inside the pager instead of saying it was empty. -->
 <p-table #pTable
   [value]="searchEntity()?.items || []"
   [columns]="processedColumns()"
@@ -25,7 +28,7 @@
   [class]="mergedConfig.styleClass"
   [tableStyle]="mergedConfig.tableStyle"
 
-  [currentPageReportTemplate]="searchEntity()?.totalCount ? 'Affichage de {first} a {last} sur {totalRecords} entrees' : mergedConfig.emptyMessage"
+  [currentPageReportTemplate]="'common_pager_report' | translate"
   [showCurrentPageReport]="true"
   [sortField]="sortField()"
   [sortOrder]="sortOrder()"
@@ -143,6 +146,20 @@
           </ef-datatable-actionbar>
         </td>
       }
+    </tr>
+  </ng-template>
+
+  <!-- A table with no rows says so in the table, in the viewer's language. -->
+  <ng-template #emptymessage>
+    <tr>
+      <td [attr.colspan]="columns().length + 1">
+        <div class="tbl-empty">
+          <i class="pi pi-inbox tbl-empty__icon" aria-hidden="true"></i>
+          <p class="tbl-empty__title">
+            {{ mergedConfig.emptyMessageKey ?? 'common_empty_none_yet' | translate }}
+          </p>
+        </div>
+      </td>
     </tr>
   </ng-template>
 </p-table>
