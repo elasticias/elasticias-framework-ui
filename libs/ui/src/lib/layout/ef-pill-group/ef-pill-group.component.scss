@@ -1,18 +1,116 @@
+/* The wrapper owns the shrinking; the track owns the scrolling. Keeping
+   them separate is what lets the fades sit still while the pills move.
+
+   `min-width: 0` on both is the point of the whole file: a flex item's
+   default min-width is auto, so without it one long row of pills sizes
+   its ancestors instead of scrolling, and the page grows wider than the
+   phone. */
+/* The host is the flex item its parent lays out, so the shrinking has to
+   start here. Styling only the inner wrapper leaves the host at its
+   content width — the row then never gets narrow enough for the track's
+   overflow to engage, and the pills are clipped by an ancestor instead
+   of scrolling. That is the original bug, one level up. */
+:host {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  /* `auto` basis, not 0: start from the content width so a row that fits
+     simply fits, and only shrink when the line runs out. A 0 basis makes
+     the group take an equal share of the line instead, which squeezed it
+     to 81px next to a date filter. */
+  flex: 1 1 auto;
+}
+
+@media (max-width: 767px) {
+  /* On a phone the group takes the whole line rather than splitting it
+     with the controls beside it — a scroller 81px wide shows one pill
+     and reads as a rendering fault. */
+  :host {
+    flex-basis: 100%;
+  }
+}
+
 .ef-pill-group {
-  display: inline-flex;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  inline-size: 100%;
+  border-radius: var(--r-pill);
+}
+
+.ef-pill-group__track {
+  display: flex;
   align-items: center;
   gap: 4px;
   padding: 4px;
-  border-radius: var(--r-pill);
-  background: transparent;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  border-radius: inherit;
+
+  /* A scrollbar under a pill row reads as a stray rule. The fades below
+     carry the affordance instead. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Fades say "there is more this way" without occupying layout. They are
+   painted only on the edge that actually has hidden content, and are
+   inert so they never swallow a tap. */
+.ef-pill-group::before,
+.ef-pill-group::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inline-size: 28px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--t-fast, 140ms) var(--ease-out, ease-out);
+  z-index: 1;
+}
+
+.ef-pill-group::before {
+  inset-inline-start: 0;
+  background: linear-gradient(to right, var(--paper-alt) 20%, transparent);
+}
+
+.ef-pill-group::after {
+  inset-inline-end: 0;
+  background: linear-gradient(to left, var(--paper-alt) 20%, transparent);
+}
+
+/* Logical properties flip with the document, but a linear-gradient
+   direction does not, so RTL swaps which edge each gradient points at. */
+[dir='rtl'] .ef-pill-group::before {
+  background: linear-gradient(to left, var(--paper-alt) 20%, transparent);
+}
+
+[dir='rtl'] .ef-pill-group::after {
+  background: linear-gradient(to right, var(--paper-alt) 20%, transparent);
+}
+
+.ef-pill-group.has-fade-start::before,
+.ef-pill-group.has-fade-end::after {
+  opacity: 1;
 }
 
 .ef-pill {
+  /* Never squeeze: a pill radius on a box that has wrapped to two lines
+     is a circle, not a pill. */
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  white-space: nowrap;
+
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: var(--hit);
-  padding: 0 14px;
+  block-size: var(--hit);
+  padding-inline: 14px;
   border: none;
   border-radius: var(--r-pill);
   background: transparent;
@@ -42,7 +140,9 @@
     color: var(--paper);
 
     .ef-pill__sep,
-    .ef-pill__count { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+    .ef-pill__count {
+      color: color-mix(in srgb, var(--paper) 70%, transparent);
+    }
   }
 }
 
@@ -53,4 +153,34 @@
 .ef-pill__count {
   font-variant-numeric: tabular-nums;
   color: var(--text-mute);
+}
+
+/* Touch gets the touch tier, not the desktop one. Applied by pointer
+   rather than width so a touch laptop is treated as touch too. */
+@media (pointer: coarse) {
+  .ef-pill {
+    block-size: var(--hit-touch);
+    padding-inline: 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 767px) {
+  .ef-pill-group__track {
+    /* Let the row reach the card edge so a half-visible pill reads as
+       "scrollable" rather than as a layout mistake. */
+    scroll-padding-inline: var(--s-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-pill-group::before,
+  .ef-pill-group::after,
+  .ef-pill {
+    transition: none;
+  }
+
+  .ef-pill-group__track {
+    scroll-behavior: auto;
+  }
 }
