@@ -368,3 +368,22 @@
     }
   }
 }
+
+/* Export can run for several seconds across many requests, so the icon
+   turns while it does. The global reduced-motion block in _comptoir.scss
+   clamps durations rather than stopping them, and an infinite animation
+   clamped to 0.01ms spins at maximum rate — so this one opts out
+   explicitly instead of relying on it. */
+.pi.is-spinning {
+  animation: ef-export-spin 900ms linear infinite;
+}
+
+@keyframes ef-export-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pi.is-spinning {
+    animation: none;
+  }
+}

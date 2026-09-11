@@ -63,11 +63,23 @@
     <div class="tbl-tools">
       <ng-content select="[tbl-head-actions]"></ng-content>
 
-      @if (showExportControl()) {
+      @if (canExport()) {
         <div class="tbl-tool">
-          <button class="btn btn-ghost btn-sm" type="button" (click)="requestExport()">
-            <i class="pi pi-download" aria-hidden="true"></i>
-            {{ 'common_export' | translate }}
+          <button
+            class="btn btn-ghost btn-sm"
+            type="button"
+            [disabled]="exporting()"
+            [attr.aria-busy]="exporting()"
+            (click)="requestExport()"
+          >
+            <i
+              class="pi"
+              [class.pi-download]="!exporting()"
+              [class.pi-spinner]="exporting()"
+              [class.is-spinning]="exporting()"
+              aria-hidden="true"
+            ></i>
+            {{ (exporting() ? 'common_export_running' : 'common_export') | translate }}
           </button>
         </div>
       }
@@ -336,7 +348,7 @@
       <p class="tbl-empty__hint">{{ 'common_empty_no_results_hint' | translate }}</p>
       <button class="btn btn-sm tbl-empty__action" type="button" (click)="clearSearch.emit()">
         <i class="pi pi-times" aria-hidden="true"></i>
-        {{ 'common_empty_clear_search' | translate }}
+        {{ 'common_empty_clear_filters' | translate }}
       </button>
     } @else {
       <p class="tbl-empty__title">{{ 'common_empty_none_yet' | translate }}</p>

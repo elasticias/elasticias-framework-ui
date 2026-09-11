@@ -317,6 +317,32 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     readonly showExportControl = input(false, { transform: booleanAttribute });
 
     /**
+     * True while the host is assembling the file. A full export pages the
+     * server and can run for seconds, so the control has to say it is
+     * working rather than look idle and ignore further clicks.
+     */
+    readonly exporting = input(false, { transform: booleanAttribute });
+
+    /**
+     * Screen context used to gate Export. Falls back to
+     * `rowActionsContext`, which every list screen already supplies, so
+     * moving Export out of `ef-search-toolbar` does not quietly drop the
+     * permission check that lived there.
+     */
+    readonly screenContext = input<ScreenContext | undefined>(undefined);
+
+    /**
+     * Mirrors `ef-search-toolbar`'s rule exactly: hidden unless asked for,
+     * and with a context present it obeys `hasExportPermission`. No
+     * context means no permission model is in play, so it renders.
+     */
+    readonly canExport = computed(() => {
+        if (!this.showExportControl()) return false;
+        const ctx = this.screenContext() ?? this.rowActionsContext();
+        return ctx ? ctx.hasExportPermission : true;
+    });
+
+    /**
      * The active free-text query, used only to word the empty state. When
      * this is set, zero rows means "nothing matched what you typed" and the
      * user is offered a way back; when it is empty, zero rows means the
