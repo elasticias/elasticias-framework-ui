@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfShortcutService, formatShortcut } from '@elasticias/core';
 
 /**
@@ -62,16 +62,25 @@ import { EfShortcutService, formatShortcut } from '@elasticias/core';
         <div class="screen-search">
             <div class="smart-bar">
                 <label class="search">
+                    <!-- The input takes its accessible name explicitly. The
+                         only text inside this label is the shortcut hint, so
+                         without it a screen reader announced the primary
+                         search field of every list screen as "Cmd K". -->
                     <input
                         #searchInput
-                        type="text"
+                        type="search"
+                        [attr.aria-label]="accessibleLabel()"
                         [placeholder]="(placeholderKey() ? (placeholderKey() | translate) : placeholder())"
                         [ngModel]="searchText()"
                         (ngModelChange)="searchText.set($event)"
                         (keydown.enter)="onSubmit()"
                     />
                     @if (showKbdHint() && kbdLabel()) {
-                        <span class="kbd">{{ kbdLabel() }}</span>
+                        <!-- Decorative, and hidden from the accessibility tree:
+                             it describes the shortcut, it does not name the
+                             field. Also hidden on touch, where there is no
+                             modifier key to press. -->
+                        <span class="kbd" aria-hidden="true">{{ kbdLabel() }}</span>
                     }
                 </label>
                 <div class="actions">
@@ -109,6 +118,7 @@ import { EfShortcutService, formatShortcut } from '@elasticias/core';
 })
 export class EfSmartBarComponent {
     private readonly shortcuts = inject(EfShortcutService);
+    private readonly translate = inject(TranslateService);
 
     /** Distinguishes this instance's registration from any other
      *  ef-smart-bar on screen, the same convention ef-row-actions uses. */
@@ -136,6 +146,18 @@ export class EfSmartBarComponent {
      *  (a screen with two smart bars registers the binding on only one
      *  of them). Defaults to `'mod+k'`. */
     readonly shortcut = input<string | null>('mod+k');
+
+    /**
+     * Accessible name for the search field: the placeholder text, which
+     * already says what this box searches ("Search by order N, customer,
+     * product, employee"). Falls back to a generic label when a screen
+     * supplies no placeholder.
+     */
+    protected readonly accessibleLabel = computed(() => {
+        const key = this.placeholderKey();
+        const resolved = key ? this.translate.instant(key) : this.placeholder();
+        return resolved?.trim() ? resolved : this.translate.instant('common_search');
+    });
 
     protected readonly kbdLabel = computed(() => {
         const keys = this.shortcut();

@@ -583,17 +583,21 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     }
 
     /**
-     * Hand the host screen everything it needs to write the file: the
-     * columns the viewer can actually see, in the order they see them, and
-     * the rows already on screen as a fallback for hosts that do not fetch.
-     * `select` and `actions` are chrome, never data, so they are dropped.
+     * Hand the host screen what it needs to write the file: the columns
+     * the viewer can actually see, in the order they see them, plus a
+     * resolver for their values. `select` and `actions` are chrome, never
+     * data, so they are dropped.
+     *
+     * The on-screen rows are deliberately not sent. They were, as a
+     * "fallback for hosts that do not fetch", and no host ever read them
+     * — a published contract carrying a field nobody consumes is a
+     * promise to keep supporting it.
      */
     requestExport(): void {
         this.exportRequest.emit({
             columns: this.effectiveColumns().filter(
                 c => c.id !== 'select' && c.id !== 'actions',
             ) as EfDataCardColumn[],
-            visibleRows: [...this.rows()] as unknown[],
             resolveCell: (row, col) => this.exportCellValue(row as TRow, col),
         });
     }
@@ -715,6 +719,31 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         if (!this.rowDoubleClickable()) return;
         const target = event.target as HTMLElement | null;
         if (target?.closest('button, a, input, select, textarea, label')) return;
+        this.rowDoubleClick.emit(row);
+    }
+
+    /**
+     * `aria-sort` for the header cell: the only thing that tells a screen
+     * reader which column is ordered and which way. The arrow glyph is
+     * decorative and marked aria-hidden, so without this the sort state
+     * was invisible to assistive technology.
+     */
+    ariaSort(col: EfDataCardColumn): 'ascending' | 'descending' | 'none' | null {
+        if (!col.sortable) return null;
+        const s = this.sort();
+        const field = col.sortField ?? col.field ?? col.id;
+        if (!s || s.field !== field) return 'none';
+        return s.direction === 'asc' ? 'ascending' : 'descending';
+    }
+
+    /**
+     * Open a row from the keyboard. Desktop opening is a double-click,
+     * which no keyboard can produce, so Enter on a focused row was the
+     * only missing half of the interaction.
+     */
+    onRowKeydown(row: TRow, event: Event): void {
+        if (!this.rowDoubleClickable()) return;
+        event.preventDefault();
         this.rowDoubleClick.emit(row);
     }
 

@@ -711,9 +711,14 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   /* ── CSV export ───────────────────────────────────────────────── */
 
   /**
-   * Rows fetched per request while exporting. The server rejects anything
-   * above 100 (`PaginationCriteriaValidator`), so this is the ceiling, not
-   * a preference.
+   * Rows fetched per request while exporting.
+   *
+   * `PaginationCriteriaValidator` caps PageSize at 100, but no ERP search
+   * query currently subclasses `PaginationQueryValidator`, so nothing
+   * enforces it today. 100 is therefore the documented contract rather
+   * than a wall: staying inside it keeps the export honest if the
+   * validator is ever wired up, and keeps one request from asking a Mongo
+   * collection for twenty thousand documents at once.
    */
   private static readonly EXPORT_PAGE_SIZE = 100;
 
@@ -739,7 +744,13 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     if (this.exporting()) return;
 
     const columns = request.columns.filter((c) => c.exportable !== false);
-    if (columns.length === 0) return;
+    if (columns.length === 0) {
+      // Returning quietly here would make Export a control that looks
+      // like it acts and does not, which is the exact failure the inert
+      // bulk bars were removed for.
+      this.toastService.showInfo(this.t('common_export_no_columns'));
+      return;
+    }
 
     this.exporting.set(true);
     void this.collectExportRows()

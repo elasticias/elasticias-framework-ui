@@ -415,15 +415,40 @@
   background: transparent;
   border: 0;
   border-radius: var(--r-xl);
-  padding: 8px 14px 8px 38px;
+  /* Logical, not `padding: 8px 14px 8px 38px`. The search icon is placed
+     with inset-inline-start, so a physical shorthand reserved the 38px on
+     the wrong side in Arabic and the placeholder ran under the glyph. */
+  padding-block: 8px;
+  padding-inline: 38px 14px;
   color: var(--text);
-  outline: 0;
-  min-height: 36px;
+  min-block-size: var(--hit-base);
   letter-spacing: -0.005em;
 }
 
+/* This field had `outline: 0` and nothing in its place, so the primary
+   search box on every list screen was the one control with no visible
+   focus at all. The ring goes on the label so it frames the whole
+   affordance, icon and shortcut hint included. */
+.smart-bar .search input:focus {
+  outline: 0;
+}
+
+.smart-bar .search:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--ink-active) 35%, transparent);
+  outline-offset: 2px;
+  border-radius: var(--r-xl);
+}
+
 .smart-bar .search input::placeholder {
-  color: var(--text-soft);
+  /* --text-soft is ink-400, about 2.5:1 on paper. A placeholder is real
+     text a user has to read, so it takes the 4.5:1 tier. */
+  color: var(--text-mute);
+}
+
+@media (pointer: coarse) {
+  .smart-bar .search input {
+    min-block-size: var(--hit-touch);
+  }
 }
 
 .smart-bar .search .kbd {
@@ -761,6 +786,46 @@
   white-space: nowrap;
 }
 
+/* A sortable header is a real button now, so it inherits the cell's type
+   rather than restating it, and carries a focus ring the click handler on
+   the <th> never could. */
+.tbl thead th .tbl-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.tbl thead th .tbl-sort:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ink-active) 40%, transparent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.tbl thead th .tbl-sort:hover {
+  color: var(--text);
+}
+
+.tbl-sort__arrow {
+  opacity: 0.7;
+}
+
+/* The row itself is focusable when it opens, so it needs a visible ring.
+   Enter activates it; the double-click stays for the mouse. */
+.tbl tbody tr.is-row-clickable:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ink-active) 40%, transparent);
+  outline-offset: -2px;
+}
+
 .tbl tbody td {
   padding: 14px 18px;
   border-bottom: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
@@ -773,6 +838,12 @@
 
 .tbl tbody tr {
   transition: background-color var(--t-fast) var(--ease-out);
+}
+
+/* The pointer belongs only on rows that actually open. It used to be set
+   on every row in every table, so a row that did nothing still promised
+   it would, and single-clicking any of them did nothing anywhere. */
+.tbl tbody tr.is-row-clickable {
   cursor: pointer;
 }
 
@@ -4510,5 +4581,32 @@ input.ef-input[type='number'] {
   .dp__trigger .dp__value {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+/* ── TOUCH TARGET TIER ──────────────────────────────────────────────
+   The design system documents three tiers: --hit-base 40px for forms,
+   --hit-touch 48px for touch, --hit-pos 64px for the till. Until now
+   --hit-touch appeared exactly once in this file, and every top-bar
+   icon, pagination control and row-actions trigger rendered at 32px on
+   a phone as well as a desktop, against a guide that promises 48.
+
+   Keyed on `pointer: coarse` rather than a width breakpoint, so a touch
+   laptop is treated as touch and a narrow desktop window is not. Only
+   the box grows; type and icon sizes are left alone. */
+@media (pointer: coarse) {
+  .btn,
+  .btn-sm {
+    min-block-size: var(--hit-touch);
+  }
+
+  .ef-app-top__action,
+  .ef-theme-toggle,
+  .ef-app-top__logout,
+  .row-actions__trigger,
+  .ef-clear,
+  .pg {
+    inline-size: var(--hit-touch);
+    block-size: var(--hit-touch);
   }
 }

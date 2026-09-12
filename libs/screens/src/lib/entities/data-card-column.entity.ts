@@ -149,8 +149,6 @@ export interface EfReferenceColumnOpts extends Partial<EfDataCardColumn> {
 export interface EfDataCardExportRequest {
     /** Visible columns, in display order, minus the row-actions column. */
     columns: EfDataCardColumn[];
-    /** The rows the card currently holds — the page the user can see. */
-    visibleRows: unknown[];
     /**
      * Resolves one cell for the file, using the same reference lookups the
      * table renders with. Supplied by the card so label resolution lives in

@@ -252,23 +252,27 @@
       <thead>
         <tr>
           @for (col of effectiveColumns(); track trackByColumn($index, col)) {
+            <!-- A sortable header is a real <button> inside the <th>, not a
+                 click handler on the cell. The cell carries aria-sort so the
+                 current order is announced; the arrow stays decorative.
+                 Sorting was previously mouse-only and silent to assistive
+                 technology, on every list screen in the product. -->
             <th
               [class]="headerAlignClass(col)"
               [class.is-sortable]="col.sortable"
               [style.width]="col.width || null"
               [attr.data-col]="col.id"
-              (click)="onHeaderClick(col)"
-              [style.cursor]="col.sortable ? 'pointer' : null"
+              [attr.aria-sort]="ariaSort(col)"
             >
-              @if (headerTemplate(col.id); as headerTpl) {
-                <ng-container *ngTemplateOutlet="headerTpl; context: { $implicit: col, col: col }"></ng-container>
-              } @else if (col.headerKey) {
-                <span>{{ col.headerKey | translate }}</span>
-              } @else if (col.header) {
-                <span>{{ col.header }}</span>
-              }
-              @if (col.sortable && sortIndicator(col)) {
-                <span aria-hidden="true" style="margin-inline-start: 4px; opacity: 0.7;">{{ sortIndicator(col) }}</span>
+              @if (col.sortable) {
+                <button type="button" class="tbl-sort" (click)="onHeaderClick(col)">
+                  <ng-container *ngTemplateOutlet="headerLabelTpl; context: { col: col }"></ng-container>
+                  @if (sortIndicator(col)) {
+                    <span aria-hidden="true" class="tbl-sort__arrow">{{ sortIndicator(col) }}</span>
+                  }
+                </button>
+              } @else {
+                <ng-container *ngTemplateOutlet="headerLabelTpl; context: { col: col }"></ng-container>
               }
             </th>
           }
@@ -279,7 +283,10 @@
         @for (row of rows(); track trackByRow($index, row)) {
           <tr
             [class.is-row-clickable]="rowDoubleClickable()"
+            [attr.tabindex]="rowDoubleClickable() ? 0 : null"
+            [attr.role]="rowDoubleClickable() ? 'button' : null"
             (dblclick)="onRowDoubleClick(row, $event)"
+            (keydown.enter)="onRowKeydown(row, $event)"
           >
             @for (col of effectiveColumns(); track trackByColumn($index, col); let colIdx = $index) {
               <td [class]="cellAlignClass(col)" [attr.data-col]="col.id">
@@ -355,4 +362,16 @@
       <p class="tbl-empty__hint">{{ 'common_empty_none_yet_hint' | translate }}</p>
     }
   </div>
+</ng-template>
+
+<!-- Header label, shared by the sortable and plain header cells so the
+     projection rules stay in one place. -->
+<ng-template #headerLabelTpl let-col="col">
+  @if (headerTemplate(col.id); as headerTpl) {
+    <ng-container *ngTemplateOutlet="headerTpl; context: { $implicit: col, col: col }"></ng-container>
+  } @else if (col.headerKey) {
+    <span>{{ col.headerKey | translate }}</span>
+  } @else if (col.header) {
+    <span>{{ col.header }}</span>
+  }
 </ng-template>
