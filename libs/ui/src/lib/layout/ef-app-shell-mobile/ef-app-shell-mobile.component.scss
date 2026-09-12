@@ -73,7 +73,7 @@
 }
 
 .ef-app-shell-mobile__tab-label {
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -84,7 +84,7 @@
 }
 
 .ef-app-shell-mobile__sheet-title {
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-variation-settings: 'opsz' 96, 'wght' 600, 'wdth' 95;
   font-size: 22px;
   letter-spacing: -0.025em;
@@ -113,7 +113,7 @@
   border-radius: var(--r-md);
   color: var(--text);
   cursor: pointer;
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 500;
   text-align: left;

@@ -80,7 +80,7 @@
 .ef-tabs__tab.is-active .ef-tabs__ico { opacity: 1; }
 
 .ef-tabs__count {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 700;
   background: var(--paper);

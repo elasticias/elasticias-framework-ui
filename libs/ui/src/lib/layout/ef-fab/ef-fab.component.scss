@@ -29,7 +29,7 @@
   cursor: pointer;
   transition: transform var(--t-fast) var(--ease-spring),
               box-shadow var(--t-fast) var(--ease-out);
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-size: 14.5px;
   font-weight: 600;
   letter-spacing: -0.005em;

@@ -118,7 +118,7 @@
   }
 
   &__recipient {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--p-text-muted-color);
   }

@@ -54,6 +54,17 @@
   --st-refunded-fg:   #826208;  --st-refunded-bg:   #fdf1c8;
   --st-onhold-fg:     #4f5560;  --st-onhold-bg:     #e7e9ee;
 
+  /* ── Typography ───────────────────────────────────────────────
+     The three faces, defined once. They were hardcoded 79 times across
+     16 files, and the same face carried different fallback chains in
+     different components — so a render without the webfont looked
+     different depending on which component drew it. Stacks match
+     libs/tokens/typography.json, which is the contract that ships to
+     web, iOS and Android. */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-ui:      'Manrope', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
   /* ── Radii ───────────────────────────────────────────────────── */
   --r-sm:   8px;
   --r-md:   12px;

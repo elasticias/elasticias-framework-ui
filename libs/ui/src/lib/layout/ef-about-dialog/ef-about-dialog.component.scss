@@ -19,7 +19,7 @@
   border-radius: var(--r-pill, 999px);
   background: var(--tenant-500);
   color: #fff;
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-variation-settings:
     'opsz' 12,
     'wght' 700,
@@ -37,7 +37,7 @@
 
 .ef-about__product {
   margin: 2px 0 0;
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-variation-settings:
     'opsz' 14,
     'wght' 700,
@@ -87,7 +87,7 @@
   dd {
     min-width: 0;
     margin: 0;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 11.5px;
     color: var(--text);
     text-align: end;
@@ -108,7 +108,7 @@
   margin: 4px 0 0;
   padding-top: 12px;
   border-top: 1px solid var(--rule);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;

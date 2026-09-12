@@ -43,7 +43,7 @@
   color: var(--paper, #fff);
   /* Same face as the `.avatar` pattern: this chip is now the only place the
      signed-in user appears, so it reads as the identity mark, not as data. */
-  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-variation-settings:
     'opsz' 12,
     'wght' 700,
