@@ -177,6 +177,16 @@
     }
 
     // ── Lines table (flows with page scroll; full-bleed in the card body) ──
+    /* The table's own scroll box. It must be able to shrink (min-width: 0)
+       or the seven columns size the grid column instead and the page grows
+       wider than the phone. */
+    .ob-tbl-scroll {
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+    }
+
     .ob-tbl {
       margin-inline: -16px;
       border-collapse: separate;
@@ -193,6 +203,14 @@
       }
 
       thead th {
+        /* Sticky, because this table is the 100-to-150-line surface the
+           product is built around. At line 60 the headers had scrolled
+           away and the operator was typing quantities and discounts into
+           four unlabelled number columns. `border-collapse: separate`
+           above is what makes a sticky th possible at all. */
+        position: sticky;
+        top: 0;
+        z-index: 2;
         background: var(--paper);
         text-align: end;
         padding: 8px 10px;
@@ -617,8 +635,21 @@
         padding: 14px;
         overflow: auto;
         gap: var(--s-3);
+        /* There is no logical transform, so the off-screen direction has
+           to be stated per writing mode. The rail is pinned with
+           inset-inline-end, which in Arabic is the LEFT edge — a single
+           translateX(101%) pushed it right, into the page, and the
+           totals panel covered the order form instead of hiding. */
         transform: translateX(101%);
         transition: transform var(--t-base) var(--ease-out);
+
+        /* Nested inside .ob-rail on purpose. `:host-context()` cannot be
+           used here: four levels down inside :host and a media query it
+           does not compile to a selector that matches anything, which is
+           how the first attempt at this fix silently did nothing. */
+        [dir='rtl'] & {
+          transform: translateX(-101%);
+        }
       }
 
       .ob-rail-close {
@@ -659,8 +690,21 @@
         padding: 14px;
         overflow: auto;
         gap: var(--s-3);
+        /* There is no logical transform, so the off-screen direction has
+           to be stated per writing mode. The rail is pinned with
+           inset-inline-end, which in Arabic is the LEFT edge — a single
+           translateX(101%) pushed it right, into the page, and the
+           totals panel covered the order form instead of hiding. */
         transform: translateX(101%);
         transition: transform var(--t-base) var(--ease-out);
+
+        /* Nested inside .ob-rail on purpose. `:host-context()` cannot be
+           used here: four levels down inside :host and a media query it
+           does not compile to a selector that matches anything, which is
+           how the first attempt at this fix silently did nothing. */
+        [dir='rtl'] & {
+          transform: translateX(-101%);
+        }
       }
 
       .ob-rail-close {

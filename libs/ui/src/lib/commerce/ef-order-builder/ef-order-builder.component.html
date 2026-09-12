@@ -110,6 +110,11 @@
             (clickEvent)="toggleFocus()" />
         </div>
 
+        <!-- The lines table carries seven columns of numbers and cannot
+             usefully shrink to 390px, so it scrolls inside its own box
+             rather than widening the page. It had no scroller at all: at
+             390px the table measured 540px and was simply clipped. -->
+        <div class="ob-tbl-scroll">
         <table class="ob-tbl">
             <thead>
               <tr>
@@ -265,6 +270,7 @@
               }
             </tbody>
         </table>
+        </div>
       </ef-card>
     </div>
 
