@@ -55,7 +55,11 @@
       }
 
       @media (max-width: 767px) {
-        > [class^='col-'] {
+        /* `*=`, not `^=`. The markup is `class="field col-6"`, so a
+           starts-with match never fired and the customer and date fields
+           stayed side by side on a phone: 156px and 72px wide, with the
+           date clipped under its own chevron. */
+        > [class*='col-'] {
           grid-column: span 12;
         }
       }
@@ -541,7 +545,10 @@
       display: none;
       position: fixed;
       inset-inline-end: 20px;
-      bottom: 20px;
+      /* Clear the phone tab bar and the home indicator. env() resolves to
+         0px where there is no inset, so this is the same 20px on a
+         desktop browser. */
+      bottom: calc(var(--app-bottom-bar, 0px) + env(safe-area-inset-bottom, 0px) + 20px);
       z-index: 30;
       align-items: center;
       gap: 10px;

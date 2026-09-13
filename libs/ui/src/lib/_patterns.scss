@@ -4616,4 +4616,46 @@ input.ef-input[type='number'] {
     inline-size: var(--hit-touch);
     block-size: var(--hit-touch);
   }
+
+  /* Toolbar buttons collapse to icon-only below 767px, so the blanket
+     min-block-size above stretched a 40px-wide button to 48px tall and
+     produced a lozenge four-across in the header. Here the VISUAL stays
+     40px square and the TOUCH TARGET reaches the tier through a hit
+     slop, which is the point of the tier: a thumb needs 48px, an eye
+     does not. */
+  .detail-toolbar .right .btn,
+  .search-toolbar .right .btn {
+    position: relative;
+    inline-size: var(--hit-base);
+    block-size: var(--hit-base);
+    min-inline-size: 0;
+    min-block-size: 0;
+    padding: 0;
+  }
+
+  .detail-toolbar .right .btn::after,
+  .search-toolbar .right .btn::after {
+    content: '';
+    position: absolute;
+    /* (48 - 40) / 2 outward on every side */
+    inset: calc((var(--hit-touch) - var(--hit-base)) / -2);
+  }
+}
+
+
+/* ── MOBILE BOTTOM BAR ──────────────────────────────────────────────
+   The phone shell renders a 64px tab bar fixed to the bottom edge.
+   Anything else pinned down there has to clear it, so the height is
+   published as a token rather than copied as a magic number: the order
+   builder's totals pill sat at bottom: 20px and covered the
+   Administration tab, taking a primary navigation destination with it.
+   0px above the breakpoint, where no tab bar is rendered. */
+:root {
+  --app-bottom-bar: 0px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --app-bottom-bar: 64px;
+  }
 }
