@@ -34,6 +34,9 @@ import { EfCardComponent } from '../../layout/ef-card/ef-card.component';
 import { EfChangeHistoryComponent } from '../../data/ef-change-history/ef-change-history.component';
 import { EfChangeHistoryEntry } from '../../data/ef-change-history/ef-change-history.types';
 import { EfProductTypeaheadComponent } from '../ef-product-typeahead/ef-product-typeahead.component';
+import { EfDataCardComponent } from '../../data/ef-data-card/ef-data-card.component';
+import { EfColumnTemplateDirective } from '../../data/ef-data-card/ef-column-template.directive';
+import type { EfDataCardColumn } from '../../data/ef-data-card/ef-data-card.types';
 import { ProductTypeaheadSelection } from '../ef-product-typeahead/ef-product-typeahead.component.types';
 import { UuidUtils } from '@elasticias/utils';
 
@@ -72,6 +75,8 @@ type EditableLineField = 'price' | 'qty' | 'discount' | 'tva';
     EfCardComponent,
     EfChangeHistoryComponent,
     EfProductTypeaheadComponent,
+    EfDataCardComponent,
+    EfColumnTemplateDirective,
   ],
 })
 export class EfOrderBuilderComponent implements OnInit {
@@ -247,13 +252,80 @@ export class EfOrderBuilderComponent implements OnInit {
     field: EditableLineField;
   } | null>(null);
 
-  /** Number of table columns, used for the empty-state colspan. */
-  colCount = computed(
-    () =>
-      5 +
-      (this.config().enableDiscount ? 1 : 0) +
-      (this.config().enableTax ? 1 : 0),
-  );
+  /**
+   * Columns for the lines table.
+   *
+   * Only the article column is elastic: it carries no width and so absorbs
+   * whatever the fixed columns leave. Every other column holds a number whose
+   * magnitude is known in advance, so a fixed track keeps the decimal points
+   * aligned down the table instead of letting the longest product description
+   * shift them. The `mobile` roles decide what `ef-data-card` shows on a
+   * phone before the row is expanded, which is why the article leads and the
+   * subtotal reads as the row's status.
+   */
+  readonly lineColumns = computed<EfDataCardColumn[]>(() => {
+    const cfg = this.config();
+    const cols: EfDataCardColumn[] = [
+      { id: 'product', headerKey: 'label.article', mobile: 'primary' },
+      {
+        id: 'price',
+        headerKey: 'label.sale_price',
+        width: '132px',
+        align: 'end',
+        cellClass: 'num',
+        mobile: 'secondary',
+      },
+      {
+        id: 'qty',
+        headerKey: 'label.quantity',
+        width: '116px',
+        align: 'end',
+        cellClass: 'num',
+        mobile: 'secondary',
+      },
+    ];
+    if (cfg.enableDiscount) {
+      cols.push({
+        id: 'discount',
+        headerKey: 'label.discount',
+        width: '104px',
+        align: 'end',
+        cellClass: 'num',
+        mobile: 'detail',
+      });
+    }
+    if (cfg.enableTax) {
+      cols.push({
+        id: 'tax',
+        headerKey: 'order_builder.tax',
+        width: '104px',
+        align: 'end',
+        cellClass: 'num',
+        mobile: 'detail',
+      });
+    }
+    cols.push({
+      id: 'subtotal',
+      headerKey: 'label.subtotal',
+      width: '136px',
+      align: 'end',
+      cellClass: 'total',
+      mobile: 'status',
+    });
+    if (!this.readonly()) {
+      cols.push({
+        id: 'remove',
+        header: '',
+        width: '56px',
+        align: 'end',
+        cellClass: 'col-act',
+        mobile: 'detail',
+        hideable: false,
+        exportable: false,
+      });
+    }
+    return cols;
+  });
 
   isEditingCell(item: OrderLineItem, field: EditableLineField): boolean {
     const cell = this.editingCell();
@@ -336,6 +408,23 @@ export class EfOrderBuilderComponent implements OnInit {
   ngOnInit(): void {
     this.originalOrder.set(OrderEntityHelper.clone(this.order()));
     this.initialized.set(true);
+  }
+
+  /**
+   * Move a line to a new position.
+   *
+   * The order of an order's lines is data the operator owns — it is the order
+   * the picker walks the shelves in and the order the printed document reads
+   * in — so it is reordered by hand rather than derived from a sort.
+   */
+  reorderLine(ev: { from: number; to: number }): void {
+    if (this.readonly()) return;
+    const items = [...this.orderLines()];
+    if (ev.from < 0 || ev.from >= items.length) return;
+    if (ev.to < 0 || ev.to >= items.length) return;
+    const [moved] = items.splice(ev.from, 1);
+    items.splice(ev.to, 0, moved);
+    this.updateOrderLines(items);
   }
 
   removeOrderLine(id: string | number | undefined): void {

@@ -1,8 +1,8 @@
 <!-- One cell renderer, shared by the table, the mobile row and the mobile
      detail. A new column type is added here once, not three times. -->
-<ng-template #cellTpl let-row let-col="col">
+<ng-template #cellTpl let-row let-col="col" let-index="index">
   @if (bodyTemplate(col.id); as bodyTpl) {
-    <ng-container *ngTemplateOutlet="bodyTpl; context: { $implicit: row, col: col }"></ng-container>
+    <ng-container *ngTemplateOutlet="bodyTpl; context: { $implicit: row, col: col, index: index }"></ng-container>
   } @else {
               @switch (col.type) {
                 @case ('number') {
@@ -183,15 +183,15 @@
           >
             <div class="mrow__lead">
               @if (primaryColumn(); as pc) {
-                <span class="mrow__primary">
-                  <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: pc }"></ng-container>
+                <span class="mrow__primary" efOverflowTooltip efTooltip efTooltipPosition="top">
+                  <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: pc, index: i }"></ng-container>
                 </span>
               }
               @if (effectiveMobileLayout() === 'row' && secondaryColumns().length) {
                 <span class="mrow__secondary">
                   @for (sc of secondaryColumns(); track sc.id) {
                     <span class="mrow__sec-part">
-                      <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: sc }"></ng-container>
+                      <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: sc, index: i }"></ng-container>
                     </span>
                   }
                 </span>
@@ -200,7 +200,7 @@
 
             <div class="mrow__trail">
               @if (statusColumn(); as st) {
-                <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: st }"></ng-container>
+                <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: st, index: i }"></ng-container>
               }
               @if (hasActionsColumn()) {
                 <span class="mrow__actions">
@@ -225,7 +225,7 @@
                 <div class="mrow__field">
                   <dt>{{ $any(col).headerKey ? ($any(col).headerKey | translate) : $any(col).header }}</dt>
                   <dd [class]="cellAlignClass($any(col))">
-                    <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: col }"></ng-container>
+                    <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: col, index: i }"></ng-container>
                   </dd>
                 </div>
               }
@@ -251,6 +251,9 @@
     <table class="tbl">
       <thead>
         <tr>
+          @if (reorderable()) {
+            <th class="tbl-drag-h" aria-hidden="true"></th>
+          }
           @for (col of effectiveColumns(); track trackByColumn($index, col)) {
             <!-- A sortable header is a real <button> inside the <th>, not a
                  click handler on the cell. The cell carries aria-sort so the
@@ -280,16 +283,37 @@
       </thead>
 
       <tbody>
-        @for (row of rows(); track trackByRow($index, row)) {
+        @for (row of rows(); track trackByRow($index, row); let i = $index) {
           <tr
             [class.is-row-clickable]="rowDoubleClickable()"
+            [class.is-dragging]="dragFrom() === i"
+            [class.is-drop-target]="dragFrom() !== null && dragFrom() !== i && dragTo() === i"
             [attr.tabindex]="rowDoubleClickable() ? 0 : null"
             [attr.role]="rowDoubleClickable() ? 'button' : null"
             (dblclick)="onRowDoubleClick(row, $event)"
             (keydown.enter)="onRowKeydown(row, $event)"
           >
+            @if (reorderable()) {
+              <td class="tbl-drag">
+                <!-- The row is draggable only by this handle, so a drag never
+                     starts from a cell the operator meant to click or select.
+                     Arrow keys move the row for anyone not using a pointer. -->
+                <button
+                  type="button"
+                  class="tbl-drag__grip"
+                  [attr.aria-label]="'common_reorder_row' | translate"
+                  (pointerdown)="onDragPointerDown(i, $event)"
+                  (pointermove)="onDragPointerMove($event)"
+                  (pointerup)="onDragPointerUp()"
+                  (pointercancel)="onDragPointerUp()"
+                  (keydown)="onDragKeydown(i, $event)"
+                >
+                  <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+                </button>
+              </td>
+            }
             @for (col of effectiveColumns(); track trackByColumn($index, col); let colIdx = $index) {
-              <td [class]="cellAlignClass(col)" [attr.data-col]="col.id">
+              <td efOverflowTooltip efTooltip efTooltipPosition="top" [class]="cellAlignClass(col)" [attr.data-col]="col.id">
                 @if (col.id === 'actions' && hasActionsColumn()) {
                   <!-- Auto row-actions cell: View / Edit / Duplicate / Delete,
                        gated by [show*Action] flags + ScreenContext perms. -->
@@ -299,7 +323,7 @@
                   />
                 } @else {
                   <ng-container
-                    *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: col }"
+                    *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: col, index: i }"
                   ></ng-container>
                 }
                           </td>
@@ -307,7 +331,7 @@
           </tr>
         } @empty {
           <tr>
-            <td [attr.colspan]="effectiveColumns().length">
+            <td [attr.colspan]="effectiveColumns().length + (reorderable() ? 1 : 0)">
               <ng-content select="[empty-state]">
                 <ng-container *ngTemplateOutlet="defaultEmptyTpl"></ng-container>
               </ng-content>

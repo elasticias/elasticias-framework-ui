@@ -125,6 +125,7 @@ export {
     EfColumnTemplateDirective,
     EfColumnHeaderTemplateDirective,
 } from './lib/data/ef-data-card/ef-column-template.directive';
+export { EfOverflowTooltipDirective } from './lib/data/ef-data-card/ef-overflow-tooltip.directive';
 export type {
     EfDataCardColumn,
     EfDataCardColumnType,

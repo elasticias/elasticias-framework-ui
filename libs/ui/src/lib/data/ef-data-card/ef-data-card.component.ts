@@ -31,6 +31,8 @@ import { EfPagerComponent } from '../ef-pager/ef-pager.component';
 import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
 import { EfRowActionsComponent } from '../ef-row-actions/ef-row-actions.component';
 import { EfRowAction } from '../ef-row-actions/ef-row-actions.types';
+import { EfOverflowTooltipDirective } from './ef-overflow-tooltip.directive';
+import { EfTooltipDirective } from '../../overlays/ef-tooltip.directive';
 import {
     EfColumnHeaderTemplateDirective,
     EfColumnTemplateDirective,
@@ -92,6 +94,8 @@ export type EfTableDensity = 'compact' | 'default' | 'comfortable';
         EfPagerComponent,
         EfStatusChipComponent,
         EfRowActionsComponent,
+        EfOverflowTooltipDirective,
+        EfTooltipDirective,
     ],
     templateUrl: './ef-data-card.component.html',
     styleUrl: './ef-data-card.component.scss',
@@ -389,6 +393,8 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     private readonly headerTemplateMap = signal<Map<string, TemplateRef<unknown>>>(new Map());
 
     ngAfterContentInit(): void {
+        // Seed from the input first so a saved preference below still wins.
+        this.density.set(this.defaultDensity());
         this.loadPreferences();
         this.bodyTemplateMap.set(toMap(this.bodyTemplates));
         this.headerTemplateMap.set(toMap(this.headerTemplates));
@@ -549,6 +555,77 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     /** Which tools panel is open, if any. */
     readonly openTool = signal<'density' | 'columns' | null>(null);
+
+    /**
+     * Density this table starts at.
+     *
+     * A viewer's own choice, restored from storage via `tableKey`, still wins;
+     * this only moves the starting point for a table whose rows are meant to be
+     * scanned in bulk (an order's lines, say) rather than read one at a time.
+     */
+    readonly defaultDensity = input<EfTableDensity>('default');
+
+    /**
+     * Let the viewer drag rows into a new order. Off by default: reordering
+     * only means something where the row order is itself data the user owns
+     * (an order's lines), not on a list whose order comes from a sort.
+     *
+     * Adds a leading handle column; the row is only draggable by that handle,
+     * so selecting text in a cell still works.
+     */
+    readonly reorderable = input(false, { transform: booleanAttribute });
+
+    /** The moved row's original and new index, once the drag settles. */
+    readonly rowReorder = output<{ from: number; to: number }>();
+
+    /** Index being dragged, and the index it would land on. */
+    readonly dragFrom = signal<number | null>(null);
+    readonly dragTo = signal<number | null>(null);
+
+    onDragPointerDown(index: number, ev: PointerEvent): void {
+        if (!this.reorderable()) return;
+        // Stops the gesture turning into a text selection or a native drag.
+        ev.preventDefault();
+        (ev.target as HTMLElement).setPointerCapture?.(ev.pointerId);
+        this.dragFrom.set(index);
+        this.dragTo.set(index);
+    }
+
+    onDragPointerMove(ev: PointerEvent): void {
+        if (this.dragFrom() === null) return;
+        // Pointer capture keeps events on the handle, so the row under the
+        // cursor has to be resolved by hit-testing rather than by event target.
+        const under = document.elementFromPoint(ev.clientX, ev.clientY);
+        const tr = (under as HTMLElement | null)?.closest('tbody tr');
+        const body = tr?.parentElement;
+        if (!tr || !body) return;
+        const idx = Array.prototype.indexOf.call(body.children, tr);
+        if (idx >= 0) this.dragTo.set(idx);
+    }
+
+    onDragPointerUp(): void {
+        const from = this.dragFrom();
+        const to = this.dragTo();
+        this.dragFrom.set(null);
+        this.dragTo.set(null);
+        if (from === null || to === null || from === to) return;
+        this.rowReorder.emit({ from, to });
+    }
+
+    /**
+     * Keyboard equivalent of the drag. A handle that only answers to a pointer
+     * puts the row order out of reach of anyone not using a mouse, so the same
+     * move is on the arrow keys while the handle has focus.
+     */
+    onDragKeydown(index: number, ev: KeyboardEvent): void {
+        if (!this.reorderable()) return;
+        const delta = ev.key === 'ArrowUp' ? -1 : ev.key === 'ArrowDown' ? 1 : 0;
+        if (!delta) return;
+        const to = index + delta;
+        if (to < 0 || to >= this.rows().length) return;
+        ev.preventDefault();
+        this.rowReorder.emit({ from: index, to });
+    }
 
     /** Row density. Applied as a class on `.tbl-wrap`. */
     readonly density = signal<EfTableDensity>('default');

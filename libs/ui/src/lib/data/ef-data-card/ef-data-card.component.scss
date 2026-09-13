@@ -387,3 +387,68 @@
     animation: none;
   }
 }
+
+/* ──────────── DRAG TO REORDER ────────────────────────────────────
+   Only shown when [reorderable] is on. The grip is the single drag
+   affordance: rows are not draggable by their cells, so selecting a
+   product name or clicking into an inline editor still behaves. */
+.tbl th.tbl-drag-h,
+.tbl td.tbl-drag {
+    width: 28px;
+    padding-inline: 4px 0;
+    text-align: center;
+}
+
+.tbl td.tbl-drag {
+    /* The grip must not inherit the cell's `cursor: text` from an
+       editable row, or the one control that moves the row looks inert. */
+    cursor: default;
+}
+
+.tbl .tbl-drag__grip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-soft);
+    cursor: grab;
+    /* Without this the browser claims the vertical gesture for scrolling
+       and the drag never starts on a touch device. */
+    touch-action: none;
+    transition:
+        background var(--t-fast, 140ms) var(--ease-out, ease-out),
+        color var(--t-fast, 140ms) var(--ease-out, ease-out);
+
+    &:hover {
+        background: var(--paper);
+        color: var(--text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--tenant, var(--rule));
+        outline-offset: 1px;
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    i {
+        font-size: 12px;
+    }
+}
+
+/* The row being carried, and the row it would displace. */
+.tbl tbody tr.is-dragging > td {
+    background: var(--paper);
+    opacity: 0.55;
+}
+
+.tbl tbody tr.is-drop-target > td {
+    box-shadow: inset 0 2px 0 var(--tenant, var(--rule));
+}

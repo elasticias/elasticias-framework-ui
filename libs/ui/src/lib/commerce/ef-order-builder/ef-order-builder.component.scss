@@ -184,80 +184,24 @@
     /* The table's own scroll box. It must be able to shrink (min-width: 0)
        or the seven columns size the grid column instead and the page grows
        wider than the phone. */
-    .ob-tbl-scroll {
-      min-width: 0;
-      max-width: 100%;
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-    }
 
-    .ob-tbl {
-      margin-inline: -16px;
-      border-collapse: separate;
-      border-spacing: 0;
+    /* Cell content inside the lines table.
+
+       ef-data-card owns the table chrome now — sticky head, row rules, cell
+       padding, density, the horizontal scroller and the mobile cards — so the
+       rules that used to duplicate it here are gone. What remains dresses only
+       what the column templates render. Because those templates are declared
+       in this component, emulated encapsulation still scopes them here even
+       though they are projected into the data card. */
+    ef-data-card {
+      /* The lines table is a working surface, not a reading one: an order
+         runs to 100+ lines and the operator scans down a column rather than
+         reading a row at a time. `defaultDensity="compact"` tightens the row
+         padding; this keeps the type at the same 13px the table has always
+         used, so the whole block stays dense. */
       font-size: 13px;
 
-      thead th:first-child,
-      tbody td:first-child {
-        padding-inline-start: 16px;
-      }
-      thead th:last-child,
-      tbody td:last-child {
-        padding-inline-end: 16px;
-      }
-
-      thead th {
-        /* Sticky, because this table is the 100-to-150-line surface the
-           product is built around. At line 60 the headers had scrolled
-           away and the operator was typing quantities and discounts into
-           four unlabelled number columns. `border-collapse: separate`
-           above is what makes a sticky th possible at all. */
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background: var(--paper);
-        text-align: end;
-        padding: 8px 10px;
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        font-weight: 800;
-        color: var(--text-mute);
-        white-space: nowrap;
-        box-shadow: inset 0 -1px 0 var(--rule);
-
-        &.col-prod {
-          text-align: start;
-        }
-        &.col-act {
-          width: 42px;
-        }
-      }
-
-      tbody td {
-        padding: 7px 10px;
-        text-align: end;
-        border-bottom: 1px solid var(--rule-soft);
-        vertical-align: middle;
-        white-space: nowrap;
-      }
-
-      tbody tr:hover td {
-        background: var(--paper);
-      }
-
-      .col-prod {
-        text-align: start;
-        min-width: 186px;
-      }
-
-      @media (max-width: 767px) {
-        .col-prod {
-          min-width: 168px;
-        }
-      }
-
-      // Product cell: muted line-number + truncating name/ref
+      /* Product cell: muted line-number + truncating name/ref. */
       .p {
         display: flex;
         align-items: baseline;
@@ -302,6 +246,7 @@
         }
       }
 
+      /* Tabular figures so the decimal points line up column-wise. */
       .num,
       .total {
         font-family: var(--font-mono);
@@ -309,8 +254,8 @@
         font-variant-numeric: tabular-nums;
       }
 
-      // Read-only numeric value that reveals it's editable on hover/focus.
-      // Clicking swaps the cell to an ef-inputnumber (inline edit, V1 style).
+      /* Read-only numeric value that reveals it is editable on hover/focus.
+         Clicking swaps the cell to an ef-inputnumber. */
       .ln-val {
         appearance: none;
         width: 100%;
@@ -363,22 +308,25 @@
         margin-inline-start: 3px;
       }
 
-      .ed {
-        cursor: text;
-        padding: 4px 7px;
-        border-radius: 6px;
-        border: 1px solid transparent;
-        display: inline-block;
-        font-family: var(--font-mono);
-
-        &:hover {
-          background: var(--paper-alt);
-          border-color: var(--rule);
-        }
-      }
-
       .free {
         color: var(--st-delivered-fg);
+      }
+    }
+
+    /* Title projected into the data card's head slot. */
+    .ob-lines-head {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      min-width: 0;
+
+      .strong {
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .meta {
+        color: var(--text-soft);
       }
     }
 
@@ -742,11 +690,32 @@
    strong character, the way <bdi> does, so a Latin product name stays
    LTR and an Arabic one stays RTL without either being hardcoded. */
 :host {
-  .ob-tbl .nm,
-  .ob-tbl .num,
-  .ob-tbl .ln-val,
+  ef-data-card .nm,
+  ef-data-card .num,
+  ef-data-card .ln-val,
   .ob-totals .v,
   .ob-sum-val {
     unicode-bidi: plaintext;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Bottom clearance on a phone.
+
+   The floating summary is `position: fixed` above the tab bar, so it sits
+   over the end of the lines list rather than after it. Without matching
+   padding the last line is permanently underneath it and can never be read
+   or deleted — which is exactly what a long order ends with.
+
+   The value mirrors the FAB's own offset (tab bar + home indicator + 20px)
+   and adds its height plus a gap, so the list always stops clear of it.
+   Last in the file on purpose: a media query adds no specificity, so a base
+   rule declared later would beat it at every width.
+   ────────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  :host .order-builder {
+    padding-bottom: calc(
+      var(--app-bottom-bar, 0px) + env(safe-area-inset-bottom, 0px) + 20px + 56px + var(--s-4)
+    );
   }
 }
