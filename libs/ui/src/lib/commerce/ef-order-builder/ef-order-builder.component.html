@@ -78,11 +78,16 @@
                 />
               </div>
               <div class="qa-go">
+                <!-- Ghost while the preconditions are unmet, tenant once the
+                     line is addable. A disabled control painted in a faded
+                     tenant fill reads as an enabled button that lost its
+                     colour, which is the greyed-out accent the design brief
+                     bans; ghost reads as "not yet". -->
                 <ef-button
                   labelKey="action.add"
                   icon="pi pi-plus"
                   variant="comptoir"
-                  severity="tenant"
+                  [severity]="quickAddDisabled() ? 'ghost' : 'tenant'"
                   [disabled]="quickAddDisabled()"
                   (clickEvent)="addQuickProduct()" />
               </div>
