@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 /**
- * 12-column form-grid primitive. Children use `.col-2/3/4/6/8/9/12`
- * to claim spans; on viewports < 720px every span collapses to 12.
+ * 12-column form-grid primitive. Children use `.col-1` through
+ * `.col-12` to claim spans; at 767px and below (the shell's own
+ * mobile breakpoint) every span collapses to the full 12, so a
+ * field never carries a per-breakpoint span of its own.
  *
  * ```html
  * <ef-form-grid>

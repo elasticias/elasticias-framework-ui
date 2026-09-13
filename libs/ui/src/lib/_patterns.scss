@@ -1245,36 +1245,88 @@
 
 /* ──────────── FORM GRID + FIELD ────────────────────────────────── */
 
-.form-grid {
+/* ──────────────────────────────────────────────────────────────────
+   The 12-column form grid — one definition, two names.
+
+   `.ef-form-grid` is the host class of the <ef-form-grid> primitive;
+   `.form-grid` is the raw-class form written directly in templates.
+   Both are in active use (110 span sites across 13 files), and they
+   were maintained as two separate blocks that had already drifted
+   apart: one supported spans {1,2,3,4,6,12}, the other
+   {2,3,4,6,8,9,12}. A `col-8` inside a `.form-grid` therefore did
+   nothing at all, silently, and so did a `col-1` inside an
+   `.ef-form-grid`. Keeping both names on one rule per span makes the
+   two impossible to drift again.
+
+   Every span collapses to full width at the shell's own mobile
+   breakpoint (767px, the one EfViewportService uses). That single
+   rule is why a field never carries a per-breakpoint span in its
+   template, and why this grid stays mobile-first by default rather
+   than by remembering.
+   ────────────────────────────────────────────────────────────────── */
+.form-grid,
+.ef-form-grid {
   display: grid;
   gap: var(--s-3);
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
-.form-grid > .col-1 {
+.form-grid > .col-1,
+.ef-form-grid > .col-1 {
   grid-column: span 1;
 }
-.form-grid > .col-2 {
+.form-grid > .col-2,
+.ef-form-grid > .col-2 {
   grid-column: span 2;
 }
-.form-grid > .col-3 {
+.form-grid > .col-3,
+.ef-form-grid > .col-3 {
   grid-column: span 3;
 }
-.form-grid > .col-4 {
+.form-grid > .col-4,
+.ef-form-grid > .col-4 {
   grid-column: span 4;
 }
-.form-grid > .col-6 {
+.form-grid > .col-5,
+.ef-form-grid > .col-5 {
+  grid-column: span 5;
+}
+.form-grid > .col-6,
+.ef-form-grid > .col-6 {
   grid-column: span 6;
 }
-.form-grid > .col-12 {
+.form-grid > .col-7,
+.ef-form-grid > .col-7 {
+  grid-column: span 7;
+}
+.form-grid > .col-8,
+.ef-form-grid > .col-8 {
+  grid-column: span 8;
+}
+.form-grid > .col-9,
+.ef-form-grid > .col-9 {
+  grid-column: span 9;
+}
+.form-grid > .col-10,
+.ef-form-grid > .col-10 {
+  grid-column: span 10;
+}
+.form-grid > .col-11,
+.ef-form-grid > .col-11 {
+  grid-column: span 11;
+}
+.form-grid > .col-12,
+.ef-form-grid > .col-12 {
   grid-column: span 12;
 }
 
 @media (max-width: 767px) {
-  .form-grid > [class*='col-'] {
+  .form-grid > [class*='col-'],
+  .ef-form-grid > [class*='col-'] {
     grid-column: span 12;
   }
 }
+
 
 .field {
   display: grid;
@@ -2953,40 +3005,7 @@
   background: var(--paper);
 }
 
-/* Form grid — 12 cols, collapses to single col under 720px. */
-.ef-form-grid {
-  display: grid;
-  gap: var(--s-3);
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-}
-
-.ef-form-grid > .col-2 {
-  grid-column: span 2;
-}
-.ef-form-grid > .col-3 {
-  grid-column: span 3;
-}
-.ef-form-grid > .col-4 {
-  grid-column: span 4;
-}
-.ef-form-grid > .col-6 {
-  grid-column: span 6;
-}
-.ef-form-grid > .col-8 {
-  grid-column: span 8;
-}
-.ef-form-grid > .col-9 {
-  grid-column: span 9;
-}
-.ef-form-grid > .col-12 {
-  grid-column: span 12;
-}
-
-@media (max-width: 767px) {
-  .ef-form-grid > [class*='col-'] {
-    grid-column: span 12;
-  }
-}
+/* The 12-column form grid lives with `.form-grid` above. */
 
 /* Field row inside a form grid. */
 .ef-field {
