@@ -1,4 +1,5 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FieldsetModule } from 'primeng/fieldset';
 import { OrderLineItem } from '../ef-order-builder/ef-order-builder.component.types';
@@ -47,7 +48,7 @@ export interface ProductWithCountGroup {
 @Component({
   selector: 'ef-order-summary',
   standalone: true,
-  imports: [CommonModule, FieldsetModule],
+  imports: [CommonModule, FieldsetModule, TranslateModule],
   templateUrl: './ef-order-summary.component.html',
   styleUrl: './ef-order-summary.component.scss',
 })
@@ -65,7 +66,29 @@ export class EfOrderSummaryComponent {
   /**
    * Legend text for the fieldset
    */
-  legend = input<string>('Récapitulatif');
+  /**
+   * Direct legend text. Prefer `legendKey`: this defaulted to the
+   * French literal 'Récapitulatif', which rendered in French for an
+   * English or Arabic reader.
+   */
+  private readonly translate = inject(TranslateService);
+
+  legend = input<string>('');
+
+  /** Translation key for the legend. Wins over `legend`. */
+  legendKey = input<string>('order_summary_legend');
+
+  /**
+   * Translation key for the total row. The label was the hardcoded
+   * English string "Total:" sitting under a French legend default, so
+   * this one component shipped two languages at once and neither
+   * followed the reader.
+   */
+  totalLabelKey = input<string>('order_summary_total');
+
+  protected readonly resolvedLegend = computed(() =>
+    this.legend()?.trim() ? this.legend() : this.translate.instant(this.legendKey()),
+  );
 
   /**
    * Computed grouped counts by countGroup

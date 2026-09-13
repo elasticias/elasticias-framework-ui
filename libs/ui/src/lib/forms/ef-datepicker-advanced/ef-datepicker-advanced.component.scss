@@ -9,3 +9,11 @@
 :host(.dp-host--field) {
     display: block;
 }
+
+/* The preset hint mixes digits with a unit ("6 d", "Q3", "14 Aug — 12 Sep").
+   In an Arabic page those are neutral/LTR runs that the bidi algorithm
+   reorders, which is how "6 j" came out as "j 6". `plaintext` takes the
+   direction from the first strong character, the way <bdi> does. */
+.hint {
+  unicode-bidi: plaintext;
+}

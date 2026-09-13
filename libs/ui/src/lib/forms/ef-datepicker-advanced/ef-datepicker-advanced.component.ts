@@ -22,7 +22,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, formatDate } from '@angular/common';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
@@ -75,6 +75,7 @@ export class EfDatepickerAdvancedComponent
     implements ControlValueAccessor, AfterViewInit {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly locale = inject(LOCALE_ID);
+    private readonly translate = inject(TranslateService);
     private readonly vcr = inject(ViewContainerRef);
     private readonly destroyRef = inject(DestroyRef);
     private readonly cdr = inject(ChangeDetectorRef);
@@ -908,12 +909,20 @@ export class EfDatepickerAdvancedComponent
                 return formatDate(today, 'd MMM', this.locale);
             case 'this_week':
             case 'this_month':
-                return `${this.daysBetween(r.start, r.end)} j`;
+                // Was `${n} j` — the French abbreviation for "jours",
+                // hardcoded, so an English reader saw "6 j" and an Arabic
+                // one saw it reversed to "j 6".
+                return this.translate.instant('date_hint_days', {
+                    count: this.daysBetween(r.start, r.end),
+                });
             case 'last_30_days':
             case 'last_90_days':
                 return `${formatDate(r.start, 'd MMM', this.locale)} — ${formatDate(r.end, 'd MMM', this.locale)}`;
             case 'this_quarter':
-                return `T${Math.floor(today.getMonth() / 3) + 1}`;
+                // Was `T${n}` — French "Trimestre".
+                return this.translate.instant('date_hint_quarter', {
+                    quarter: Math.floor(today.getMonth() / 3) + 1,
+                });
             case 'this_year':
                 return formatDate(today, 'yyyy', this.locale);
             default:

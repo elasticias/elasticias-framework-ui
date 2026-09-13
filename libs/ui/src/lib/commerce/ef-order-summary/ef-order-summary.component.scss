@@ -63,3 +63,13 @@
     color: var(--p-primary-color);
   }
 }
+
+/* The format code is Latin inside what may be an Arabic page, and the
+   trailing colon is a neutral character, so without isolation "30ML-F:"
+   renders as ":30ML-F". `plaintext` takes direction from the first
+   strong character the way <bdi> does. */
+.ef-order-summary__label,
+.ef-order-summary__count,
+.ef-order-summary__total-count {
+  unicode-bidi: plaintext;
+}

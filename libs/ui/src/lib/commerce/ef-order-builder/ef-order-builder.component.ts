@@ -154,33 +154,48 @@ export class EfOrderBuilderComponent implements OnInit {
     const labels = this.countGroupLabels();
     const countMap = new Map<string, number>();
 
+    // Group on a normalised key. The catalogue stores the same format
+    // under more than one spelling — one live order carries both
+    // `PF-30ml-F-TRANSPARENT` and `PF-30ML-F-TRANSPARENT` — and this
+    // function used to key the map on the raw string while matching
+    // labels with `.toUpperCase()`. Two keys then resolved to one label
+    // and the panel printed that format twice, splitting 119 units into
+    // a row of 112 and a row of 7. Whoever read it undercounted.
+    const normalise = (code: string): string => code.trim().toUpperCase();
+
+    // Keep the first spelling seen, so the row still carries a real code
+    // for anything downstream that wants one.
+    const originalByKey = new Map<string, string>();
+
     lines.forEach((line) => {
       const product = line.product as { countGroup?: string };
       const countGroup = line.countGroup || product?.countGroup;
 
       if (countGroup) {
-        const currentCount = countMap.get(countGroup) || 0;
-        countMap.set(countGroup, currentCount + (line.quantity || 0));
+        const key = normalise(countGroup);
+        if (!originalByKey.has(key)) originalByKey.set(key, countGroup);
+        countMap.set(key, (countMap.get(key) || 0) + (line.quantity || 0));
       }
     });
 
     const items: OrderSummaryItem[] = [];
 
-    countMap.forEach((count, code) => {
-      const labelItem = labels.find(
-        (l) => l.code.toUpperCase() === code.toUpperCase(),
-      );
+    countMap.forEach((count, key) => {
+      const labelItem = labels.find((l) => normalise(l.code) === key);
       items.push({
-        code,
-        label: labelItem?.label || code,
+        code: originalByKey.get(key) ?? key,
+        label: labelItem?.label || originalByKey.get(key) || key,
         count,
         column: labelItem?.column ?? 1,
       });
     });
 
     items.sort((a, b) => {
-      const labelA = labels.find((l) => l.code === a.code);
-      const labelB = labels.find((l) => l.code === b.code);
+      // Same normalisation as above: this used to be a case-SENSITIVE
+      // compare sitting two lines below a case-insensitive one, so a
+      // differently-cased code fell through to sortOrder 999.
+      const labelA = labels.find((l) => normalise(l.code) === normalise(a.code));
+      const labelB = labels.find((l) => normalise(l.code) === normalise(b.code));
       const orderA = labelA?.sortOrder ?? 999;
       const orderB = labelB?.sortOrder ?? 999;
       return orderA - orderB;

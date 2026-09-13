@@ -723,3 +723,23 @@
     }
   }
 }
+
+/* ── BIDI ISOLATION ────────────────────────────────────────────────
+   Latin content inside an Arabic page is reordered by the bidi
+   algorithm unless it is isolated. Without this, "[PF] 021 - STYLE
+   GOOD GIRL (30ml)" renders with the [PF] moved to the far end, and a
+   negative amount "-0,00" renders as "0,00-", which reads as a
+   different number.
+
+   `plaintext` rather than `isolate`: it picks direction from the first
+   strong character, the way <bdi> does, so a Latin product name stays
+   LTR and an Arabic one stays RTL without either being hardcoded. */
+:host {
+  .ob-tbl .nm,
+  .ob-tbl .num,
+  .ob-tbl .ln-val,
+  .ob-totals .v,
+  .ob-sum-val {
+    unicode-bidi: plaintext;
+  }
+}

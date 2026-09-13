@@ -1,5 +1,5 @@
 @if (hasGroups()) {
-  <p-fieldset [legend]="legend()">
+  <p-fieldset [legend]="resolvedLegend()">
     <div class="ef-order-summary">
       <div class="ef-order-summary__content">
         @for (column of columnGroups(); track $index) {
@@ -14,7 +14,7 @@
         }
       </div>
       <div class="ef-order-summary__footer">
-        <span class="ef-order-summary__total-label">Total:</span>
+        <span class="ef-order-summary__total-label">{{ totalLabelKey() | translate }}</span>
         <span class="ef-order-summary__total-count">{{ totalCount() }}</span>
       </div>
     </div>
