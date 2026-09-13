@@ -1134,22 +1134,6 @@
    lives in the "DETAIL SCREEN PRIMITIVES (Phase 7)" section below. Only the
    sub-element rules (`.left` / `.ref` / `.name` / `.right`) live here. */
 
-.detail-toolbar .left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-  flex-wrap: wrap;
-}
-
-
-.detail-toolbar .ref {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
 
 .detail-toolbar .name {
   font-family: var(--font-display);
@@ -1161,86 +1145,12 @@
   letter-spacing: -0.015em;
 }
 
-.detail-toolbar .right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-inline-start: auto;
-}
-
 /* ──────────── DETAIL GRID + CARD ───────────────────────────────── */
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--s-3);
-}
 
 @media (min-width: 1100px) {
   .detail-grid {
     grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
   }
-}
-
-.detail-stack {
-  display: grid;
-  gap: var(--s-3);
-  align-content: start;
-  min-width: 0;
-}
-
-.card {
-  background: var(--paper-alt);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-2xl);
-  overflow: hidden;
-}
-
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
-  gap: var(--s-3);
-}
-
-.card-head .title {
-  font-family: var(--font-display);
-  font-variation-settings:
-    'opsz' 12,
-    'wght' 700,
-    'wdth' 88;
-  font-size: 14.5px;
-  letter-spacing: -0.01em;
-}
-
-.card-head .meta {
-  font-size: 11.5px;
-  color: var(--text-mute);
-  font-weight: 600;
-}
-
-.card-body {
-  padding: 16px;
-  display: grid;
-  /* minmax(0, 1fr): a grid item's default min-width is auto, so a wide child
-     — a table, a nested data card — sized this column and pushed the card
-     past its own container. Same trap as the content area and the screen
-     host; this is the third place it bites. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--s-3);
-}
-
-.card-foot {
-  padding: 10px 16px;
-  border-top: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--s-3);
-  background: var(--paper);
 }
 
 /* ──────────── FORM GRID + FIELD ────────────────────────────────── */
@@ -1474,12 +1384,6 @@
 
 /* ──────────── DASHBOARD KPI CARDS ───────────────────────────────── */
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--s-3);
-}
-
 .kpi-card {
   background: var(--paper-alt);
   border: 1px solid var(--rule);
@@ -1488,60 +1392,6 @@
   display: grid;
   gap: 8px;
   align-content: start;
-}
-
-.kpi-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.kpi-value {
-  font-family: var(--font-display);
-  font-variation-settings:
-    'opsz' 96,
-    'wght' 700,
-    'wdth' 80;
-  font-size: clamp(28px, 4vw, 40px);
-  letter-spacing: -0.03em;
-  line-height: 1;
-  font-feature-settings: 'tnum';
-  color: var(--text);
-}
-
-.kpi-value .unit {
-  font-family: var(--font-mono);
-  font-size: 0.4em;
-  font-weight: 500;
-  color: var(--text-mute);
-  margin-inline-start: 6px;
-  letter-spacing: 0;
-}
-
-.spark {
-  width: 100%;
-  height: 28px;
-  margin-top: 4px;
-}
-
-.delta {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  letter-spacing: 0;
-}
-
-.delta.up {
-  background: var(--st-delivered-bg);
-  color: var(--st-delivered-fg);
-}
-
-.delta.down {
-  background: var(--st-cancelled-bg);
-  color: var(--st-cancelled-fg);
 }
 
 /* Lower-half dashboard grid (recent activity / pipeline / top lists). */
@@ -3233,6 +3083,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
 .kpi-value {
@@ -3246,6 +3097,7 @@
   letter-spacing: -0.04em;
   font-feature-settings: 'tnum';
   font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .kpi-value .unit {
@@ -3261,13 +3113,18 @@
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  letter-spacing: 0;
 }
 
 .delta.up {
   color: var(--st-delivered-fg);
+  background: var(--st-delivered-bg);
 }
 .delta.down {
   color: var(--st-cancelled-fg);
+  background: var(--st-cancelled-bg);
 }
 .delta.flat {
   color: var(--text-mute);
@@ -3278,6 +3135,7 @@
   opacity: 0.9;
   display: block;
   width: 100%;
+  margin-top: 4px;
 }
 
 .kpi-grid {
