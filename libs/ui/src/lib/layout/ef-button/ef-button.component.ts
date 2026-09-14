@@ -67,7 +67,18 @@ export class EfButtonComponent {
   @Input() variant: 'primeng' | 'comptoir' = 'primeng';
 
   @Input() severity: EfButtonSeverity = 'primary';
-  @Input() size: 'small' | 'large' = 'small';
+  /**
+   * Control height.
+   *
+   * - `'small'` — `--hit` (32px). Dense rows, toolbars, row actions. Default,
+   *   because that is what every call site in the product already renders.
+   * - `'base'` — `--hit-base` (40px). The height a comptoir input, select and
+   *   datepicker render at, so this is the one to use for a button sitting in
+   *   a form row: at `'small'` it is 8px shorter than the field beside it and
+   *   the row reads as misaligned.
+   * - `'large'` — retained alias for `'base'`; nothing in the product uses it.
+   */
+  @Input() size: 'small' | 'base' | 'large' = 'small';
 
   @Input({ transform: booleanAttribute }) disabled = false;
   @Input({ transform: booleanAttribute }) rounded = false;
@@ -147,12 +158,22 @@ export class EfButtonComponent {
 
   @Output() clickEvent = new EventEmitter<Event>();
 
+  /**
+   * Size as PrimeNG's Button understands it. Its own scale is only
+   * `'small' | 'large'`, with the default (unset) being the normal height, so
+   * `'base'` maps to `null` rather than being forwarded verbatim.
+   */
+  get pnSize(): 'small' | 'large' | null {
+    return this.size === 'base' ? null : this.size;
+  }
+
   /** Composed class string for the Comptoir variant —
    *  `btn btn-{severity} btn-sm` plus any caller-supplied `styleClass`. */
   get comptoirClass(): string {
     // 'danger' renders as ghost + danger-tint (applied as inline style
     // in the template); other severities map directly.
     const sevClass = this.severity === 'danger' ? 'btn-ghost' : `btn-${this.severity}`;
+    // 'base' and 'large' both fall through to the bare `.btn`, which is --hit-base.
     const sizeClass = this.size === 'small' ? 'btn-sm' : '';
     return ['btn', sevClass, sizeClass, this.styleClass ?? '']
       .filter(Boolean)

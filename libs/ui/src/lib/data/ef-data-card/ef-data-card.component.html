@@ -248,7 +248,7 @@
       }
     </ul>
   } @else {
-    <table class="tbl">
+    <table class="tbl" [class.tbl--fixed]="fixedLayout()">
       <thead>
         <tr>
           @if (reorderable()) {

@@ -139,7 +139,7 @@
 }
 
 .btn-ghost:hover {
-  border-color: var(--text);
+  border-color: var(--rule-hover);
 }
 
 /* Brand-tinted action buttons (e.g. ef-pdf-preview footer). */
@@ -172,10 +172,13 @@
   padding: 10px 12px;
 }
 
+/* Dense rows and toolbars. `--hit` rather than a bare 32: the number was
+   hardcoded here while `.btn` above reads `--hit-base`, so the two ends of the
+   button scale were tuned in different places. */
 .btn-sm {
   font-size: 12px;
   padding: 7px 14px;
-  min-height: 32px;
+  min-height: var(--hit);
 }
 
 /* ──────────── PILL GROUP (status filters) ───────────────────────── */
@@ -514,7 +517,7 @@
 }
 
 .f-pill:hover {
-  border-color: var(--text);
+  border-color: var(--rule-hover);
 }
 .f-pill .ico {
   width: 14px;
@@ -602,7 +605,7 @@
 
 .f-more:hover {
   color: var(--text);
-  border-color: var(--text);
+  border-color: var(--rule-hover);
 }
 
 .f-more.open {
@@ -981,7 +984,7 @@
 .ef-app-top__logout:hover,
 .ef-app-top__action:hover {
   color: var(--text);
-  border-color: var(--ink-400);
+  border-color: var(--rule-hover);
 }
 
 .ef-theme-toggle:focus-visible,
@@ -1480,7 +1483,7 @@
 
 .row-actions__trigger:hover {
   color: var(--text);
-  border-color: var(--ink-400);
+  border-color: var(--rule-hover);
   background: var(--paper);
 }
 
@@ -1819,7 +1822,7 @@
 }
 
 .dp__trigger:hover {
-  border-color: var(--ink-400);
+  border-color: var(--rule-hover);
 }
 
 .dp__trigger:focus-visible {
@@ -1893,7 +1896,7 @@
 }
 
 .dp__field-trigger:hover:not(:disabled) {
-  border-color: var(--ink-400);
+  border-color: var(--rule-hover);
 }
 
 .dp__field-trigger:focus-visible,
@@ -3515,7 +3518,7 @@ input.ef-input[type='number'] {
 
 .es.p-select:not(.p-disabled):hover,
 .es.p-multiselect:not(.p-disabled):hover {
-  border-color: var(--ink-400);
+  border-color: var(--rule-hover);
 }
 
 .es.p-select.p-focus,
@@ -4260,7 +4263,7 @@ input.ef-input[type='number'] {
 
 .es-confirm .p-dialog-footer .p-confirmdialog-reject-button:hover {
   background: var(--paper-alt);
-  border-color: var(--text);
+  border-color: var(--rule-hover);
 }
 
 .es-confirm .p-confirmdialog-accept-button:focus-visible,

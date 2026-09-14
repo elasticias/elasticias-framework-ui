@@ -87,6 +87,7 @@
                   labelKey="action.add"
                   icon="pi pi-plus"
                   variant="comptoir"
+                  size="base"
                   [severity]="quickAddDisabled() ? 'ghost' : 'tenant'"
                   [disabled]="quickAddDisabled()"
                   (clickEvent)="addQuickProduct()" />
@@ -116,6 +117,7 @@
         [hidePager]="true"
         defaultDensity="compact"
         [reorderable]="!readonly()"
+        [fixedLayout]="true"
         (rowReorder)="reorderLine($event)"
         mobileLayout="card">
 

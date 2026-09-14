@@ -246,6 +246,22 @@
         }
       }
 
+      /* An inline editor fills its cell and asserts no width of its own.
+
+         The lines table is `table-layout: auto`, where a column's declared
+         width is only a hint: a cell whose content has a larger min-content
+         width wins. The ef-inputnumber swapped in on click measured ~235px
+         against a 104px column, so clicking into a discount jumped that
+         column to 271px and took the space out of the article column, which
+         re-flowed every row mid-edit. Pinning the editor to the cell keeps
+         the column the width the config asked for, editing or not. */
+      ef-inputnumber,
+      ef-inputnumber .ef-field-control,
+      ef-inputnumber input {
+        width: 100%;
+        min-width: 0;
+      }
+
       /* Tabular figures so the decimal points line up column-wise. */
       .num,
       .total {

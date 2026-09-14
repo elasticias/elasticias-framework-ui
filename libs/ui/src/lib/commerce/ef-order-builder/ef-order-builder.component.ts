@@ -288,7 +288,7 @@ export class EfOrderBuilderComponent implements OnInit {
       cols.push({
         id: 'discount',
         headerKey: 'label.discount',
-        width: '104px',
+        width: '116px',
         align: 'end',
         cellClass: 'num',
         mobile: 'detail',
@@ -298,7 +298,7 @@ export class EfOrderBuilderComponent implements OnInit {
       cols.push({
         id: 'tax',
         headerKey: 'order_builder.tax',
-        width: '104px',
+        width: '116px',
         align: 'end',
         cellClass: 'num',
         mobile: 'detail',

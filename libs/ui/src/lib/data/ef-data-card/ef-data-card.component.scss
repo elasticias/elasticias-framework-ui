@@ -452,3 +452,11 @@
 .tbl tbody tr.is-drop-target > td {
     box-shadow: inset 0 2px 0 var(--tenant, var(--rule));
 }
+
+/* Declared column widths are honoured exactly rather than treated as hints.
+   See the `fixedLayout` input for why. Columns with no declared width share
+   whatever is left, which is how the one elastic column keeps absorbing the
+   remainder. */
+.tbl.tbl--fixed {
+    table-layout: fixed;
+}

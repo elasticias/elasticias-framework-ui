@@ -627,6 +627,22 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         this.rowReorder.emit({ from: index, to });
     }
 
+    /**
+     * Honour the declared column widths exactly instead of treating them as
+     * hints.
+     *
+     * The default `table-layout: auto` sizes a column to its content, so a
+     * cell whose content is wider than the declared width simply wins. On the
+     * order builder that meant clicking into a 116px discount cell swapped in
+     * an editor whose input carries an intrinsic 200px, the column jumped to
+     * 271px, and the article column lost the difference — every row re-flowed
+     * mid-edit. With fixed layout the declared widths hold and the columns
+     * that declare none share what is left.
+     *
+     * Opt-in: a table whose columns are all content-sized still wants `auto`.
+     */
+    readonly fixedLayout = input(false, { transform: booleanAttribute });
+
     /** Row density. Applied as a class on `.tbl-wrap`. */
     readonly density = signal<EfTableDensity>('default');
 

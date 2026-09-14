@@ -90,6 +90,11 @@
   --paper:      var(--ink-50);
   --paper-alt:  #fff;
   --rule:       var(--ink-200);
+  /* The border a bordered control moves to on hover. One token, because the
+     two conventions that grew here — near-black on ghost buttons and pills,
+     mid-grey on selects, triggers and row actions — meant a button and a
+     select sitting in the same row hovered to different colours. */
+  --rule-hover: var(--ink-400);
   --rule-soft:  rgba(15, 17, 21, 0.05);
   --text:       var(--ink-900);
   --text-mute:  var(--ink-500);
@@ -123,6 +128,7 @@
   --paper:      var(--ink-900);
   --paper-alt:  var(--ink-800);
   --rule:       rgba(248, 249, 251, 0.08);
+  --rule-hover: rgba(248, 249, 251, 0.28);
   --rule-soft:  rgba(248, 249, 251, 0.04);
   --text:       var(--ink-50);
   --text-mute:  var(--ink-400);
