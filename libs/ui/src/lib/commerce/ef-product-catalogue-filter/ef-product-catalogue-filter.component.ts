@@ -67,6 +67,13 @@ export interface SelectedFilter {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EfProductCatalogueFilterComponent {
+
+  /**
+   * PrimeNG's Button reads `autofocus || buttonProps?.autofocus`, so a bare
+   * `false` collapses to `undefined` and its AutoFocus directive writes the
+   * attribute anyway. Passing the flag here too makes it resolve to `false`.
+   */
+  protected readonly noAutofocus = { autofocus: false };
   /** Category groups from reference_data (product_categories items with children) */
   categoryGroups = input.required<CategoryGroup[]>();
 

@@ -125,6 +125,20 @@ export class EfSelectComponent
   /** Auto-focus the filter input when the panel opens (default: true). */
   @Input({ transform: booleanAttribute }) autofocusFilter = true;
 
+  /**
+   * Take focus on load. Off by default, and bound explicitly rather than left
+   * unset, which matters more than it looks: PrimeNG's AutoFocus directive
+   * decides with `if (this.autofocus === false)`, and `Select` declares
+   * `autofocus` with no initialiser. An unbound control therefore arrives as
+   * `undefined`, misses that strict check, and gets a real `autofocus="true"`
+   * attribute written onto its label. Every select on a page became an
+   * autofocus candidate, so on load the browser focused one of them and
+   * scrolled its container to it — which is why a dashboard opened partway
+   * down the page. Binding `false` puts the directive back on its intended
+   * branch and removes the attribute.
+   */
+  @Input({ transform: booleanAttribute }) autofocus = false;
+
   /* showClear is inherited from AbstractEfFormControl (default true →
      clearable by default; PrimeNG only renders the ✕ when a value is set). */
   @Input({ transform: booleanAttribute }) editable = false;

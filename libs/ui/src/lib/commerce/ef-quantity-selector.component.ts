@@ -8,6 +8,8 @@ import { ButtonModule } from 'primeng/button';
   template: `
     <div class="flex items-center gap-2">
       <p-button
+        [autofocus]="false"
+        [buttonProps]="noAutofocus"
         icon="pi pi-minus"
         [rounded]="true"
         [text]="true"
@@ -17,6 +19,8 @@ import { ButtonModule } from 'primeng/button';
       />
       <span class="w-8 text-center font-medium">{{ quantity() }}</span>
       <p-button
+        [autofocus]="false"
+        [buttonProps]="noAutofocus"
         icon="pi pi-plus"
         [rounded]="true"
         [text]="true"
@@ -27,6 +31,13 @@ import { ButtonModule } from 'primeng/button';
   `,
 })
 export class EfQuantitySelectorComponent {
+
+  /**
+   * PrimeNG's Button reads `autofocus || buttonProps?.autofocus`, so a bare
+   * `false` collapses to `undefined` and its AutoFocus directive writes the
+   * attribute anyway. Passing the flag here too makes it resolve to `false`.
+   */
+  protected readonly noAutofocus = { autofocus: false };
   readonly quantity = input(1);
   readonly quantityChange = output<number>();
 

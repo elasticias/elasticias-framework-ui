@@ -98,6 +98,38 @@ export class EfButtonComponent {
   @Input() tooltipKey?: string;
   @Input() tooltipPosition: 'top' | 'bottom' | 'left' | 'right' = 'top';
 
+  /**
+   * Take focus on load. Bound explicitly rather than left unset: PrimeNG's
+   * AutoFocus directive tests `autofocus === false`, and the control declares
+   * it with no initialiser, so an unbound instance arrives as `undefined`,
+   * misses that check and has a real `autofocus` attribute written onto it.
+   * Every such control on a page then becomes an autofocus candidate, and the
+   * browser scrolls its container to whichever one it picks on load.
+   */
+  @Input({ transform: booleanAttribute })
+  set autofocus(v: boolean) {
+    this._autofocus = v;
+    // Rebuilt rather than an inline object literal in the template: a fresh
+    // object every change-detection pass would re-set the child's input on
+    // every cycle for a value that almost never changes.
+    this.pnButtonProps = { autofocus: v };
+  }
+  get autofocus(): boolean {
+    return this._autofocus;
+  }
+  private _autofocus = false;
+
+  /**
+   * PrimeNG's Button resolves its focus flag as
+   * `autofocus || buttonProps?.autofocus`. Passing `false` alone is therefore
+   * not enough: `false || undefined` is `undefined`, which misses the
+   * AutoFocus directive's `=== false` test and writes the attribute anyway.
+   * Supplying the flag through `buttonProps` as well makes the expression
+   * resolve to a real `false`.
+   */
+  protected pnButtonProps: { autofocus: boolean } = { autofocus: false };
+
+
   /** Resolved tooltip translation key — `tooltipKey` if provided,
    *  otherwise `labelKey`. Lets responsive icon-only buttons reuse
    *  their label as the tooltip without restating it at every call

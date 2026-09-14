@@ -40,6 +40,13 @@ type RangeKey = '7d' | '30d' | '90d';
   styleUrl: './ef-email-metrics-card.component.scss',
 })
 export class EfEmailMetricsCardComponent {
+
+  /**
+   * PrimeNG's Button reads `autofocus || buttonProps?.autofocus`, so a bare
+   * `false` collapses to `undefined` and its AutoFocus directive writes the
+   * attribute anyway. Passing the flag here too makes it resolve to `false`.
+   */
+  protected readonly noAutofocus = { autofocus: false };
   metrics = input<EmailMetrics | null>(null);
   recentEvents = input<EmailEventRecord[]>([]);
   loading = input<boolean>(false);

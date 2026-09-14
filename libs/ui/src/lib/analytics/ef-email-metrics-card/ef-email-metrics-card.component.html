@@ -90,7 +90,9 @@
     }
   } @else {
     <div class="ef-email-metrics-card__empty">
-      <p-button label="Aucune donnée encore" [text]="true" icon="pi pi-envelope" [disabled]="true" />
+      <p-button
+        [autofocus]="false"
+        [buttonProps]="noAutofocus" label="Aucune donnée encore" [text]="true" icon="pi pi-envelope" [disabled]="true" />
     </div>
   }
 </p-card>

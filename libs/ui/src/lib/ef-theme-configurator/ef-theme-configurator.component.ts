@@ -95,13 +95,15 @@ const PRESETS: Record<string, Record<string, unknown>> = {
                 <div class="flex-1">
                     <div class="config-panel-settings">
                         <span class="config-panel-label">{{ rippleLabelKey | translate }}</span>
-                        <p-toggleswitch [(ngModel)]="ripple" />
+                        <p-toggleswitch
+                          [autofocus]="false" [(ngModel)]="ripple" />
                     </div>
                 </div>
                 <div class="flex-1">
                     <div class="config-panel-settings items-end">
                         <span class="config-panel-label">{{ rtlLabelKey | translate }}</span>
-                        <p-toggleswitch [ngModel]="isRTL" (ngModelChange)="onRTLChange($event)" />
+                        <p-toggleswitch
+                          [autofocus]="false" [ngModel]="isRTL" (ngModelChange)="onRTLChange($event)" />
                     </div>
                 </div>
             </div>

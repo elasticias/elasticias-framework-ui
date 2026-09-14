@@ -1,4 +1,4 @@
-import { Component, inject, Input, Output, EventEmitter } from '@angular/core';
+import { booleanAttribute, Component, inject, Input, Output, EventEmitter } from '@angular/core';
 import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TranslateModule } from '@ngx-translate/core';
@@ -27,6 +27,7 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
   imports: [ToggleSwitchModule, FormsModule, TranslateModule, EfLabelComponent],
   template: `
     <p-toggleswitch
+      [autofocus]="autofocus"
       [inputId]="effectiveId"
       [name]="name() || undefined"
       [ngModel]="checked"
@@ -49,6 +50,15 @@ export class EfToggleSwitchComponent
   extends AbstractEfFormControl
   implements ControlValueAccessor
 {
+  /**
+   * Take focus on load. Bound explicitly rather than left unset: PrimeNG's
+   * AutoFocus directive tests `autofocus === false`, and the control declares
+   * it with no initialiser, so an unbound instance arrives as `undefined`,
+   * misses that check and gets a real `autofocus` attribute written onto it.
+   * A table of these then puts one autofocus candidate per row on the page.
+   */
+  @Input({ transform: booleanAttribute }) autofocus = false;
+
   /** Two-way bindable `[(checked)]` — boolean only. */
   @Input() checked = false;
   @Output() checkedChange = new EventEmitter<boolean>();

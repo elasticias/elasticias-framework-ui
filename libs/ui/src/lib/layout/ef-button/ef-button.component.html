@@ -23,8 +23,10 @@
         }
     </button>
 } @else {
-    <!-- PrimeNG variant (default) — v1 styling via <p-button>. -->
+    <!-- PrimeNG variant (default) — v1 styling via p-button. -->
     <p-button
+      [autofocus]="autofocus"
+      [buttonProps]="pnButtonProps"
         [label]="labelKey ? (labelKey | translate) : label"
         [icon]="icon"
         [severity]="$any(severity)"

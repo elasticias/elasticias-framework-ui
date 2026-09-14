@@ -35,6 +35,17 @@ export class EfPasswordComponent
   @Input({ transform: booleanAttribute }) feedback = false;
   @Input() autocomplete?: string;
 
+  /**
+   * Take focus on load. Bound explicitly rather than left unset: PrimeNG's
+   * AutoFocus directive tests `autofocus === false`, and the control declares
+   * it with no initialiser, so an unbound instance arrives as `undefined`,
+   * misses that check and has a real `autofocus` attribute written onto it.
+   * Every such control on a page then becomes an autofocus candidate, and the
+   * browser scrolls its container to whichever one it picks on load.
+   */
+  @Input({ transform: booleanAttribute }) autofocus = false;
+
+
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 
   @Output() valueChangeEvent = new EventEmitter<string>();
