@@ -38,6 +38,12 @@ export { EfPermissionService } from './lib/auth/ef-permission.service';
 export type { EfModulePermission, EfPermissionLevel } from './lib/auth/ef-permission.service';
 export { EF_SESSION } from './lib/auth/ef-session.token';
 export { EF_BUILD_INFO } from './lib/build/ef-build-info.token';
+export {
+    EfVersionedTranslateLoader,
+    provideEfTranslateLoader,
+    EF_TRANSLATE_LOADER_CONFIG,
+} from './lib/i18n/ef-versioned-translate-loader';
+export type { EfVersionedTranslateLoaderConfig } from './lib/i18n/ef-versioned-translate-loader';
 export type { EfBuildInfo, EfBuildPackage } from './lib/build/ef-build-info.token';
 export type { EfSession } from './lib/auth/ef-session.token';
 
