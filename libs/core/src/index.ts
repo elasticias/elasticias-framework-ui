@@ -44,6 +44,15 @@ export {
     EF_TRANSLATE_LOADER_CONFIG,
 } from './lib/i18n/ef-versioned-translate-loader';
 export type { EfVersionedTranslateLoaderConfig } from './lib/i18n/ef-versioned-translate-loader';
+export {
+    EfBundledTranslateLoader,
+    provideEfBundledTranslateLoader,
+    EF_BUNDLED_TRANSLATIONS,
+} from './lib/i18n/ef-bundled-translate-loader';
+export type {
+    EfBundledTranslateLoaderConfig,
+    EfTranslationImport,
+} from './lib/i18n/ef-bundled-translate-loader';
 export type { EfBuildInfo, EfBuildPackage } from './lib/build/ef-build-info.token';
 export type { EfSession } from './lib/auth/ef-session.token';
 
