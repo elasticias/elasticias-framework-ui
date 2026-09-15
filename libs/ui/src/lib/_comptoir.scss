@@ -60,10 +60,28 @@
      different components — so a render without the webfont looked
      different depending on which component drew it. Stacks match
      libs/tokens/typography.json, which is the contract that ships to
-     web, iOS and Android. */
-  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-ui:      'Manrope', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+     web, iOS and Android.
+
+     Arabic sits inside each stack rather than in a `[dir='rtl']` override,
+     because a browser picks a face per glyph, not per element: Bricolage and
+     Manrope carry no Arabic, so Arabic characters fall through to Noto Sans
+     Arabic wherever they appear, and Latin characters keep their Latin face
+     wherever *they* appear. Overriding the stack under RTL would get the
+     common case wrong in both directions — a product code inside an Arabic
+     screen, an Arabic customer name inside a French one.
+
+     Noto Sans Arabic leads: it is the widest-covering of the two and is a
+     variable face, so it matches the weight range the Latin stacks already
+     use. Tajawal backs it up. Neither is downloaded by a session that renders
+     no Arabic — Google serves both with `unicode-range`, so the subset is
+     fetched only once a matching glyph is on the page. */
+  --font-display: 'Bricolage Grotesque', 'Noto Sans Arabic', 'Tajawal', system-ui, sans-serif;
+  --font-ui:      'Manrope', 'Noto Sans Arabic', 'Tajawal', system-ui, sans-serif;
+  /* Arabic is listed last here too. It cannot disturb figure alignment —
+     JetBrains Mono answers every digit — but it keeps Arabic text that lands
+     in a mono cell looking like the rest of the product rather than like
+     whatever the OS happened to pick. */
+  --font-mono:    'JetBrains Mono', ui-monospace, 'Noto Sans Arabic', monospace;
 
   /* ── Radii ───────────────────────────────────────────────────── */
   --r-sm:   8px;
