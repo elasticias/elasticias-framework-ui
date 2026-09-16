@@ -952,13 +952,6 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     });
   }
 
-  /** The row the user acted on carries no id — it was removed by someone
-   *  else, or the list is stale. Say that, rather than the internal
-   *  "Item [id] is undefined!" this used to ship to end users. */
-  protected recordNotFound(): void {
-    this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
-  }
-
   duplicate(id: any): void {
     if (!id) {
       this.recordNotFound();

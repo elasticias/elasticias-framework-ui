@@ -331,13 +331,6 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         });
     }
 
-    /** The screen has no record id — it was removed by someone else, or
-     *  the route is stale. Say that, rather than the internal
-     *  "Item [id] is undefined!" this used to ship to end users. */
-    protected recordNotFound(): void {
-        this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
-    }
-
     /** Navigate to `/details/:id?mode=duplicate` so the abstract can
      *  reload the source entity, treat it as a template, and persist
      *  via `service.create()` after the user hits Save.

@@ -241,6 +241,16 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
     await this.refDataService.invalidateKeys(keys);
   }
 
+  /** The record the user acted on carries no id — it was removed by someone
+   *  else, the list is stale, or the route points at nothing. Say that,
+   *  rather than the internal "Item [id] is undefined!" this used to ship
+   *  to end users. Lives on the common base so every screen abstract
+   *  (search, detail and sub in V1 and V2, plus report-v2) says the same
+   *  thing — four copies of one string is how this file set drifts. */
+  protected recordNotFound(): void {
+    this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
+  }
+
   handleErrors(errors: string[]) {
     if (errors && errors.length > 0) {
       errors.forEach(error => this.toastService.showError(error, 'Erreur de validation'));

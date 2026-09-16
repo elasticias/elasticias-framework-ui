@@ -217,13 +217,6 @@ export abstract class AbstractDetailScreenComponent
     });
   }
 
-  /** The screen has no record id — it was removed by someone else, or the
-   *  route is stale. Say that, rather than the internal
-   *  "Item [id] is undefined!" this used to ship to end users. */
-  protected recordNotFound(): void {
-    this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
-  }
-
   navigateBack() {
     const currentUrl = this.router.url.split('?')[0];
     const detailsIndex = currentUrl.indexOf('/details');
