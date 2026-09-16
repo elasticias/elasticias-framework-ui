@@ -516,8 +516,21 @@
       z-index: 30;
       align-items: center;
       gap: 10px;
-      background: var(--ink-active);
-      color: var(--paper);
+      /* The pill is painted on the *inverted* ground: --ink-active and
+         --paper are the two ends of the ink ramp and swap places under
+         .p-dark (light: #0f1115 on #f8f9fb, dark: #f8f9fb on #0f1115).
+         So the pill is near-black in light mode and near-white in dark.
+
+         Every colour inside the pill must therefore be derived from these
+         two locals, never written literally. `.open` used to hardcode
+         `#fff` text on `rgba(255,255,255,.14)` — correct while the pill
+         happened to be dark, invisible (1.05:1) the moment --ink-active
+         inverted to near-white. Mix against --ob-fab-on instead of white
+         and the chip follows the ground in whichever theme it lands. */
+      --ob-fab-ground: var(--ink-active);
+      --ob-fab-on: var(--paper);
+      background: var(--ob-fab-ground);
+      color: var(--ob-fab-on);
       border-radius: var(--r-pill);
       padding: 8px 10px 8px 16px;
       box-shadow: var(--shadow-3);
@@ -526,6 +539,12 @@
         display: grid;
         line-height: 1.1;
 
+        /* `.k` and `.cur` dim with opacity rather than a colour, which is
+           why they survived the inversion the way `.open` did not: opacity
+           composites the inherited --ob-fab-on against whatever ground is
+           actually behind it. Measured against both pills — .k 7.92:1
+           light / 5.78:1 dark, .cur 9.04:1 / 6.91:1. Keep it that way; a
+           literal grey here would fail in one theme or the other. */
         .k {
           font-size: 9.5px;
           font-weight: 700;
@@ -555,8 +574,8 @@
         appearance: none;
         cursor: pointer;
         border: 0;
-        background: rgba(255, 255, 255, 0.14);
-        color: #fff;
+        background: color-mix(in srgb, var(--ob-fab-on) 14%, transparent);
+        color: var(--ob-fab-on);
         font: inherit;
         font-size: 12px;
         font-weight: 700;
@@ -567,7 +586,15 @@
         gap: 6px;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.24);
+          background: color-mix(in srgb, var(--ob-fab-on) 24%, transparent);
+        }
+
+        /* The UA focus ring is a fixed dark blue, which disappears on the
+           near-black pill in light mode. Draw it in the pill's own
+           on-colour instead — 17.94:1 against the ground in both themes. */
+        &:focus-visible {
+          outline: 2px solid var(--ob-fab-on);
+          outline-offset: 2px;
         }
       }
     }
