@@ -50,8 +50,8 @@
     gap: 0.25rem;
     padding: 0.85rem 1rem;
     border-radius: 12px;
-    background: var(--p-surface-50, #f8fafc);
-    border: 1px solid var(--p-surface-200, #e2e8f0);
+    background: var(--paper-alt);
+    border: 1px solid var(--rule);
 
     &[data-tone='good'] {
       background: color-mix(in srgb, var(--p-green-500, #10b981) 8%, transparent);
@@ -88,7 +88,7 @@
   &__section {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--p-surface-200, #e2e8f0);
+    border-top: 1px solid var(--rule);
   }
 
   &__section-title {

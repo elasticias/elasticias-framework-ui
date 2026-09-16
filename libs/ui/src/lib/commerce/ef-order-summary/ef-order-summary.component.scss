@@ -13,7 +13,7 @@
     gap: 0.25rem;
 
     &:not(:last-child) {
-      border-right: 1px solid var(--p-surface-200);
+      border-right: 1px solid var(--rule);
       padding-right: 2rem;
     }
   }
@@ -27,20 +27,14 @@
 
   &__label {
     font-weight: 600;
-    color: var(--p-surface-700);
+    color: var(--text-mute);
 
-    :host-context(.dark) & {
-      color: var(--p-surface-300);
-    }
   }
 
   &__count {
     font-weight: 500;
-    color: var(--p-surface-900);
+    color: var(--text);
 
-    :host-context(.dark) & {
-      color: var(--p-surface-100);
-    }
   }
 
   &__footer {
@@ -48,7 +42,7 @@
     justify-content: space-between;
     align-items: center;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--p-surface-300);
+    border-top: 1px solid var(--rule);
   }
 
   &__total-label {

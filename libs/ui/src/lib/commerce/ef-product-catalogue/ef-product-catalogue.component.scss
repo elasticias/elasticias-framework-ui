@@ -6,13 +6,16 @@
 
 }
 
-// Target the accordion panel
+// Target the accordion panel.
+//
+// `--surface-200` was never a token in this product — PrimeNG emits its ramp
+// with a `--p-` prefix — so the declaration was invalid at computed-value time
+// and the separator fell back to `currentColor`, drawing a near-black line
+// where a faint rule was meant. The dark override below it keyed on `.dark`,
+// while the app sets `.p-dark`, so it never applied either. `--rule` is the
+// semantic token and is already correct in both schemes, which retires both
+// problems and the override with them.
 .p-accordion-panel {
   border: 0 !important;
-  border-bottom: 1px solid var(--surface-200) !important;
-}
-
-// Dark mode support
-:host-context(.dark) .p-accordion-panel {
-  border-bottom-color: var(--surface-700) !important;
+  border-bottom: 1px solid var(--rule) !important;
 }
