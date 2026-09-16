@@ -181,13 +181,26 @@ export abstract class AbstractDetailScreenComponent
     // Override in subclass to implement print functionality
   }
 
-  delete(): void {
-    if (!this.entityId)
-      return this.toastService.showError('Item [id] is undefined!');
+  /**
+   * Name of the record being deleted, so the confirmation can say what
+   * it is about to destroy rather than asking about "this item".
+   * Override in the screen and return whatever a user recognises the
+   * record by — `return this.entity?.name;` is the usual body.
+   */
+  protected getDeleteConfirmName(): string | undefined {
+    return undefined;
+  }
 
-    this.confirmDialogService.confirm(
-      'Êtes-vous sûr de vouloir supprimer ?',
-      () =>
+  delete(): void {
+    if (!this.entityId) {
+      this.recordNotFound();
+      return;
+    }
+
+    this.confirmDialogService.confirm({
+      intent: 'delete',
+      name: this.getDeleteConfirmName(),
+      accept: () =>
         this.serviceInstance.delete(this.entityId).subscribe({
           next: (result: any) => {
             if (result && result.errors && result.errors.length > 0) {
@@ -201,10 +214,14 @@ export abstract class AbstractDetailScreenComponent
             // Errors handled by global error handler
           },
         }),
-      () => {
-        // User cancelled deletion
-      },
-    );
+    });
+  }
+
+  /** The screen has no record id — it was removed by someone else, or the
+   *  route is stale. Say that, rather than the internal
+   *  "Item [id] is undefined!" this used to ship to end users. */
+  protected recordNotFound(): void {
+    this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
   }
 
   navigateBack() {

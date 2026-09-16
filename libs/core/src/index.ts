@@ -12,6 +12,10 @@ export type {
     EfToastSeverity,
 } from './lib/services/toast.service';
 export { ConfirmDialogService } from './lib/services/confirm-dialog.service';
+export type {
+    EfConfirmOptions,
+    EfConfirmIntent,
+} from './lib/services/confirm-dialog.service';
 export { screenGuard, hasScreenPermission } from './lib/guards/screen.guard';
 export type { ScreenGuardConfig } from './lib/guards/screen.guard';
 

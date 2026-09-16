@@ -242,18 +242,38 @@ export abstract class AbstractSearchScreenComponent
 
   edit(id: any) {
     if (!id) {
-      this.toastService.showError('Item [id] is undefined !');
+      this.recordNotFound();
       return;
     }
     this.router.navigate([this.currentUrl.concat('/details/'), id]);
   }
 
-  delete(id: any): void {
-    if (!id) return this.toastService.showError('Item [id] is undefined!');
+  /**
+   * Name of the row being deleted, so the confirmation can say what it
+   * is about to destroy rather than asking about "this item". Override
+   * in the screen — look the row up in the loaded results and return
+   * whatever a user would recognise it by.
+   *
+   * ```ts
+   * protected override getDeleteConfirmName(id: any) {
+   *   return this.searchEntity.items?.find((r: any) => r.id === id)?.name;
+   * }
+   * ```
+   */
+  protected getDeleteConfirmName(_id: any): string | undefined {
+    return undefined;
+  }
 
-    this.confirmDialogService.confirm(
-      'Êtes-vous sûr de vouloir supprimer ?',
-      () =>
+  delete(id: any): void {
+    if (!id) {
+      this.recordNotFound();
+      return;
+    }
+
+    this.confirmDialogService.confirm({
+      intent: 'delete',
+      name: this.getDeleteConfirmName(id),
+      accept: () =>
         this.serviceInstance.delete(id).subscribe({
           next: (result: any) => {
             if (result && result.errors && result.errors.length > 0) {
@@ -267,15 +287,19 @@ export abstract class AbstractSearchScreenComponent
             // Errors handled by global error handler
           },
         }),
-      () => {
-        // User cancelled deletion
-      },
-    );
+    });
+  }
+
+  /** The row the user acted on carries no id — it was removed by someone
+   *  else, or the list is stale. Say that, rather than the internal
+   *  "Item [id] is undefined!" this used to ship to end users. */
+  protected recordNotFound(): void {
+    this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
   }
 
   duplicate(id: any) {
     if (!id) {
-      this.toastService.showError('Item [id] is undefined !');
+      this.recordNotFound();
       return;
     }
     this.router.navigate(

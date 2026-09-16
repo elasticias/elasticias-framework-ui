@@ -287,16 +287,33 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     /**
      * Soft-delete-then-navigate-back. Confirms with the user first.
      */
+    /**
+     * Name of the record being deleted, so the confirmation can say what
+     * it is about to destroy — "Delete ANDALOCY PARFUMS?" rather than
+     * "Delete?". Override in the screen; returning `undefined` keeps the
+     * generic message, which still reads correctly.
+     *
+     * ```ts
+     * protected override getDeleteConfirmName() {
+     *   return this.entity()?.name;
+     * }
+     * ```
+     */
+    protected getDeleteConfirmName(): string | undefined {
+        return undefined;
+    }
+
     delete(): void {
         const id = this.entityId();
         if (!id) {
-            this.toastService.showError('Item [id] is undefined!');
+            this.recordNotFound();
             return;
         }
 
-        this.confirmDialogService.confirm(
-            'Êtes-vous sûr de vouloir supprimer ?',
-            () =>
+        this.confirmDialogService.confirm({
+            intent: 'delete',
+            name: this.getDeleteConfirmName(),
+            accept: () =>
                 this.serviceInstance.delete(id).subscribe({
                     next: (result: any) => {
                         if (result?.errors?.length) {
@@ -311,8 +328,14 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                     // violation) doesn't bubble up as an unhandled error.
                     error: () => undefined,
                 }),
-            () => undefined,
-        );
+        });
+    }
+
+    /** The screen has no record id — it was removed by someone else, or
+     *  the route is stale. Say that, rather than the internal
+     *  "Item [id] is undefined!" this used to ship to end users. */
+    protected recordNotFound(): void {
+        this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
     }
 
     /** Navigate to `/details/:id?mode=duplicate` so the abstract can
