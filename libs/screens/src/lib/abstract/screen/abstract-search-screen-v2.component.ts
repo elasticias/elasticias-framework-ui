@@ -525,6 +525,16 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     const hasDynamicRefs = (cfg?.SEARCH_REFERENTIALS_KEYS?.length ?? 0) > 0;
     const hasStaticLists = (cfg?.SEARCH_STATIC_LISTS?.length ?? 0) > 0;
 
+    // Busy from the first frame, not from the first request.
+    //
+    // A screen with referentials waits for them before it searches at all, and
+    // `loading` used to stay false for that entire window — so the table spent
+    // it showing "nothing here yet" to someone whose data was still being
+    // fetched. Six of the twelve list screens take that branch, including the
+    // one where this was measured at 910ms. `search()` sets the same flag
+    // again when it finally runs, so setting it here is idempotent.
+    this.loading.set(true);
+
     if (hasDynamicRefs || hasStaticLists) {
       if (hasDynamicRefs)
         this.initializeReferenceKeys(cfg!.SEARCH_REFERENTIALS_KEYS);
@@ -894,20 +904,37 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
   edit(id: any): void {
     if (!id) {
-      this.toastService.showError('Item [id] is undefined !');
+      this.recordNotFound();
       return;
     }
     this.router.navigate([`${this.resolveListUrl()}/details`, id]);
   }
 
+  /**
+   * Name of the row being deleted, so the confirmation can say what it
+   * is about to destroy — "Delete ANDALOCY PARFUMS?" rather than
+   * "Delete?". Override in the screen; returning `undefined` keeps the
+   * generic message, which still reads correctly.
+   *
+   * ```ts
+   * protected override getDeleteConfirmName(id: any) {
+   *   return this.items().find(r => r.id === id)?.name;
+   * }
+   * ```
+   */
+  protected getDeleteConfirmName(_id: any): string | undefined {
+    return undefined;
+  }
+
   delete(id: any): void {
     if (!id) {
-      this.toastService.showError('Item [id] is undefined!');
+      this.recordNotFound();
       return;
     }
-    this.confirmDialogService.confirm(
-      'Êtes-vous sûr de vouloir supprimer ?',
-      () =>
+    this.confirmDialogService.confirm({
+      intent: 'delete',
+      name: this.getDeleteConfirmName(id),
+      accept: () =>
         this.serviceInstance.delete(id).subscribe({
           next: (result: any) => {
             if (result?.errors?.length) {
@@ -922,13 +949,19 @@ export abstract class AbstractSearchScreenV2<TItem = any>
           // doesn't bubble up as an unhandled error.
           error: () => undefined,
         }),
-      () => undefined,
-    );
+    });
+  }
+
+  /** The row the user acted on carries no id — it was removed by someone
+   *  else, or the list is stale. Say that, rather than the internal
+   *  "Item [id] is undefined!" this used to ship to end users. */
+  protected recordNotFound(): void {
+    this.toastService.show({ severity: 'error', textKey: 'ef_error_record_not_found' });
   }
 
   duplicate(id: any): void {
     if (!id) {
-      this.toastService.showError('Item [id] is undefined !');
+      this.recordNotFound();
       return;
     }
     this.router.navigate([`${this.resolveListUrl()}/details`, id], {

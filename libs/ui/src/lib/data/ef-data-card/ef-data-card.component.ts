@@ -29,6 +29,7 @@ import {
 } from './ef-data-card.mobile';
 import { EfPagerComponent } from '../ef-pager/ef-pager.component';
 import { EfStatusChipComponent } from '../../feedback/ef-status-chip/ef-status-chip.component';
+import { EfSkeletonComponent } from '../../feedback/ef-skeleton/ef-skeleton.component';
 import { EfRowActionsComponent } from '../ef-row-actions/ef-row-actions.component';
 import { EfRowAction } from '../ef-row-actions/ef-row-actions.types';
 import { EfOverflowTooltipDirective } from './ef-overflow-tooltip.directive';
@@ -63,6 +64,11 @@ export type EfTableDensity = 'compact' | 'default' | 'comfortable';
  * 2. **`tbl-head-info` / `tbl-head-actions` slots**: still projected
  *    so the consumer can render the count text + density / columns /
  *    view-toggle buttons next to the table header.
+ * 3. **`[loading]` is not optional.** Bind the screen's own loading
+ *    signal: without it the card can't tell "still fetching" from
+ *    "nothing to fetch" and greets a waiting user with the empty
+ *    state. While loading with no rows yet it shimmers `ef-skeleton`
+ *    rows (table and mobile list alike) and flags `aria-busy`.
  *
  * ```html
  * <ef-data-card
@@ -93,6 +99,7 @@ export type EfTableDensity = 'compact' | 'default' | 'comfortable';
         TranslateModule,
         EfPagerComponent,
         EfStatusChipComponent,
+        EfSkeletonComponent,
         EfRowActionsComponent,
         EfOverflowTooltipDirective,
         EfTooltipDirective,
@@ -264,10 +271,32 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     /* ── State ──────────────────────────────────────────────────── */
 
+    /**
+     * First load and every refresh. While true with no rows yet, the body
+     * shimmers `ef-skeleton` placeholders instead of the empty state — a
+     * list that is still loading must never say "nothing here yet". A
+     * refresh that already has rows (paging, sorting, filtering) keeps
+     * them on screen rather than blanking the table; either way the row
+     * container is flagged `aria-busy`, as `ef-card` does.
+     */
     readonly loading = input(false, { transform: booleanAttribute });
     /** Empty string = no error. Non-empty triggers an error chip in tbl-head. */
     readonly errorMsg = input<string>('');
     readonly loadingKey = input<string>('common_loading_msg');
+
+    /**
+     * Placeholder rows drawn while the first load is in flight. The page
+     * size is what the operator is about to get, so it sets the height —
+     * clamped so a 100-per-page list doesn't shimmer a full screen of
+     * bars, and a 5-per-page one still reads as a list.
+     */
+    readonly skeletonLines = computed(() => {
+        const count = Math.min(Math.max(this.pageSize() || 0, 3), 10);
+        return Array.from({ length: count }, (_, i) => i);
+    });
+
+    /** First load: nothing to show yet, so the rows are placeholders. */
+    readonly showSkeleton = computed(() => this.loading() && this.rows().length === 0);
 
     /* ── Row interactions ──────────────────────────────────────── */
 

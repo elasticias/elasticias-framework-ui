@@ -359,6 +359,13 @@
   padding: 0;
 }
 
+/* A placeholder row stands where a real one will: the same padding as
+   `.mrow__head`, so the list doesn't jump when the rows arrive. The bars
+   themselves are `ef-skeleton` — no second shimmer lives here. */
+.mrow--skeleton {
+  padding: 12px var(--s-4);
+}
+
 @media (max-width: 767px) {
   .tbl-empty {
     padding: var(--s-7) var(--s-4);

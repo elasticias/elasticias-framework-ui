@@ -168,7 +168,11 @@
          Same columns, same cell renderers; each column just declares
          (or is given) a role. Both shapes expand to the same detail —
          they differ only in how much they show collapsed. -->
-    <ul class="mlist" [attr.data-layout]="effectiveMobileLayout()">
+    <ul
+      class="mlist"
+      [attr.data-layout]="effectiveMobileLayout()"
+      [attr.aria-busy]="loading() ? 'true' : null"
+    >
       @for (row of rows(); track trackByRow($index, row); let i = $index) {
         <li class="mrow" [class.is-open]="isExpanded(row, i)">
           <div
@@ -240,11 +244,23 @@
           }
         </li>
       } @empty {
-        <li class="mrow mrow--empty">
-          <ng-content select="[empty-state-mobile]">
-            <ng-container *ngTemplateOutlet="defaultEmptyTpl"></ng-container>
-          </ng-content>
-        </li>
+        <!-- No rows has two meanings and they must not share a screen:
+             still loading is a skeleton, finished-and-empty is the
+             empty state. Saying "nothing here yet" to someone whose
+             data is still in flight is a lie the whole time it shows. -->
+        @if (showSkeleton()) {
+          @for (line of skeletonLines(); track line) {
+            <li class="mrow mrow--skeleton">
+              <ef-skeleton variant="text" [rows]="2" />
+            </li>
+          }
+        } @else {
+          <li class="mrow mrow--empty">
+            <ng-content select="[empty-state-mobile]">
+              <ng-container *ngTemplateOutlet="defaultEmptyTpl"></ng-container>
+            </ng-content>
+          </li>
+        }
       }
     </ul>
   } @else {
@@ -282,7 +298,7 @@
         </tr>
       </thead>
 
-      <tbody>
+      <tbody [attr.aria-busy]="loading() ? 'true' : null">
         @for (row of rows(); track trackByRow($index, row); let i = $index) {
           <tr
             [class.is-row-clickable]="rowDoubleClickable()"
@@ -330,13 +346,31 @@
             }
           </tr>
         } @empty {
-          <tr>
-            <td [attr.colspan]="effectiveColumns().length + (reorderable() ? 1 : 0)">
-              <ng-content select="[empty-state]">
-                <ng-container *ngTemplateOutlet="defaultEmptyTpl"></ng-container>
-              </ng-content>
-            </td>
-          </tr>
+          <!-- Placeholder rows keep the real columns, so the table that
+               arrives lands where the shimmer already was instead of
+               reflowing the page under the reader's eyes. -->
+          @if (showSkeleton()) {
+            @for (line of skeletonLines(); track line) {
+              <tr>
+                @if (reorderable()) {
+                  <td class="tbl-drag"></td>
+                }
+                @for (col of effectiveColumns(); track trackByColumn($index, col)) {
+                  <td [class]="cellAlignClass(col)" [attr.data-col]="col.id">
+                    <ef-skeleton variant="text" [rows]="1" />
+                  </td>
+                }
+              </tr>
+            }
+          } @else {
+            <tr>
+              <td [attr.colspan]="effectiveColumns().length + (reorderable() ? 1 : 0)">
+                <ng-content select="[empty-state]">
+                  <ng-container *ngTemplateOutlet="defaultEmptyTpl"></ng-container>
+                </ng-content>
+              </td>
+            </tr>
+          }
         }
       </tbody>
     </table>
