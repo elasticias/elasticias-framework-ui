@@ -244,16 +244,21 @@
           }
         </li>
       } @empty {
-        <!-- No rows has two meanings and they must not share a screen:
-             still loading is a skeleton, finished-and-empty is the
-             empty state. Saying "nothing here yet" to someone whose
-             data is still in flight is a lie the whole time it shows. -->
+        <!-- No rows has three meanings and they must not share a screen:
+             still loading is a skeleton, the request failed is the error
+             state, finished-and-empty is the empty state. Saying "nothing
+             here yet" to someone whose data is still in flight — or whose
+             request just failed — is a lie the whole time it shows. -->
         @if (showSkeleton()) {
           @for (line of skeletonLines(); track line) {
             <li class="mrow mrow--skeleton">
               <ef-skeleton variant="text" [rows]="2" />
             </li>
           }
+        } @else if (showError()) {
+          <li class="mrow mrow--empty">
+            <ng-container *ngTemplateOutlet="errorStateTpl"></ng-container>
+          </li>
         } @else {
           <li class="mrow mrow--empty">
             <ng-content select="[empty-state-mobile]">
@@ -362,6 +367,14 @@
                 }
               </tr>
             }
+          } @else if (showError()) {
+            <!-- The failure replaces the body, so it spans the full row —
+                 crammed into column one it reads as a value, not a state. -->
+            <tr>
+              <td [attr.colspan]="effectiveColumns().length + (reorderable() ? 1 : 0)">
+                <ng-container *ngTemplateOutlet="errorStateTpl"></ng-container>
+              </td>
+            </tr>
           } @else {
             <tr>
               <td [attr.colspan]="effectiveColumns().length + (reorderable() ? 1 : 0)">
@@ -419,6 +432,35 @@
       <p class="tbl-empty__title">{{ 'common_empty_none_yet' | translate }}</p>
       <p class="tbl-empty__hint">{{ 'common_empty_none_yet_hint' | translate }}</p>
     }
+  </div>
+</ng-template>
+
+<!-- ── ERROR STATE ─────────────────────────────────────────────
+     A request that failed and came back with nothing is not an empty
+     collection, and must never borrow its words: "nothing here yet" is
+     a confident false statement about the operator's data, and they may
+     act on it. So this replaces the empty state outright, projected
+     [empty-state] included — a screen's own "create your first client"
+     copy is just as wrong here as the default.
+
+     It says nothing about *what* failed. `errorMsg` is `err.message`
+     from the HTTP layer, and a status line or an exception string tells
+     an operator nothing they can act on; the head chip still carries it
+     for anyone looking. This carries the two things that help: their
+     data is intact, and the way to try again.
+
+     role="alert" goes on this div, never on the <tr> / <td> / <li> that
+     hosts it — a role on a row or cell takes the table's semantics down
+     with it. It fires on insertion, which is exactly when @if adds it. -->
+<ng-template #errorStateTpl>
+  <div class="tbl-empty tbl-empty--error" role="alert">
+    <i class="pi pi-exclamation-triangle tbl-empty__icon" aria-hidden="true"></i>
+    <p class="tbl-empty__title">{{ 'common_error_load_failed' | translate }}</p>
+    <p class="tbl-empty__hint">{{ 'common_error_load_failed_hint' | translate }}</p>
+    <button class="btn btn-sm tbl-empty__action" type="button" (click)="retry.emit()">
+      <i class="pi pi-refresh" aria-hidden="true"></i>
+      {{ 'common_retry' | translate }}
+    </button>
   </div>
 </ng-template>
 

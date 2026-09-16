@@ -69,6 +69,10 @@ export type EfTableDensity = 'compact' | 'default' | 'comfortable';
  *    "nothing to fetch" and greets a waiting user with the empty
  *    state. While loading with no rows yet it shimmers `ef-skeleton`
  *    rows (table and mobile list alike) and flags `aria-busy`.
+ * 4. **Bind `(retry)` wherever you bind `[errorMsg]`.** An empty result
+ *    set that came from a failed request renders the error state, not
+ *    the empty one, and its "try again" button is the way out. The card
+ *    doesn't know the query, so the screen re-runs it.
  *
  * ```html
  * <ef-data-card
@@ -280,7 +284,16 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      * container is flagged `aria-busy`, as `ef-card` does.
      */
     readonly loading = input(false, { transform: booleanAttribute });
-    /** Empty string = no error. Non-empty triggers an error chip in tbl-head. */
+    /**
+     * Empty string = no error. Non-empty triggers the error chip in
+     * `tbl-head` and, when the request came back with nothing, the error
+     * state in the body.
+     *
+     * It is the *trigger*, not the copy: screens set it from
+     * `err?.message`, which is whatever the HTTP layer threw. The body
+     * state words itself from translated keys instead, so a failed list
+     * never shows an operator a status line or an exception string.
+     */
     readonly errorMsg = input<string>('');
     readonly loadingKey = input<string>('common_loading_msg');
 
@@ -297,6 +310,21 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     /** First load: nothing to show yet, so the rows are placeholders. */
     readonly showSkeleton = computed(() => this.loading() && this.rows().length === 0);
+
+    /**
+     * The request failed and brought nothing back. Without this the body
+     * falls through to the empty state and tells the operator, calmly and
+     * in the product's own voice, that they have no clients — a false
+     * statement about their data that they may go on to act on.
+     *
+     * Third in the chain, after the skeleton and before the empty state:
+     * a retry that is already in flight shows progress, not the error it
+     * is busy clearing. Rows already on screen stay there and keep the
+     * head chip as the failure signal, the way a failed refresh should.
+     */
+    readonly showError = computed(
+        () => !this.loading() && !!this.errorMsg() && this.rows().length === 0,
+    );
 
     /* ── Row interactions ──────────────────────────────────────── */
 
@@ -409,6 +437,14 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     /** Raised by the empty state's "clear search" action. */
     readonly clearSearch = output<void>();
+
+    /**
+     * Raised by the error state's "try again" button. The card knows the
+     * request failed but not what the request was, so the screen re-runs
+     * it — typically `(retry)="search()"` on a list screen. Unbound, the
+     * button is a dead control, so bind it wherever `[errorMsg]` is bound.
+     */
+    readonly retry = output<void>();
 
     /* ── Content children ──────────────────────────────────────── */
 

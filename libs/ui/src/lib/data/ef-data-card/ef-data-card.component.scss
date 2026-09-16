@@ -353,6 +353,21 @@
   }
 }
 
+/* A failed request wears the same shape as the empty state on purpose —
+   same padding, same rhythm, same mobile treatment further down the file
+   — and differs only where it must: the icon. It is a modifier rather
+   than a class of its own so the `@media (max-width: 767px)` block at the
+   end of this file keeps reaching it, touch target included.
+
+   Only the icon turns red. Tinting the title too would make a recoverable
+   hiccup read as data loss, and colour is not the thing carrying the
+   meaning here — the words are. */
+.tbl-empty--error {
+  .tbl-empty__icon {
+    color: var(--st-cancelled-fg);
+  }
+}
+
 /* The mobile list gives the row its own padding; the empty state brings
    its own, so the row must not double it. */
 .mrow--empty {
