@@ -152,6 +152,24 @@
   --text-mute:  var(--ink-400);
   --text-soft:  var(--ink-500);
   --ink-active: var(--ink-50);
+  /* Status pairs. Without these a chip kept its light pastel ground on a dark
+     page — the one place the dark theme visibly fell apart, because chips are
+     the densest colour in any list.
+
+     Each ground holds the status hue at low lightness, and each foreground was
+     lifted until it cleared 4.5:1 against that ground rather than picked by
+     eye. `onhold` keeps the neutral character of its light counterpart instead
+     of being pushed toward blue. Measured fg:bg — pending 5.82, processing
+     4.68, shipped 4.53, delivered 7.20, cancelled 4.56, refunded 7.49,
+     onhold 4.96. */
+  --st-pending-fg:    #fa8838;  --st-pending-bg:    #3f2512;
+  --st-processing-fg: #4c91e6;  --st-processing-bg: #17273b;
+  --st-shipped-fg:    #957acd;  --st-shipped-bg:    #251e33;
+  --st-delivered-fg:  #5ad891;  --st-delivered-bg:  #1a3727;
+  --st-cancelled-fg:  #e06161;  --st-cancelled-bg:  #391919;
+  --st-refunded-fg:   #efc243;  --st-refunded-bg:   #3d3215;
+  --st-onhold-fg:     #9096a2;  --st-onhold-bg:     #27282b;
+
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 8px 20px -8px rgba(0, 0, 0, 0.5);
   --shadow-3: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
