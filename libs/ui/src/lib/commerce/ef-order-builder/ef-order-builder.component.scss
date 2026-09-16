@@ -23,18 +23,6 @@
       gap: 6px;
     }
 
-    .ob-empty {
-      padding: 28px 16px;
-      text-align: center;
-      color: var(--text-mute);
-      font-size: 13px;
-    }
-
-    .text-mute {
-      color: var(--text-mute);
-      font-weight: 600;
-    }
-
     // ── Form grid ──
     .form-grid {
       display: grid;
@@ -75,11 +63,6 @@
         color: var(--text-mute);
         text-transform: uppercase;
         letter-spacing: 0.06em;
-      }
-
-      .req {
-        color: var(--st-cancelled-fg);
-        margin-inline-start: 2px;
       }
     }
 
@@ -152,34 +135,6 @@
       }
     }
 
-    // ── Inline number input (qty field in lines table) ──
-    .qin {
-      width: 58px;
-      text-align: end;
-      font: inherit;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      padding: 6px 8px;
-      min-height: 34px;
-      border: 1px solid var(--rule);
-      border-radius: var(--r-sm);
-      background: var(--paper-alt);
-      color: var(--text);
-      outline: 0;
-      -moz-appearance: textfield;
-
-      &::-webkit-outer-spin-button,
-      &::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-
-      &:focus {
-        border-color: var(--tenant-400);
-        box-shadow: 0 0 0 3px var(--tenant-100);
-      }
-    }
-
     // ── Lines table (flows with page scroll; full-bleed in the card body) ──
     /* The table's own scroll box. It must be able to shrink (min-width: 0)
        or the seven columns size the grid column instead and the page grows
@@ -236,13 +191,6 @@
             color: var(--text-mute);
             font-weight: 600;
           }
-        }
-
-        .ref {
-          font-family: var(--font-mono);
-          font-size: 10.5px;
-          color: var(--text-soft);
-          font-weight: 600;
         }
       }
 
@@ -322,10 +270,6 @@
         font-size: 9.5px;
         color: var(--text-soft);
         margin-inline-start: 3px;
-      }
-
-      .free {
-        color: var(--st-delivered-fg);
       }
     }
 
@@ -499,11 +443,6 @@
       }
     }
 
-    // ── Collapse toggle — rail-close button ──
-    .ob-rail-close {
-      display: none;
-    }
-
     // ── Floating summary FAB ──
     .ob-fab {
       display: none;
@@ -650,10 +589,6 @@
         }
       }
 
-      .ob-rail-close {
-        display: inline-flex;
-      }
-
       // Rail opens when both collapsed + rail-open classes are set
       &.ob-rail-open {
         .ob-rail {
@@ -705,10 +640,6 @@
         }
       }
 
-      .ob-rail-close {
-        display: inline-flex !important;
-      }
-
       // Rail opens with just .ob-rail-open (no collapse required at narrow widths)
       &.ob-rail-open {
         .ob-rail {
@@ -736,8 +667,7 @@
   ef-data-card .nm,
   ef-data-card .num,
   ef-data-card .ln-val,
-  .ob-totals .v,
-  .ob-sum-val {
+  .ob-totals .v {
     unicode-bidi: plaintext;
   }
 }
