@@ -85,9 +85,6 @@ export interface OrderEntity {
  */
 export interface DocumentConfig {
   documentType: 'order' | 'invoice' | 'quote';
-  headerLabel: string;
-  dateLabel: string;
-  customerLabel: string;
   enableTax?: boolean;
   enableDiscount?: boolean;
   showCatalogue?: boolean;

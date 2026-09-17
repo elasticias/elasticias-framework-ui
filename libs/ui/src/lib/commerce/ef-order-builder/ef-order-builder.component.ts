@@ -84,9 +84,6 @@ export class EfOrderBuilderComponent implements OnInit {
 
   config = input<DocumentConfig>({
     documentType: 'order',
-    headerLabel: 'Commande',
-    dateLabel: 'Date de commande',
-    customerLabel: 'Client',
     enableTax: false,
     enableDiscount: true,
     showCatalogue: false,
