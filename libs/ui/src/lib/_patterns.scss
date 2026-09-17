@@ -303,6 +303,12 @@
 
 .avatar.tenant {
   background: var(--tenant-500);
+  /* `.avatar` sets `color: var(--paper)`, which is right only while the
+     ground flips with it: `--ink-active` does, the tenant accent does not.
+     On a dark page that paired near-black initials with the accent at
+     2.04:1. `--on-tenant` is black or white by the accent's own lightness,
+     so it holds for a runtime accent instead of for this one maroon. */
+  color: var(--on-tenant);
 }
 
 .avatar.sm {
@@ -2286,9 +2292,15 @@
 }
 
 .dp__cal-day.out .day-num {
-  color: var(--text-soft);
+  /* These are enabled buttons: the template binds `(click)="selectDay(...)"`
+     with no `disabled`, so clicking a trailing 30 jumps to the next month.
+     That rules out WCAG's exemption for inactive components, and
+     `--text-soft` at half opacity resolved to 1.52:1 in light and 1.80:1 in
+     dark. `--text-mute` at full opacity measures 4.82:1 / 6.63:1 and still
+     reads as clearly secondary next to an in-month day at 18.9:1 / 15.65:1,
+     which is what the de-emphasis was for. */
+  color: var(--text-mute);
   font-weight: 500;
-  opacity: 0.5;
 }
 
 .dp__cal-day.today .day-num {
@@ -3600,7 +3612,10 @@ input.ef-input[type='number'] {
   padding: 0;
   background: transparent;
   border-radius: 50%;
-  color: var(--text-soft);
+  /* The ✕ is the affordance, not decoration, so it takes the 3:1 non-text
+     bar. `--text-soft` gave it 2.49:1 in light and 3.42:1 in dark; this is
+     4.82:1 / 6.63:1 on `--paper-alt`, and hover still lifts it to `--text`. */
+  color: var(--text-mute);
   flex-shrink: 0;
   cursor: pointer;
   transition: all var(--t-fast) var(--ease-out);
@@ -3952,7 +3967,10 @@ input.ef-input[type='number'] {
   width: 10px;
   height: 10px;
   font-size: 10px;
-  color: var(--paper);
+  /* The checked box is painted with the accent, so the tick lands on a ground
+     that does not flip with the theme; `var(--paper)` put it at 2.04:1 in
+     dark, under the 3:1 bar for a non-text glyph. */
+  color: var(--on-tenant);
 }
 
 /* Selected check-mark for single-select (the trailing ✓) */
@@ -4365,6 +4383,9 @@ input.ef-input[type='number'] {
 
 .es-dialog .es-dialog__highlight .av.tenant {
   background: var(--tenant-500);
+  /* Same bug as `.avatar.tenant`: `.av` sets `color: var(--paper)` and the
+     accent ground does not flip with it. */
+  color: var(--on-tenant);
 }
 
 .es-dialog .es-dialog__highlight .body {

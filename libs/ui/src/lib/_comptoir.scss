@@ -119,6 +119,37 @@
   --text-soft:  var(--ink-400);
   --ink-active: var(--ink-900);
 
+  /* `--ink-soft` is not a ramp step and was never defined anywhere; it is an
+     alias, added because eight call sites across three files already name it
+     as `var(--ink-soft, #64748b)`. Undefined, every one of them fell through
+     to that literal, which does not flip with the theme and measures 3.46:1
+     on `--paper-alt` in dark. Two of those call sites sit in a `.ts` and in
+     another component sheet, so one definition here is the only fix that
+     reaches them all; it also makes the hardcoded fallback dead.
+     Resolves to 4.82:1 (light) / 6.63:1 (dark) on `--paper-alt`. */
+  --ink-soft:   var(--text-mute);
+
+  /* Foreground for anything painted on the tenant accent.
+
+     `setTenantAccent()` writes the ramp onto `documentElement.style` at
+     runtime, so `--tenant-500` can be any hue at any lightness. A hardcoded
+     `#fff` fails on a light accent, and `var(--paper)` fails differently:
+     paper flips with the theme while the accent does not, which is how the
+     avatar ended up at 2.04:1 on the default maroon in dark mode.
+
+     So: black or white, whichever the accent's own lightness calls for.
+     Choosing the better of those two against *any* background is guaranteed
+     to clear AA. White scores 1.05/(Y+0.05) and black scores (Y+0.05)/0.05,
+     and the two are equal only at Y = 0.179, where both land on 4.58:1. The
+     OKLCH lightness matching that luminance is 0.623, so the clamp collapses
+     to 1 (white) below it and 0 (black) above it; `* -infinity` is what
+     forces a pure 0 or 1 instead of a gradient between them.
+
+     The plain value below is the fallback for engines without relative
+     colour syntax; the `@supports` block after this rule is what actually
+     tracks the accent. */
+  --on-tenant:  #fff;
+
   /* ── Spatial scale (s-1 = 4px → s-10 = 96px) ─────────────────── */
   --s-1: 4px;
   --s-2: 8px;
@@ -142,6 +173,15 @@
 }
 
 /* ── Semantic aliases (dark) — toggled by .p-dark on <html> ────── */
+/* Relative colour syntax resolves `--tenant-500` at computed-value time on
+   <html>, the same element `setTenantAccent()` writes the accent onto, so
+   this tracks a runtime accent change with no JS of its own. */
+@supports (color: oklch(from #000 l c h)) {
+  :root {
+    --on-tenant: oklch(from var(--tenant-500) clamp(0, calc((l - 0.623) * -infinity), 1) 0 h);
+  }
+}
+
 .p-dark {
   --paper:      var(--ink-900);
   --paper-alt:  var(--ink-800);

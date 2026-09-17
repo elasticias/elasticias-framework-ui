@@ -117,7 +117,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: var(--text-soft);
+  /* `--text-soft` reads as a separator elsewhere, but this is a label, and at
+     9.5px it is nowhere near the large-text exemption: it measured 2.49:1 in
+     light and 3.42:1 in dark on `--paper-alt`, on permanent chrome present on
+     every screen. `--text-mute` is the lightest step that clears AA here
+     (4.82:1 light / 6.63:1 dark); the size, the caps and the tracking are
+     what keep this recessive now, not the colour. */
+  color: var(--text-mute);
 
   &::before {
     content: '';

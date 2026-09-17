@@ -55,6 +55,12 @@
 
 .is-tenant .ef-profile-chip__avatar {
   background: var(--tenant-500);
+  /* The base rule pairs `--ink-active` with `--paper`, and both flip together.
+     This variant swaps only the ground, to an accent that does not flip — so
+     the inherited `--paper` gave near-black initials on the accent in dark
+     mode (2.04:1). `--on-tenant` picks black or white from the accent's own
+     lightness, which holds for whatever `setTenantAccent()` writes. */
+  color: var(--on-tenant);
 }
 
 .ef-profile-chip__text {
