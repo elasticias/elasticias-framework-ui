@@ -290,9 +290,12 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      * state in the body.
      *
      * It is the *trigger*, not the copy: screens set it from
-     * `err?.message`, which is whatever the HTTP layer threw. The body
-     * state words itself from translated keys instead, so a failed list
-     * never shows an operator a status line or an exception string.
+     * `err?.message`, which is whatever the HTTP layer threw. Neither the
+     * chip nor the body state prints it — both word themselves from
+     * translated keys, so a failed list never shows an operator a status
+     * line or an exception string. The raw value is kept on the chip's
+     * `data-error` attribute, which devtools can read and no reader can
+     * see.
      */
     readonly errorMsg = input<string>('');
     readonly loadingKey = input<string>('common_loading_msg');

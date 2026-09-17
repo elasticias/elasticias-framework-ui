@@ -101,6 +101,27 @@ describe('ef-data-card error state', () => {
             expect(el.textContent).toContain('Acme');
         });
 
+        // The chip is the whole failure signal in that rows-present case, so
+        // it is also the last place the raw HTTP string could reach a reader.
+        it(`${label}: the head chip names the failure without printing the error`, async () => {
+            const fixture = await make(mobile, { errorMsg: httpish, rows: [row] });
+            const head = (fixture.nativeElement as HTMLElement).querySelector('.tbl-head .count')!;
+            expect(head.textContent).not.toContain('500');
+            expect(head.textContent).not.toContain('Http failure');
+            expect(head.textContent).toContain('common_error_refresh_failed');
+        });
+
+        it(`${label}: the head chip keeps the raw error reachable for diagnosis`, async () => {
+            const fixture = await make(mobile, { errorMsg: httpish, rows: [row] });
+            const chip = (fixture.nativeElement as HTMLElement)
+                .querySelector('.tbl-head .count [role="status"]')!;
+            expect(chip).not.toBeNull();
+            // On an attribute nothing renders — not `title`, which would put
+            // the exception back on screen in a tooltip.
+            expect(chip.getAttribute('data-error')).toBe(httpish);
+            expect(chip.getAttribute('title')).toBeNull();
+        });
+
         it(`${label}: no error + no rows is still the empty state`, async () => {
             const fixture = await make(mobile, {});
             const el = fixture.nativeElement as HTMLElement;

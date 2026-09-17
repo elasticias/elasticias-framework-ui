@@ -55,7 +55,29 @@
       @if (loading()) {
         <span>{{ loadingKey() | translate }}</span>
       } @else if (errorMsg()) {
-        <span style="color: var(--st-cancelled-fg); font-weight: 600;">⚠ {{ errorMsg() }}</span>
+        <!-- A refresh that failed on top of rows already on screen keeps the
+             rows, so this chip is the only sign anything went wrong — and the
+             rows it sits above may now be stale. It has to say so, and say it
+             in the product's words: `errorMsg` is `err.message` from the HTTP
+             layer, and "500 Internal Server Error" tells an operator nothing
+             they can act on.
+
+             The raw string stays on `data-error`, where devtools can read it
+             and no reader ever meets it. `title` was the obvious place and is
+             the wrong one: it renders the exception in a tooltip, which is
+             precisely what this change exists to stop, and it is unreachable
+             on touch besides.
+
+             role="status", not "alert": polite is right for a signal beside
+             rows that are still usable, and when the body is showing the
+             error state it already carries the alert — one failure must not
+             interrupt a screen-reader twice. -->
+        <span
+          role="status"
+          [attr.data-error]="errorMsg()"
+          style="color: var(--st-cancelled-fg); font-weight: 600;"
+          >⚠ {{ 'common_error_refresh_failed' | translate }}</span
+        >
       } @else {
         <ng-content select="[tbl-head-info]"></ng-content>
       }
@@ -445,9 +467,10 @@
 
      It says nothing about *what* failed. `errorMsg` is `err.message`
      from the HTTP layer, and a status line or an exception string tells
-     an operator nothing they can act on; the head chip still carries it
-     for anyone looking. This carries the two things that help: their
-     data is intact, and the way to try again.
+     an operator nothing they can act on; it survives on the head chip's
+     `data-error` attribute, for whoever is reading the DOM. This carries
+     the two things that help: their data is intact, and the way to try
+     again.
 
      role="alert" goes on this div, never on the <tr> / <td> / <li> that
      hosts it — a role on a row or cell takes the table's semantics down
