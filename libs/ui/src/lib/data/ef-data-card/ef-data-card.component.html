@@ -199,10 +199,10 @@
         <li class="mrow" [class.is-open]="isExpanded(row, i)">
           <div
             class="mrow__head"
-            [class.is-tappable]="hasDetail()"
-            [attr.role]="hasDetail() ? 'button' : null"
-            [attr.tabindex]="hasDetail() ? 0 : null"
-            [attr.aria-expanded]="hasDetail() ? isExpanded(row, i) : null"
+            [class.is-tappable]="headIsControl()"
+            [attr.role]="headIsControl() ? 'button' : null"
+            [attr.tabindex]="headIsControl() ? 0 : null"
+            [attr.aria-expanded]="!rowNavigable() && hasDetail() ? isExpanded(row, i) : null"
             (click)="onRowHeadActivate(row, i, $event)"
             (keydown.enter)="onRowHeadActivate(row, i, $event)"
             (keydown.space)="onRowHeadActivate(row, i, $event)"
@@ -234,13 +234,32 @@
                 </span>
               }
               @if (hasDetail() && effectiveMobileLayout() === 'row') {
-                <!-- Says the row opens, and which way it is now. Decorative:
-                     the whole head is the control, and it carries the state. -->
-                <i
-                  class="pi pi-chevron-down mrow__chevron"
-                  [class.is-open]="isExpanded(row, i)"
-                  aria-hidden="true"
-                ></i>
+                @if (rowNavigable()) {
+                  <!-- The head opens the record, so expansion needs a control
+                       of its own. Same glyph, promoted from decoration to a
+                       button that carries the state it was already drawing. -->
+                  <button
+                    type="button"
+                    class="mrow__disclosure"
+                    [attr.aria-expanded]="isExpanded(row, i)"
+                    [attr.aria-label]="(isExpanded(row, i) ? 'common_view_less' : 'common_view_more') | translate"
+                    (click)="onDisclosureToggle(row, i, $event)"
+                  >
+                    <i
+                      class="pi pi-chevron-down mrow__chevron"
+                      [class.is-open]="isExpanded(row, i)"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                } @else {
+                  <!-- Says the row opens, and which way it is now. Decorative:
+                       the whole head is the control, and it carries the state. -->
+                  <i
+                    class="pi pi-chevron-down mrow__chevron"
+                    [class.is-open]="isExpanded(row, i)"
+                    aria-hidden="true"
+                  ></i>
+                }
               }
             </div>
           </div>
@@ -333,7 +352,7 @@
             [class.is-drop-target]="dragFrom() !== null && dragFrom() !== i && dragTo() === i"
             [attr.tabindex]="rowDoubleClickable() ? 0 : null"
             [attr.role]="rowDoubleClickable() ? 'button' : null"
-            (dblclick)="onRowDoubleClick(row, $event)"
+            (click)="onRowClick(row, $event)"
             (keydown.enter)="onRowKeydown(row, $event)"
           >
             @if (reorderable()) {

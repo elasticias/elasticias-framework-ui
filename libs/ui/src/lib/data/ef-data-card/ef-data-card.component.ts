@@ -145,10 +145,27 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      * equivalent and a tabindex to be usable, which a decorative box should
      * not have.
      */
-    protected onRowHeadActivate(row: unknown, index: number, event: Event): void {
-        if (!this.hasDetail()) return;
+    protected onRowHeadActivate(row: TRow, index: number, event: Event): void {
         const target = event.target as HTMLElement | null;
-        if (target?.closest('.mrow__actions')) return;
+        if (target?.closest('.mrow__actions, .mrow__disclosure')) return;
+
+        // A phone has no double-click, so before this the head could only ever
+        // expand: the record itself was reachable only through the row-actions
+        // menu. Where the screen wires navigation, the head now opens the row
+        // and the chevron beside it owns expansion — the chevron was already
+        // drawn, just decorative. Where it does not, the head keeps expanding.
+        if (this.rowNavigable()) {
+            event.preventDefault();
+            this.rowDoubleClick.emit(row);
+            return;
+        }
+        if (!this.hasDetail()) return;
+        this.toggleExpanded(row, index);
+    }
+
+    /** The chevron owns expansion once the head is busy navigating. */
+    protected onDisclosureToggle(row: unknown, index: number, event: Event): void {
+        event.stopPropagation();
         this.toggleExpanded(row, index);
     }
 
@@ -232,6 +249,12 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     );
 
     protected readonly hasDetail = computed(() => this.detailColumns().length > 0);
+
+    /** Whether the screen wired an open-the-record action to this table. */
+    protected readonly rowNavigable = computed(() => this.rowDoubleClickable());
+
+    /** The head is a control when it either opens the row or expands it. */
+    protected readonly headIsControl = computed(() => this.rowNavigable() || this.hasDetail());
 
     /** Only worth a toggle when opening actually reveals something. */
     protected readonly hasMoreThanPreview = computed(
@@ -874,12 +897,55 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         this.openMenuCount.update(c => Math.max(0, c + (detail?.open ? 1 : -1)));
     }
 
-    /** Fires `rowDoubleClick` unless the dblclick originated on an
-     *  interactive child (checkbox, button, link, form control). */
-    onRowDoubleClick(row: TRow, event: MouseEvent): void {
+    /**
+     * Children that own their own click. Opening the row on top of them would
+     * run two things from one gesture.
+     */
+    private static readonly INTERACTIVE_CHILD =
+        'button, a, input, select, textarea, label, [role="button"], [role="menu"], [role="menuitem"]';
+
+    /**
+     * Bounded by the row on purpose. The row itself is given `role="button"`
+     * when it is openable, so an unbounded `closest()` matches the row as its
+     * own ancestor and suppresses every click on it — the interaction looks
+     * wired and does nothing. Only a control *inside* the row counts.
+     */
+    private isInteractiveTarget(target: EventTarget | null, boundary: EventTarget | null): boolean {
+        const row = boundary as HTMLElement | null;
+        const hit = (target as HTMLElement | null)?.closest(
+            EfDataCardComponent.INTERACTIVE_CHILD,
+        );
+        return !!hit && hit !== row && !!row?.contains(hit);
+    }
+
+    /**
+     * A drag that selects text ends in a click. Opening the row on that click
+     * throws the selection away at the instant it was made, which is worse
+     * than not opening, because the work is lost rather than merely delayed.
+     */
+    private hasTextSelection(): boolean {
+        const sel = typeof window === 'undefined' ? null : window.getSelection();
+        return !!sel && !sel.isCollapsed;
+    }
+
+    /**
+     * Open a row with one click.
+     *
+     * This used to take two. The tell was not the pointer but the keyboard:
+     * Enter on a focused row already opened it with a single press, because a
+     * keyboard cannot produce a double-click at all. So the component was
+     * already committed to single activation and only the mouse was asking
+     * twice — and the row paints `cursor: pointer` the whole time, which says
+     * a click does something.
+     *
+     * The output is still named `rowDoubleClick` so the twelve screens bound
+     * to it keep working untouched. The name is now wrong; renaming it is a
+     * breaking change to a published component and belongs in its own commit.
+     */
+    onRowClick(row: TRow, event: MouseEvent): void {
         if (!this.rowDoubleClickable()) return;
-        const target = event.target as HTMLElement | null;
-        if (target?.closest('button, a, input, select, textarea, label')) return;
+        if (this.isInteractiveTarget(event.target, event.currentTarget)) return;
+        if (this.hasTextSelection()) return;
         this.rowDoubleClick.emit(row);
     }
 

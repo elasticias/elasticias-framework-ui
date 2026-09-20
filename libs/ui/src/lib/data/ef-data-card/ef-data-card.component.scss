@@ -482,3 +482,36 @@
 .tbl.tbl--fixed {
     table-layout: fixed;
 }
+
+/* The chevron, once it is a button rather than a glyph. It keeps the glyph's
+   size so the row looks unchanged, and takes its touch target from an overlay
+   the way every other small control in this codebase does — growing the button
+   itself would push the status chip and the actions menu apart. */
+.mrow__disclosure {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: inline-grid;
+    place-items: center;
+    color: var(--text-mute);
+    cursor: pointer;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--hit-touch);
+        height: var(--hit-touch);
+        transform: translate(-50%, -50%);
+    }
+
+    &:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--ink-active) 40%, transparent);
+        outline-offset: 2px;
+        border-radius: var(--r-pill);
+    }
+}
