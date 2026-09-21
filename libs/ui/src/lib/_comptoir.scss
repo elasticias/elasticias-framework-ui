@@ -119,6 +119,22 @@
   --text-soft:  var(--ink-400);
   --ink-active: var(--ink-900);
 
+  /* The module rail is the shell's deepest chrome, and it is dark in BOTH
+     themes on purpose: it anchors the app rather than tracking the page.
+
+     It used to paint `--ink-active` on `--paper`. Both of those flip, so the
+     rail was a dark strip on a light app in light mode and a WHITE strip on a
+     dark app in dark mode — while its icons still hardcoded white, which
+     measured 1.03:1. The ink ramp itself is theme-independent (`--ink-900` is
+     #0f1115 under both `:root` and `.p-dark`); only the `--ink-active` alias
+     flips. Naming the ramp step directly is what makes the rail hold still. */
+  --rail-bg:      var(--ink-900);
+  --rail-fg:      #fff;
+  --rail-fg-mute: rgba(255, 255, 255, 0.6);
+  --rail-rule:    rgba(255, 255, 255, 0.08);
+  --rail-hover:   rgba(255, 255, 255, 0.08);
+  --rail-active:  rgba(255, 255, 255, 0.12);
+
   /* `--ink-soft` is not a ramp step and was never defined anywhere; it is an
      alias, added because eight call sites across three files already name it
      as `var(--ink-soft, #64748b)`. Undefined, every one of them fell through
@@ -192,6 +208,14 @@
   --text-mute:  var(--ink-400);
   --text-soft:  var(--ink-500);
   --ink-active: var(--ink-50);
+
+  /* The page is already `--ink-900` here, so the rail goes one step deeper to
+     stay a surface of its own instead of merging into the canvas. In light
+     mode the rail is far darker than the page; this keeps that relationship
+     rather than the literal colour. Everything painted on it stays white, so
+     only the ground is restated. */
+  --rail-bg: #08090c;
+
   /* Status pairs. Without these a chip kept its light pastel ground on a dark
      page — the one place the dark theme visibly fell apart, because chips are
      the densest colour in any list.

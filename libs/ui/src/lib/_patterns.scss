@@ -734,7 +734,12 @@
 }
 
 .popover .preset.active .hint {
-  color: rgba(255, 255, 255, 0.7);
+  /* The active preset inverts against the page: its ground is `--ink-active`
+     and its ink `--paper`, and both flip together, so the pair stays readable
+     in either theme. This hint has to ride that inversion rather than assume
+     the ground is dark — hardcoded white measured 1.04:1 on the light ground
+     the token resolves to in dark mode. */
+  color: color-mix(in srgb, var(--paper) 70%, transparent);
 }
 
 .f-pill.has-pop {
@@ -1093,11 +1098,15 @@
 }
 
 .bulk .count {
-  color: rgba(255, 255, 255, 0.7);
+  /* `.bulk` inverts against the page (`--ink-active` ground, `--paper` ink),
+     and both flip together. The count has to ride that inversion; hardcoded
+     white read as white-on-white once the ground resolved light in dark mode.
+     Same for the buttons below, whose scrims were white-on-white too. */
+  color: color-mix(in srgb, var(--paper) 70%, transparent);
 }
 
 .bulk .btn {
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--paper) 10%, transparent);
   color: var(--paper);
   border: 0;
   min-height: 28px;
@@ -1106,7 +1115,7 @@
 }
 
 .bulk .btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--paper) 20%, transparent);
 }
 
 /* ──────────── EMPTY STATE ──────────────────────────────────────── */
@@ -2045,7 +2054,10 @@
 }
 
 .dp__preset.active .hint {
-  color: rgba(255, 255, 255, 0.7);
+  /* Rides the active preset's inversion, same as `.popover .preset.active
+     .hint`. The two lists are styled separately and carried the same
+     hardcoded white, so they broke in dark mode together. */
+  color: color-mix(in srgb, var(--paper) 70%, transparent);
 }
 
 .dp__preset.muted {

@@ -2,8 +2,8 @@
   display: block;
   flex: 0 0 64px;
   width: 64px;
-  background: var(--ink-active);
-  color: var(--paper);
+  background: var(--rail-bg);
+  color: var(--rail-fg);
 }
 
 .ef-module-rail {
@@ -40,7 +40,7 @@
 .ef-module-rail__divider {
   height: 1px;
   width: 32px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--rail-rule);
   margin: 4px 0;
   flex-shrink: 0;
 }
@@ -54,7 +54,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--rail-fg-mute);
   border-radius: var(--r-md);
   cursor: pointer;
   transition: color var(--t-fast) var(--ease-out),
@@ -62,7 +62,7 @@
 
   &:hover {
     color: #fff;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--rail-hover);
   }
 
   &:focus-visible {
@@ -72,7 +72,7 @@
 
   &.is-active {
     color: #fff;
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--rail-active);
 
     /* 3px module-color accent strip, flush against the inside edge of
        the rail (peeks 3px into the side panel area for a clean handoff
