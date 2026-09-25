@@ -3678,6 +3678,18 @@ input.ef-input[type='number'] {
   transform: translateY(-50%);
 }
 
+/* The same centring, for the clear that PrimeNG owns rather than we do.
+   `ef-password` fills PrimeNG's `#clearicon` slot with the 22px `.ef-clear`
+   used by every other field, but PrimeNG offsets that slot by half of *its*
+   glyph, not ours — so the ✕ sat 3.2px below the middle while the mask toggle
+   beside it, which PrimeNG renders itself, was exactly centred. One field
+   looked level and the other did not, from the same 8px inset. */
+.p-password-clear-icon {
+  top: 50%;
+  margin-top: 0;
+  transform: translateY(-50%);
+}
+
 /* Clearable textarea — clear ✕ pinned to the top-trailing corner (clear of
    the bottom-right resize handle); text gets trailing padding to dodge it. */
 .ef-textarea-wrap {
