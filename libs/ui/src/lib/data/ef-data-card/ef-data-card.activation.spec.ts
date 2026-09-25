@@ -67,6 +67,32 @@ describe('ef-data-card row activation', () => {
             expect(opened).toEqual([]);
         });
 
+        it('leaves the select cell to its checkbox, padding included', async () => {
+            const { fixture, el, opened } = await make(false, true);
+            const tr = el.querySelectorAll('tbody tr')[0];
+            const cell = document.createElement('td');
+            cell.setAttribute('data-col', 'select');
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cell.appendChild(cb);
+            tr.insertBefore(cell, tr.firstChild);
+            fixture.detectChanges();
+            // the cell itself, NOT the checkbox: the ~20px of padding beside it
+            cell.click();
+            expect(opened).toEqual([]);
+        });
+
+        it('leaves the actions cell alone too', async () => {
+            const { fixture, el, opened } = await make(false, true);
+            const tr = el.querySelectorAll('tbody tr')[0];
+            const cell = document.createElement('td');
+            cell.setAttribute('data-col', 'actions');
+            tr.appendChild(cell);
+            fixture.detectChanges();
+            cell.click();
+            expect(opened).toEqual([]);
+        });
+
         it('does not throw away a text selection the click just finished', async () => {
             const { el, opened } = await make(false, true);
             const cell = el.querySelectorAll('tbody tr')[0].querySelector('td')!;

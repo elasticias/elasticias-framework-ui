@@ -901,6 +901,26 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      * Children that own their own click. Opening the row on top of them would
      * run two things from one gesture.
      */
+    /**
+     * Cells that exist for a control of their own rather than for the row's
+     * content: the drag handle, the select box, the actions menu. The
+     * component already treats `select` and `actions` as structural when it
+     * decides what is a data column; a click belongs to the cell's own job.
+     *
+     * Guarding only the control itself was not enough. A select cell is wider
+     * than its checkbox, so a click in the padding beside it fell through to
+     * the row and opened the record — throwing away a multi-select that was
+     * still being built, from a miss of about 20px.
+     */
+    private static readonly STRUCTURAL_CELL =
+        'td.tbl-drag, td[data-col="select"], td[data-col="actions"]';
+
+    private isStructuralCell(target: EventTarget | null): boolean {
+        return !!(target as HTMLElement | null)?.closest(
+            EfDataCardComponent.STRUCTURAL_CELL,
+        );
+    }
+
     private static readonly INTERACTIVE_CHILD =
         'button, a, input, select, textarea, label, [role="button"], [role="menu"], [role="menuitem"]';
 
@@ -944,6 +964,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      */
     onRowClick(row: TRow, event: MouseEvent): void {
         if (!this.rowDoubleClickable()) return;
+        if (this.isStructuralCell(event.target)) return;
         if (this.isInteractiveTarget(event.target, event.currentTarget)) return;
         if (this.hasTextSelection()) return;
         this.rowDoubleClick.emit(row);
