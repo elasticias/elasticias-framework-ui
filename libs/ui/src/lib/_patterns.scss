@@ -3679,12 +3679,18 @@ input.ef-input[type='number'] {
 }
 
 /* The same centring, for the clear that PrimeNG owns rather than we do.
-   `ef-password` fills PrimeNG's `#clearicon` slot with the 22px `.ef-clear`
-   used by every other field, but PrimeNG offsets that slot by half of *its*
-   glyph, not ours — so the ✕ sat 3.2px below the middle while the mask toggle
-   beside it, which PrimeNG renders itself, was exactly centred. One field
-   looked level and the other did not, from the same 8px inset. */
-.p-password-clear-icon {
+   PrimeNG centres both password icons with `top: 50%; margin-top: -8px`, which
+   is exact for the 16px mask toggle it draws itself and wrong for anything
+   else. `ef-password` fills the `#clearicon` slot with the 22.5px `.ef-clear`
+   every other field uses, so -8px is the wrong half and the ✕ sat 3.2px below
+   the middle, beside a toggle that was perfectly level.
+
+   Scoped through `.ef-password-field` — the styleClass `ef-password` already
+   puts on the wrapper — because PrimeNG's own rule is a single class and an
+   unscoped override loses the `margin-top` while still winning the
+   `transform`, which stacks both corrections and throws the ✕ 8px high
+   instead. Measured after: clear 0.00, toggle 0.00, difference 0.00. */
+.ef-password-field .p-password-clear-icon {
   top: 50%;
   margin-top: 0;
   transform: translateY(-50%);
