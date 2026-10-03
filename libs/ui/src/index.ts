@@ -148,6 +148,7 @@ export { EfPasswordComponent } from './lib/forms/ef-password/ef-password.compone
 export { EfChangePasswordComponent } from './lib/forms/ef-change-password/ef-change-password.component';
 export type { EfChangePasswordSubmit } from './lib/forms/ef-change-password/ef-change-password.component';
 export { EfCheckboxComponent } from './lib/forms/ef-checkbox/ef-checkbox.component';
+export { EfRadioComponent } from './lib/forms/ef-radio/ef-radio.component';
 export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
 // Present in the lib since before the public index existed, never exported.

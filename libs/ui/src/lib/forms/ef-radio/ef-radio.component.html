@@ -1,0 +1,48 @@
+@if (hasLabel) {
+  <span class="ef-radio-group-label" [id]="labelId">
+    <ef-label
+      [labelKey]="labelKey()"
+      [label]="label()"
+      [required]="required()"
+      [styleClass]="inline ? 'form-label-left' : 'form-label'"
+    />
+  </span>
+}
+<div
+  class="ef-radio-options"
+  role="radiogroup"
+  [attr.aria-labelledby]="hasLabel ? labelId : null"
+  [attr.aria-label]="hasLabel ? null : effectiveAriaLabel"
+  [attr.aria-required]="required() ? 'true' : null"
+  [attr.aria-invalid]="isInvalid ? 'true' : null"
+  [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+>
+  @for (opt of options; track $index; let i = $index) {
+    <div class="ef-radio-option">
+      <p-radiobutton
+        [inputId]="optionId(i)"
+        [name]="groupName"
+        [value]="optionValueOf(opt)"
+        [ngModel]="value"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="handleChange($event)"
+        [disabled]="isOptionDisabled(opt)"
+      />
+      <label class="ef-radio-option-label" [for]="optionId(i)" [class.is-disabled]="isOptionDisabled(opt)">
+        {{ optionLabelOf(opt) }}
+      </label>
+    </div>
+  }
+</div>
+@if (showRequired || serverErrors) {
+  <div class="ef-radio-errors" [id]="errorsId" role="alert" aria-live="polite">
+    @if (showRequired) {
+      <small class="text-danger">{{ 'validation.required' | translate }}</small>
+    }
+    @if (serverErrors; as errors) {
+      @for (error of errors; track error) {
+        <small class="text-danger block">{{ error }}</small>
+      }
+    }
+  </div>
+}

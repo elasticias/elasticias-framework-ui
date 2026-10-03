@@ -1,0 +1,53 @@
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  min-width: 0;
+}
+
+.ef-radio-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  min-width: 0;
+}
+
+.ef-radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.ef-radio-option-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+
+  &.is-disabled {
+    color: var(--text-mute);
+    cursor: not-allowed;
+  }
+}
+
+.ef-radio-errors {
+  flex-basis: 100%;
+}
+
+/* Field layout: label above, options in a --hit-base row so they sit
+   level with the ef-select / ef-input boxes in the same grid row. */
+:host(.ef-stacked) {
+  display: block;
+
+  > .ef-radio-group-label {
+    display: block;
+  }
+
+  > .ef-radio-options {
+    min-height: var(--hit-base);
+  }
+}
