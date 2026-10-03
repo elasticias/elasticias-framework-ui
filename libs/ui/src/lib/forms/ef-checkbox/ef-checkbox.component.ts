@@ -1,6 +1,7 @@
 import {
   booleanAttribute,
   Component,
+  HostBinding,
   inject,
   Input,
   Output,
@@ -26,6 +27,14 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
  * (`checked: true/false`) and value-mode (`checked` is the bound
  * value when ticked, `null` when unticked) — the latter pairs with
  * a parent NgModel array for multi-select scenarios.
+ *
+ * Two layouts, set by `inline`:
+ * - `inline` (default) — box with its label to the right, for
+ *   standalone toggles and dense lists.
+ * - `[inline]="false"` — field layout: the label sits above, like
+ *   `ef-select` / `ef-input-text`, and the box is centred in a
+ *   `--hit-base` row so it lines up with the inputs beside it in a
+ *   form grid.
  *
  * ```html
  * <ef-checkbox
@@ -63,6 +72,16 @@ export class EfCheckboxComponent
    *                           styled against `.ef-checkbox-native`.
    */
   @Input() variant: 'primeng' | 'comptoir' = 'primeng';
+
+  /** Label beside the box (default). `false` stacks the label above,
+   *  matching the other form fields in a grid row. */
+  @Input({ transform: booleanAttribute }) inline = true;
+  @HostBinding('class.ef-stacked') get isStacked() { return !this.inline; }
+
+  /** Whether the label renders beside the box (inline layout only). */
+  get hasLabel(): boolean {
+    return !!(this.labelKey() || this.label());
+  }
 
   /** Two-way bindable `[(checked)]`. */
   @Input() checked: any = false;

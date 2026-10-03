@@ -1,5 +1,25 @@
 :host {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
+}
+
+.ef-checkbox-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* Field layout: label above, box centred in a --hit-base row so it
+   sits level with the ef-select / ef-input boxes in the same grid row. */
+:host(.ef-stacked) {
+  display: block;
+
+  > .ef-checkbox-control {
+    display: flex;
+    min-height: var(--hit-base);
+  }
 }
