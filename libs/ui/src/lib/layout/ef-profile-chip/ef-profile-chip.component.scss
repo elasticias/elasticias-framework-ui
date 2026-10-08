@@ -29,6 +29,12 @@
   &.is-readonly {
     cursor: default;
   }
+
+  &.is-compact {
+    width: auto;
+    padding: 2px;
+    border-radius: var(--r-pill, 999px);
+  }
 }
 
 .ef-profile-chip__avatar {

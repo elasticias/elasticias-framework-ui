@@ -67,7 +67,9 @@ export class EfProfileMenuComponent {
 
   readonly items = input<ReadonlyArray<EfProfileMenuItem>>([]);
 
-  readonly variant = input<'chip' | 'list'>('chip');
+  /** `avatar` is the chip without its text, for the top bar while the
+   *  side panel (and the full chip in its footer) is folded away. */
+  readonly variant = input<'chip' | 'avatar' | 'list'>('chip');
 
   readonly itemSelected = output<EfProfileMenuItem>();
 

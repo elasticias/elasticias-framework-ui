@@ -57,6 +57,9 @@ export class EfProfileChipComponent {
     /** Render as a non-interactive container (no hover/focus, no click). */
     @Input({ transform: booleanAttribute }) readonly = false;
 
+    /** Avatar only, no name or role: for a trigger that sits in a toolbar. */
+    @Input({ transform: booleanAttribute }) compact = false;
+
     @Output() readonly clickEvent = new EventEmitter<Event>();
 
     get computedInitial(): string {

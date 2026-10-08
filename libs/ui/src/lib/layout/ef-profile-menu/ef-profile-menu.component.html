@@ -1,9 +1,10 @@
-@if (variant() === 'chip') {
+@if (variant() !== 'list') {
   <ef-profile-chip
     [name]="name()"
     [role]="chipRole()"
     [initial]="initial()"
     [tone]="tone()"
+    [compact]="variant() === 'avatar'"
     (clickEvent)="op.toggle($event)"
   />
   <!-- The popover is reduced to a placement mechanism: `.ef-menu` inside it

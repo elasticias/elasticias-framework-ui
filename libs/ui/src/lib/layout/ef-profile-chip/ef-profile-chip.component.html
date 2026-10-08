@@ -3,11 +3,13 @@
   class="ef-profile-chip"
   [class.is-tenant]="tone === 'tenant'"
   [class.is-readonly]="readonly"
+  [class.is-compact]="compact"
   [attr.aria-label]="name || null"
   [attr.tabindex]="readonly ? -1 : null"
   (click)="handleClick($event)"
 >
   <span class="ef-profile-chip__avatar" aria-hidden="true">{{ computedInitial }}</span>
+  @if (!compact) {
   <span class="ef-profile-chip__text">
     @if (name) {
       <span class="ef-profile-chip__name">{{ name }}</span>
@@ -22,4 +24,5 @@
       </span>
     }
   </span>
+  }
 </button>
