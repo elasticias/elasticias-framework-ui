@@ -1,6 +1,6 @@
 {
   "name": "@elasticias/ui",
-  "version": "1.0.36",
+  "version": "1.0.37",
   "peerDependencies": {
     "@angular/common": "^21.0.0",
     "@angular/core": "^21.0.0",
