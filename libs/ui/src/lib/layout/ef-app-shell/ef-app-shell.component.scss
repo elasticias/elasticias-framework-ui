@@ -17,6 +17,58 @@
   overflow: hidden;
 }
 
+/* ── Side panel toggle ─────────────────────────────────────────── */
+
+.ef-app-shell__side {
+  overflow: hidden;
+  transition:
+    flex-basis var(--t-fast) var(--ease-out),
+    width var(--t-fast) var(--ease-out);
+
+  /* Width goes to zero rather than display:none so the column eases
+     over instead of jumping. The border would leave a 1px seam. */
+  &.is-collapsed {
+    flex-basis: 0;
+    width: 0;
+    border-right-width: 0;
+  }
+}
+
+/* Mirrors .ef-app-shell__menu, at the desktop hit size. Pulled into the
+   bar's left padding a little so the glyph lines up with the crumb text
+   rather than the button's box. */
+.ef-app-shell__side-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin-inline-start: -6px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-md);
+  color: var(--text-mute);
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+
+  &:hover {
+    background: var(--rule);
+    color: var(--text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--module, var(--text));
+    outline-offset: 1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-app-shell__side {
+    transition: none;
+  }
+}
+
 /* ── Mobile chrome ───────────────────────────────────────────────
    Rendered by this component now, so the projected screen is only
    ever declared once. The rail and side are simply not rendered on
@@ -196,4 +248,9 @@
   &:empty {
     display: none;
   }
+}
+
+/* The panel sits on the right in Arabic, so its glyph's divider does too. */
+:host-context([dir='rtl']) .ef-app-shell__side-toggle svg {
+  transform: scaleX(-1);
 }

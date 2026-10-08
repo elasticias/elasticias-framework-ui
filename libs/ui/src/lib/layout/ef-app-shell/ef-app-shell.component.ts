@@ -11,11 +11,22 @@ import { Router, RouterLink } from '@angular/router';
 import {
     EfActiveModuleService,
     EfPermissionService,
+    EfShortcutService,
     EfModule,
     EfNavItem,
     EfNavSection,
 } from '@elasticias/core';
 import { signal } from '@angular/core';
+
+const SIDE_COLLAPSED_KEY = 'ef.shell.side-collapsed';
+
+function readSideCollapsed(): boolean {
+    try {
+        return localStorage.getItem(SIDE_COLLAPSED_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Top-level Comptoir shell.
@@ -34,7 +45,9 @@ import { signal } from '@angular/core';
  * - `EfPermissionService` (via the rail / mobile tabs) for visible modules
  * - `EfActiveModuleService` for the active module accent
  *
- * **Desktop / tablet:** rail (64px) + side (240px) + (top + main).
+ * **Desktop / tablet:** rail (64px) + side (240px) + (top + main). The
+ * side folds away from a toggle at the leading edge of the top bar (or
+ * mod+B); the rail never does.
  * **Mobile:** delegates to `<ef-app-shell-mobile>` — top bar + scrollable
  * body + 5-tab bottom bar + FAB slot.
  *
@@ -77,6 +90,38 @@ export class EfAppShellComponent {
     readonly viewport = this.vp.current;
     readonly isMobile = this.vp.isMobile;
     readonly showSide = computed(() => !this.vp.isMobile());
+
+    /* ── Side panel toggle ───────────────────────────────────────
+         The rail stays; only the 240px module side folds away, for
+         the screens that want the width (a wide grid, the order
+         builder). The toggle sits at the leading edge of the top bar
+         rather than inside the side, so it is still there to bring
+         the side back once it is gone. Remembered per browser: it is
+         a reading preference, not something worth a round trip. */
+
+    readonly sideCollapsed = signal(readSideCollapsed());
+
+    toggleSide(): void {
+        const collapsed = !this.sideCollapsed();
+        this.sideCollapsed.set(collapsed);
+        try {
+            localStorage.setItem(SIDE_COLLAPSED_KEY, collapsed ? '1' : '0');
+        } catch {
+            /* private window or blocked storage: the toggle still works for this visit */
+        }
+    }
+
+    constructor() {
+        inject(EfShortcutService).register({
+            id: 'shell.toggle-side',
+            keys: 'mod+b',
+            labelKey: 'common_sidebar_toggle',
+            group: 'shortcut_group_general',
+            handler: () => {
+                if (!this.isMobile()) this.toggleSide();
+            },
+        });
+    }
 
     /* ── Mobile chrome ───────────────────────────────────────────
          Tabs and the module sheet live here rather than in a child
