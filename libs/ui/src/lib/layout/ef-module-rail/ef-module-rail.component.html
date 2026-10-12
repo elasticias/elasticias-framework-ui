@@ -28,4 +28,10 @@
       </button>
     }
   }
+
+  <!-- Pinned to the foot of the rail: controls that belong to the chrome
+       rather than to a module (the side-panel toggle). Collapses when empty. -->
+  <div class="ef-module-rail__footer">
+    <ng-content select="[rail-footer]"></ng-content>
+  </div>
 </nav>

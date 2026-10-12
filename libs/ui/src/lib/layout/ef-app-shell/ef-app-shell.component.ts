@@ -6,12 +6,14 @@ import { EfModuleSideComponent } from '../ef-module-side/ef-module-side.componen
 import { EfAppTopComponent } from '../ef-app-top/ef-app-top.component';
 import { EfAppMainComponent } from '../ef-app-main/ef-app-main.component';
 import { EfBottomSheetComponent } from '../ef-bottom-sheet/ef-bottom-sheet.component';
+import { TooltipModule } from 'primeng/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { Router, RouterLink } from '@angular/router';
 import {
     EfActiveModuleService,
     EfPermissionService,
     EfShortcutService,
+    formatShortcut,
     EfModule,
     EfNavItem,
     EfNavSection,
@@ -46,8 +48,8 @@ function readSideCollapsed(): boolean {
  * - `EfActiveModuleService` for the active module accent
  *
  * **Desktop / tablet:** rail (64px) + side (240px) + (top + main). The
- * side folds away from a toggle at the leading edge of the top bar (or
- * mod+B); the rail never does.
+ * side folds away from a toggle at the foot of the rail (or mod+B); the
+ * rail never does.
  * **Mobile:** delegates to `<ef-app-shell-mobile>` — top bar + scrollable
  * body + 5-tab bottom bar + FAB slot.
  *
@@ -71,6 +73,7 @@ function readSideCollapsed(): boolean {
         EfAppTopComponent,
         EfAppMainComponent,
         EfBottomSheetComponent,
+        TooltipModule,
         TranslateModule,
         RouterLink,
     ],
@@ -94,12 +97,15 @@ export class EfAppShellComponent {
     /* ── Side panel toggle ───────────────────────────────────────
          The rail stays; only the 240px module side folds away, for
          the screens that want the width (a wide grid, the order
-         builder). The toggle sits at the leading edge of the top bar
-         rather than inside the side, so it is still there to bring
-         the side back once it is gone. Remembered per browser: it is
-         a reading preference, not something worth a round trip. */
+         builder). The toggle sits at the foot of the rail rather than
+         inside the side, so it is still there to bring the side back
+         once it is gone, and in the same spot. Remembered per browser:
+         it is a reading preference, not something worth a round trip. */
 
     readonly sideCollapsed = signal(readSideCollapsed());
+
+    /** Shown in the toggle's tooltip: the button is far from the content, the shortcut is not. */
+    readonly shortcutHint = formatShortcut('mod+b');
 
     toggleSide(): void {
         const collapsed = !this.sideCollapsed();

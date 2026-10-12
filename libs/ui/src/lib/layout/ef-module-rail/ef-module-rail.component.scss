@@ -45,6 +45,18 @@
   flex-shrink: 0;
 }
 
+.ef-module-rail__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+
+  &:empty {
+    display: none;
+  }
+}
+
 .ef-module-rail__btn {
   position: relative;
   display: grid;

@@ -34,32 +34,31 @@
   }
 }
 
-/* Mirrors .ef-app-shell__menu, at the desktop hit size. Pulled into the
-   bar's left padding a little so the glyph lines up with the crumb text
-   rather than the button's box. */
+/* Projected into the rail's footer, so it wears the rail's button
+   treatment (.ef-module-rail__btn) at the same 44px: it reads as part of
+   the rail rather than as a stray control from the page. */
 .ef-app-shell__side-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  margin-inline-start: -6px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   background: transparent;
   border: 0;
   border-radius: var(--r-md);
-  color: var(--text-mute);
+  color: var(--rail-fg-mute);
   cursor: pointer;
   transition: background-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
 
   &:hover {
-    background: var(--rule);
-    color: var(--text);
+    background: var(--rail-hover);
+    color: #fff;
   }
 
   &:focus-visible {
-    outline: 2px solid var(--module, var(--text));
-    outline-offset: 1px;
+    outline: 2px solid color-mix(in srgb, var(--tenant-300, #b87a99) 80%, transparent);
+    outline-offset: 2px;
   }
 }
 
@@ -248,9 +247,4 @@
   &:empty {
     display: none;
   }
-}
-
-/* The panel sits on the right in Arabic, so its glyph's divider does too. */
-:host-context([dir='rtl']) .ef-app-shell__side-toggle svg {
-  transform: scaleX(-1);
 }
