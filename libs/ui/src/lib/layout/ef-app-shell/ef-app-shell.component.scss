@@ -248,3 +248,9 @@
     display: none;
   }
 }
+
+/* The panel sits on the right in Arabic, so the glyph's edge and its
+   chevron mirror with it. */
+:host-context([dir='rtl']) .ef-app-shell__side-toggle svg {
+  transform: scaleX(-1);
+}

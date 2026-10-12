@@ -11,8 +11,8 @@
   <!-- Shows or hides the side panel. In the rail rather than the top bar
        because the rail never folds: the button keeps one position whether
        the panel is open or closed, so a second click needs no search.
-       Drawn inline because PrimeIcons has no panel glyph; the divider
-       marks the panel, so it is there while the panel is. -->
+       Drawn inline because PrimeIcons has no panel glyph: the frame with
+       the panel's edge, and a chevron for what a click will do. -->
   @if (showSide()) {
     <button
       rail-footer
@@ -27,9 +27,12 @@
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="3" y="4" width="18" height="16" rx="3.5" />
-        @if (!sideCollapsed()) {
-          <path d="M12 4v16" />
+        <rect x="3" y="4" width="18" height="16" rx="3" />
+        <path d="M9 4v16" />
+        @if (sideCollapsed()) {
+          <path d="m13.5 9.5 2.5 2.5-2.5 2.5" />
+        } @else {
+          <path d="m16 9.5-2.5 2.5 2.5 2.5" />
         }
       </svg>
     </button>
