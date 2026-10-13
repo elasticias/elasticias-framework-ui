@@ -22,7 +22,9 @@
       type="button"
       class="ef-app-top__logout"
       [attr.aria-label]="'common_logout' | translate"
-      [attr.title]="'common_logout' | translate"
+      [pTooltip]="'common_logout' | translate"
+      tooltipPosition="bottom"
+      tooltipEvent="both"
       (click)="signOut()"
     >
       <i class="pi pi-sign-out" aria-hidden="true"></i>

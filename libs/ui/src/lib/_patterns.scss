@@ -971,49 +971,62 @@
 }
 
 /* ──────────── APP-BAR ICON ACTIONS ──────────────────────────────
-   The theme switch and sign-out sit at the trailing edge of
-   ef-app-top. They borrow the row-actions trigger's shape rather
-   than inventing a third kind of icon button. */
+   The theme switch, sign-out and any app action (`.ef-app-top__action`)
+   at the trailing edge of ef-app-top, and the theme switch in the login
+   header. Plain icons in the treatment of the phone's menu button
+   (`.ef-app-shell__menu`): no fill, no border, a 40px box, an 18px glyph.
+
+   They used to borrow the row-actions trigger's bordered pill, and the
+   touch tier grew that painted pill to 48px, so a tablet's top bar was a
+   row of big circles. The touch target now grows invisibly instead (see
+   the `pointer: coarse` block below): a thumb needs 48px, an eye does not.
+   The slot gap is 8px, so two 48px targets meet edge to edge and never
+   overlap.
+
+   Each carries an aria-label and a pTooltip (hover and focus), not a
+   `title`: a title never shows on touch and doubles PrimeNG's tooltip on
+   a desktop. */
 
 .ef-theme-toggle,
 .ef-app-top__logout,
 .ef-app-top__action {
   appearance: none;
-  background: var(--paper-alt);
-  border: 1px solid var(--rule);
-  width: var(--hit);
-  height: var(--hit);
-  border-radius: var(--r-pill);
+  position: relative;
+  flex: 0 0 auto;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  width: var(--hit-base);
+  height: var(--hit-base);
+  border-radius: var(--r-md);
   display: inline-grid;
   place-items: center;
   color: var(--text-mute);
   cursor: pointer;
   transition:
     background var(--t-fast) var(--ease-out),
-    border-color var(--t-fast) var(--ease-out),
     color var(--t-fast) var(--ease-out);
 }
 
 .ef-theme-toggle:hover,
 .ef-app-top__logout:hover,
 .ef-app-top__action:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
   color: var(--text);
-  border-color: var(--rule-hover);
 }
 
 .ef-theme-toggle:focus-visible,
 .ef-app-top__logout:focus-visible,
 .ef-app-top__action:focus-visible {
-  outline: 0;
-  border-color: var(--tenant-400);
-  box-shadow: 0 0 0 4px var(--tenant-100);
+  outline: 2px solid var(--tenant-400);
+  outline-offset: 2px;
   color: var(--text);
 }
 
 .ef-theme-toggle i,
 .ef-app-top__logout i,
 .ef-app-top__action i {
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1;
 }
 
@@ -4541,14 +4554,23 @@ input.ef-input[type='number'] {
     min-inline-size: var(--hit-touch);
   }
 
-  .ef-app-top__action,
-  .ef-theme-toggle,
-  .ef-app-top__logout,
   .row-actions__trigger,
   .ef-clear,
   .pg {
     inline-size: var(--hit-touch);
     block-size: var(--hit-touch);
+  }
+
+  /* The top-bar icons keep their 40px painted box and reach the 48px
+     tier through an invisible overhang, 4px each side. The 8px slot gap
+     means neighbouring overhangs meet and never overlap, so a tap always
+     lands on the control nearest it. */
+  .ef-app-top__action::after,
+  .ef-theme-toggle::after,
+  .ef-app-top__logout::after {
+    content: '';
+    position: absolute;
+    inset: calc((var(--hit-touch) - var(--hit-base)) / -2);
   }
 
   /* The switch draws at its theme size (Aura: 40x24) and its click

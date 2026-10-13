@@ -1,6 +1,7 @@
 import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'primeng/tooltip';
 import { EF_SESSION, EfActiveModuleService } from '@elasticias/core';
 import { EfThemeToggleComponent } from '../ef-theme-toggle/ef-theme-toggle.component';
 
@@ -22,7 +23,7 @@ import { EfThemeToggleComponent } from '../ef-theme-toggle/ef-theme-toggle.compo
     templateUrl: './ef-app-top.component.html',
     styleUrl: './ef-app-top.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, TranslateModule, EfThemeToggleComponent],
+    imports: [CommonModule, TranslateModule, TooltipModule, EfThemeToggleComponent],
 })
 export class EfAppTopComponent {
     /**
