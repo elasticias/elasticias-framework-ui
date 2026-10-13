@@ -6,6 +6,7 @@ import { EfReadOnlyDirective } from './ef-read-only.directive';
 import { EfInputTextComponent } from './ef-input-text/ef-input-text.component';
 import { EfCheckboxComponent } from './ef-checkbox/ef-checkbox.component';
 import { EfSelectComponent } from './ef-select/ef-select.component';
+import { EfQuantityStepperComponent } from './ef-quantity-stepper/ef-quantity-stepper.component';
 import { EfDatepickerComponent } from './ef-datepicker/ef-datepicker.component';
 
 @Component({
@@ -17,6 +18,7 @@ import { EfDatepickerComponent } from './ef-datepicker/ef-datepicker.component';
     EfCheckboxComponent,
     EfSelectComponent,
     EfDatepickerComponent,
+    EfQuantityStepperComponent,
   ],
   template: `
     <div [efReadOnly]="ro">
@@ -24,6 +26,7 @@ import { EfDatepickerComponent } from './ef-datepicker/ef-datepicker.component';
       <ef-checkbox name="c" labelKey="x" variant="comptoir" />
       <ef-select name="s" [options]="[]" />
       <ef-datepicker name="d" />
+      <ef-quantity-stepper [value]="5" />
     </div>
   `,
 })
@@ -48,6 +51,7 @@ function states(fixture: { nativeElement: HTMLElement }) {
     checkbox: el.querySelector<HTMLInputElement>('ef-checkbox input')!.disabled,
     checkboxLabel: el.querySelector('ef-checkbox label.ef-checkbox-native')!.classList.contains('is-disabled'),
     select: !!el.querySelector('ef-select .p-disabled, ef-select [aria-disabled="true"], ef-select [disabled]'),
+    stepper: [...el.querySelectorAll<HTMLInputElement | HTMLButtonElement>('ef-quantity-stepper input, ef-quantity-stepper button')].every((e) => e.disabled),
     datepicker: !!el.querySelector('ef-datepicker input[disabled], ef-datepicker .p-disabled'),
   };
 }
@@ -55,12 +59,12 @@ function states(fixture: { nativeElement: HTMLElement }) {
 describe('EfReadOnlyDirective', () => {
   it('disables every control when true', async () => {
     const s = states(await setup(true));
-    expect(s).toEqual({ text: true, checkbox: true, checkboxLabel: true, select: true, datepicker: true });
+    expect(s).toEqual({ text: true, checkbox: true, checkboxLabel: true, select: true, datepicker: true, stepper: true });
   });
 
   it('leaves controls enabled when false', async () => {
     const s = states(await setup(false));
-    expect(s).toEqual({ text: false, checkbox: false, checkboxLabel: false, select: false, datepicker: false });
+    expect(s).toEqual({ text: false, checkbox: false, checkboxLabel: false, select: false, datepicker: false, stepper: false });
   });
 
   it('re-enables controls when toggled off', async () => {
@@ -69,6 +73,6 @@ describe('EfReadOnlyDirective', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(states(fixture)).toEqual({ text: false, checkbox: false, checkboxLabel: false, select: false, datepicker: false });
+    expect(states(fixture)).toEqual({ text: false, checkbox: false, checkboxLabel: false, select: false, datepicker: false, stepper: false });
   });
 });

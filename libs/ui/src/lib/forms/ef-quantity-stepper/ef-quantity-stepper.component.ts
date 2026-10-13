@@ -4,6 +4,7 @@ import {
   Output,
   EventEmitter,
   forwardRef,
+  inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
@@ -12,6 +13,7 @@ import {
   FormsModule,
 } from '@angular/forms';
 import { Nullable } from 'primeng/ts-helpers';
+import { EfReadOnlyDirective } from '../ef-read-only.directive';
 import { EfInputNumberComponent } from '../ef-inputnumber/ef-inputnumber.component';
 
 /**
@@ -82,6 +84,14 @@ export class EfQuantityStepperComponent implements ControlValueAccessor {
    * When present, it specifies that the component should be disabled
    */
   @Input() disabled = false;
+
+  /** Optional enclosing `[efReadOnly]` scope. */
+  private readonly readOnlyScope = inject(EfReadOnlyDirective, { optional: true });
+
+  /** Effective disabled: the input / CVA state OR a read-only scope. */
+  get isDisabled(): boolean {
+    return this.disabled || (this.readOnlyScope?.readOnly() ?? false);
+  }
 
   /**
    * Callback to invoke when the value changes

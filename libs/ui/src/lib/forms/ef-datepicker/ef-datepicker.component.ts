@@ -41,14 +41,6 @@ export class EfDatepickerComponent implements ControlValueAccessor {
   @Input({ transform: booleanAttribute }) fluid = true;
   @Input({ transform: booleanAttribute }) inline = false;
   @Input({ transform: booleanAttribute }) disabled = false;
-
-  /** Optional enclosing `[efReadOnly]` scope. */
-  private readonly readOnlyScope = inject(EfReadOnlyDirective, { optional: true });
-
-  /** Effective disabled: the input / CVA state OR a read-only scope. */
-  get isDisabled(): boolean {
-    return this.disabled || (this.readOnlyScope?.readOnly() ?? false);
-  }
   @Input({ transform: booleanAttribute }) showIcon = true;
   @Input() iconDisplay: 'input' | 'button' = 'input';
   @Input() selectionMode: 'single' | 'multiple' | 'range' = 'single';
@@ -58,6 +50,14 @@ export class EfDatepickerComponent implements ControlValueAccessor {
   @Input({ transform: booleanAttribute }) showButtonBar = false;
   @Input() minDate?: Date;
   @Input() maxDate?: Date;
+
+  /** Optional enclosing `[efReadOnly]` scope. */
+  private readonly readOnlyScope = inject(EfReadOnlyDirective, { optional: true });
+
+  /** Effective disabled: the input / CVA state OR a read-only scope. */
+  get isDisabled(): boolean {
+    return this.disabled || (this.readOnlyScope?.readOnly() ?? false);
+  }
 
   /**
    * Take focus on load. Bound explicitly rather than left unset: PrimeNG's
