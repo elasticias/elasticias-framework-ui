@@ -18,6 +18,12 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
   @Input() context!: ScreenContext;
   connectedUser: any;
 
+  /** V1 only: the NgForm a V1 detail template declares as `#entityForm`.
+   *  V2 templates bind `[value]` / `(valueChangeEvent)` with no NgForm, so
+   *  this stays undefined there and everything below that walks it
+   *  (`disableAllControls`, `setFormErrors`, `isFormValid`) does nothing.
+   *  V2 screens use `AbstractDetailScreenV2.readOnlyMode()` bound as
+   *  `[efReadOnly]` on the form container, and `canWrite()` for saving. */
   @ViewChild('entityForm') entityForm!: NgForm;
   serverErrors = signal<{ [key: string]: string[] }>({});
   protected refDataLoaded$ = new Subject<void>();
@@ -46,6 +52,10 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
     this.processGrants();
   }
 
+  /** The `isReadOnly()` branch below is the V1 read-only path. It never
+   *  fires usefully on a V2 screen (see `entityForm`), and its predicate
+   *  ignores the mode: Read+Create on an existing record counts as
+   *  writable. V2 detail screens rely on `readOnlyMode()` instead. */
   ngAfterViewInit(): void {
     this.changeDetector.detectChanges();
     if (this.context && this.context.isReadOnly()) {
@@ -343,6 +353,8 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
     this.serverErrors.set({});
   }
 
+  /** V1 only: disables the controls of `entityForm`. A no-op on V2
+   *  screens, which use `readOnlyMode()` + `[efReadOnly]`. */
   disableAllControls() {
     setTimeout(() => {
       if (this.entityForm && Object.keys(this.entityForm.controls).length > 0) {
