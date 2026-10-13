@@ -66,13 +66,14 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     protected readonly location = inject(Location);
     private readonly destroyRef = inject(DestroyRef);
     private readonly auditHistoryService = inject(AUDIT_HISTORY_SERVICE, { optional: true });
+    private readonly shortcuts = inject(EfShortcutService);
 
     /** The in-flight entity / history requests. A newer load drops the
      *  older one, so a slow response for an id the screen has moved off
-     *  can never overwrite the record it now shows. */
+     *  can never overwrite the record it now shows, and destroying the
+     *  screen drops both. */
     private loadSub?: Subscription;
     private auditSub?: Subscription;
-    private readonly shortcuts = inject(EfShortcutService);
 
     /** Distinguishes this instance's registration from any other detail
      *  screen alive at once (the outgoing and incoming routed component
@@ -86,6 +87,12 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     constructor() {
         super();
+        // A response landing after the screen is gone would still run
+        // afterLoad() and start a history request for a screen nobody sees.
+        this.destroyRef.onDestroy(() => {
+            this.loadSub?.unsubscribe();
+            this.auditSub?.unsubscribe();
+        });
         // Every detail screen inherits mod+s with no per-screen wiring, and
         // it doubles as the fix for the browser's own Save Page dialog
         // otherwise popping up on top of it.
@@ -301,6 +308,14 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         this.loading.set(true);
         this.errorMsg.set(null);
 
+        // Moving to another record: the previous one's history must not
+        // land under it while this load is in flight.
+        const showsAnotherRecord = (this.entity() as any)?.id !== id;
+        if (showsAnotherRecord) {
+            this.auditSub?.unsubscribe();
+            this.auditEntries.set([]);
+        }
+
         this.loadSub?.unsubscribe();
         this.loadSub = this.serviceInstance.get(id).subscribe({
             next: (result: any) => {
@@ -315,6 +330,13 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                 console.error('AbstractDetailScreenV2.loadData failed', err);
                 this.errorMsg.set(err?.message ?? 'Erreur de chargement');
                 this.loading.set(false);
+                // Save and the status actions target entityId(). Leaving the
+                // previous record on screen would have them act on a record
+                // other than the one shown. A failed reload of the same
+                // record keeps it: what is shown is still what is targeted.
+                if (showsAnotherRecord) {
+                    this.entity.set(<TItem>{});
+                }
             },
         });
     }

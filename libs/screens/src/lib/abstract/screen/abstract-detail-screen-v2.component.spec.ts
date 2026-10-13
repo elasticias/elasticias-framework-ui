@@ -339,6 +339,10 @@ class DeferredDetailClient {
     this.gets[index].reply.next(body);
     this.gets[index].reply.complete();
   }
+
+  fail(index: number, error: any): void {
+    this.gets[index].reply.error(error);
+  }
 }
 
 class DeferredAuditService {
@@ -372,6 +376,8 @@ describe('AbstractDetailScreenV2 route changes on a reused instance', () => {
   let client: DeferredDetailClient;
   let audit: DeferredAuditService;
 
+  let fixture: ComponentFixture<AuditedDetailScreen>;
+
   async function open(params: Record<string, string>, query: Record<string, string>) {
     sessionStorage.clear();
     localStorage.clear();
@@ -397,7 +403,7 @@ describe('AbstractDetailScreenV2 route changes on a reused instance', () => {
         { provide: SCREEN_REF_DATA_SERVICE, useValue: fakeRefData },
       ],
     }).compileComponents();
-    const fixture = TestBed.createComponent(AuditedDetailScreen);
+    fixture = TestBed.createComponent(AuditedDetailScreen);
     fixture.detectChanges();
     return fixture.componentInstance;
   }
@@ -489,6 +495,64 @@ describe('AbstractDetailScreenV2 route changes on a reused instance', () => {
     expect(screen.entityId()).toBeNull();
     expect(screen.editionState()).toBe(false);
     expect(screen.entity()).toEqual({});
+  });
+
+  it('does not show the previous record\'s history under the next one', async () => {
+    const screen = await open({ id: 'SRC' }, {});
+    client.resolve(0, { name: 'source' });
+    expect(audit.gets.map(g => g.id)).toEqual(['SRC']);
+
+    route.navigate({ id: 'NEW' }, {});
+    audit.resolve(0, [{ id: 'entry-src' }]);
+
+    expect(screen.auditEntries()).toEqual([]);
+  });
+
+  it('does not leave the previous record on screen when the next one fails to load', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const screen = await open({ id: 'SRC' }, {});
+    client.resolve(0, { name: 'source' });
+    audit.resolve(0, [{ id: 'entry-src' }]);
+
+    route.navigate({ id: 'NEW' }, {});
+    client.fail(1, { message: 'boom' });
+
+    expect(screen.entityId()).toBe('NEW');
+    expect(screen.entity()).toEqual({});
+    expect(screen.auditEntries()).toEqual([]);
+    expect(screen.errorMsg()).toBe('boom');
+  });
+
+  it('keeps the record on screen when reloading that same record fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const screen = await open({ id: 'SRC' }, {});
+    client.resolve(0, { name: 'source' });
+
+    screen.loadData();
+    client.fail(1, { message: 'boom' });
+
+    expect(screen.entity().name).toBe('source');
+  });
+
+  it('drops a load still in flight when the screen is destroyed', async () => {
+    const screen = await open({ id: 'SRC' }, {});
+    const afterLoad = vi.spyOn(screen as any, 'afterLoad');
+
+    fixture.destroy();
+    client.resolve(0, { name: 'source' });
+
+    expect(afterLoad).not.toHaveBeenCalled();
+    expect(audit.gets).toEqual([]);
+  });
+
+  it('drops a history request still in flight when the screen is destroyed', async () => {
+    const screen = await open({ id: 'SRC' }, {});
+    client.resolve(0, { name: 'source' });
+
+    fixture.destroy();
+    audit.resolve(0, [{ id: 'entry-src' }]);
+
+    expect(screen.auditEntries()).toEqual([]);
   });
 
   it('does not let a GET still in flight fill the empty /details form', async () => {
