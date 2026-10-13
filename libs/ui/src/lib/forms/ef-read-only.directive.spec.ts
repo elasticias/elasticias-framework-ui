@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -31,6 +31,7 @@ import { EfDatepickerComponent } from './ef-datepicker/ef-datepicker.component';
   `,
 })
 class Host {
+  @ViewChild(EfQuantityStepperComponent) stepperCmp!: EfQuantityStepperComponent;
   ro = true;
 }
 
@@ -57,6 +58,15 @@ function states(fixture: { nativeElement: HTMLElement }) {
 }
 
 describe('EfReadOnlyDirective', () => {
+  it("sets the stepper's own isDisabled from the scope", async () => {
+    const fixture = await setup(true);
+    expect(fixture.componentInstance.stepperCmp.isDisabled).toBe(true);
+    fixture.componentInstance.ro = false;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(fixture.componentInstance.stepperCmp.isDisabled).toBe(false);
+  });
+
   it('disables every control when true', async () => {
     const s = states(await setup(true));
     expect(s).toEqual({ text: true, checkbox: true, checkboxLabel: true, select: true, datepicker: true, stepper: true });
