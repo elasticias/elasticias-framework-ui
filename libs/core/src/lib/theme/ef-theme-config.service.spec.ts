@@ -70,4 +70,20 @@ describe('EfThemeConfigService with a preference store', () => {
         expect(svc.appState().darkTheme).toBe(DEFAULT_APP_STATE.darkTheme);
         expect(data[KEY]).toBeUndefined();
     });
+
+    it('saves a change back to the hydrated value (hydrate A, B, back to A)', () => {
+        const { data, changes, svc } = setup();
+        TestBed.tick();
+        data[KEY] = JSON.stringify({ darkTheme: true });
+        changes.next(KEY);
+        TestBed.tick();
+        const set = vi.spyOn(TestBed.inject(EF_PREFERENCE_STORE), 'set');
+        const a = svc.appState();
+        svc.appState.set({ ...a, darkTheme: false });
+        TestBed.tick();
+        svc.appState.set({ ...a });
+        TestBed.tick();
+        expect(set).toHaveBeenLastCalledWith(KEY, JSON.stringify(a));
+        expect(data[KEY]).toBe(JSON.stringify(a));
+    });
 });

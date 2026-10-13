@@ -18,6 +18,12 @@ import { StorageUtils } from '@elasticias/utils';
 export interface EfPreferenceStore {
     /** The stored value, or null when absent or storage is unavailable. */
     get(key: string): string | null;
+    /**
+     * Consumers may call this with a value the store already holds, and a
+     * store that keeps partial values (the theme's AppState) will not match
+     * it byte for byte. Server-backed stores should ignore no-op sets
+     * (compare the parsed or merged result) rather than issue a request.
+     */
     set(key: string, value: string): void;
     remove(key: string): void;
     /**

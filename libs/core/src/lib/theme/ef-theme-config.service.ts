@@ -223,7 +223,10 @@ export class EfThemeConfigService {
         if (isPlatformBrowser(this.platformId)) {
             const key = efPrefKey(this.STORAGE_NAME);
             const serialized = JSON.stringify(state);
-            if (serialized === this.fromStore || serialized === this.prefs.get(key)) return;
+            // One-shot: only the effect run caused by the adopt is an echo.
+            const echo = serialized === this.fromStore;
+            this.fromStore = null;
+            if (echo || serialized === this.prefs.get(key)) return;
             this.prefs.set(key, serialized);
         }
     }
