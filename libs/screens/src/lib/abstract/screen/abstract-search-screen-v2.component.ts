@@ -3,11 +3,9 @@ import {
   computed,
   inject,
   Injector,
-  LOCALE_ID,
   OnDestroy, OnInit,
   signal,
 } from '@angular/core';
-import { formatDate } from '@angular/common';
 import { take } from 'rxjs';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
@@ -136,7 +134,9 @@ export abstract class AbstractSearchScreenV2<TItem = any>
    * backend query has no date field, and guard the template's
    * `<ef-datepicker-advanced>` with `@if (showDateFilter)` (or drop it).
    * The base then never sends `start`/`end`: not on first load, not
-   * after `clear()`, and not from criteria cached by an older session.
+   * after `clear()`, not from criteria cached by an older session, and
+   * not from `onDateRangeChange()` / `setDateRange()`, which become
+   * no-ops, so a picker left in the template cannot filter either.
    */
   readonly showDateFilter: boolean = true;
 
@@ -282,6 +282,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
    * so the next `search()` filters by it.
    */
   onDateRangeChange(range: EfDateRange): void {
+    if (!this.showDateFilter) return;
     this.dateRange.set(range);
     this.setDateRange(range.start, range.end);
   }
@@ -320,8 +321,10 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     criteria.end = range?.end ?? null;
   }
 
-  /** Rebuild the chip from restored criteria: no dates is `all_time`,
-   *  anything else is shown as the custom range it now filters on. */
+  /** Rebuild the chip from restored criteria: both dates are shown as
+   *  the custom range they filter on; anything less is `all_time`, and
+   *  `bootstrapInitialSearch()` drops a lone bound so nothing is sent.
+   *  No literal label: the picker formats a custom range itself. */
   private dateRangeFromCriteria(startRaw: unknown, endRaw: unknown): EfDateRange {
     const start = this.toDateOrNull(startRaw);
     const end = this.toDateOrNull(endRaw);
@@ -334,14 +337,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         label: '',
       };
     }
-    const locale = this.injector.get(LOCALE_ID, 'en-US');
-    const fmt = start.getFullYear() === end.getFullYear() ? 'd MMM' : 'd MMM yyyy';
-    return {
-      start,
-      end,
-      presetKey: 'custom',
-      label: `${formatDate(start, fmt, locale)} - ${formatDate(end, fmt, locale)}`,
-    };
+    return { start, end, presetKey: 'custom', label: '' };
   }
 
   private toDateOrNull(raw: unknown): Date | null {
@@ -621,9 +617,12 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     const cached = this.cacheService.getCache<any>(this.screenStateKey);
     if (cached) {
       const restored = new SearchEntity(cached);
-      if (!this.showDateFilter) {
+      const bothBounds =
+        this.toDateOrNull(cached['start']) && this.toDateOrNull(cached['end']);
+      if (!this.showDateFilter || !bothBounds) {
         // Criteria cached while this screen still had a chip may carry
-        // dates its backend ignores at best; drop them.
+        // dates its backend ignores at best; and a lone bound would be
+        // sent under a chip reading "all time". Drop them.
         restored.start = null;
         restored.end = null;
         restored.startEndDateRanges = null;
@@ -749,6 +748,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   }
 
   setDateRange(start: Date | null, end: Date | null): void {
+    if (!this.showDateFilter) return;
     this.criteria.update((c) => this.cloneCriteria(c, { start, end, page: 1 }));
     this.search();
   }

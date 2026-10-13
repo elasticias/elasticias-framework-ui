@@ -412,6 +412,13 @@ describe('AbstractSearchScreenV2', () => {
       expect(r.start instanceof Date).toBe(true);
     });
 
+    it('treats a cache holding a single bound as all time, and sends neither', () => {
+      const s = create(DefaultRangeScreen, { start: new Date(2026, 9, 1).toISOString(), end: null });
+      expect(s.dateRange().presetKey).toBe('all_time');
+      expect(lastSent().start).toBeNull();
+      expect(lastSent().end).toBeNull();
+    });
+
     describe('showDateFilter = false', () => {
       it('sends no dates on first load', () => {
         create(NoDateScreen, null);
@@ -426,6 +433,19 @@ describe('AbstractSearchScreenV2', () => {
         });
         expect(lastSent().start).toBeNull();
         expect(lastSent().end).toBeNull();
+      });
+
+      it('ignores a pick if the template still renders a chip', () => {
+        const s = create(NoDateScreen, null);
+        const before = fakeService.criteria.length;
+        s.onDateRangeChange({
+          start: new Date(2026, 9, 1), end: new Date(2026, 9, 13),
+          presetKey: 'this_month', labelKey: 'date_preset_this_month', label: '',
+        });
+        s.setDateRange(new Date(2026, 9, 1), new Date(2026, 9, 13));
+        expect(fakeService.criteria.length).toBe(before);
+        expect(s.criteria().start).toBeNull();
+        expect(s.dateRange().presetKey).toBe('all_time');
       });
 
       it('sends no dates after clear()', () => {
