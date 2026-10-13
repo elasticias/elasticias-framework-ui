@@ -26,6 +26,14 @@ export interface EfNavItem {
     /** Minimum permission level required to render this item. Defaults to `read`. */
     requiredAction?: EfNavAction;
     /**
+     * Code of the screen this item opens (the key in the user's screen
+     * grants, e.g. `SalesOrders`). When set, the item shows only if the
+     * user has Read on that screen, on top of the module-level check. Not
+     * the same as `id`, which is only a stable identifier. Items without
+     * it are filtered by module level alone.
+     */
+    screenCode?: string;
+    /**
      * Optional count chip rendered after the label (e.g. `Commandes ⟨14⟩`).
      * Apps typically derive this from a service signal and patch the
      * registry — it can be number, string, or anything stringifiable.

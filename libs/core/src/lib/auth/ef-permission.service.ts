@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, Signal, signal } from '@angular/core';
+import { Permissions, ScreenGrants } from '@elasticias/types';
 import { EF_MODULES_TOKEN, EfModule, EfModuleId } from '../modules/ef-module-registry';
 
 export type EfPermissionLevel = 'none' | 'read' | 'write' | 'admin';
@@ -53,6 +54,32 @@ export class EfPermissionService {
      */
     setPermissions(perms: ReadonlyArray<EfModulePermission>): void {
         this._permissions.set(perms);
+    }
+
+    /**
+     * `null` until the app pushes the user's per-screen grants. While it is
+     * `null`, `canScreen` allows everything, so nav behaves as it did before
+     * per-screen filtering existed (module level only).
+     */
+    private readonly _screenGrants = signal<ScreenGrants | null>(null);
+
+    /**
+     * Replace the per-screen grants (keyed by screen code). Pass `null` to
+     * go back to "no grants info"; `{}` means the user has no screen at all.
+     */
+    setScreenGrants(grants: ScreenGrants | null): void {
+        this._screenGrants.set(grants);
+    }
+
+    /**
+     * Whether the user holds `verb` on the screen `code`. Reads a signal, so
+     * it is safe inside `computed()`. Allows everything until grants have
+     * been set; after that a screen with no grant is denied.
+     */
+    canScreen(code: string, verb: Permissions | string = Permissions.Read): boolean {
+        const grants = this._screenGrants();
+        if (grants === null) return true;
+        return grants[code]?.permissions?.includes(verb) ?? false;
     }
 
     /**

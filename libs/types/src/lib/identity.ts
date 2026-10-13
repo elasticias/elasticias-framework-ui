@@ -35,3 +35,10 @@ export const PERMISSIONS: readonly Permissions[] = [
   Permissions.Export,
   Permissions.Import,
 ];
+
+/**
+ * A user's grants keyed by screen code, as the app stores them after login
+ * (`{ SalesOrders: { permissions: ['Read', 'Edit'] } }`). Verbs are plain
+ * strings so custom grants beyond {@link Permissions} pass through.
+ */
+export type ScreenGrants = Record<string, { permissions?: string[] }>;

@@ -44,7 +44,8 @@ export class EfModuleSideComponent {
             .map(section => ({
                 ...section,
                 items: section.items.filter(item =>
-                    this.perms.can(m.id, item.requiredAction ?? 'read')
+                    this.perms.can(m.id, item.requiredAction ?? 'read') &&
+                    (!item.screenCode || this.perms.canScreen(item.screenCode)),
                 ),
             }))
             .filter(section => section.items.length > 0);
