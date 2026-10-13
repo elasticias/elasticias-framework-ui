@@ -83,7 +83,12 @@ export class EfAppTopComponent {
         this.pressStart = { pointerType: event.pointerType, at: Date.now() };
     }
 
-    /** A press that ended without a click (cancelled, or the finger slid off) must not judge a later one. */
+    /**
+     * A cancelled press (the browser took the gesture) must not judge a
+     * later click. Not on pointerleave: on touch it fires after pointerup
+     * and before the synthesised click, so clearing there would erase
+     * every long press just before the guard reads it.
+     */
     protected forgetSignOutPress(): void {
         this.pressStart = null;
     }

@@ -99,21 +99,29 @@ describe('EfAppTopComponent sign-out on touch', () => {
         expect(logout).toHaveBeenCalledTimes(1);
     });
 
-    it('forgets a touch press that ended without a click (cancelled or slid off)', () => {
-        for (const end of ['pointercancel', 'pointerleave']) {
-            const { el, logout } = setup(true);
-            vi.useFakeTimers();
-            pointer(el, 'pointerdown', 'touch');
-            vi.advanceTimersByTime(800);
-            pointer(el, end, 'touch');
-            // A later click that brings no fresh pointerdown (a switch-control
-            // or assistive activation) must not inherit the dead press.
-            vi.advanceTimersByTime(800);
-            tap(el);
-            expect(logout).toHaveBeenCalledTimes(1);
-            vi.useRealTimers();
-            TestBed.resetTestingModule();
-        }
+    it('ignores a long press through the real touch sequence (pointerup, pointerleave, then click)', () => {
+        const { el, logout } = setup(true);
+        vi.useFakeTimers();
+        pointer(el, 'pointerdown', 'touch');
+        vi.advanceTimersByTime(650);
+        pointer(el, 'pointerup', 'touch');
+        // A touch pointer leaves the element as it lifts, before the click.
+        pointer(el, 'pointerleave', 'touch');
+        tap(el);
+        expect(logout).not.toHaveBeenCalled();
+    });
+
+    it('forgets a press the browser cancelled', () => {
+        const { el, logout } = setup(true);
+        vi.useFakeTimers();
+        pointer(el, 'pointerdown', 'touch');
+        vi.advanceTimersByTime(800);
+        pointer(el, 'pointercancel', 'touch');
+        // A later click with no fresh pointerdown (switch control, an
+        // assistive activation) must not inherit the dead press.
+        vi.advanceTimersByTime(800);
+        tap(el);
+        expect(logout).toHaveBeenCalledTimes(1);
     });
 
     it('never guards a keyboard click, even after a stale touch press', () => {
