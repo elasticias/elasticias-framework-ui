@@ -45,6 +45,24 @@
   --m-finance:   #0d6e6a;
   --m-admin:     #0f1115;
 
+  /* ── Crescilio brand colours ─────────────────────────────────────
+     These are the Crescilio brand colours: one per product, plus a
+     critical tone reserved for the system. The Crescilio Brand
+     Guidelines will be shared later, when the logo is ready; until
+     then these values are the reference.
+     Each colour comes as a pair named for the ground it sits on: the
+     plain name is for use on ink (dark grounds), `-paper` for use on
+     paper (light grounds). They are fixed values, not theme-switched,
+     so they are not restated under `.p-dark`. */
+  --cr-spring:         #00D19A;  /* Crescilio ERP, on ink   */
+  --cr-spring-paper:   #007A5A;  /* Crescilio ERP, on paper */
+  --cr-sun:            #FFCE3B;  /* Crescilio POS, on ink   */
+  --cr-sun-paper:      #A87800;  /* Crescilio POS, on paper */
+  --cr-violet:         #7C5CFF;  /* Crescilio Store, on ink   */
+  --cr-violet-paper:   #5B3FE0;  /* Crescilio Store, on paper */
+  --cr-critical:       #FF5C35;  /* Coral, critical, system only, on ink   */
+  --cr-critical-paper: #C2381A;  /* Coral, critical, system only, on paper */
+
   /* ── Status pairs (chips only) ───────────────────────────────── */
   --st-pending-fg:    #b34a00;  --st-pending-bg:    #fff1e0;
   --st-processing-fg: #1356a8;  --st-processing-bg: #e0ecfc;
