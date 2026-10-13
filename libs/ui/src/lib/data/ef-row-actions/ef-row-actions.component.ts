@@ -13,6 +13,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { ScreenContext } from '@elasticias/screens';
+import { Permissions } from '@elasticias/types';
 import { EfShortcutService } from '@elasticias/core';
 import { EfRowAction } from './ef-row-actions.types';
 
@@ -278,7 +279,12 @@ export class EfRowActionsComponent {
     private isVisible(action: EfRowAction, ctx: ScreenContext | undefined): boolean {
         if (action.separator) return true;
         if (action.visible === false) return false;
-        if (action.permission && ctx && !ctx.isGranted(action.permission)) return false;
+        if (action.permission && ctx) {
+            // Array.isArray does not narrow a ReadonlyArray out of the union.
+            const required: ReadonlyArray<Permissions> =
+                typeof action.permission === 'string' ? [action.permission] : action.permission;
+            if (!required.every(p => ctx.isGranted(p))) return false;
+        }
         return true;
     }
 

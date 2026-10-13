@@ -41,9 +41,11 @@ export interface EfRowAction {
 
     /**
      * If set, the item is hidden unless the bound `ScreenContext`
-     * grants this permission. Items with no `permission` always show.
+     * grants this permission, or every permission in the array (e.g.
+     * Duplicate needs `[Duplicate, Create]`, since a duplicate is saved
+     * through create). Items with no `permission` always show.
      */
-    permission?: Permissions;
+    permission?: Permissions | ReadonlyArray<Permissions>;
 
     /** Click handler. The container handles closing the popup. */
     command?: () => void;

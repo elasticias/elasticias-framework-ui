@@ -557,7 +557,10 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 labelKey: 'common_duplicate',
                 icon: 'pi pi-copy',
                 kbd: formatShortcut('mod+d'),
-                permission: Permissions.Duplicate,
+                // Saved through create: without Create the row would open
+                // a duplicate form the user cannot save. Hiding the item
+                // also disarms mod+d, which only runs visible items.
+                permission: [Permissions.Duplicate, Permissions.Create],
                 command: () => this.rowAction.emit({ action: 'duplicate', row }),
             });
         }
