@@ -59,7 +59,7 @@ describe('ef-detail-toolbar inside an AbstractDetailScreenV2', () => {
           useValue: {
             paramMap: of(convertToParamMap({ id: '42' })),
             queryParamMap: of(convertToParamMap({})),
-            snapshot: { queryParamMap: convertToParamMap({}) },
+            snapshot: { paramMap: convertToParamMap({ id: '42' }), queryParamMap: convertToParamMap({}) },
           },
         },
         { provide: FakeClient, useValue: new FakeClient() },

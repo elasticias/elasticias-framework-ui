@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Location } from '@angular/common';
-import { combineLatest } from 'rxjs';
+import { Subscription, distinctUntilChanged, map, merge } from 'rxjs';
 import { EfShortcutService } from '@elasticias/core';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
@@ -66,6 +66,12 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     protected readonly location = inject(Location);
     private readonly destroyRef = inject(DestroyRef);
     private readonly auditHistoryService = inject(AUDIT_HISTORY_SERVICE, { optional: true });
+
+    /** The in-flight entity / history requests. A newer load drops the
+     *  older one, so a slow response for an id the screen has moved off
+     *  can never overwrite the record it now shows. */
+    private loadSub?: Subscription;
+    private auditSub?: Subscription;
     private readonly shortcuts = inject(EfShortcutService);
 
     /** Distinguishes this instance's registration from any other detail
@@ -215,11 +221,25 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         }
 
         // Wire route params → load (or reset to empty on /details).
-        combineLatest([this.route.paramMap, this.route.queryParamMap])
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(([params, queryParams]) => {
-                const id = params.get('id');
-                const isDuplicate = queryParams.get('mode') === 'duplicate';
+        //
+        // One navigation can emit on both maps: the router pushes
+        // queryParams first, then params. Combining the two emissions saw
+        // a half-updated route on details/SRC?mode=duplicate → details/NEW
+        // (the old id without the mode) and loaded SRC on a screen that
+        // was moving to NEW. The router sets `snapshot` to the next one
+        // before either emits, so each emission reads id and mode together
+        // from it, and the second emission of the same navigation (same
+        // snapshot object) is dropped. Any navigation that changes params
+        // or query still gets a new snapshot, so it still reloads once.
+        merge(this.route.paramMap, this.route.queryParamMap)
+            .pipe(
+                map(() => this.route.snapshot),
+                distinctUntilChanged(),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(snapshot => {
+                const id = snapshot.paramMap.get('id');
+                const isDuplicate = snapshot.queryParamMap.get('mode') === 'duplicate';
 
                 this.entityId.set(id);
                 this.duplicateMode.set(isDuplicate);
@@ -230,6 +250,12 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                     this.loadData();
                 } else {
                     // New mode — reset to a fresh empty entity, no history yet.
+                    // A load still in flight for the previous id is dropped.
+                    if (this.loadSub && !this.loadSub.closed) {
+                        this.loadSub.unsubscribe();
+                        this.loading.set(false);
+                    }
+                    this.auditSub?.unsubscribe();
                     this.entity.set(<TItem>{});
                     this.auditEntries.set([]);
                     this.afterLoad();
@@ -275,7 +301,8 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         this.loading.set(true);
         this.errorMsg.set(null);
 
-        this.serviceInstance.get(id).subscribe({
+        this.loadSub?.unsubscribe();
+        this.loadSub = this.serviceInstance.get(id).subscribe({
             next: (result: any) => {
                 const vm = new ViewModelEntity(result) as unknown as TItem;
                 (vm as any).id = id;
@@ -452,6 +479,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
      * an empty history rather than blocking the screen.
      */
     protected loadAuditHistory(): void {
+        this.auditSub?.unsubscribe();
         this.auditEntries.set([]);
 
         const entityType = this.getConfig()?.AUDIT_ENTITY_TYPE;
@@ -470,7 +498,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
             if (!result$ || typeof result$.subscribe !== 'function') {
                 return;
             }
-            result$.subscribe({
+            this.auditSub = result$.subscribe({
                 next: (entries) => this.auditEntries.set(entries ?? []),
                 error: () => this.auditEntries.set([]),
             });
