@@ -1,5 +1,6 @@
 import { booleanAttribute, Component, computed, inject, input, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { EfReadOnlyDirective } from './ef-read-only.directive';
 import { EfServerErrorsDirective, resolveExternalErrors } from './ef-server-errors.directive';
 
 /**
@@ -88,7 +89,7 @@ export abstract class AbstractEfFormControl {
     readonly readonly = input(false, { transform: booleanAttribute });
 
     /** The `[disabled]` input. The **effective** disabled (input OR
-     *  form-driven via CVA) is {@link isDisabled} — bind that in templates. */
+     *  form-driven via CVA, or an enclosing `[efReadOnly]` scope) is {@link isDisabled} — bind that in templates. */
     readonly disabled = input(false, { transform: booleanAttribute });
 
     /** Form-driven disabled set by CVA `setDisabledState`, merged with the
@@ -97,7 +98,12 @@ export abstract class AbstractEfFormControl {
 
     /** Effective disabled state — the `[disabled]` input OR a reactive-form
      *  `disable()`. Templates/logic should use this, not `disabled()`. */
-    readonly isDisabled = computed(() => this.disabled() || this._cvaDisabled());
+    readonly isDisabled = computed(
+        () => this.disabled() || this._cvaDisabled() || (this.readOnlyScope?.readOnly() ?? false),
+    );
+
+    /** Optional enclosing `[efReadOnly]` scope — disables the control when set. */
+    private readonly readOnlyScope = inject(EfReadOnlyDirective, { optional: true });
 
     /** CVA hook for subclasses: `setDisabledState(d) { this.updateDisabledState(d); }`. */
     protected updateDisabledState(disabled: boolean): void {

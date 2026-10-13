@@ -141,6 +141,7 @@ export { EfBulkBarComponent } from './lib/data/ef-bulk-bar/ef-bulk-bar.component
 export { EfEmptyStateComponent } from './lib/feedback/ef-empty-state/ef-empty-state.component';
 export { EfSmartBarComponent } from './lib/data/ef-smart-bar/ef-smart-bar.component';
 export { EfFilterPillComponent } from './lib/forms/ef-filter-pill/ef-filter-pill.component';
+export { EfReadOnlyDirective } from './lib/forms/ef-read-only.directive';
 export { EfServerErrorsDirective } from './lib/forms/ef-server-errors.directive';
 export { EfClearButtonComponent } from './lib/forms/ef-clear-button/ef-clear-button.component';
 export { EfInputTextComponent } from './lib/forms/ef-input-text/ef-input-text.component';

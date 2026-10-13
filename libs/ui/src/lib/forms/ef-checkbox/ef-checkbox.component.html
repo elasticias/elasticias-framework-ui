@@ -3,7 +3,7 @@
 }
 <div class="ef-checkbox-control">
   @if (variant === 'comptoir') {
-    <label class="ef-checkbox-native" [class.is-disabled]="disabled">
+    <label class="ef-checkbox-native" [class.is-disabled]="isDisabled()">
       <input
         type="checkbox"
         [id]="effectiveId"
