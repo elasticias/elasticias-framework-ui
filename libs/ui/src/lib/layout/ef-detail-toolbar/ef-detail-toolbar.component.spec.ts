@@ -95,4 +95,33 @@ describe('EfDetailToolbarComponent write gating', () => {
     fixture.detectChanges();
     expect(ids()).toEqual(['approve', 'preview']);
   });
+
+  describe('Duplicate', () => {
+    function withGrants(grants: Permissions[]): void {
+      fixture.componentRef.setInput(
+        'context',
+        new ScreenContext('DETAIL', undefined, undefined, undefined, undefined, grants),
+      );
+      fixture.componentRef.setInput('showDuplicateAction', true);
+      fixture.detectChanges();
+    }
+
+    it('is hidden with Read+Duplicate, since a duplicate is saved through create', () => {
+      withGrants([Permissions.Read, Permissions.Duplicate]);
+      expect(component.canDuplicate()).toBe(false);
+      expect(fixture.nativeElement.querySelector('ef-button[icon="pi pi-clone"]')).toBeNull();
+    });
+
+    it('is shown with Read+Duplicate+Create', () => {
+      withGrants([Permissions.Read, Permissions.Duplicate, Permissions.Create]);
+      expect(component.canDuplicate()).toBe(true);
+      expect(fixture.nativeElement.querySelector('ef-button[icon="pi pi-clone"]')).not.toBeNull();
+    });
+
+    it('is shown when no context is bound', () => {
+      fixture.componentRef.setInput('showDuplicateAction', true);
+      fixture.detectChanges();
+      expect(component.canDuplicate()).toBe(true);
+    });
+  });
 });

@@ -199,7 +199,9 @@ export class EfDetailToolbarComponent {
       case Permissions.Print:
         return ctx.hasPrintPermission;
       case Permissions.Duplicate:
-        return ctx.hasDuplicatePermission;
+        // A duplicate is saved through create, and duplicate() refuses
+        // without Create; showing it on Duplicate alone gave a dead button.
+        return ctx.hasDuplicatePermission && ctx.hasCreatePermission;
       case Permissions.Delete:
         return ctx.hasDeletePermission;
     }
