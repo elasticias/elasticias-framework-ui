@@ -181,4 +181,24 @@ describe('EfRowActionsComponent placement', () => {
         scroller.dispatchEvent(new Event('scroll'));
         expect(closed).not.toHaveBeenCalled();
     });
+
+    it('flips upward on the menu\'s full height, not its capped one', () => {
+        const frames: FrameRequestCallback[] = [];
+        vi.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => {
+            frames.push(cb);
+            return frames.length;
+        });
+        // Room below: 800 - (428 + 8) - 8 = 356. Room above: 400 - 16 = 384.
+        triggerAt({ left: 900, top: 400 });
+        open();
+        expect(component.dropUp()).toBe(false); // the two-item estimate fits below
+        // Labels wrapped: the real menu is 370px, capped below at 356.
+        const m = menu()!;
+        vi.spyOn(m, 'scrollHeight', 'get').mockReturnValue(370);
+        vi.spyOn(m, 'offsetHeight', 'get').mockReturnValue(356);
+        while (frames.length) frames.shift()!(0);
+        fixture.detectChanges();
+        expect(component.dropUp()).toBe(true);
+        expect(m.style.maxHeight).toBe('384px');
+    });
 });

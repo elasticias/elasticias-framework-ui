@@ -407,7 +407,10 @@ export class EfRowActionsComponent {
             if (!this.open()) return;
             const menu = this.host.nativeElement.querySelector<HTMLElement>('.row-actions__menu');
             if (!menu) return;
-            this.dropUp.set(this.shouldDropUp(menu.offsetHeight));
+            // scrollHeight, not offsetHeight: the first placement already
+            // capped the menu to the room below, so its offsetHeight can
+            // never say it does not fit there.
+            this.dropUp.set(this.shouldDropUp(menu.scrollHeight));
             this.place();
             // The new offsets reach the DOM on the next change detection.
             // Measure only after the entry animation: its translate and

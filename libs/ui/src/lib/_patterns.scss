@@ -1587,7 +1587,10 @@
    bottom / left), so no scrolling or clipping ancestor can cut it off. */
 .row-actions__menu.is-floating {
   position: fixed;
-  /* max-height is set inline from the room on the menu's side. */
+  /* max-height is set inline from the room on the menu's side; border-box
+     so the padding and border count inside it and a capped menu stays on
+     screen. */
+  box-sizing: border-box;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
