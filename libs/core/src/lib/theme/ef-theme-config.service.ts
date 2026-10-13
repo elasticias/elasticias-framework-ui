@@ -1,7 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { computed, DestroyRef, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { palette, updatePrimaryPalette } from '@primeng/themes';
-import { StorageUtils } from '@elasticias/utils';
+import { EF_PREFERENCE_STORE, efPrefKey } from '../preferences/ef-preference-store';
 import { AppState, DEFAULT_APP_STATE } from './app-state';
 
 /**
@@ -14,7 +14,9 @@ import { AppState, DEFAULT_APP_STATE } from './app-state';
     providedIn: 'root'
 })
 export class EfThemeConfigService {
-    private readonly STORAGE_KEY = 'APP_CONFIG_STATE';
+    private readonly STORAGE_NAME = 'APP_CONFIG_STATE';
+
+    private readonly prefs = inject(EF_PREFERENCE_STORE);
 
     appState = signal<AppState>(null as any);
 
@@ -42,6 +44,17 @@ export class EfThemeConfigService {
         if (isPlatformBrowser(this.platformId) && initialState?.RTL) {
             this.document.documentElement.setAttribute('dir', 'rtl');
         }
+
+        // A store that hydrates after sign in announces it; adopt it only when
+        // it differs, so our own save never loops back through here.
+        const sub = this.prefs.changes?.subscribe((key) => {
+            if (key !== efPrefKey(this.STORAGE_NAME)) return;
+            const stored = this.readStoredState();
+            if (stored && JSON.stringify(stored) !== JSON.stringify(this.appState())) {
+                this.appState.set({ ...stored });
+            }
+        });
+        inject(DestroyRef).onDestroy(() => sub?.unsubscribe());
 
         effect(() => {
             const state = this.appState();
@@ -180,7 +193,7 @@ export class EfThemeConfigService {
 
     private loadAppState(): AppState {
         if (isPlatformBrowser(this.platformId)) {
-            const storedState = StorageUtils.getLocal<AppState>(this.STORAGE_KEY);
+            const storedState = this.readStoredState();
             if (storedState) {
                 return storedState;
             }
@@ -188,9 +201,19 @@ export class EfThemeConfigService {
         return { ...DEFAULT_APP_STATE };
     }
 
+    private readStoredState(): AppState | null {
+        const raw = this.prefs.get(efPrefKey(this.STORAGE_NAME));
+        if (!raw) return null;
+        try {
+            return JSON.parse(raw) as AppState;
+        } catch {
+            return null;
+        }
+    }
+
     private saveAppState(state: AppState): void {
         if (isPlatformBrowser(this.platformId)) {
-            StorageUtils.setLocal(this.STORAGE_KEY, state);
+            this.prefs.set(efPrefKey(this.STORAGE_NAME), JSON.stringify(state));
         }
     }
 

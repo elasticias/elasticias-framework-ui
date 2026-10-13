@@ -6,7 +6,10 @@ import {
     EfActiveModuleService,
     EfModule,
     EfPermissionService,
+    EF_PREFERENCE_STORE,
+    EfPreferenceStore,
 } from '@elasticias/core';
+import { Subject } from 'rxjs';
 import { EfAppShellComponent } from './ef-app-shell.component';
 
 const MODULES = [
@@ -74,5 +77,52 @@ describe('EfAppShellComponent mobile sheet per-screen filter', () => {
             ['sales', ['Free']],
             ['catalog', ['CatalogProducts']],
         ]);
+    });
+});
+
+describe('EfAppShellComponent side-panel preference store', () => {
+    function fakeStore(initial: Record<string, string> = {}) {
+        const data = { ...initial };
+        const changes = new Subject<string>();
+        return {
+            data,
+            changes,
+            store: {
+                get: (k: string) => data[k] ?? null,
+                set: (k: string, v: string) => { data[k] = v; },
+                remove: (k: string) => { delete data[k]; },
+                changes: changes.asObservable(),
+            } satisfies EfPreferenceStore,
+        };
+    }
+
+    function create(store: EfPreferenceStore) {
+        TestBed.configureTestingModule({
+            imports: [EfAppShellComponent, TranslateModule.forRoot()],
+            providers: [
+                provideRouter([]),
+                { provide: EF_MODULES_TOKEN, useValue: MODULES },
+                { provide: EF_PREFERENCE_STORE, useValue: store },
+            ],
+        });
+        return TestBed.createComponent(EfAppShellComponent).componentInstance;
+    }
+
+    it('reads the fold from the store and writes the toggle back to it', () => {
+        const f = fakeStore({ 'ef.shell.side-collapsed': '1' });
+        const comp = create(f.store);
+        expect(comp.sideCollapsed()).toBe(true);
+        comp.toggleSide();
+        expect(f.data['ef.shell.side-collapsed']).toBe('0');
+        expect(comp.sideCollapsed()).toBe(false);
+    });
+
+    it('follows a hydrate announced by the store', () => {
+        const f = fakeStore();
+        const comp = create(f.store);
+        expect(comp.sideCollapsed()).toBe(false);
+        f.data['ef.shell.side-collapsed'] = '1';
+        f.changes.next('ef.shell.side-collapsed');
+        expect(comp.sideCollapsed()).toBe(true);
     });
 });

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EfViewportService } from '@elasticias/core';
 import { EfModuleRailComponent } from '../ef-module-rail/ef-module-rail.component';
 import { EfModuleSideComponent } from '../ef-module-side/ef-module-side.component';
@@ -13,22 +14,14 @@ import {
     EfActiveModuleService,
     EfPermissionService,
     EfShortcutService,
+    EF_PREFERENCE_STORE,
+    EF_SIDE_COLLAPSED_KEY,
     formatShortcut,
     EfModule,
     EfNavItem,
     EfNavSection,
 } from '@elasticias/core';
 import { signal } from '@angular/core';
-
-const SIDE_COLLAPSED_KEY = 'ef.shell.side-collapsed';
-
-function readSideCollapsed(): boolean {
-    try {
-        return localStorage.getItem(SIDE_COLLAPSED_KEY) === '1';
-    } catch {
-        return false;
-    }
-}
 
 /**
  * Top-level Comptoir shell.
@@ -102,7 +95,9 @@ export class EfAppShellComponent {
          once it is gone, and in the same spot. Remembered per browser:
          it is a reading preference, not something worth a round trip. */
 
-    readonly sideCollapsed = signal(readSideCollapsed());
+    private readonly prefs = inject(EF_PREFERENCE_STORE);
+
+    readonly sideCollapsed = signal(this.prefs.get(EF_SIDE_COLLAPSED_KEY) === '1');
 
     /** Shown in the toggle's tooltip: the button is far from the content, the shortcut is not. */
     readonly shortcutHint = formatShortcut('mod+b');
@@ -110,14 +105,16 @@ export class EfAppShellComponent {
     toggleSide(): void {
         const collapsed = !this.sideCollapsed();
         this.sideCollapsed.set(collapsed);
-        try {
-            localStorage.setItem(SIDE_COLLAPSED_KEY, collapsed ? '1' : '0');
-        } catch {
-            /* private window or blocked storage: the toggle still works for this visit */
-        }
+        this.prefs.set(EF_SIDE_COLLAPSED_KEY, collapsed ? '1' : '0');
     }
 
     constructor() {
+        // A store that hydrates after sign in announces the key it filled.
+        this.prefs.changes?.pipe(takeUntilDestroyed()).subscribe((key) => {
+            if (key === EF_SIDE_COLLAPSED_KEY) {
+                this.sideCollapsed.set(this.prefs.get(EF_SIDE_COLLAPSED_KEY) === '1');
+            }
+        });
         inject(EfShortcutService).register({
             id: 'shell.toggle-side',
             keys: 'mod+b',

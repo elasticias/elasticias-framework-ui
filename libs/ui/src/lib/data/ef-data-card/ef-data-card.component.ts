@@ -21,8 +21,7 @@ import {
     ScreenReferenceDataService,
 } from '@elasticias/screens';
 import { Permissions } from '@elasticias/types';
-import { StorageUtils } from '@elasticias/utils';
-import { EfViewportService, formatShortcut } from '@elasticias/core';
+import { EF_PREFERENCE_STORE, EfViewportService, efPrefKey, formatShortcut } from '@elasticias/core';
 import {
     EF_DATA_CARD_MOBILE_LAYOUT,
     EfDataCardMobileLayout,
@@ -120,6 +119,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
          each column declares (or is given) a role. */
 
     private readonly viewport = inject(EfViewportService);
+    private readonly prefs = inject(EF_PREFERENCE_STORE);
     private readonly configuredMobileLayout = inject(EF_DATA_CARD_MOBILE_LAYOUT, { optional: true });
 
     readonly isMobile = this.viewport.isMobile;
@@ -854,17 +854,19 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     private storageKey(): string | null {
         const key = this.tableKey();
-        return key ? `TABLE_PREFS_${key}` : null;
+        return key ? efPrefKey(`TABLE_PREFS_${key}`) : null;
     }
 
     private loadPreferences(): void {
         const key = this.storageKey();
         if (!key) return;
         try {
-            const saved = StorageUtils.getLocal<{
+            const raw = this.prefs.get(key);
+            if (!raw) return;
+            const saved = JSON.parse(raw) as {
                 density?: EfTableDensity;
                 hiddenColumnIds?: string[];
-            }>(key);
+            } | null;
             if (!saved) return;
             if (saved.density) this.density.set(saved.density);
             if (Array.isArray(saved.hiddenColumnIds))
@@ -879,10 +881,10 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         const key = this.storageKey();
         if (!key) return;
         try {
-            StorageUtils.setLocal(key, {
+            this.prefs.set(key, JSON.stringify({
                 density: this.density(),
                 hiddenColumnIds: this.hiddenColumnIds(),
-            });
+            }));
         } catch {
             // Preferences are a convenience; losing them must never break
             // the table.

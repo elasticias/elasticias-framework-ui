@@ -55,3 +55,12 @@ export type { EfSession } from './lib/auth/ef-session.token';
 export { EfShortcutService } from './lib/shortcuts/ef-shortcut.service';
 export { formatShortcut, isMacPlatform } from './lib/shortcuts/format-shortcut';
 export type { EfShortcut, EfShortcutGroup } from './lib/shortcuts/ef-shortcut.types';
+
+// Preferences
+export {
+    EF_PREFERENCE_STORE,
+    EF_SIDE_COLLAPSED_KEY,
+    LocalStoragePreferenceStore,
+    efPrefKey,
+} from './lib/preferences/ef-preference-store';
+export type { EfPreferenceStore } from './lib/preferences/ef-preference-store';
