@@ -4551,30 +4551,6 @@ input.ef-input[type='number'] {
     block-size: var(--hit-touch);
   }
 
-  /* Toolbar buttons collapse to icon-only below 767px, so the blanket
-     min-block-size above stretched a 40px-wide button to 48px tall and
-     produced a lozenge four-across in the header. Here the VISUAL stays
-     40px square and the TOUCH TARGET reaches the tier through a hit
-     slop, which is the point of the tier: a thumb needs 48px, an eye
-     does not. */
-  .detail-toolbar .right .btn,
-  .search-toolbar .right .btn {
-    position: relative;
-    inline-size: var(--hit-base);
-    block-size: var(--hit-base);
-    min-inline-size: 0;
-    min-block-size: 0;
-    padding: 0;
-  }
-
-  .detail-toolbar .right .btn::after,
-  .search-toolbar .right .btn::after {
-    content: '';
-    position: absolute;
-    /* (48 - 40) / 2 outward on every side */
-    inset: calc((var(--hit-touch) - var(--hit-base)) / -2);
-  }
-
   /* The switch draws at its theme size (Aura: 40x24) and its click
      target is PrimeNG's invisible input, sized to exactly that box. In a
      list row a tap that lands just outside it did nothing, because the
@@ -4598,6 +4574,38 @@ input.ef-input[type='number'] {
   }
 }
 
+
+/* Toolbar buttons collapse to icon-only below 767px, so the blanket
+   min-block-size above stretched a 40px-wide button to 48px tall and
+   produced a lozenge four-across in the header. Here the VISUAL stays
+   40px square and the TOUCH TARGET reaches the tier through a hit
+   slop, which is the point of the tier: a thumb needs 48px, an eye
+   does not.
+
+   Scoped to the same 767px as the rule that hides the label. Keyed on
+   pointer type alone it also caught every tablet, which kept its label
+   and got a 40px box: "Nouvelle commande" spilled out of the button and
+   the detail actions piled into each other. Above 767px a touch screen
+   keeps the labelled button, 48px tall from the generic rule above. */
+@media (pointer: coarse) and (max-width: 767px) {
+  .detail-toolbar .right .btn,
+  .search-toolbar .right .btn {
+    position: relative;
+    inline-size: var(--hit-base);
+    block-size: var(--hit-base);
+    min-inline-size: 0;
+    min-block-size: 0;
+    padding: 0;
+  }
+
+  .detail-toolbar .right .btn::after,
+  .search-toolbar .right .btn::after {
+    content: '';
+    position: absolute;
+    /* (48 - 40) / 2 outward on every side */
+    inset: calc((var(--hit-touch) - var(--hit-base)) / -2);
+  }
+}
 
 /* ── MOBILE BOTTOM BAR ──────────────────────────────────────────────
    The phone shell renders a 64px tab bar fixed to the bottom edge.
