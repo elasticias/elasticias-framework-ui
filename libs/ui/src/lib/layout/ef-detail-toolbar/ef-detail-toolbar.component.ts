@@ -52,6 +52,13 @@ import { EfDetailToolbarAction } from './ef-detail-toolbar.types';
  * Custom actions can declare `permission` and `visible` like
  * `EfRowAction`. With `[context]` bound, the toolbar filters them
  * against `ScreenContext.isGranted()` automatically.
+ *
+ * Save and actions flagged `requiresWrite` follow `context.canWrite`,
+ * which `AbstractDetailScreenV2` sets from its own `canWrite()` (Edit on
+ * an existing record, Create on a new one or a duplicate). Binding
+ * `[context]="context"` is all a screen does; it does not pass
+ * `[showSaveAction]` for permissions. Without a context, or with one that
+ * carries no `canWrite`, Save behaves as `[showSaveAction]` alone says.
  */
 @Component({
   selector: 'ef-detail-toolbar',
@@ -112,7 +119,10 @@ export class EfDetailToolbarComponent {
     ReadonlyArray<EfDetailToolbarAction>
   >(() => {
     const ctx = this.context();
-    return this.customActions().filter((a) => this.isCustomVisible(a, ctx));
+    const canWrite = this.canWrite();
+    return this.customActions().filter((a) =>
+      this.isCustomVisible(a, ctx, canWrite),
+    );
   });
 
   readonly canPrint = computed(() =>
@@ -124,7 +134,16 @@ export class EfDetailToolbarComponent {
   readonly canDelete = computed(() =>
     this.checkStandard(this.showDeleteAction(), Permissions.Delete),
   );
-  readonly canSave = computed(() => this.showSaveAction());
+  /** The bound screen's write state; `true` when unknown (no context,
+   *  or a context no detail abstract has stamped), which keeps the
+   *  toolbar's behaviour for those callers what it always was. */
+  readonly canWrite = computed(
+    () => this.context()?.canWrite?.() ?? true,
+  );
+
+  readonly canSave = computed(
+    () => this.showSaveAction() && this.canWrite(),
+  );
 
   readonly hasStandardActions = computed(
     () =>
@@ -155,8 +174,10 @@ export class EfDetailToolbarComponent {
   private isCustomVisible(
     action: EfDetailToolbarAction,
     ctx: ScreenContext | undefined,
+    canWrite: boolean,
   ): boolean {
     if (action.visible === false) return false;
+    if (action.requiresWrite && !canWrite) return false;
     if (action.permission && ctx && !ctx.isGranted(action.permission))
       return false;
     return true;

@@ -54,6 +54,15 @@ export interface EfDetailToolbarAction {
      */
     permission?: Permissions;
 
+    /**
+     * The action changes the record (approve, cancel, complete, ...).
+     * Hidden when the screen cannot write it in its current mode, read from
+     * the bound `ScreenContext.canWrite` (set by `AbstractDetailScreenV2`).
+     * Independent of `permission`: when both are set, both must pass. A
+     * context with no write state (no `canWrite`) leaves the action shown.
+     */
+    requiresWrite?: boolean;
+
     /** Click handler. */
     command?: () => void;
 }
