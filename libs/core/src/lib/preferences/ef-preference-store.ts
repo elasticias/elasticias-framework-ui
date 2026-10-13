@@ -24,7 +24,10 @@ export interface EfPreferenceStore {
      * Optional. Emits a key whose value was changed from outside the
      * consumers (for example a server hydrate after sign in), so a consumer
      * that is already alive can re-read it. Must NOT emit for the store's own
-     * `set` / `remove` calls.
+     * `set` / `remove` calls. The theme and the app shell follow it (a removed
+     * key resets them to defaults; the theme value may be a partial AppState,
+     * merged over the live one). ef-data-card reads its key only when it is
+     * constructed and ignores it.
      */
     readonly changes?: Observable<string>;
 }
@@ -35,6 +38,14 @@ export const EF_SIDE_COLLAPSED_KEY = 'ef.shell.side-collapsed';
 /** Key for a preference that StorageUtils has always stored under its prefix (`Elasticias_` by default). */
 export function efPrefKey(name: string): string {
     return `${StorageUtils.prefix}${name}`;
+}
+
+/** Prefix of the per-table key family: `efTablePrefsKey(tableKey)` is the full key. */
+export const EF_TABLE_PREFS_PREFIX = 'TABLE_PREFS_';
+
+/** Full key of one table's density / hidden-columns preference (`Elasticias_TABLE_PREFS_<tableKey>`). */
+export function efTablePrefsKey(tableKey: string): string {
+    return efPrefKey(`${EF_TABLE_PREFS_PREFIX}${tableKey}`);
 }
 
 /** localStorage, never throwing: a private window or blocked site data just means nothing is remembered. */

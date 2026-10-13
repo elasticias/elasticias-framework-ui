@@ -21,7 +21,7 @@ import {
     ScreenReferenceDataService,
 } from '@elasticias/screens';
 import { Permissions } from '@elasticias/types';
-import { EF_PREFERENCE_STORE, EfViewportService, efPrefKey, formatShortcut } from '@elasticias/core';
+import { EF_PREFERENCE_STORE, EfViewportService, efTablePrefsKey, formatShortcut } from '@elasticias/core';
 import {
     EF_DATA_CARD_MOBILE_LAYOUT,
     EfDataCardMobileLayout,
@@ -854,7 +854,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     private storageKey(): string | null {
         const key = this.tableKey();
-        return key ? efPrefKey(`TABLE_PREFS_${key}`) : null;
+        return key ? efTablePrefsKey(key) : null;
     }
 
     private loadPreferences(): void {

@@ -62,5 +62,7 @@ export {
     EF_SIDE_COLLAPSED_KEY,
     LocalStoragePreferenceStore,
     efPrefKey,
+    EF_TABLE_PREFS_PREFIX,
+    efTablePrefsKey,
 } from './lib/preferences/ef-preference-store';
 export type { EfPreferenceStore } from './lib/preferences/ef-preference-store';

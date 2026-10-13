@@ -18,6 +18,9 @@ export class EfThemeConfigService {
 
     private readonly prefs = inject(EF_PREFERENCE_STORE);
 
+    /** Serialized state last adopted from the store; saving it back would only echo. */
+    private fromStore: string | null = null;
+
     appState = signal<AppState>(null as any);
 
     designerActive = signal(false);
@@ -45,14 +48,19 @@ export class EfThemeConfigService {
             this.document.documentElement.setAttribute('dir', 'rtl');
         }
 
-        // A store that hydrates after sign in announces it; adopt it only when
-        // it differs, so our own save never loops back through here.
+        // A store that hydrates after sign in announces it. The stored value
+        // may be a PARTIAL AppState (a server only knows some fields), so it
+        // is merged over the live state; a removed key resets to defaults.
+        // Either way the result is not written back: it came from the store.
         const sub = this.prefs.changes?.subscribe((key) => {
             if (key !== efPrefKey(this.STORAGE_NAME)) return;
             const stored = this.readStoredState();
-            if (stored && JSON.stringify(stored) !== JSON.stringify(this.appState())) {
-                this.appState.set({ ...stored });
-            }
+            const next: AppState = stored
+                ? { ...this.appState(), ...stored }
+                : { ...DEFAULT_APP_STATE };
+            if (JSON.stringify(next) === JSON.stringify(this.appState())) return;
+            this.fromStore = JSON.stringify(next);
+            this.appState.set(next);
         });
         inject(DestroyRef).onDestroy(() => sub?.unsubscribe());
 
@@ -213,7 +221,10 @@ export class EfThemeConfigService {
 
     private saveAppState(state: AppState): void {
         if (isPlatformBrowser(this.platformId)) {
-            this.prefs.set(efPrefKey(this.STORAGE_NAME), JSON.stringify(state));
+            const key = efPrefKey(this.STORAGE_NAME);
+            const serialized = JSON.stringify(state);
+            if (serialized === this.fromStore || serialized === this.prefs.get(key)) return;
+            this.prefs.set(key, serialized);
         }
     }
 
