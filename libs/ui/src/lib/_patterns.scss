@@ -765,10 +765,22 @@
 /* ──────────── RESULTS BAR + TABLE WRAPPER ──────────────────────── */
 
 .tbl-wrap {
+  min-width: 0;
   background: var(--paper-alt);
   border: 1px solid var(--rule);
   border-radius: var(--r-2xl);
   overflow: hidden;
+}
+
+/* The table's own horizontal scroller, inside the clipping shell. A table
+   wider than its column (a tablet, or a desktop with the side panel open)
+   pans here rather than being cut off by .tbl-wrap or widening the page.
+   overscroll-behavior keeps a sideways drag that hits the end from
+   panning the page behind it. */
+.tbl-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .tbl-head {
@@ -1567,6 +1579,12 @@
   inset-inline-start: 0;
 }
 
+/* Placed by ef-row-actions from the trigger's rect (inline top / right /
+   bottom / left), so no scrolling or clipping ancestor can cut it off. */
+.row-actions__menu.is-floating {
+  position: fixed;
+}
+
 /* Not enough room below the trigger — flip above it, and reverse the
    entry slide so the menu still moves away from its trigger. */
 .row-actions__menu.up {
@@ -1808,9 +1826,12 @@
   min-width: 0;
 }
 
-/* When a row-actions menu is open inside a data card, the table-wrap
-   should let the popover escape its overflow. The data-card binds
-   .has-open-menu when any descendant trigger is in `.open` state. */
+/* When a menu is open inside a data card, the table-wrap lets it escape
+   its overflow. The data-card binds .has-open-menu while a density or
+   columns menu (in .tbl-head) or a row menu is open. Row menus no longer
+   need it: they are fixed to the viewport, because .tbl-scroll must keep
+   its own overflow (lifting it would reset the reader's scroll position
+   and spill the table across the page). */
 .tbl-wrap.has-open-menu {
   overflow: visible;
 }

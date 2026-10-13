@@ -1,6 +1,14 @@
 /* ef-data-card uses .tbl-wrap / .tbl-head / .tbl from the lifted
    _patterns.scss — only the sortable-header affordance lives here. */
 
+/* A grid or flex item's min-width defaults to auto, so without this the
+   table's natural width sized the card and the page grew wider than the
+   screen instead of the table scrolling inside .tbl-scroll. */
+:host {
+    display: block;
+    min-width: 0;
+}
+
 .tbl thead th.is-sortable {
     cursor: pointer;
     user-select: none;

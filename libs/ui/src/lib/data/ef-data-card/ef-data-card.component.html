@@ -310,6 +310,13 @@
       }
     </ul>
   } @else {
+    <!-- The table scrolls sideways inside its own box. Between 768px and
+         the table's natural width (about 900-1100px) the columns past the
+         edge were simply clipped by .tbl-wrap, with no way to reach them.
+         .tbl-wrap stays the clipping shell, so the head and the pager do
+         not scroll with the rows. Row menus are fixed to the viewport
+         (ef-row-actions), so this scroller never clips them. -->
+    <div class="tbl-scroll">
     <table class="tbl" [class.tbl--fixed]="fixedLayout()">
       <thead>
         <tr>
@@ -428,6 +435,7 @@
         }
       </tbody>
     </table>
+    </div>
   }
 
   <!-- ── PAGER ─────────────────────────────────────────────── -->

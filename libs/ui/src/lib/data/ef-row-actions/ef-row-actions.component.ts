@@ -1,6 +1,7 @@
 import {
     ChangeDetectionStrategy,
     Component,
+    DestroyRef,
     ElementRef,
     HostListener,
     booleanAttribute,
@@ -57,6 +58,9 @@ const ROW_SHORTCUTS: ReadonlyArray<{ actionId: string; keys: string; labelKey: s
  * - Click the trigger to toggle. Trigger gets `.open` (ink-active) while the menu is open.
  * - Only one row menu is open at a time — opening one closes the last.
  * - The menu flips above the trigger when there isn't room below it.
+ * - The menu is fixed to the viewport, placed from the trigger's rect, so a
+ *   table's horizontal scroller cannot clip it. Scrolling any ancestor or
+ *   resizing the window closes it, rather than leaving it behind its row.
  * - Click outside or press `Escape` to close.
  * - Clicking an item runs its `command` then closes the menu.
  * - dblclick on the trigger or menu does NOT propagate, so the data-card's
@@ -93,6 +97,10 @@ export class EfRowActionsComponent {
     private readonly instanceId = EfRowActionsComponent.nextInstanceId++;
 
     constructor() {
+        inject(DestroyRef).onDestroy(() => {
+            this.stopListeningForDisplacement();
+            if (EfRowActionsComponent.openInstance === this) EfRowActionsComponent.openInstance = null;
+        });
         for (const { actionId, keys, labelKey } of ROW_SHORTCUTS) {
             this.shortcuts.register({
                 id: `row-actions.${this.instanceId}.${actionId}`,
@@ -182,7 +190,11 @@ export class EfRowActionsComponent {
             // wrong direction, then correct against the real height once
             // the menu is in the DOM.
             this.dropUp.set(this.shouldDropUp(this.estimateMenuHeight()));
+            this.place();
+            this.listenForDisplacement();
             this.correctPlacementAfterRender();
+        } else {
+            this.stopListeningForDisplacement();
         }
 
         this.dispatchToggle(isOpen);
@@ -199,6 +211,7 @@ export class EfRowActionsComponent {
 
     close(): void {
         if (!this.open()) return;
+        this.stopListeningForDisplacement();
         this.open.set(false);
         if (EfRowActionsComponent.openInstance === this) {
             EfRowActionsComponent.openInstance = null;
@@ -219,10 +232,137 @@ export class EfRowActionsComponent {
      * below wins, which is where it has always been.
      */
     private shouldDropUp(menuHeight: number): boolean {
-        const rect = this.host.nativeElement.getBoundingClientRect();
-        const below = window.innerHeight - rect.bottom;
+        const rect = this.triggerRect();
+        const below = EfRowActionsComponent.viewportHeight() - rect.bottom;
         const above = rect.top;
         return below < menuHeight + EfRowActionsComponent.EDGE_GAP && above > below;
+    }
+
+    /** Gap between the trigger and the menu. Matches the CSS `calc(100% + 8px)`. */
+    private static readonly MENU_GAP = 8;
+
+    /**
+     * Where the fixed menu sits, as physical offsets from the viewport
+     * edges. The four values are always set, so they override the CSS
+     * `top` / `bottom` / `inset-inline-*` an absolute menu uses.
+     */
+    readonly menuPosition = signal<{ top: string; right: string; bottom: string; left: string } | null>(null);
+
+    /**
+     * Fixed rather than absolute: inside ef-data-card the table sits in a
+     * horizontal scroller, and `overflow-x: auto` makes the block axis clip
+     * too, so an absolute menu was cut off at the scroller's edge. Lifting
+     * the scroller's overflow while a menu is open would reset its
+     * scrollLeft and spill the table across the page, exactly when the
+     * reader has scrolled across to reach the actions column.
+     */
+    private place(): void {
+        const rect = this.triggerRect();
+        const vw = EfRowActionsComponent.viewportWidth();
+        const vh = EfRowActionsComponent.viewportHeight();
+        const gap = EfRowActionsComponent.MENU_GAP;
+        const px = (n: number) => `${Math.round(n)}px`;
+
+        // The menu's inline end meets the trigger's inline end (or its
+        // inline start with menuLeft); in a right-to-left page those are
+        // the physical left and right edges respectively.
+        const rtl = this.isRtl();
+        const alignRight = rtl === this.menuLeft();
+
+        this.menuPosition.set({
+            top: this.dropUp() ? 'auto' : px(rect.bottom + gap),
+            bottom: this.dropUp() ? px(vh - rect.top + gap) : 'auto',
+            right: alignRight ? px(vw - rect.right) : 'auto',
+            left: alignRight ? 'auto' : px(rect.left),
+        });
+    }
+
+    /**
+     * An ancestor with a transform, filter or containment becomes the fixed
+     * menu's containing block (a dialog mid-animation, for one), and the
+     * viewport offsets land in the wrong place. Measure where the menu
+     * actually is against where the trigger says it should be, and shift
+     * by the difference. Also nudges it back inside the viewport.
+     */
+    private correctOffset(menu: HTMLElement): void {
+        const pos = this.menuPosition();
+        if (!pos) return;
+        const rect = this.triggerRect();
+        const m = menu.getBoundingClientRect();
+        if (!m.width && !m.height) return;
+        const gap = EfRowActionsComponent.MENU_GAP;
+        const vw = EfRowActionsComponent.viewportWidth();
+
+        const wantTop = this.dropUp() ? rect.top - gap - m.height : rect.bottom + gap;
+        const alignRight = pos.right !== 'auto';
+        let wantLeft = alignRight ? rect.right - m.width : rect.left;
+        // Keep the whole menu on screen when the trigger hugs an edge.
+        wantLeft = Math.min(Math.max(wantLeft, gap), Math.max(gap, vw - gap - m.width));
+
+        const dx = wantLeft - m.left;
+        const dy = wantTop - m.top;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+
+        const shift = (value: string, by: number) =>
+            value === 'auto' ? value : `${Math.round(parseFloat(value) + by)}px`;
+        this.menuPosition.set({
+            top: shift(pos.top, dy),
+            bottom: shift(pos.bottom, -dy),
+            left: shift(pos.left, dx),
+            right: shift(pos.right, -dx),
+        });
+    }
+
+    /** The nearest `dir` wins (the app sets it on <html>); computed style covers a page without one. */
+    private isRtl(): boolean {
+        const el = this.host.nativeElement;
+        const dir = el.closest('[dir]')?.getAttribute('dir');
+        if (dir) return dir.toLowerCase() === 'rtl';
+        return getComputedStyle(el).direction === 'rtl';
+    }
+
+    private triggerRect(): DOMRect {
+        const trigger = this.host.nativeElement.querySelector<HTMLElement>('.row-actions__trigger');
+        return (trigger ?? this.host.nativeElement).getBoundingClientRect();
+    }
+
+    /** The fixed containing block: the viewport without its scrollbars. */
+    private static viewportWidth(): number {
+        return document.documentElement.clientWidth || window.innerWidth;
+    }
+
+    private static viewportHeight(): number {
+        return document.documentElement.clientHeight || window.innerHeight;
+    }
+
+    /* ── Displacement ───────────────────────────────────────────────
+       A fixed menu does not move with its row. Any scroll (the table's own
+       horizontal scroller, the page, a dialog body) or a resize would leave
+       it floating over the wrong row, so either one closes it. Scrolls
+       inside the menu itself are not displacement. */
+
+    private displacementListener: ((event: Event) => void) | null = null;
+
+    private listenForDisplacement(): void {
+        if (this.displacementListener) return;
+        const listener = (event: Event) => {
+            const target = event.target;
+            if (target instanceof Node && this.host.nativeElement.querySelector('.row-actions__menu')?.contains(target)) {
+                return;
+            }
+            this.close();
+        };
+        this.displacementListener = listener;
+        document.addEventListener('scroll', listener, { capture: true, passive: true });
+        window.addEventListener('resize', listener, { passive: true });
+    }
+
+    private stopListeningForDisplacement(): void {
+        const listener = this.displacementListener;
+        if (!listener) return;
+        this.displacementListener = null;
+        document.removeEventListener('scroll', listener, { capture: true });
+        window.removeEventListener('resize', listener);
     }
 
     /** Rough height before the menu exists: item padding + line box, with
@@ -241,6 +381,11 @@ export class EfRowActionsComponent {
             const menu = this.host.nativeElement.querySelector<HTMLElement>('.row-actions__menu');
             if (!menu) return;
             this.dropUp.set(this.shouldDropUp(menu.offsetHeight));
+            this.place();
+            // The new offsets reach the DOM on the next change detection.
+            requestAnimationFrame(() => {
+                if (this.open()) this.correctOffset(menu);
+            });
         });
     }
 

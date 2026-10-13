@@ -54,3 +54,20 @@ describe('ef-data-card projected empty-state slots', () => {
         });
     }
 });
+
+describe('ef-data-card horizontal scroller', () => {
+    it('puts the table in its own scroller inside the clipping shell, outside the head and pager', async () => {
+        TestBed.resetTestingModule();
+        await TestBed.configureTestingModule({
+            imports: [HostComponent, TranslateModule.forRoot()],
+            providers: [{ provide: EfViewportService, useValue: viewport(false) }],
+        }).compileComponents();
+        const fixture = TestBed.createComponent(HostComponent);
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        const table = el.querySelector('table.tbl')!;
+        expect(table.parentElement!.classList).toContain('tbl-scroll');
+        expect(table.parentElement!.parentElement!.classList).toContain('tbl-wrap');
+        expect(el.querySelector('.tbl-scroll .tbl-head')).toBeNull();
+    });
+});
