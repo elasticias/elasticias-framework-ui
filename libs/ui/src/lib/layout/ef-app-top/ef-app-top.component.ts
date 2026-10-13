@@ -83,9 +83,20 @@ export class EfAppTopComponent {
         this.pressStart = { pointerType: event.pointerType, at: Date.now() };
     }
 
-    protected onSignOutClick(): void {
+    /** A press that ended without a click (cancelled, or the finger slid off) must not judge a later one. */
+    protected forgetSignOutPress(): void {
+        this.pressStart = null;
+    }
+
+    protected onSignOutClick(event: MouseEvent): void {
         const press = this.pressStart;
         this.pressStart = null;
+        // Enter / Space synthesise a click with detail 0: a keyboard
+        // activation is deliberate, whatever touch came before it.
+        if (event.detail === 0) {
+            this.signOut();
+            return;
+        }
         const held = press !== null && press.pointerType !== 'mouse' &&
             Date.now() - press.at >= EfAppTopComponent.HOLD_MS;
         if (held) return;

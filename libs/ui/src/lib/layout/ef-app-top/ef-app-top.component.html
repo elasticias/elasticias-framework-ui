@@ -27,7 +27,9 @@
       tooltipEvent="both"
       [tooltipDisabled]="touchOnly()"
       (pointerdown)="onSignOutPointerDown($event)"
-      (click)="onSignOutClick()"
+      (pointercancel)="forgetSignOutPress()"
+      (pointerleave)="forgetSignOutPress()"
+      (click)="onSignOutClick($event)"
     >
       <i class="pi pi-sign-out" aria-hidden="true"></i>
     </button>
