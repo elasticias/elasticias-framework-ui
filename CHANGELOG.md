@@ -1,4 +1,4 @@
-## 1.0.43 (unreleased)
+## 1.0.43 (2026-10-13)
 
 Tablet fixes (iPad, Surface). The layout changes were measured in Playwright on 768-1376px touch viewports in Chromium and WebKit. Touch gestures in WebKit, iOS long-press and Safari's toolbar (the dvh change) still need a real device.
 
