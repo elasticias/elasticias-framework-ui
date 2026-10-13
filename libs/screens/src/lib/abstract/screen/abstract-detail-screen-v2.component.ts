@@ -88,7 +88,12 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
             keys: 'mod+s',
             labelKey: 'common_save',
             group: 'shortcut_group_screen',
-            handler: () => this.save(),
+            // Gated here as well as inside save(): a subclass that overrides
+            // save() without calling super must still not be reachable from
+            // the keyboard by a user who cannot write.
+            handler: () => {
+                if (this.canWrite()) this.save();
+            },
         });
     }
 
@@ -115,6 +120,38 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
      * the `?mode=duplicate` query param.
      */
     readonly duplicateMode = signal(false);
+
+    /**
+     * Bumped every time `processGrants()` (re)reads the user's grants.
+     * `context` is a plain object, not a signal, so without this a
+     * `canWrite()` read before the grants arrive would memoize `false`
+     * and the route subscription re-setting `editionState(false)` to the
+     * same value would never invalidate it.
+     */
+    private readonly grantsVersion = signal(0);
+
+    /**
+     * Whether the user may write the record on screen, for the mode it is
+     * in: an existing record (edit mode, not duplicating) needs Edit; a new
+     * record or a duplicate needs Create. Read is not enough for either,
+     * which is how a Read-only user got a fully editable, savable form.
+     *
+     * Bind its negation on the form container to disable every ef-* control:
+     * `<div class="form" [efReadOnly]="readOnlyMode()">`. ef-detail-toolbar
+     * reads it through `context.canWrite` to hide Save, so screens pass
+     * nothing for that. The backend still enforces the same grants; this is
+     * the UI agreeing with it.
+     */
+    readonly canWrite = computed(() => {
+        this.grantsVersion();
+        const ctx = this.context;
+        if (!ctx) return false;
+        const editingExisting = this.editionState() && !this.duplicateMode();
+        return editingExisting ? ctx.hasEditPermission : ctx.hasCreatePermission;
+    });
+
+    /** `!canWrite()`, named for the `[efReadOnly]` binding it feeds. */
+    readonly readOnlyMode = computed(() => !this.canWrite());
 
     /** True while service.get / create / update / delete is in flight. */
     readonly loading = signal(false);
@@ -164,6 +201,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     override ngOnInit(): void {
         super.ngOnInit();
+        this.context.canWrite = this.canWrite;
         this.serviceInstance = this.injector.get(this.getConfig()!.SERVICE as any);
 
         // Reference / static lists for the detail context (different
@@ -198,6 +236,11 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                     this.afterLoad();
                 }
             });
+    }
+
+    override processGrants(): void {
+        super.processGrants();
+        this.grantsVersion.update(v => v + 1);
     }
 
     /**
@@ -246,8 +289,14 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
      * Persist the entity. Routes to `service.create()` when in new
      * or duplicate mode, `service.update(id, entity)` when editing.
      * Subclass `beforeSave()` can return `false` to cancel.
+     *
+     * A no-op when `canWrite()` is false, checked before `beforeSave()` so
+     * a screen's validation never toasts at a user who could not save
+     * anyway.
      */
     save(): void {
+        if (!this.canWrite()) return;
+
         const proceed = this.beforeSave();
         if (proceed === false) return;
 
@@ -304,6 +353,8 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     }
 
     delete(): void {
+        if (!this.context?.hasDeletePermission) return;
+
         const id = this.entityId();
         if (!id) {
             this.recordNotFound();
@@ -336,8 +387,12 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
      *  via `service.create()` after the user hits Save.
      *  Without the id, the duplicate route would have nothing to
      *  fetch — `entity` would be empty and the clone-as-template
-     *  flow would fall back to creating a blank record. */
+     *  flow would fall back to creating a blank record.
+     *  Needs Create: a duplicate is saved through `service.create()`, so
+     *  opening one without Create would only lead to a read-only form. */
     duplicate(): void {
+        if (!this.context?.hasCreatePermission) return;
+
         const id = this.entityId();
         const base = this.detailsBaseUrl();
         if (id == null) {

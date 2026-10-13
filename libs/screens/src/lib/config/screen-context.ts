@@ -22,6 +22,16 @@ export class ScreenContext extends AbstractEntity {
   grants: string[];
   duplicateMode = false;
 
+  /**
+   * Whether the screen may write the record it shows, for its current mode.
+   * Set by `AbstractDetailScreenV2` to its own `canWrite` signal, so shared
+   * components bound to `[context]` (ef-detail-toolbar's Save and its
+   * `requiresWrite` custom actions) follow the same rule without each
+   * screen passing it again. Undefined on screens that have no write mode
+   * (search, report), where those components keep their default behaviour.
+   */
+  canWrite?: Signal<boolean>;
+
   constructor(
     state: string,
     group?: unknown,
