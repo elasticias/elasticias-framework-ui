@@ -42,7 +42,8 @@ import { signal } from '@angular/core';
  *
  * **Desktop / tablet:** rail (64px) + side (240px) + (top + main). The
  * side folds away from a toggle at the foot of the rail (or mod+B); the
- * rail never does.
+ * rail never does. A tablet starts with it folded unless the viewer has
+ * a stored choice (`EF_SIDE_COLLAPSED_KEY`).
  * **Mobile:** delegates to `<ef-app-shell-mobile>` — top bar + scrollable
  * body + 5-tab bottom bar + FAB slot.
  *
@@ -97,22 +98,41 @@ export class EfAppShellComponent {
 
     private readonly prefs = inject(EF_PREFERENCE_STORE);
 
-    readonly sideCollapsed = signal(this.prefs.get(EF_SIDE_COLLAPSED_KEY) === '1');
+    /** The viewer's explicit choice ('1' folded, '0' open), or null when they never made one. */
+    private readonly storedSide = signal(this.prefs.get(EF_SIDE_COLLAPSED_KEY));
+
+    /**
+     * Folded or open. An explicit choice always wins. Without one, a
+     * tablet starts folded: at 768-1279px the 240px panel left a
+     * phone-width column for a desktop table, so the right-hand columns
+     * were cut off. A desktop keeps it open and a phone never renders it.
+     *
+     * The default is derived, never written: storing it would turn it
+     * into a choice the viewer did not make, pin it when they rotate or
+     * resize across the breakpoint, and with a server-backed store send
+     * a request on every page load.
+     */
+    readonly sideCollapsed = computed(() => {
+        const stored = this.storedSide();
+        if (stored !== null) return stored === '1';
+        return this.vp.isTablet();
+    });
 
     /** Shown in the toggle's tooltip: the button is far from the content, the shortcut is not. */
     readonly shortcutHint = formatShortcut('mod+b');
 
     toggleSide(): void {
-        const collapsed = !this.sideCollapsed();
-        this.sideCollapsed.set(collapsed);
-        this.prefs.set(EF_SIDE_COLLAPSED_KEY, collapsed ? '1' : '0');
+        const value = this.sideCollapsed() ? '0' : '1';
+        this.storedSide.set(value);
+        this.prefs.set(EF_SIDE_COLLAPSED_KEY, value);
     }
 
     constructor() {
         // A store that hydrates after sign in announces the key it filled.
+        // A key it removed takes the panel back to the viewport default.
         this.prefs.changes?.pipe(takeUntilDestroyed()).subscribe((key) => {
             if (key === EF_SIDE_COLLAPSED_KEY) {
-                this.sideCollapsed.set(this.prefs.get(EF_SIDE_COLLAPSED_KEY) === '1');
+                this.storedSide.set(this.prefs.get(EF_SIDE_COLLAPSED_KEY));
             }
         });
         inject(EfShortcutService).register({

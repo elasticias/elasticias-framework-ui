@@ -8,7 +8,10 @@ import {
     EfPermissionService,
     EF_PREFERENCE_STORE,
     EfPreferenceStore,
+    EfViewport,
+    EfViewportService,
 } from '@elasticias/core';
+import { computed, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { EfAppShellComponent } from './ef-app-shell.component';
 
@@ -122,6 +125,114 @@ describe('EfAppShellComponent side-panel preference store', () => {
         const comp = create(f.store);
         expect(comp.sideCollapsed()).toBe(false);
         f.data['ef.shell.side-collapsed'] = '1';
+        f.changes.next('ef.shell.side-collapsed');
+        expect(comp.sideCollapsed()).toBe(true);
+    });
+});
+
+describe('EfAppShellComponent side-panel default on tablets', () => {
+    function fakeViewport(initial: EfViewport) {
+        const current = signal<EfViewport>(initial);
+        return {
+            current,
+            vp: {
+                current: current.asReadonly(),
+                isMobile: computed(() => current() === 'mobile'),
+                isTablet: computed(() => current() === 'tablet'),
+                isDesktop: computed(() => current() === 'desktop'),
+            },
+        };
+    }
+
+    function fakeStore(initial: Record<string, string> = {}) {
+        const data: Record<string, string> = { ...initial };
+        const changes = new Subject<string>();
+        const sets: Array<[string, string]> = [];
+        return {
+            data,
+            changes,
+            sets,
+            store: {
+                get: (k: string) => data[k] ?? null,
+                set: (k: string, v: string) => { sets.push([k, v]); data[k] = v; },
+                remove: (k: string) => { delete data[k]; },
+                changes: changes.asObservable(),
+            } satisfies EfPreferenceStore,
+        };
+    }
+
+    function create(viewport: EfViewport, stored: Record<string, string> = {}) {
+        const v = fakeViewport(viewport);
+        const f = fakeStore(stored);
+        TestBed.configureTestingModule({
+            imports: [EfAppShellComponent, TranslateModule.forRoot()],
+            providers: [
+                provideRouter([]),
+                { provide: EF_MODULES_TOKEN, useValue: MODULES },
+                { provide: EF_PREFERENCE_STORE, useValue: f.store },
+                { provide: EfViewportService, useValue: v.vp },
+            ],
+        });
+        const comp = TestBed.createComponent(EfAppShellComponent).componentInstance;
+        return { comp, v, f };
+    }
+
+    it('folds on a tablet when nothing is stored', () => {
+        const { comp } = create('tablet');
+        expect(comp.sideCollapsed()).toBe(true);
+    });
+
+    it('stays open on a desktop when nothing is stored', () => {
+        const { comp } = create('desktop');
+        expect(comp.sideCollapsed()).toBe(false);
+    });
+
+    it('honours an explicit open preference on a tablet', () => {
+        const { comp } = create('tablet', { 'ef.shell.side-collapsed': '0' });
+        expect(comp.sideCollapsed()).toBe(false);
+    });
+
+    it('honours an explicit folded preference on a desktop', () => {
+        const { comp } = create('desktop', { 'ef.shell.side-collapsed': '1' });
+        expect(comp.sideCollapsed()).toBe(true);
+    });
+
+    it('follows the viewport while nothing is stored', () => {
+        const { comp, v } = create('tablet');
+        v.current.set('desktop');
+        expect(comp.sideCollapsed()).toBe(false);
+        v.current.set('tablet');
+        expect(comp.sideCollapsed()).toBe(true);
+    });
+
+    it('ignores viewport changes once a preference is stored', () => {
+        const { comp, v } = create('tablet', { 'ef.shell.side-collapsed': '0' });
+        v.current.set('desktop');
+        expect(comp.sideCollapsed()).toBe(false);
+        v.current.set('tablet');
+        expect(comp.sideCollapsed()).toBe(false);
+    });
+
+    it('keeps a toggle made on a tablet across a viewport change', () => {
+        const { comp, v } = create('tablet');
+        comp.toggleSide();
+        expect(comp.sideCollapsed()).toBe(false);
+        v.current.set('desktop');
+        v.current.set('tablet');
+        expect(comp.sideCollapsed()).toBe(false);
+    });
+
+    it('never writes the default to the store', () => {
+        const { v, f } = create('tablet');
+        v.current.set('desktop');
+        v.current.set('tablet');
+        expect(f.sets).toEqual([]);
+    });
+
+    it('falls back to the viewport default when a hydrate removes the key', () => {
+        const { comp, f } = create('tablet', { 'ef.shell.side-collapsed': '0' });
+        expect(comp.sideCollapsed()).toBe(false);
+        delete f.data['ef.shell.side-collapsed'];
         f.changes.next('ef.shell.side-collapsed');
         expect(comp.sideCollapsed()).toBe(true);
     });
