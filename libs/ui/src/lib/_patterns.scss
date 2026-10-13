@@ -1020,11 +1020,15 @@
     color var(--t-fast) var(--ease-out);
 }
 
-.ef-theme-toggle:hover,
-.ef-app-top__logout:hover,
-.ef-app-top__action:hover {
-  background: color-mix(in srgb, var(--text) 8%, transparent);
-  color: var(--text);
+/* Only where hover is real: iOS keeps :hover on the last element tapped,
+   so the fill would stay on that icon until the next tap elsewhere. */
+@media (hover: hover) {
+  .ef-theme-toggle:hover,
+  .ef-app-top__logout:hover,
+  .ef-app-top__action:hover {
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+    color: var(--text);
+  }
 }
 
 .ef-theme-toggle:focus-visible,
