@@ -116,13 +116,15 @@
 /* Density presets. Only the vertical padding changes, so column widths
    and alignment stay stable as the viewer switches. */
 .tbl-wrap[data-density='compact'] .tbl tbody td {
-    padding-top: 4px;
-    padding-bottom: 4px;
+    --tbl-cell-pad-block: 4px;
+    padding-top: var(--tbl-cell-pad-block);
+    padding-bottom: var(--tbl-cell-pad-block);
 }
 
 .tbl-wrap[data-density='comfortable'] .tbl tbody td {
-    padding-top: 16px;
-    padding-bottom: 16px;
+    --tbl-cell-pad-block: 16px;
+    padding-top: var(--tbl-cell-pad-block);
+    padding-bottom: var(--tbl-cell-pad-block);
 }
 
 /* ──────────── MOBILE LIST ────────────────────────────────────────

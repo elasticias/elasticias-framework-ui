@@ -841,7 +841,10 @@
 }
 
 .tbl tbody td {
-  padding: 14px 18px;
+  /* Published so a control inside the cell can size a touch slop that
+     stays inside its own row (see the toggle switch, pointer: coarse). */
+  --tbl-cell-pad-block: 14px;
+  padding: var(--tbl-cell-pad-block) 18px;
   border-bottom: 1px solid var(--rule-soft, rgba(15, 17, 21, 0.05));
   vertical-align: middle;
 }
@@ -4572,15 +4575,24 @@ input.ef-input[type='number'] {
     inset: calc((var(--hit-touch) - var(--hit-base)) / -2);
   }
 
-  /* The switch draws at 40x24 (Aura tokens) and its click target is
-     PrimeNG's invisible input, sized to exactly that box. In a list row
-     a tap that lands in the 24px band's margins did nothing, because the
-     row wrapper stops propagation. Grow the invisible input to 48x48
-     around the switch; the visual stays 40x24. The switch root is
-     position: relative with no overflow clip, and a tap on the overhang
-     still reaches PrimeNG's host click handler, so this needs no markup. */
+  /* The switch draws at its theme size (Aura: 40x24) and its click
+     target is PrimeNG's invisible input, sized to exactly that box. In a
+     list row a tap that lands just outside it did nothing, because the
+     row wrapper stops propagation. Grow the invisible input towards
+     48x48 around the switch; the visual does not change. The switch
+     root is position: relative with no overflow clip, and a tap on the
+     overhang still reaches PrimeNG's host click handler.
+
+     Vertically, the overhang never exceeds the cell's own block padding
+     (`--tbl-cell-pad-block`, set by the table and its density presets).
+     A compact row is about 33px, so a full 12px overhang reached into the
+     next row and a tap on one client's switch toggled its neighbour's.
+     Outside a table the variable is unset and the full slop applies. */
   ef-toggleswitch .p-toggleswitch-input {
-    inset: calc((var(--hit-touch) - 24px) / -2) calc((var(--hit-touch) - 40px) / -2);
+    --ef-switch-slop-block: calc((var(--hit-touch) - var(--p-toggleswitch-height, 1.5rem)) / 2);
+    --ef-switch-slop-inline: calc((var(--hit-touch) - var(--p-toggleswitch-width, 2.5rem)) / 2);
+    inset-block: calc(-1 * min(var(--ef-switch-slop-block), var(--tbl-cell-pad-block, var(--ef-switch-slop-block))));
+    inset-inline: calc(-1 * var(--ef-switch-slop-inline));
     width: auto;
     height: auto;
   }
