@@ -28,7 +28,9 @@
   left: 0;
   right: 0;
   bottom: 0;
+  /* dvh, or the sheet is sized to Safari's toolbar-less viewport and runs under the toolbar. */
   max-height: 85vh;
+  max-height: 85dvh;
   background: var(--paper);
   color: var(--text);
   border-top-left-radius: var(--r-xl);

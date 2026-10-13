@@ -2,7 +2,12 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  /* Safari's 100vh is the viewport with its toolbars hidden, so the
+     bottom of an overflow-hidden shell (the pager, the last rows, the
+     panel footer) sat under the toolbar with no way to scroll it into
+     view. dvh tracks the toolbar; the vh line serves browsers without it. */
   height: 100vh;
+  height: 100dvh;
   background: var(--paper);
   color: var(--text);
   overflow: hidden;
