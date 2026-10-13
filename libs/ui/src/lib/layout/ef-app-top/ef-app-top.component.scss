@@ -20,7 +20,8 @@
 
 /* 8px: the icon buttons are 40px painted with a 4px touch overhang on
    each side, so at this gap neighbouring 48px targets meet and never
-   overlap. */
+   overlap. Next to app-projected controls the coarse-pointer block in
+   _patterns.scss widens it to 12px (an app control may overhang 8px). */
 .ef-app-top__slot--actions {
   justify-content: flex-end;
   gap: 8px;

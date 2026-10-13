@@ -4594,6 +4594,16 @@ input.ef-input[type='number'] {
     inset: calc((var(--hit-touch) - var(--hit-base)) / -2);
   }
 
+  /* Where the lib's controls meet whatever the app projects into the
+     actions slot, the gap is 12px rather than 8. An app control can carry
+     a wider overhang than ours: the phone avatar paints 32px inside a
+     48px target, 8px each side. 8 + 4 needs 12px between the painted
+     boxes, or the theme switch takes the avatar's trailing edge. */
+  ef-app-top .ef-app-top__slot--actions > * + ef-theme-toggle,
+  ef-app-top .ef-app-top__slot--actions > :not(ef-theme-toggle) + .ef-app-top__logout {
+    margin-inline-start: 4px;
+  }
+
   /* The switch draws at its theme size (Aura: 40x24) and its click
      target is PrimeNG's invisible input, sized to exactly that box. In a
      list row a tap that lands just outside it did nothing, because the
