@@ -25,7 +25,9 @@
       [pTooltip]="'common_logout' | translate"
       tooltipPosition="bottom"
       tooltipEvent="both"
-      (click)="signOut()"
+      [tooltipDisabled]="touchOnly()"
+      (pointerdown)="onSignOutPointerDown($event)"
+      (click)="onSignOutClick()"
     >
       <i class="pi pi-sign-out" aria-hidden="true"></i>
     </button>

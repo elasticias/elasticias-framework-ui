@@ -1,4 +1,4 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'primeng/tooltip';
@@ -48,6 +48,48 @@ export class EfAppTopComponent {
 
     protected signOut(): void {
         this.session?.logout();
+    }
+
+    /* ── Sign-out on touch ──────────────────────────────────────────
+       Sign-out has no undo, and nothing guards an unsaved form, so on a
+       touch screen it must neither invite a long press nor act on one.
+       PrimeNG's tooltip opens on touchstart and never cancels the click
+       that follows, so "hold it to see what it does" would sign the user
+       out on release. A screen without hover therefore gets no tooltip on
+       this button (the aria-label still names it), and a click that ends
+       a touch held for HOLD_MS or longer is dropped. */
+
+    /** A touch or pen press at least this long is a hold, not a tap. */
+    static readonly HOLD_MS = 500;
+
+    /** True on a screen whose primary pointer cannot hover (a phone, a tablet). */
+    protected readonly touchOnly = signal(false);
+
+    private pressStart: { pointerType: string; at: number } | null = null;
+
+    constructor() {
+        const mql = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+            ? window.matchMedia('(hover: none)')
+            : null;
+        if (mql) {
+            this.touchOnly.set(mql.matches);
+            const onChange = (e: MediaQueryListEvent) => this.touchOnly.set(e.matches);
+            mql.addEventListener?.('change', onChange);
+            inject(DestroyRef).onDestroy(() => mql.removeEventListener?.('change', onChange));
+        }
+    }
+
+    protected onSignOutPointerDown(event: PointerEvent): void {
+        this.pressStart = { pointerType: event.pointerType, at: Date.now() };
+    }
+
+    protected onSignOutClick(): void {
+        const press = this.pressStart;
+        this.pressStart = null;
+        const held = press !== null && press.pointerType !== 'mouse' &&
+            Date.now() - press.at >= EfAppTopComponent.HOLD_MS;
+        if (held) return;
+        this.signOut();
     }
 
     private readonly active = inject(EfActiveModuleService);
