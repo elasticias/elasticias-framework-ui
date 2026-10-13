@@ -48,7 +48,11 @@
   }
 </ng-template>
 
-<div class="tbl-wrap" [class.has-open-menu]="openMenuCount() > 0 || openTool() !== null" [attr.data-density]="density()">
+<!-- .has-open-menu unclips the shell for the Densité / Colonnes menus,
+     which hang below .tbl-head. Row menus are fixed to the viewport
+     (ef-row-actions) and need no lift; counting them also left the shell
+     unclipped for good when a row went while its menu was open. -->
+<div class="tbl-wrap" [class.has-open-menu]="openTool() !== null" [attr.data-density]="density()">
   <!-- ── HEAD ROW ────────────────────────────────────────────── -->
   <div class="tbl-head">
     <div class="count small">

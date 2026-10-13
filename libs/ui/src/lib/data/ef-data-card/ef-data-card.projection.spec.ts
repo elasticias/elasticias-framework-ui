@@ -71,3 +71,24 @@ describe('ef-data-card horizontal scroller', () => {
         expect(el.querySelector('.tbl-scroll .tbl-head')).toBeNull();
     });
 });
+
+describe('ef-data-card clipping shell', () => {
+    it('keeps .tbl-wrap clipped while a row menu is open, so no count of open row menus can leave it unclipped', async () => {
+        TestBed.resetTestingModule();
+        await TestBed.configureTestingModule({
+            imports: [HostComponent, TranslateModule.forRoot()],
+            providers: [{ provide: EfViewportService, useValue: viewport(false) }],
+        }).compileComponents();
+        const fixture = TestBed.createComponent(HostComponent);
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        const wrap = el.querySelector('.tbl-wrap') as HTMLElement;
+        // What ef-row-actions dispatches when a row menu opens. Row menus are
+        // fixed to the viewport, so the shell has no reason to unclip.
+        wrap.querySelector('table')!.dispatchEvent(
+            new CustomEvent('ef-row-actions-toggle', { bubbles: true, detail: { open: true } }),
+        );
+        fixture.detectChanges();
+        expect(wrap.classList).not.toContain('has-open-menu');
+    });
+});

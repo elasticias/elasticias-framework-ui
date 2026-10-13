@@ -1833,12 +1833,12 @@
   min-width: 0;
 }
 
-/* When a menu is open inside a data card, the table-wrap lets it escape
-   its overflow. The data-card binds .has-open-menu while a density or
-   columns menu (in .tbl-head) or a row menu is open. Row menus no longer
-   need it: they are fixed to the viewport, because .tbl-scroll must keep
-   its own overflow (lifting it would reset the reader's scroll position
-   and spill the table across the page). */
+/* While the density or columns menu (in .tbl-head) is open, the
+   table-wrap lets it escape its rounded clip; the data-card binds
+   .has-open-menu for those two only. Row menus never need it: they are
+   fixed to the viewport, because .tbl-scroll must keep its own overflow
+   (lifting it would reset the reader's scroll position and spill the
+   table across the page). */
 .tbl-wrap.has-open-menu {
   overflow: visible;
 }

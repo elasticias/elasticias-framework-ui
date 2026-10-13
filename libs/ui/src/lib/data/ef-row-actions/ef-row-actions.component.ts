@@ -429,8 +429,8 @@ export class EfRowActionsComponent {
         });
     }
 
-    /** Bubbling DOM event so ancestors (e.g. ef-data-card) can react —
-     *  see `.tbl-wrap.has-open-menu { overflow: visible }`. */
+    /** Bubbling DOM event so ancestors can react to a row menu opening or
+     *  closing. ef-data-card no longer needs it (the menu is fixed). */
     private dispatchToggle(open: boolean): void {
         this.host.nativeElement.dispatchEvent(
             new CustomEvent('ef-row-actions-toggle', {
