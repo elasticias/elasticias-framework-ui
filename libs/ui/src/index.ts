@@ -165,6 +165,7 @@ export type {
     EfDatePreset,
     EfDatePresetKey,
     EfDateRange,
+    EfBoundedDateRange,
 } from './lib/forms/ef-datepicker-advanced/ef-datepicker-advanced.types';
 export { EfFilterDrawerComponent } from './lib/forms/ef-filter-drawer/ef-filter-drawer.component';
 export { EfActivationFilterComponent } from './lib/forms/ef-activation-filter/ef-activation-filter.component';

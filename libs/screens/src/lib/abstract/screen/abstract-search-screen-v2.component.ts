@@ -3,9 +3,11 @@ import {
   computed,
   inject,
   Injector,
+  LOCALE_ID,
   OnDestroy, OnInit,
   signal,
 } from '@angular/core';
+import { formatDate } from '@angular/common';
 import { take } from 'rxjs';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
@@ -117,14 +119,26 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
   /**
    * Active date-range filter shown in `ef-datepicker-advanced`'s
-   * trigger. Display-only at construction time — actually filters
-   * the search once `onDateRangeChange()` fires (or a screen wires
-   * one in `ngOnInit`).
+   * trigger, and the single source of the criteria's `start`/`end`.
+   * The first search, `clear()` and a picked range all send exactly
+   * what this holds, and a cache restore rebuilds it from the restored
+   * dates, so the chip never reads one period while the list shows
+   * another.
    *
-   * Override `buildDefaultDateRange()` per screen to ship a
-   * different starting preset.
+   * Defaults to `'all_time'` (no dates sent). Override
+   * `buildDefaultDateRange()` per screen to open on a window instead.
    */
   readonly dateRange = signal<EfDateRange>(this.buildDefaultDateRange());
+
+  /**
+   * Whether this screen offers the date chip at all. Set it to `false`
+   * (`override readonly showDateFilter = false;`) on a screen whose
+   * backend query has no date field, and guard the template's
+   * `<ef-datepicker-advanced>` with `@if (showDateFilter)` (or drop it).
+   * The base then never sends `start`/`end`: not on first load, not
+   * after `clear()`, and not from criteria cached by an older session.
+   */
+  readonly showDateFilter: boolean = true;
 
   /* ── Filter-bar UI state (DRY) ──────────────────────────────────
        Identical across every list screen — lifted up so subclasses
@@ -259,8 +273,8 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 
   /* ── Date-range filter (DRY) ────────────────────────────────────
        Wired to ef-datepicker-advanced. The default range is
-       `last_30_days` — override `buildDefaultDateRange()` per screen
-       if a different starting preset is needed. */
+       `all_time`, which sends no dates. Override
+       `buildDefaultDateRange()` per screen if a window is needed. */
 
   /**
    * Wired to `<ef-datepicker-advanced (rangeChange)>` — stores the
@@ -282,18 +296,58 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   }
 
   /**
-   * Build the default `EfDateRange`. Override per screen to ship a
-   * different default — e.g., a 90-day window for low-velocity
-   * catalogues. Default: last 30 days.
+   * Build the default `EfDateRange`. Default: `all_time`, no bounds,
+   * so a typed search finds an old record instead of silently missing
+   * it behind a window nobody chose. Override per screen to open on a
+   * window (e.g. `daysAgo(89)` to `startOfToday()` for `last_90_days`);
+   * the first search and `clear()` then send that window.
    */
   protected buildDefaultDateRange(): EfDateRange {
     return {
-      start: this.daysAgo(29),
-      end: this.startOfToday(),
-      presetKey: 'last_30_days',
-      labelKey: 'date_preset_last_30_days',
-      label: '30 derniers jours',
+      start: null,
+      end: null,
+      presetKey: 'all_time',
+      labelKey: 'date_preset_all_time',
+      label: '',
     };
+  }
+
+  /** Copy the chip's range onto fresh criteria, so what is shown is
+   *  what is sent. Sends nothing when the screen has no date chip. */
+  private seedDateCriteria(criteria: SearchEntity): void {
+    const range = this.showDateFilter ? this.dateRange() : null;
+    criteria.start = range?.start ?? null;
+    criteria.end = range?.end ?? null;
+  }
+
+  /** Rebuild the chip from restored criteria: no dates is `all_time`,
+   *  anything else is shown as the custom range it now filters on. */
+  private dateRangeFromCriteria(startRaw: unknown, endRaw: unknown): EfDateRange {
+    const start = this.toDateOrNull(startRaw);
+    const end = this.toDateOrNull(endRaw);
+    if (!start || !end) {
+      return {
+        start: null,
+        end: null,
+        presetKey: 'all_time',
+        labelKey: 'date_preset_all_time',
+        label: '',
+      };
+    }
+    const locale = this.injector.get(LOCALE_ID, 'en-US');
+    const fmt = start.getFullYear() === end.getFullYear() ? 'd MMM' : 'd MMM yyyy';
+    return {
+      start,
+      end,
+      presetKey: 'custom',
+      label: `${formatDate(start, fmt, locale)} - ${formatDate(end, fmt, locale)}`,
+    };
+  }
+
+  private toDateOrNull(raw: unknown): Date | null {
+    if (raw == null || raw === '') return null;
+    const d = raw instanceof Date ? raw : new Date(raw as string);
+    return isNaN(d.getTime()) ? null : d;
   }
 
   /** Today at 00:00 local time. */
@@ -566,7 +620,15 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   private bootstrapInitialSearch(): void {
     const cached = this.cacheService.getCache<any>(this.screenStateKey);
     if (cached) {
-      this.criteria.set(new SearchEntity(cached));
+      const restored = new SearchEntity(cached);
+      if (!this.showDateFilter) {
+        // Criteria cached while this screen still had a chip may carry
+        // dates its backend ignores at best; drop them.
+        restored.start = null;
+        restored.end = null;
+        restored.startEndDateRanges = null;
+      }
+      this.criteria.set(restored);
       this.restoreFilterUiFromCriteria(cached);
     } else {
       const cfg = this.getConfig();
@@ -583,6 +645,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         pageNumber: PaginationEnum.DEFAULT_PAGE,
         pageSize: PaginationEnum.DEFAULT_PAGE_SIZE,
       };
+      this.seedDateCriteria(fresh);
       this.criteria.set(fresh);
     }
     this.search();
@@ -594,11 +657,15 @@ export abstract class AbstractSearchScreenV2<TItem = any>
    * what the drawer / search box displays matches what the search will
    * actually send (otherwise a stale criteria filter keeps applying
    * while every control reads "Tous"). Base handles the free-text
-   * input and the declared advanced filters; override (calling super)
-   * to sync screen-specific state — status pill, custom switches, ….
+   * input, the date chip and the declared advanced filters; override
+   * (calling super) to sync screen-specific state, such as a status pill
+   * or custom switches.
    */
   protected restoreFilterUiFromCriteria(cached: Record<string, any>): void {
     this.searchQuery.set(cached['searchText'] ?? '');
+    if (this.showDateFilter) {
+      this.dateRange.set(this.dateRangeFromCriteria(cached['start'], cached['end']));
+    }
     const next: Record<string, unknown> = {};
     for (const f of this.advancedFilters) {
       const value = cached[f.key];
@@ -708,6 +775,8 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         },
       ];
     }
+    this.resetDateRange();
+    this.seedDateCriteria(fresh);
     this.criteria.set(fresh);
 
     // Reset all the shared filter-bar / selection signals so
@@ -718,7 +787,6 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     this.activeFilters.set([]);
     this.advancedValues.set({});
     this.selected.set(new Set());
-    this.resetDateRange();
 
     this.cacheService.setCache(this.screenStateKey, fresh);
     this.search();

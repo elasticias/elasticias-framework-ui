@@ -2,7 +2,7 @@
 // AbstractSearchScreenV2 can own dateRange state without circular
 // deps. Re-exported here so consumers that already import from
 // `@elasticias/ui` keep working unchanged.
-export type { EfDatePresetKey, EfDateRange } from '@elasticias/screens';
+export type { EfDatePresetKey, EfDateRange, EfBoundedDateRange } from '@elasticias/screens';
 
 /**
  * One row in the picker's presets list. UI-specific — carries the

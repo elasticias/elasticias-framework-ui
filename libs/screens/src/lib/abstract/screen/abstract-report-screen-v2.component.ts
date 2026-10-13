@@ -11,7 +11,7 @@ import { Permissions } from '@elasticias/types';
 import { CsvUtils } from '@elasticias/utils';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
-import { EfDatePresetKey, EfDateRange } from '../../entities/date-range.entity';
+import { EfBoundedDateRange, EfDatePresetKey, EfDateRange } from '../../entities/date-range.entity';
 
 export type ReportWidgetStatus = 'loading' | 'ready' | 'error';
 
@@ -73,7 +73,7 @@ export abstract class AbstractReportScreenV2
 
   /** Active period. Bound to `ef-datepicker-advanced`; every widget loader
    *  receives its UTC-normalized start/end. */
-  readonly dateRange = signal<EfDateRange>(this.buildDefaultDateRange());
+  readonly dateRange = signal<EfBoundedDateRange>(this.buildDefaultDateRange());
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -82,7 +82,9 @@ export abstract class AbstractReportScreenV2
     // Reinstate the period the user last chose before anything loads, so the
     // widgets fetch it once instead of fetching the default and refetching.
     this.dateRange.set(
-      this.restorePersistedDateRange(this.dateRange(), key => this.rangeFromPreset(key)),
+      this.boundedOrDefault(
+        this.restorePersistedDateRange(this.dateRange(), key => this.rangeFromPreset(key)),
+      ),
     );
 
     const lists = this.getConfig()?.REPORT_STATIC_LISTS ?? [];
@@ -99,13 +101,26 @@ export abstract class AbstractReportScreenV2
 
   /** Wired to `<ef-datepicker-advanced (rangeChange)>`. */
   onDateRangeChange(range: EfDateRange): void {
-    this.dateRange.set(range);
-    this.persistDateRange(range);
+    const bounded = this.boundedOrDefault(range);
+    this.dateRange.set(bounded);
+    this.persistDateRange(bounded);
     this.loadAll();
   }
 
+  /**
+   * Every widget query is a period, so an open range (`all_time`) has no
+   * meaning here. The picker only offers it with `allowAllTime`, which a
+   * report should not set; if one arrives anyway, fall back to the
+   * default period rather than send a null bound.
+   */
+  private boundedOrDefault(range: EfDateRange): EfBoundedDateRange {
+    return range.start && range.end
+      ? (range as EfBoundedDateRange)
+      : this.buildDefaultDateRange();
+  }
+
   /** Default period from the config's `DEFAULT_PERIOD` preset. */
-  protected buildDefaultDateRange(): EfDateRange {
+  protected buildDefaultDateRange(): EfBoundedDateRange {
     return this.rangeFromPreset(this.getConfig()?.DEFAULT_PERIOD ?? 'last_30_days');
   }
 
@@ -114,7 +129,7 @@ export abstract class AbstractReportScreenV2
    * (both boundaries at 00:00 local). Unknown keys normalize to
    * `last_30_days`. Weeks start Monday (matches `$dateTrunc`, ADR-015).
    */
-  protected rangeFromPreset(key: EfDatePresetKey): EfDateRange {
+  protected rangeFromPreset(key: EfDatePresetKey): EfBoundedDateRange {
     const KNOWN: EfDatePresetKey[] = [
       'today', 'this_week', 'this_month', 'last_30_days',
       'last_90_days', 'this_quarter', 'this_year',

@@ -31,7 +31,7 @@ export type { ReferenceDataProvider } from './lib/config/screen-context';
 // Entities
 export { SearchEntity, SortDirectionEnum, PaginationEnum } from './lib/entities/search.entity';
 export { ViewModelEntity } from './lib/entities/view-model.entity';
-export type { EfDateRange, EfDatePresetKey } from './lib/entities/date-range.entity';
+export type { EfDateRange, EfDatePresetKey, EfBoundedDateRange } from './lib/entities/date-range.entity';
 export type { ActiveFilter } from './lib/entities/active-filter.entity';
 export type { EfDetailToolbarAction } from './lib/entities/detail-toolbar-action.entity';
 export type { EfSearchToolbarAction } from './lib/entities/search-toolbar-action.entity';

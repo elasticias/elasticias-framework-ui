@@ -269,4 +269,171 @@ describe('AbstractSearchScreenV2', () => {
       expect(ignored.advancedValues()['isActive']).toBeUndefined();
     });
   });
+  describe('date range (F3: the chip and the criteria agree)', () => {
+    @Component({ template: '', standalone: true })
+    class DefaultRangeScreen extends AbstractSearchScreenV2<{ id: string }> {
+      protected override getConfig() {
+        return TestConfig;
+      }
+    }
+
+    @Component({ template: '', standalone: true })
+    class WindowedScreen extends AbstractSearchScreenV2<{ id: string }> {
+      protected override getConfig() {
+        return TestConfig;
+      }
+      protected override buildDefaultDateRange() {
+        return {
+          start: new Date(2026, 8, 14),
+          end: new Date(2026, 9, 13),
+          presetKey: 'last_30_days',
+          labelKey: 'date_preset_last_30_days',
+          label: '',
+        };
+      }
+    }
+
+    @Component({ template: '', standalone: true })
+    class NoDateScreen extends AbstractSearchScreenV2<{ id: string }> {
+      protected override getConfig() {
+        return TestConfig;
+      }
+      override readonly showDateFilter = false;
+    }
+
+    function create<T extends AbstractSearchScreenV2<{ id: string }>>(
+      type: new (...args: any[]) => T,
+      cached: Record<string, unknown> | null,
+    ): T {
+      TestBed.resetTestingModule();
+      sessionStorage.clear();
+      localStorage.clear();
+      fakeService = new FakeSearchClient();
+      TestBed.configureTestingModule({
+        imports: [type],
+        providers: [
+          provideRouter([]),
+          { provide: FakeSearchClient, useValue: fakeService },
+          {
+            provide: CacheService,
+            useValue: { configure() { /* no-op */ }, getCache: () => cached, setCache() { /* no-op */ } },
+          },
+          { provide: ToastService, useValue: { showSuccess() { /* no-op */ }, showError() { /* no-op */ } } },
+          { provide: ConfirmDialogService, useValue: { confirm() { /* no-op */ } } },
+          {
+            provide: SCREEN_REF_DATA_SERVICE,
+            useValue: {
+              getReference: () => signal([]),
+              hasReference: () => false,
+              loadReferenceKeys: async () => { /* no-op */ },
+              loadStaticRefs: async () => { /* no-op */ },
+              refreshKeys: async () => { /* no-op */ },
+              invalidateKeys: async () => { /* no-op */ },
+            },
+          },
+        ],
+      });
+      const f = TestBed.createComponent(type);
+      f.detectChanges();
+      return f.componentInstance;
+    }
+
+    const lastSent = () => fakeService.criteria[fakeService.criteria.length - 1];
+
+    it('defaults to all time and sends no dates on first load', () => {
+      const s = create(DefaultRangeScreen, null);
+      expect(s.dateRange().presetKey).toBe('all_time');
+      expect(s.dateRange().labelKey).toBe('date_preset_all_time');
+      expect(s.dateRange().start).toBeNull();
+      expect(s.dateRange().end).toBeNull();
+      expect(fakeService.criteria.length).toBe(1);
+      expect(lastSent().start).toBeNull();
+      expect(lastSent().end).toBeNull();
+    });
+
+    it('sends the window a screen overrides the default with, on first load', () => {
+      create(WindowedScreen, null);
+      expect(lastSent().start).toEqual(new Date(2026, 8, 14));
+      expect(lastSent().end).toEqual(new Date(2026, 9, 13));
+    });
+
+    it('sends a picked range', () => {
+      const s = create(DefaultRangeScreen, null);
+      const start = new Date(2026, 9, 1);
+      const end = new Date(2026, 9, 13);
+      s.onDateRangeChange({ start, end, presetKey: 'this_month', labelKey: 'date_preset_this_month', label: '' });
+      expect(lastSent().start).toEqual(start);
+      expect(lastSent().end).toEqual(end);
+      expect(s.dateRange().presetKey).toBe('this_month');
+    });
+
+    it('clear() puts the chip back to all time and stops sending the picked dates', () => {
+      const s = create(DefaultRangeScreen, null);
+      s.onDateRangeChange({
+        start: new Date(2026, 9, 1), end: new Date(2026, 9, 13),
+        presetKey: 'this_month', labelKey: 'date_preset_this_month', label: '',
+      });
+      s.clear();
+      expect(s.dateRange().presetKey).toBe('all_time');
+      expect(lastSent().start).toBeNull();
+      expect(lastSent().end).toBeNull();
+    });
+
+    it('clear() on a windowed screen sends the same window the chip shows', () => {
+      const s = create(WindowedScreen, null);
+      s.onDateRangeChange({
+        start: new Date(2026, 0, 1), end: new Date(2026, 0, 31),
+        presetKey: 'custom', label: '',
+      });
+      s.clear();
+      expect(s.dateRange().presetKey).toBe('last_30_days');
+      expect(lastSent().start).toEqual(s.dateRange().start);
+      expect(lastSent().end).toEqual(s.dateRange().end);
+    });
+
+    it('restores all time on the chip when the cached criteria carry no dates', () => {
+      const s = create(WindowedScreen, { start: null, end: null });
+      expect(s.dateRange().presetKey).toBe('all_time');
+      expect(lastSent().start).toBeNull();
+    });
+
+    it('restores the cached dates on the chip as a custom range', () => {
+      const start = new Date(2026, 9, 1);
+      const end = new Date(2026, 9, 13);
+      // The cache round-trips through JSON, so the dates come back as strings.
+      const s = create(DefaultRangeScreen, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
+      const r = s.dateRange();
+      expect(r.presetKey).toBe('custom');
+      expect(r.start).toEqual(start);
+      expect(r.end).toEqual(end);
+      expect(r.start instanceof Date).toBe(true);
+    });
+
+    describe('showDateFilter = false', () => {
+      it('sends no dates on first load', () => {
+        create(NoDateScreen, null);
+        expect(lastSent().start).toBeNull();
+        expect(lastSent().end).toBeNull();
+      });
+
+      it('drops dates a cached session still carries', () => {
+        create(NoDateScreen, {
+          start: new Date(2026, 9, 1).toISOString(),
+          end: new Date(2026, 9, 13).toISOString(),
+        });
+        expect(lastSent().start).toBeNull();
+        expect(lastSent().end).toBeNull();
+      });
+
+      it('sends no dates after clear()', () => {
+        const s = create(NoDateScreen, null);
+        s.clear();
+        expect(lastSent().start).toBeNull();
+        expect(lastSent().end).toBeNull();
+      });
+    });
+  });
 });

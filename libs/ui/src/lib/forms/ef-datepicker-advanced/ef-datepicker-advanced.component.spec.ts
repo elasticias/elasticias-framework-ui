@@ -92,6 +92,61 @@ describe('EfDatepickerAdvancedComponent', () => {
     expect(panel()).toBeNull(); // closed → portal removed
   });
 
+  /* ── All time (F3) ─────────────────────────────────────────────── */
+
+  describe('all_time preset', () => {
+    const triggerText = () =>
+      (fixture.nativeElement.querySelector('.dp__trigger .val') as HTMLElement).textContent?.trim();
+
+    it('renders its label on the trigger when it is the active preset', () => {
+      fixture.componentRef.setInput('activePreset', 'all_time');
+      fixture.componentRef.setInput('start', null);
+      fixture.componentRef.setInput('end', null);
+      fixture.detectChanges();
+      expect(triggerText()).toBe('date_preset_all_time');
+    });
+
+    it('labels the trigger even when the preset list does not offer all_time', () => {
+      fixture.componentRef.setInput('presets', [{ key: 'today', labelKey: 'date_preset_today' }]);
+      fixture.componentRef.setInput('activePreset', 'all_time');
+      fixture.detectChanges();
+      expect(triggerText()).toBe('date_preset_all_time');
+    });
+
+    it('is not offered by default, so a report screen cannot be handed an open range', () => {
+      openPanel();
+      expect(qa('.dp__preset:not(.muted)').length).toBe(7);
+    });
+
+    it('is offered first with allowAllTime, and emits null bounds', () => {
+      let emitted: EfDateRange | undefined;
+      comp.rangeChange.subscribe((r) => (emitted = r));
+      fixture.componentRef.setInput('allowAllTime', true);
+      fixture.detectChanges();
+
+      openPanel();
+      const rows = qa<HTMLButtonElement>('.dp__preset:not(.muted)');
+      expect(rows.length).toBe(8);
+      expect(rows[0].textContent).toContain('date_preset_all_time');
+
+      rows[0].click();
+      fixture.detectChanges();
+      expect(emitted?.presetKey).toBe('all_time');
+      expect(emitted?.labelKey).toBe('date_preset_all_time');
+      expect(emitted?.start).toBeNull();
+      expect(emitted?.end).toBeNull();
+    });
+
+    it('opens the custom view on today when the active range is all time', () => {
+      fixture.componentRef.setInput('allowAllTime', true);
+      fixture.componentRef.setInput('activePreset', 'all_time');
+      fixture.detectChanges();
+      openCustom();
+      expect(comp.draftStart()).toBeNull();
+      expect(comp.visibleMonth()).toEqual(new Date(2026, 5, 1));
+    });
+  });
+
   /* ── Year picker (headline fix) ────────────────────────────────── */
 
   it('opens the year picker when the year label is clicked', () => {

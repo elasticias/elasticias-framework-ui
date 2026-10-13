@@ -102,6 +102,16 @@ describe('AbstractReportScreenV2', () => {
     expect(payload.e.toISOString()).toBe('2026-06-30T00:00:00.000Z');
   });
 
+  it('falls back to the default period when handed an open (all-time) range', () => {
+    fixture.detectChanges();
+    screen.onDateRangeChange({ start: null, end: null, presetKey: 'all_time', label: '' });
+    const r = screen.dateRange();
+    expect(r.presetKey).toBe('this_year');
+    expect(r.start).toBeInstanceOf(Date);
+    expect(screen.okW.status()).toBe('ready');
+    expect(screen.okW.data()!.s.getUTCMonth()).toBe(0);
+  });
+
   it('resolves built-in presets and normalizes unknown keys to last_30_days', () => {
     const monthStart = (screen as any).rangeFromPreset('this_month');
     expect(monthStart.start.getDate()).toBe(1);

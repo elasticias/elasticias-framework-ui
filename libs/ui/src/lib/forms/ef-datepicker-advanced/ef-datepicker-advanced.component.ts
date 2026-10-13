@@ -59,7 +59,9 @@ export type EfDateFieldValue = Date | [Date, Date] | null;
  * Built-in presets (computed from `today` at open time):
  * `today`, `this_week`, `this_month`, `last_30_days`, `last_90_days`,
  * `this_quarter`, `this_year`. Override with `[presets]="customList"`
- * if you need a different set.
+ * if you need a different set. `all_time` (no bounds, emitted as null
+ * start and end) is also recognised, and offered first in the default
+ * list with `allowAllTime`.
  */
 @Component({
     selector: 'ef-datepicker-advanced',
@@ -161,6 +163,16 @@ export class EfDatepickerAdvancedComponent
     /** Show a `'Personnalisé…'` row that opens the calendar view. */
     readonly allowCustomRange = input(true, { transform: booleanAttribute });
 
+    /**
+     * Offer an `all_time` row ("Toute la période") at the top of the
+     * default preset list. Picking it emits `start: null, end: null`.
+     * Off by default because a report screen needs a bounded period;
+     * list screens whose search treats null dates as "no filter" turn
+     * it on so the user can get back to the unfiltered list. Ignored
+     * when `[presets]` is supplied.
+     */
+    readonly allowAllTime = input(false, { transform: booleanAttribute });
+
     /* ── Field mode (form control) ──────────────────────────────────
        `'filter'` (default) is the existing smart-bar period selector:
        preset list + custom range, output-only via `rangeChange`.
@@ -225,7 +237,11 @@ export class EfDatepickerAdvancedComponent
 
     /** Effective preset list — defaults if none provided. */
     readonly effectivePresets = computed<ReadonlyArray<EfDatePreset>>(
-        () => this.presets() ?? this.defaultPresets,
+        () =>
+            this.presets() ??
+            (this.allowAllTime()
+                ? [{ key: 'all_time', labelKey: 'date_preset_all_time' }, ...this.defaultPresets]
+                : this.defaultPresets),
     );
 
     /** Current value resolved against today's date. */
@@ -837,8 +853,9 @@ export class EfDatepickerAdvancedComponent
             return;
         }
         const range = this.resolvedRange();
-        this.draftStart.set(this.startOfDay(range.start));
-        this.draftEnd.set(this.startOfDay(range.end));
+        // An open range has nothing to seed; the calendar opens on today.
+        this.draftStart.set(range.start ? this.startOfDay(range.start) : null);
+        this.draftEnd.set(range.end ? this.startOfDay(range.end) : null);
     }
 
     /** Compute the date range for a preset key. */
@@ -853,8 +870,8 @@ export class EfDatepickerAdvancedComponent
 
     /** Assemble an EfDateRange — exposes `labelKey` (for the trigger
      *  to render via `| translate`) and a literal `label` fallback. */
-    private buildRange(key: EfDatePresetKey, start: Date, end: Date): EfDateRange {
-        if (key === 'custom') {
+    private buildRange(key: EfDatePresetKey, start: Date | null, end: Date | null): EfDateRange {
+        if (key === 'custom' && start && end) {
             const sameYear = start.getFullYear() === end.getFullYear();
             const fmt = sameYear ? 'd MMM' : 'd MMM yyyy';
             return {
@@ -867,14 +884,23 @@ export class EfDatepickerAdvancedComponent
         return {
             start, end,
             presetKey: key,
-            labelKey: preset?.labelKey,
+            // A built-in key keeps its label when the list on show does not
+            // carry it (e.g. `all_time` restored on a picker without the row).
+            labelKey: preset?.labelKey ?? (EfDatepickerAdvancedComponent.BUILT_IN_KEYS.has(key) ? `date_preset_${key}` : undefined),
             label: preset?.label ?? this.builtInHint(key),
         };
     }
 
-    private builtInRange(key: EfDatePresetKey, today: Date): { start: Date; end: Date } {
+    private static readonly BUILT_IN_KEYS: ReadonlySet<string> = new Set([
+        'all_time', 'today', 'this_week', 'this_month', 'last_30_days',
+        'last_90_days', 'this_quarter', 'this_year',
+    ]);
+
+    private builtInRange(key: EfDatePresetKey, today: Date): { start: Date | null; end: Date | null } {
         const t = this.startOfDay(today);
         switch (key) {
+            case 'all_time':
+                return { start: null, end: null };
             case 'today':
                 return { start: t, end: t };
             case 'this_week': {
@@ -904,6 +930,7 @@ export class EfDatepickerAdvancedComponent
     private builtInHint(key: EfDatePresetKey): string {
         const today = new Date();
         const r = this.builtInRange(key, today);
+        if (!r.start || !r.end) return '';
         switch (key) {
             case 'today':
                 return formatDate(today, 'd MMM', this.locale);

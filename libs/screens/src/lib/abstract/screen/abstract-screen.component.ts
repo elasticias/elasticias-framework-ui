@@ -337,6 +337,12 @@ export abstract class AbstractScreenComponent extends AbstractComponent implemen
   private static reviveDateRange(raw: unknown): EfDateRange | null {
     const v = raw as Partial<EfDateRange> | null;
     if (!v || typeof v !== 'object' || !v.presetKey) return null;
+    // An open range stores null bounds. `new Date(null)` is 1970, not
+    // NaN, so it must be handled before parsing, not after.
+    if (v.start == null && v.end == null) {
+      return { start: null, end: null, presetKey: v.presetKey, label: v.label ?? '', labelKey: v.labelKey };
+    }
+    if (v.start == null || v.end == null) return null;
     const start = new Date(v.start as unknown as string);
     const end = new Date(v.end as unknown as string);
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
