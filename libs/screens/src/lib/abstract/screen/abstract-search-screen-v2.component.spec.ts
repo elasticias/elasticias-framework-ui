@@ -10,9 +10,11 @@ import { SCREEN_REF_DATA_SERVICE } from '../../services/screen-reference-data.se
 
 class FakeSearchClient {
   readonly calls: Subject<any>[] = [];
-  search(_criteria: any) {
+  readonly criteria: any[] = [];
+  search(criteria: any) {
     const subject = new Subject<any>();
     this.calls.push(subject);
+    this.criteria.push(criteria);
     return subject.asObservable();
   }
 }
@@ -87,6 +89,27 @@ describe('AbstractSearchScreenV2', () => {
 
     expect(screen.items()).toEqual([{ id: 'second' }]);
     expect(screen.totalCount()).toBe(1);
+  });
+
+  it('never puts a non-string search value into the criteria', () => {
+    fixture.detectChanges();
+    screen.searchQuery.set('acme');
+
+    // What a host (search) binding received from a native DOM search event.
+    screen.setSearchText(new Event('search') as unknown as string);
+
+    const sent = fakeService.criteria[fakeService.criteria.length - 1];
+    expect(sent.searchText).toBe('acme');
+    expect(screen.criteria().searchText).toBe('acme');
+  });
+
+  it('still sends the string it is given', () => {
+    fixture.detectChanges();
+    screen.searchQuery.set('typed');
+
+    screen.setSearchText('given');
+
+    expect(fakeService.criteria[fakeService.criteria.length - 1].searchText).toBe('given');
   });
 
   it('applies a ?status= deep-link through setStatus after bootstrap', () => {

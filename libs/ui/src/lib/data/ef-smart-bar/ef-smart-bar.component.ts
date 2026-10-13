@@ -66,6 +66,12 @@ import { EfShortcutService, formatShortcut } from '@elasticias/core';
                          only text inside this label is the shortcut hint, so
                          without it a screen reader announced the primary
                          search field of every list screen as "Cmd K". -->
+                    <!-- type="search" fires a native, bubbling 'search' Event
+                         on Enter and on the browser's clear button (Chromium,
+                         WebKit). A host (search) binding hears that DOM event
+                         as well as the output below, so it would receive the
+                         Event as the search text. Stopped here; the output is
+                         the only 'search' that leaves this component. -->
                     <input
                         #searchInput
                         type="search"
@@ -74,6 +80,7 @@ import { EfShortcutService, formatShortcut } from '@elasticias/core';
                         [ngModel]="searchText()"
                         (ngModelChange)="searchText.set($event)"
                         (keydown.enter)="onSubmit()"
+                        (search)="$event.stopPropagation()"
                     />
                     @if (showKbdHint() && kbdLabel()) {
                         <!-- Decorative, and hidden from the accessibility tree:

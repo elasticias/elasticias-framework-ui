@@ -646,8 +646,14 @@ export abstract class AbstractSearchScreenV2<TItem = any>
   /* ── Convenience criteria mutators ───────────────────────────── */
 
   setSearchText(text: string): void {
+    // Templates bind this to ef-smart-bar's (search), and that binding has
+    // received the native DOM 'search' Event, which reached the API as
+    // {"isTrusted":true} and failed. ef-smart-bar now stops the event, but
+    // whatever arrives that is not text, the field's own value is the
+    // search the user meant.
+    const value = typeof text === 'string' ? text : this.searchQuery();
     this.criteria.update((c) =>
-      this.cloneCriteria(c, { searchText: text || undefined, page: 1 }),
+      this.cloneCriteria(c, { searchText: value || undefined, page: 1 }),
     );
     this.search();
   }

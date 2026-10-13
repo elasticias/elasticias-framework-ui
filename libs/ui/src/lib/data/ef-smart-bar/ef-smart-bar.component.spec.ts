@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { formatShortcut } from '@elasticias/core';
@@ -72,5 +73,55 @@ describe('EfSmartBarComponent keyboard shortcut', () => {
         pressModK();
 
         expect(focusSpy).not.toHaveBeenCalled();
+    });
+});
+
+@Component({
+    standalone: true,
+    imports: [EfSmartBarComponent],
+    template: `<ef-smart-bar [(searchText)]="text" (search)="onSearch($event)" />`,
+})
+class SmartBarHost {
+    text = 'acme';
+    readonly received: unknown[] = [];
+    onSearch(value: unknown): void {
+        this.received.push(value);
+    }
+}
+
+describe('EfSmartBarComponent (search) output', () => {
+    let fixture: ComponentFixture<SmartBarHost>;
+    let host: SmartBarHost;
+    let input: HTMLInputElement;
+
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [SmartBarHost, TranslateModule.forRoot()],
+        }).compileComponents();
+
+        fixture = TestBed.createComponent(SmartBarHost);
+        host = fixture.componentInstance;
+        fixture.detectChanges();
+        await fixture.whenStable();
+        input = fixture.nativeElement.querySelector('input');
+    });
+
+    // Chromium and WebKit fire a native, bubbling `search` Event from an
+    // <input type="search"> on Enter and on its built-in clear button. A
+    // host `(search)` binding listens to the DOM event of that name as well
+    // as the output, so without a stop at the input the consumer receives
+    // the Event object as if it were the search text.
+    it('does not hand the native search DOM event to the host binding', () => {
+        input.dispatchEvent(new Event('search', { bubbles: true }));
+
+        expect(host.received).toEqual([]);
+    });
+
+    it('emits the search text exactly once on Enter', () => {
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        // What the browser does next, as the keydown's default action.
+        input.dispatchEvent(new Event('search', { bubbles: true }));
+
+        expect(host.received).toEqual(['acme']);
     });
 });
