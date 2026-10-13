@@ -23,6 +23,7 @@
             [style.right]="menuPosition()?.right"
             [style.bottom]="menuPosition()?.bottom"
             [style.left]="menuPosition()?.left"
+            [style.max-height]="menuPosition()?.maxHeight"
             role="menu"
             [attr.aria-label]="triggerAriaKey() | translate"
             (dblclick)="onDblClick($event)"

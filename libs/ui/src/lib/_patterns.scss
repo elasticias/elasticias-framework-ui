@@ -1587,6 +1587,9 @@
    bottom / left), so no scrolling or clipping ancestor can cut it off. */
 .row-actions__menu.is-floating {
   position: fixed;
+  /* max-height is set inline from the room on the menu's side. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Not enough room below the trigger — flip above it, and reverse the

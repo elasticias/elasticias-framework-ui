@@ -124,11 +124,52 @@ describe('EfRowActionsComponent placement', () => {
         expect(component.open()).toBe(true);
     });
 
-    it('closes on a resize', () => {
+    it('closes when the viewport width changes', () => {
         triggerAt({ left: 900, top: 100 });
         open();
+        vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(VW - 200);
         window.dispatchEvent(new Event('resize'));
         expect(component.open()).toBe(false);
+    });
+
+    it('stays open on a height-only resize (an on-screen keyboard or a browser toolbar)', () => {
+        triggerAt({ left: 900, top: 100 });
+        open();
+        vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(VH - 300);
+        window.dispatchEvent(new Event('resize'));
+        expect(component.open()).toBe(true);
+    });
+
+    it('caps its height to the room below, and scrolls inside', () => {
+        triggerAt({ left: 900, top: 100 });
+        open();
+        expect(menu()!.style.maxHeight).toBe('656px'); // 800 - (128 + 8) - 8
+    });
+
+    it('caps its height to the room above when it opens upward', () => {
+        triggerAt({ left: 900, top: 760 });
+        open();
+        expect(menu()!.style.maxHeight).toBe('744px'); // 760 - 8 - 8
+    });
+
+    it('closes on Escape', () => {
+        triggerAt({ left: 900, top: 100 });
+        open();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        fixture.detectChanges();
+        expect(component.open()).toBe(false);
+        expect(menu()).toBeNull();
+    });
+
+    it('announces a close and stops listening when destroyed while open', () => {
+        triggerAt({ left: 900, top: 100 });
+        open();
+        const toggles: boolean[] = [];
+        scroller.addEventListener('ef-row-actions-toggle', e => toggles.push((e as CustomEvent<{ open: boolean }>).detail.open));
+        const removed = vi.spyOn(document, 'removeEventListener');
+        fixture.destroy();
+        expect(toggles).toEqual([false]);
+        expect(removed).toHaveBeenCalledWith('scroll', expect.any(Function), { capture: true });
     });
 
     it('stops listening once closed', () => {

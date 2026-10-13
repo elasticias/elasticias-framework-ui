@@ -97,9 +97,14 @@ export class EfRowActionsComponent {
     private readonly instanceId = EfRowActionsComponent.nextInstanceId++;
 
     constructor() {
+        // A row can go while its menu is open (a refresh, paging, a filter).
+        // Close it properly so the listeners go and anything counting open
+        // menus through the toggle event hears about it.
+        // (Not close(): an output must not emit from a destroyed component.)
         inject(DestroyRef).onDestroy(() => {
             this.stopListeningForDisplacement();
             if (EfRowActionsComponent.openInstance === this) EfRowActionsComponent.openInstance = null;
+            if (this.open()) this.dispatchToggle(false);
         });
         for (const { actionId, keys, labelKey } of ROW_SHORTCUTS) {
             this.shortcuts.register({
@@ -246,7 +251,13 @@ export class EfRowActionsComponent {
      * edges. The four values are always set, so they override the CSS
      * `top` / `bottom` / `inset-inline-*` an absolute menu uses.
      */
-    readonly menuPosition = signal<{ top: string; right: string; bottom: string; left: string } | null>(null);
+    readonly menuPosition = signal<{
+        top: string;
+        right: string;
+        bottom: string;
+        left: string;
+        maxHeight: string;
+    } | null>(null);
 
     /**
      * Fixed rather than absolute: inside ef-data-card the table sits in a
@@ -269,11 +280,16 @@ export class EfRowActionsComponent {
         const rtl = this.isRtl();
         const alignRight = rtl === this.menuLeft();
 
+        // A fixed menu cannot be scrolled into view (a scroll closes it), so
+        // one taller than the room on its side scrolls inside itself instead.
+        const room = this.dropUp() ? rect.top - gap - gap : vh - (rect.bottom + gap) - gap;
+
         this.menuPosition.set({
             top: this.dropUp() ? 'auto' : px(rect.bottom + gap),
             bottom: this.dropUp() ? px(vh - rect.top + gap) : 'auto',
             right: alignRight ? px(vw - rect.right) : 'auto',
             left: alignRight ? 'auto' : px(rect.left),
+            maxHeight: px(Math.max(room, 120)),
         });
     }
 
@@ -294,6 +310,8 @@ export class EfRowActionsComponent {
         const vw = EfRowActionsComponent.viewportWidth();
 
         const wantTop = this.dropUp() ? rect.top - gap - m.height : rect.bottom + gap;
+        // Only meaningful once the entry animation (a translate and scale)
+        // is over; see correctPlacementAfterRender.
         const alignRight = pos.right !== 'auto';
         let wantLeft = alignRight ? rect.right - m.width : rect.left;
         // Keep the whole menu on screen when the trigger hugs an edge.
@@ -306,6 +324,7 @@ export class EfRowActionsComponent {
         const shift = (value: string, by: number) =>
             value === 'auto' ? value : `${Math.round(parseFloat(value) + by)}px`;
         this.menuPosition.set({
+            ...pos,
             top: shift(pos.top, dy),
             bottom: shift(pos.bottom, -dy),
             left: shift(pos.left, dx),
@@ -345,7 +364,15 @@ export class EfRowActionsComponent {
 
     private listenForDisplacement(): void {
         if (this.displacementListener) return;
+        // Width only: an on-screen keyboard closing (a focused cell input
+        // blurs when the trigger is tapped) or a browser toolbar sliding
+        // changes the height alone, and would close the menu as it opens.
+        const openWidth = EfRowActionsComponent.viewportWidth();
         const listener = (event: Event) => {
+            if (event.type === 'resize') {
+                if (EfRowActionsComponent.viewportWidth() !== openWidth) this.close();
+                return;
+            }
             const target = event.target;
             if (target instanceof Node && this.host.nativeElement.querySelector('.row-actions__menu')?.contains(target)) {
                 return;
@@ -383,8 +410,21 @@ export class EfRowActionsComponent {
             this.dropUp.set(this.shouldDropUp(menu.offsetHeight));
             this.place();
             // The new offsets reach the DOM on the next change detection.
+            // Measure only after the entry animation: its translate and
+            // scale are in getBoundingClientRect, and correcting mid-flight
+            // would lock a few pixels of the animation into the offsets.
             requestAnimationFrame(() => {
-                if (this.open()) this.correctOffset(menu);
+                if (!this.open()) return;
+                const running = menu.getAnimations?.() ?? [];
+                if (!running.length) {
+                    this.correctOffset(menu);
+                    return;
+                }
+                Promise.all(running.map(a => a.finished))
+                    .then(() => {
+                        if (this.open()) this.correctOffset(menu);
+                    })
+                    .catch(() => undefined);
             });
         });
     }
