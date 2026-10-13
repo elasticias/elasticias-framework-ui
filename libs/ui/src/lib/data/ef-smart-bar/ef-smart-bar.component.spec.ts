@@ -117,6 +117,23 @@ describe('EfSmartBarComponent (search) output', () => {
         expect(host.received).toEqual([]);
     });
 
+    // The native "x" clear button empties the field, and with the native
+    // event stopped above nothing re-runs the search: the list would stay
+    // filtered under an empty box. Effacer is the clear control here, so
+    // the browser's own button is hidden by the component's styles (jsdom
+    // cannot compute pseudo-element styles, so the rule itself is asserted).
+    it('hides the browser\'s native clear button on the search field', () => {
+        const css = Array.from(document.head.querySelectorAll('style'))
+            .map(style => style.textContent ?? '')
+            .join('\n');
+
+        expect(css).toMatch(/::-webkit-search-cancel-button[^{]*\{[^}]*display:\s*none/);
+    });
+
+    it('marks the field so a phone keyboard shows a Search key that submits on Enter', () => {
+        expect(input.getAttribute('enterkeyhint')).toBe('search');
+    });
+
     it('emits the search text exactly once on Enter', () => {
         input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
         // What the browser does next, as the keydown's default action.

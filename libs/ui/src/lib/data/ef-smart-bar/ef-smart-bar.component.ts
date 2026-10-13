@@ -75,6 +75,7 @@ import { EfShortcutService, formatShortcut } from '@elasticias/core';
                     <input
                         #searchInput
                         type="search"
+                        enterkeyhint="search"
                         [attr.aria-label]="accessibleLabel()"
                         [placeholder]="(placeholderKey() ? (placeholderKey() | translate) : placeholder())"
                         [ngModel]="searchText()"
@@ -120,6 +121,19 @@ import { EfShortcutService, formatShortcut } from '@elasticias/core';
 
             <ng-content select="[drawer]"></ng-content>
         </div>
+    `,
+    // Chromium and WebKit draw their own "x" in a type="search" field. It
+    // empties the input but, with the native 'search' event stopped above,
+    // never clears the applied filter: the list stayed filtered under an
+    // empty box. Effacer is this bar's clear control, so the native one is
+    // hidden. Firefox draws none. Enter (and a phone keyboard's Search key,
+    // via enterkeyhint) remains the submit path.
+    styles: `
+        input[type='search']::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+            appearance: none;
+            display: none;
+        }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
