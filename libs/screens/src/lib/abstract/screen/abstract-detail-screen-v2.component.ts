@@ -243,8 +243,11 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         // the context without canWrite memoizes "unknown" (Save shown) and,
         // the context being the same object, never re-reads it.
         this.context.canWrite = this.canWrite;
-        super.processGrants();
+        // Bumped before super too, so the render inside it recomputes
+        // canWrite from the grants super is about to set rather than from a
+        // value memoized on an earlier read.
         this.grantsVersion.update(v => v + 1);
+        super.processGrants();
     }
 
     /**
