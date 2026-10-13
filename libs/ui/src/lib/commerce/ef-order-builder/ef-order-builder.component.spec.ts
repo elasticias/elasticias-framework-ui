@@ -137,3 +137,57 @@ describe('EfOrderBuilderComponent (render)', () => {
     expect(el.querySelector('ef-change-history')).toBeNull();
   });
 });
+
+describe('EfOrderBuilderComponent (readonly)', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [EfOrderBuilderComponent, TranslateModule.forRoot()],
+    }).compileComponents();
+  });
+
+  /** Two lines added while writable, then the builder is made readonly:
+   *  the state a Read-only user sees when opening an existing order. */
+  function buildWithLinesThenReadonly(): ComponentFixture<EfOrderBuilderComponent> {
+    const fixture = build();
+    const c = fixture.componentInstance;
+    for (let i = 0; i < 2; i++) {
+      c.onTypeaheadSelect({ product: PRODUCT, variant: PRODUCT.variants[0], unitPrice: 22.2 });
+      c.addQuickProduct();
+    }
+    fixture.componentRef.setInput('readonly', true);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('hides the quick-add row', () => {
+    const el = build({ readonly: true }).nativeElement as HTMLElement;
+    expect(el.querySelector('.qa-grid')).toBeNull();
+    expect(el.querySelector('ef-product-typeahead')).toBeNull();
+  });
+
+  it('drops the remove column', () => {
+    const c = buildWithLinesThenReadonly().componentInstance;
+    expect(c.lineColumns().some((col) => col.id === 'remove')).toBe(false);
+  });
+
+  it('ignores remove, reorder and inline-edit calls', () => {
+    const c = buildWithLinesThenReadonly().componentInstance;
+    const before = c.order().orderLines.map((l) => l.id);
+
+    c.removeOrderLine(before[0]);
+    c.reorderLine({ from: 0, to: 1 });
+    c.startEditCell(c.order().orderLines[0], 'qty');
+    c.updateCustomer('c1');
+
+    expect(c.order().orderLines.map((l) => l.id)).toEqual(before);
+    expect(c.editingCell()).toBeNull();
+    expect(c.order().customerId).not.toBe('c1');
+  });
+
+  it('renders line values as disabled buttons', () => {
+    const el = buildWithLinesThenReadonly().nativeElement as HTMLElement;
+    const cells = Array.from(el.querySelectorAll<HTMLButtonElement>('button.ln-val'));
+    expect(cells.length).toBeGreaterThan(0);
+    expect(cells.every((b) => b.disabled)).toBe(true);
+  });
+});
