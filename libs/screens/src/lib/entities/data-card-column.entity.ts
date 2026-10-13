@@ -101,6 +101,14 @@ export interface EfDataCardColumn {
     sortable?: boolean;
     /** Backend sort field — defaults to `field` then `id`. */
     sortField?: string;
+    /**
+     * Direction of the first click on this column's header, when it is
+     * not already the active sort (later clicks toggle). Default `'desc'`,
+     * which suits dates and amounts; a name column usually wants `'asc'`.
+     * Check how the backend orders missing values first: Mongo sorts
+     * null and missing fields ahead of everything else in `asc`.
+     */
+    firstSortDirection?: 'asc' | 'desc';
 
     /** Date / datetime: pipe format string (default: `'shortDate'` / `'short'`). */
     dateFormat?: string;

@@ -1005,7 +1005,9 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         const field = col.sortField ?? col.field ?? col.id;
         const current = this.sort();
         const direction: EfDataCardSortDirection =
-            current?.field === field && current.direction === 'desc' ? 'asc' : 'desc';
+            current?.field === field
+                ? current.direction === 'desc' ? 'asc' : 'desc'
+                : col.firstSortDirection ?? 'desc';
         this.sortChange.emit({ field, direction });
     }
 
