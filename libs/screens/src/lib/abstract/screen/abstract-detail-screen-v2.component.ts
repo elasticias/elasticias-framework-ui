@@ -201,7 +201,6 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     override ngOnInit(): void {
         super.ngOnInit();
-        this.context.canWrite = this.canWrite;
         this.serviceInstance = this.injector.get(this.getConfig()!.SERVICE as any);
 
         // Reference / static lists for the detail context (different
@@ -239,6 +238,11 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
     }
 
     override processGrants(): void {
+        // Stamp before super: it ends in detectChanges(), which renders an
+        // ef-detail-toolbar bound to this context. A toolbar that first sees
+        // the context without canWrite memoizes "unknown" (Save shown) and,
+        // the context being the same object, never re-reads it.
+        this.context.canWrite = this.canWrite;
         super.processGrants();
         this.grantsVersion.update(v => v + 1);
     }
