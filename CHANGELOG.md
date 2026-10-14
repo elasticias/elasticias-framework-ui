@@ -2,6 +2,10 @@
 
 ### Fixed
 
+- **The pager fits a phone, and a narrow card.** On a 390px phone the page buttons ran past the card and the card clipped them: "next" and the last page were unreachable (page 5 of the orders list put five of seven buttons out of reach). Two changes:
+  - On `EfViewportService` mobile (767px and below), `ef-pager` shows first · previous · "5 sur 20" · next · last instead of the numbered window. Every page the window offered is still one or two taps away. New inputs `firstLabelKey` (default `common_page_first`) and `lastLabelKey` (`common_page_last`) label the new buttons; **apps must add both keys** to their i18n files.
+  - `.pager`, `.pager .size` and `.pager .pages` wrap and can shrink (`min-width: 0`). When the lines-per-page block and the page buttons do not fit on one line, the buttons take their own line, at the end. This is what keeps the window inside a narrow card on a tablet, such as a report table with the side panel open. Desktop is unchanged when both halves fit.
+
 - **Page buttons are 48px tall on touch screens.** The coarse-pointer tier set `.pg` to 48px, but the pager's own `.pager .pg { height: 32px }` outranked it, so page buttons were 48px wide and 32px tall on every phone and tablet. The touch rule is now `.pager .pg`, with `min-inline-size` instead of a fixed width so a four-digit page number keeps its padding.
 
 ## 1.0.43 (2026-10-13)

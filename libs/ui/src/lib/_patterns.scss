@@ -1048,11 +1048,20 @@
 
 /* ──────────── PAGER ─────────────────────────────────────────────── */
 
+/* Both halves wrap and can shrink. A row of controls has an intrinsic
+   min-content width, so a pager that cannot wrap is as wide as its
+   lines-per-page block plus every page button, and the card clips the
+   rest: on a 390px phone, or in a narrow card on a tablet with the side
+   panel open, "next" and the last page were cut off. When the two halves
+   no longer fit on one line the page buttons take their own line, still
+   at the end. */
 .pager {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: var(--s-3);
+  min-width: 0;
   padding: var(--s-3) var(--s-5);
   border-top: 1px solid var(--rule);
   background: var(--paper-alt);
@@ -1060,8 +1069,21 @@
 
 .pager .pages {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+  min-width: 0;
+  margin-inline-start: auto;
+}
+
+/* The phone pager's "5 sur 20", between previous and next. */
+.pager .pg-status {
+  padding: 0 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .pager .pg {
@@ -1090,7 +1112,9 @@
 
 .pager .size {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  min-width: 0;
   gap: 8px;
   font-size: 12.5px;
   color: var(--text-mute);

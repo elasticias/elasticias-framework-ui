@@ -22,6 +22,16 @@
   }
 
   <div class="pages">
+    @if (compact()) {
+      <button
+        class="pg"
+        type="button"
+        [disabled]="pageNumber() <= 1"
+        [attr.aria-label]="firstLabelKey() | translate"
+        (click)="goToPage(1)"
+      >«</button>
+    }
+
     <button
       class="pg"
       type="button"
@@ -30,16 +40,20 @@
       (click)="goToPage(pageNumber() - 1)"
     >‹</button>
 
-    @for (btn of pageButtons(); track trackBtn($index, btn)) {
-      @if (btn.kind === 'page') {
-        <button
-          class="pg"
-          type="button"
-          [class.active]="btn.value === pageNumber()"
-          (click)="goToPage(btn.value)"
-        >{{ btn.value }}</button>
-      } @else {
-        <span class="pg" aria-hidden="true" style="cursor: default;">…</span>
+    @if (compact()) {
+      <span class="pg-status">{{ pageNumber() }} {{ ofLabelKey() | translate }} {{ totalPages() }}</span>
+    } @else {
+      @for (btn of pageButtons(); track trackBtn($index, btn)) {
+        @if (btn.kind === 'page') {
+          <button
+            class="pg"
+            type="button"
+            [class.active]="btn.value === pageNumber()"
+            (click)="goToPage(btn.value)"
+          >{{ btn.value }}</button>
+        } @else {
+          <span class="pg" aria-hidden="true" style="cursor: default;">…</span>
+        }
       }
     }
 
@@ -50,5 +64,15 @@
       [attr.aria-label]="nextLabelKey() | translate"
       (click)="goToPage(pageNumber() + 1)"
     >›</button>
+
+    @if (compact()) {
+      <button
+        class="pg"
+        type="button"
+        [disabled]="pageNumber() >= totalPages()"
+        [attr.aria-label]="lastLabelKey() | translate"
+        (click)="goToPage(totalPages())"
+      >»</button>
+    }
   </div>
 </div>

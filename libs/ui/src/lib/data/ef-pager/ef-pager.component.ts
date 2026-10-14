@@ -2,11 +2,13 @@ import {
     ChangeDetectionStrategy,
     Component,
     computed,
+    inject,
     input,
     output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { EfViewportService } from '@elasticias/core';
 import { EfSelectComponent } from '../../forms/ef-select/ef-select.component';
 
 interface PageBtn {
@@ -30,6 +32,13 @@ interface PageBtn {
  *
  * Renders a windowed page list (first / current ±1 / last with
  * ellipsis) for total > 7 pages. Below 7 pages all buttons show.
+ *
+ * On a phone (`EfViewportService.isMobile`) the window becomes
+ * first · previous · "5 of 20" · next · last. The window is up to nine
+ * 48px touch targets (about 464px) and a 390px phone has about 316px
+ * inside a card, so it ran off the edge. The compact set still reaches
+ * every page the window offered: its numbered neighbours are one step
+ * away, and the first and the last page are one tap.
  */
 @Component({
     selector: 'ef-pager',
@@ -49,12 +58,17 @@ export class EfPagerComponent {
     readonly ofLabelKey = input<string>('common_of');
     readonly prevLabelKey = input<string>('common_page_previous');
     readonly nextLabelKey = input<string>('common_page_next');
+    readonly firstLabelKey = input<string>('common_page_first');
+    readonly lastLabelKey = input<string>('common_page_last');
 
     /** Hide the lines-per-page selector + range when only paging is wanted. */
     readonly hideSize = input<boolean>(false);
 
     readonly pageChange = output<number>();
     readonly pageSizeChange = output<number>();
+
+    /** Phone layout: first · prev · "n of N" · next · last. */
+    readonly compact = inject(EfViewportService).isMobile;
 
     /** Falls back to the first configured option if the value ever goes empty. */
     private get defaultSize(): number {
