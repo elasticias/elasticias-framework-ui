@@ -4586,9 +4586,17 @@ input.ef-input[type='number'] {
   }
 
   .row-actions__trigger,
-  .ef-clear,
-  .pg {
+  .ef-clear {
     inline-size: var(--hit-touch);
+    block-size: var(--hit-touch);
+  }
+
+  /* Written as `.pager .pg` to match the base rule's specificity: a bare
+     `.pg` lost to its `height: 32px`, so page buttons drew 48px wide but
+     32px tall on every touch screen. A floor rather than a fixed width,
+     so a four-digit page number is not squeezed. */
+  .pager .pg {
+    min-inline-size: var(--hit-touch);
     block-size: var(--hit-touch);
   }
 

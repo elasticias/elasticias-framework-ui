@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixed
+
+- **Page buttons are 48px tall on touch screens.** The coarse-pointer tier set `.pg` to 48px, but the pager's own `.pager .pg { height: 32px }` outranked it, so page buttons were 48px wide and 32px tall on every phone and tablet. The touch rule is now `.pager .pg`, with `min-inline-size` instead of a fixed width so a four-digit page number keeps its padding.
+
 ## 1.0.43 (2026-10-13)
 
 Tablet fixes (iPad, Surface). The layout changes were measured in Playwright on 768-1376px touch viewports in Chromium and WebKit. Touch gestures in WebKit, iOS long-press and Safari's toolbar (the dvh change) still need a real device.
