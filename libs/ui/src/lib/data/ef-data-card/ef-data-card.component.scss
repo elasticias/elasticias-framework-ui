@@ -525,3 +525,15 @@
         border-radius: var(--r-pill);
     }
 }
+
+/* On a touch screen the ⋯ trigger owns a 48px target and the chevron's
+   overlay is another 48px centred on an 11px glyph, so it reaches 18.5px
+   past the glyph. With only the trail's 8px gap between them the two
+   targets shared about 10px, and a tap on the trigger's trailing edge
+   expanded the row instead. Push the chevron out by the difference so the
+   targets meet without overlapping. */
+@media (pointer: coarse) {
+    .mrow__actions + .mrow__disclosure {
+        margin-inline-start: calc((var(--hit-touch) - 11px) / 2 - var(--s-2));
+    }
+}

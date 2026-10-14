@@ -2,6 +2,8 @@
 
 ### Fixed
 
+- **The row ⋯ trigger and the clear ✕ keep their desktop size on touch screens.** The coarse-pointer tier grew their painted box to 48px, so every list row on a phone or tablet showed a 48px bordered circle. They now draw at 34x28 and 22px, and reach 48px through an invisible `::after` overhang, the pattern the 1.0.43 top bar uses. A margin reserves the same 48x48 footprint as before, so row height, card spacing and input layout are unchanged, and two triggers in adjacent compact rows cannot overlap. In the phone card list the chevron (`.mrow__disclosure`) moves 10.5px further from the trigger on coarse pointers: its 48px overlay used to cover the trigger's trailing 10px, so a tap there expanded the row.
+
 - **The pager fits a phone, and a narrow card.** On a 390px phone the page buttons ran past the card and the card clipped them: "next" and the last page were unreachable (page 5 of the orders list put five of seven buttons out of reach). Two changes:
   - On `EfViewportService` mobile (767px and below), `ef-pager` shows first · previous · "5 sur 20" · next · last instead of the numbered window. Every page the window offered is still one or two taps away. New inputs `firstLabelKey` (default `common_page_first`) and `lastLabelKey` (`common_page_last`) label the new buttons; **apps must add both keys** to their i18n files.
   - `.pager`, `.pager .size` and `.pager .pages` wrap and can shrink (`min-width: 0`). When the lines-per-page block and the page buttons do not fit on one line, the buttons take their own line, at the end. This is what keeps the window inside a narrow card on a tablet, such as a report table with the side panel open. Desktop is unchanged when both halves fit.

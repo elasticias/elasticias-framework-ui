@@ -4609,10 +4609,44 @@ input.ef-input[type='number'] {
     min-inline-size: var(--hit-touch);
   }
 
+  /* The row ⋯ trigger and the clear ✕ draw at their desktop size (34x28
+     pill, 22px circle) and reach the 48px tier through an invisible
+     overhang, like the top-bar icons. Growing the painted box instead
+     turned every row's ⋯ into a 48px bordered circle.
+
+     The margin reserves the same 48x48 the old rule laid out, so rows,
+     cards and inputs keep their height and spacing, and the overhang
+     never leaves that box: two triggers in adjacent compact rows cannot
+     overlap, because each target is the footprint its own row already
+     made room for. The trigger's overhang adds its 1px border, since an
+     absolute box is measured from the padding edge. */
   .row-actions__trigger,
   .ef-clear {
-    inline-size: var(--hit-touch);
-    block-size: var(--hit-touch);
+    position: relative;
+  }
+
+  .row-actions__trigger {
+    margin-block: calc((var(--hit-touch) - 28px) / 2);
+    margin-inline: calc((var(--hit-touch) - 34px) / 2);
+  }
+
+  .ef-clear {
+    margin: calc((var(--hit-touch) - 22px) / 2);
+  }
+
+  .row-actions__trigger::after,
+  .ef-clear::after {
+    content: '';
+    position: absolute;
+  }
+
+  .row-actions__trigger::after {
+    inset-block: calc((var(--hit-touch) - 28px) / -2 - 1px);
+    inset-inline: calc((var(--hit-touch) - 34px) / -2 - 1px);
+  }
+
+  .ef-clear::after {
+    inset: calc((var(--hit-touch) - 22px) / -2);
   }
 
   /* Written as `.pager .pg` to match the base rule's specificity: a bare
