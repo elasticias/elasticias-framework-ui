@@ -4,6 +4,8 @@
 
 - **Toasts show above an open dialog.** `ef-toast-region` sat at `z-index: 1000`, under PrimeNG's modal mask (1101 for the first dialog), so an error raised by a dialog's save, such as the change-password validation toast, rendered behind the mask, blurred by its `backdrop-filter`, and its close button could not be reached. The region now uses a new `--z-toast` token (100000). PrimeNG adds a whole base (about 1000) each time the layer kind changes, so a select opened in a dialog is already 2102 and a value just above 1100 would not hold. PrimeNG's dialog focus trap only redirects Tab at its own sentinels, so clicking the toast's close button works with the dialog open, and the dialog stays open.
 
+- **Icon-font arrows point the right way in Arabic.** The `ef-datepicker-advanced` back chevron and its previous/next month arrows, and the `ef-toolbar` back button, are PrimeIcons glyphs, which the bidi algorithm never mirrors. Under `dir="rtl"` the previous-month button sits on the right but pointed left, into the calendar. They now flip with `transform: scaleX(-1)` under RTL. The `ef-pager` arrows are unchanged on purpose: `‹ › « »` are Bidi_Mirrored characters, and Chromium and WebKit already draw them mirrored in an RTL pager (previous on the right, pointing right). A `scaleX(-1)` on top would flip them back.
+
 ## 1.0.44 (2026-10-13)
 
 ### Fixed

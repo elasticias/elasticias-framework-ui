@@ -12,3 +12,9 @@
         gap: 0.5rem;
     }
 }
+
+/* The back button's chevron is an icon-font glyph, which bidi never
+   mirrors. In Arabic the button sits on the right and must point right. */
+:host-context([dir='rtl']) ::ng-deep .pi-angle-left {
+    transform: scaleX(-1);
+}

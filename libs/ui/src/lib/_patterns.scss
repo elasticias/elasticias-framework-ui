@@ -2243,6 +2243,15 @@
   line-height: 1;
 }
 
+/* The back and month arrows are icon-font glyphs, which bidi never
+   mirrors. In Arabic the header runs right to left, so "previous" sits on
+   the right and must point right. (Text arrows such as the pager's
+   ‹ › « » are Bidi_Mirrored and already flip on their own.) */
+[dir='rtl'] .dp__back i,
+[dir='rtl'] .dp__cal-nav i {
+  transform: scaleX(-1);
+}
+
 .dp__cal-title {
   display: inline-flex;
   align-items: center;
