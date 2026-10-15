@@ -3605,6 +3605,9 @@ input.ef-input[type='number'] {
 
 .es.p-select,
 .es.p-multiselect {
+  /* The gap between label, clear ✕ and caret. The touch tier reads it to
+     keep the ✕'s 48px target between the label and the caret. */
+  --es-gap: 10px;
   width: 100%;
   min-width: 200px;
   background: var(--paper-alt);
@@ -3614,7 +3617,7 @@ input.ef-input[type='number'] {
   padding: 0 10px 0 14px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--es-gap);
   color: var(--text);
   font-size: 14px;
   cursor: pointer;
@@ -3698,11 +3701,14 @@ input.ef-input[type='number'] {
    clearable control (input, number, select, typeahead) is identical. */
 .ef-clear,
 .es .es-clear {
+  /* One size, read again by the touch tier below to size the target and
+     the space it reserves, so the two cannot drift apart. */
+  --ef-clear-size: 22px;
   display: inline-grid;
   place-items: center;
   box-sizing: border-box;
-  width: 22px;
-  height: 22px;
+  width: var(--ef-clear-size);
+  height: var(--ef-clear-size);
   border: 0;
   padding: 0;
   background: transparent;
@@ -4633,7 +4639,8 @@ input.ef-input[type='number'] {
      made room for. The trigger's overhang adds its 1px border, since an
      absolute box is measured from the padding edge. */
   .row-actions__trigger,
-  .ef-clear {
+  .ef-clear,
+  .es .es-clear {
     position: relative;
   }
 
@@ -4643,11 +4650,24 @@ input.ef-input[type='number'] {
   }
 
   .ef-clear {
-    margin: calc((var(--hit-touch) - 22px) / 2);
+    margin: calc((var(--hit-touch) - var(--ef-clear-size)) / 2);
+  }
+
+  /* The select / multiselect ✕ sits in the trigger's flex row, between the
+     label and the caret, 10px (--es-gap) from each. It reserves only the
+     inline room its 48px target still lacks after that gap, so the target
+     ends exactly at the label's edge and at the caret's, and a tap on the
+     caret opens the panel instead of clearing the value. No block margin:
+     the trigger is 40px whether it holds a value or not, and the target's
+     extra 4px above and below overhangs the trigger the way the input ✕
+     does. */
+  .es .es-clear {
+    margin-inline: calc((var(--hit-touch) - var(--ef-clear-size)) / 2 - var(--es-gap));
   }
 
   .row-actions__trigger::after,
-  .ef-clear::after {
+  .ef-clear::after,
+  .es .es-clear::after {
     content: '';
     position: absolute;
   }
@@ -4657,8 +4677,9 @@ input.ef-input[type='number'] {
     inset-inline: calc((var(--hit-touch) - 34px) / -2 - 1px);
   }
 
-  .ef-clear::after {
-    inset: calc((var(--hit-touch) - 22px) / -2);
+  .ef-clear::after,
+  .es .es-clear::after {
+    inset: calc((var(--hit-touch) - var(--ef-clear-size)) / -2);
   }
 
   /* Written as `.pager .pg` to match the base rule's specificity: a bare

@@ -6,6 +6,8 @@
 
 - **Icon-font arrows point the right way in Arabic.** The `ef-datepicker-advanced` back chevron and its previous/next month arrows, and the `ef-toolbar` back button, are PrimeIcons glyphs, which the bidi algorithm never mirrors. Under `dir="rtl"` the previous-month button sits on the right but pointed left, into the calendar. They now flip with `transform: scaleX(-1)` under RTL. The `ef-pager` arrows are unchanged on purpose: `‹ › « »` are Bidi_Mirrored characters, and Chromium and WebKit already draw them mirrored in an RTL pager (previous on the right, pointing right). A `scaleX(-1)` on top would flip them back.
 
+- **The select and multiselect clear ✕ reaches the 48px touch tier.** The `ef-select` / `ef-multiselect` ✕ (`.es-clear`) shared the input ✕'s look but not its coarse-pointer rule, so on a phone or tablet its target was the painted 22px. It now gets the same invisible 48x48 overhang. It reserves only the inline room the target lacks after the trigger's 10px gap, so the target stops at the label's edge and at the caret's, and a tap on the caret still opens the panel. It takes no block margin, so the trigger stays 40px tall with or without a value. The ✕ size and the trigger gap are now custom properties (`--ef-clear-size`, `--es-gap`) that the touch tier reads, instead of literals repeated in both places.
+
 ## 1.0.44 (2026-10-13)
 
 ### Fixed
