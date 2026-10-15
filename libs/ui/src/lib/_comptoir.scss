@@ -115,6 +115,15 @@
   --hit-touch:  48px;  /* POS / mobile primary actions */
   --hit-pos:    64px;  /* POS number pad, big totals */
 
+  /* ── Layers ──────────────────────────────────────────────────── */
+  /* Toasts sit above every modal and overlay. PrimeNG numbers its layers
+     at runtime (ZIndexUtils): each new layer takes the last one's value
+     plus 1, plus the base of its own kind when the kind changes (modal
+     1100, overlay 1000). A dialog is 1101, a select opened inside it
+     2102, a dialog opened over that 3203, so no value near PrimeNG's
+     bases stays on top. 100000 is about ninety mixed layers away. */
+  --z-toast:    100000;
+
   /* ── Motion ──────────────────────────────────────────────────── */
   --t-fast: 140ms;
   --t-base: 260ms;

@@ -2519,7 +2519,10 @@
   position: fixed;
   top: var(--s-4);
   inset-inline-end: var(--s-4);
-  z-index: 1000;
+  /* Above every PrimeNG modal mask and overlay, so an error raised by a
+     dialog's save is readable and its ✕ clickable while the dialog is
+     open. The token explains the number. */
+  z-index: var(--z-toast);
   display: grid;
   gap: var(--s-2);
   align-content: start;
