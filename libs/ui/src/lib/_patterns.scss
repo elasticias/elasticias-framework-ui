@@ -1539,11 +1539,17 @@
 }
 
 .row-actions__trigger {
+  /* Read again by the touch tier, which reserves the 48px footprint
+     around this box. */
+  --ef-row-trigger-w: 34px;
+  --ef-row-trigger-h: 28px;
   appearance: none;
   background: var(--paper-alt);
   border: 1px solid var(--rule);
-  width: 34px;
-  height: 28px;
+  box-sizing: border-box;
+  width: var(--ef-row-trigger-w);
+  height: var(--ef-row-trigger-h);
+  flex-shrink: 0;
   border-radius: var(--r-pill);
   display: inline-grid;
   place-items: center;
@@ -4645,8 +4651,8 @@ input.ef-input[type='number'] {
   }
 
   .row-actions__trigger {
-    margin-block: calc((var(--hit-touch) - 28px) / 2);
-    margin-inline: calc((var(--hit-touch) - 34px) / 2);
+    margin-block: calc((var(--hit-touch) - var(--ef-row-trigger-h)) / 2);
+    margin-inline: calc((var(--hit-touch) - var(--ef-row-trigger-w)) / 2);
   }
 
   .ef-clear {
@@ -4672,9 +4678,17 @@ input.ef-input[type='number'] {
     position: absolute;
   }
 
+  /* A fixed 48px box centred on the trigger, not an inset derived from
+     its size. The inset version measured from the padding edge and from
+     whatever size the row laid the trigger out at, and a phone row drew a
+     47.75px-wide target. The centred box is 48x48 whatever the painted
+     size, border or sub-pixel layout. */
   .row-actions__trigger::after {
-    inset-block: calc((var(--hit-touch) - 28px) / -2 - 1px);
-    inset-inline: calc((var(--hit-touch) - 34px) / -2 - 1px);
+    top: 50%;
+    left: 50%;
+    width: max(var(--hit-touch), 100%);
+    height: max(var(--hit-touch), 100%);
+    transform: translate(-50%, -50%);
   }
 
   .ef-clear::after,

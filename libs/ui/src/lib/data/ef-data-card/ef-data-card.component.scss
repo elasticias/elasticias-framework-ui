@@ -531,9 +531,11 @@
    past the glyph. With only the trail's 8px gap between them the two
    targets shared about 10px, and a tap on the trigger's trailing edge
    expanded the row instead. Push the chevron out by the difference so the
-   targets meet without overlapping. */
+   targets do not overlap, plus 1px: when the two edges met exactly,
+   hit testing snaps to whole pixels and the chevron, painted later, took
+   the shared pixel, so the trigger probed 47.75px wide. */
 @media (pointer: coarse) {
     .mrow__actions + .mrow__disclosure {
-        margin-inline-start: calc((var(--hit-touch) - 11px) / 2 - var(--s-2));
+        margin-inline-start: calc((var(--hit-touch) - 11px) / 2 - var(--s-2) + 1px);
     }
 }

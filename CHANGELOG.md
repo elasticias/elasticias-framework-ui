@@ -8,6 +8,8 @@
 
 - **The select and multiselect clear ✕ reaches the 48px touch tier.** The `ef-select` / `ef-multiselect` ✕ (`.es-clear`) shared the input ✕'s look but not its coarse-pointer rule, so on a phone or tablet its target was the painted 22px. It now gets the same invisible 48x48 overhang. It reserves only the inline room the target lacks after the trigger's 10px gap, so the target stops at the label's edge and at the caret's, and a tap on the caret still opens the panel. It takes no block margin, so the trigger stays 40px tall with or without a value. The ✕ size and the trigger gap are now custom properties (`--ef-clear-size`, `--es-gap`) that the touch tier reads, instead of literals repeated in both places.
 
+- **The phone row ⋯ trigger has a full 48x48 target.** A staging smoke test on a 390px touch phone measured the trigger's target at 47.75px wide. On coarse pointers its `::after` is now a fixed `--hit-touch` box centred on the trigger (`max(48px, 100%)` each way), not an inset derived from the painted size and border. The trigger is `box-sizing: border-box` and `flex-shrink: 0`, and its 34x28 size is two custom properties (`--ef-row-trigger-w`, `--ef-row-trigger-h`) that the touch margins read. The real cause of the short width was the phone card's chevron: its 48px overlay ended on exactly the pixel where the trigger's began, and hit testing snaps to whole pixels, so the chevron (painted later) took that pixel. The chevron (`.mrow__actions + .mrow__disclosure`) now sits 1px further out. Measured with `elementFromPoint` on a 390px touch viewport: 48.9 x 48.9.
+
 ## 1.0.44 (2026-10-13)
 
 ### Fixed
