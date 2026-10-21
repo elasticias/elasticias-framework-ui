@@ -41,6 +41,12 @@ export type { EfViewport } from './lib/responsive/ef-viewport.service';
 export { EfPermissionService } from './lib/auth/ef-permission.service';
 export type { EfModulePermission, EfPermissionLevel } from './lib/auth/ef-permission.service';
 export { EF_SESSION } from './lib/auth/ef-session.token';
+export {
+    EfSessionIdleService,
+    EF_SESSION_IDLE_CONFIG,
+    EF_SESSION_IDLE_DEFAULTS,
+} from './lib/auth/ef-session-idle.service';
+export type { EfSessionIdleConfig } from './lib/auth/ef-session-idle.service';
 export { EF_BUILD_INFO } from './lib/build/ef-build-info.token';
 export {
     EfVersionedTranslateLoader,
