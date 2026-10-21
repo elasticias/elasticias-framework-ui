@@ -1,3 +1,13 @@
+## 1.0.46 (2026-10-20)
+
+### Added
+
+- **Idle sign-out, shared across tabs (`EfSessionIdleService`, `@elasticias/core`).** Signs the user out after `timeoutMs` without input (default 30 minutes, set through `EF_SESSION_IDLE_CONFIG`). A sliding server cookie never expires while a tab is open, because a polling app keeps it alive with nobody at the desk, so the check has to run in the browser. The last input is kept in localStorage, so work in one tab keeps every tab alive. Every check reads the wall clock, so a suspended background tab or a sleeping phone signs out on time, not hours late. The app owns the session: `start()` after a confirmed sign-in, `resume()` when restoring one from cache (it returns `false`, and fires once, when that session is already past the limit), `stop()` when it ends. Pair it with the server's `AddElasticiasCookieSession` (Elasticias.Framework 1.0.12) at the same timeout.
+
+- **`ef-session-idle-dialog` (`@elasticias/ui`).** Host it once at the app root. It opens for the last `warningMs` (default one minute) with a countdown, "stay" and "sign out" (through `EF_SESSION`, offered only when the app provides it). Input does not dismiss it, so a mouse moving past cannot close it unread; closing it or "stay" counts as still here, and "stay" in one tab closes it in every tab. Keys the app provides: `session_idle_warning_title`, `session_idle_warning_body` (`{{seconds}}`), `session_idle_stay`, `common_logout`.
+
+- **`EfDialogAction.autofocus`.** An action can take focus when the dialog opens, instead of PrimeNG's first focusable element. Opt-in, because focusing the primary everywhere would put Enter on "delete" in every confirmation.
+
 ## 1.0.45 (2026-10-15)
 
 ### Fixed
