@@ -9,14 +9,15 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DialogModule } from 'primeng/dialog';
+import { Dialog, DialogModule } from 'primeng/dialog';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfButtonComponent } from '../ef-button/ef-button.component';
 
 /**
  * Dynamic action descriptor for `ef-dialog`. The dialog renders one
  * `<button class="btn …">` per entry, in array order (left → right);
- * the rightmost entry is the focused / "primary" by convention.
+ * the rightmost entry is the "primary" by convention. Focus goes to the
+ * first focusable element unless an entry sets `autofocus`.
  *
  * When `command` returns a `Promise`, the button auto-toggles
  * `.is-loading` for the duration and the dialog closes when it
@@ -42,6 +43,14 @@ export interface EfDialogAction {
   dismiss?: boolean;
   /** Render the button as disabled. */
   disabled?: boolean;
+  /**
+   * Focus this button when the dialog opens, instead of PrimeNG's first
+   * focusable element. For a dialog whose first button is the destructive
+   * one ("sign out" before "stay"), so Enter does the safe thing. Opt-in:
+   * focusing the rightmost button everywhere would put Enter on "delete" in
+   * every confirmation.
+   */
+  autofocus?: boolean;
   /** Render the button as loading (in-flight). Mutated automatically
    *  by the dialog when the command returns a Promise. */
   loading?: boolean;
@@ -194,6 +203,8 @@ export class EfDialogComponent {
    *  `'primeng'` variant via [footerTemplate] input. */
   @ViewChild('defaultFooter', { static: true }) defaultFooterTpl?: TemplateRef<void>;
 
+  @ViewChild(Dialog) private dialog?: Dialog;
+
   /* ── Derived ────────────────────────────────────────────── */
 
   /** Severity → default header icon. Override per-instance with `[icon]`. */
@@ -288,7 +299,21 @@ export class EfDialogComponent {
     this.visibleChange.emit(value);
   }
 
-  handleShow(): void { this.showEvent.emit(); }
+  /** True when an action takes focus on open, so PrimeNG must not. */
+  get hasAutofocusAction(): boolean {
+    return (this.actions ?? []).some((a) => a.autofocus);
+  }
+
+  handleShow(): void {
+    if (this.hasAutofocusAction) {
+      // This dialog's own container: it may be appended to <body>, and
+      // another dialog may be open. onShow fires once the footer renders.
+      (this.dialog?.container() as HTMLElement | null)
+        ?.querySelector<HTMLButtonElement>('[data-ef-autofocus]')
+        ?.focus();
+    }
+    this.showEvent.emit();
+  }
   handleHide(): void { this.hideEvent.emit(); }
 
   /** Default cancel — emits and closes. */

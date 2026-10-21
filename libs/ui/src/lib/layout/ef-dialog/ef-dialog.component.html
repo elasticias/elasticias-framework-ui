@@ -6,6 +6,7 @@
   [resizable]="resizable"
   [dismissableMask]="dismissableMask"
   [closeOnEscape]="closeOnEscape"
+  [focusOnShow]="!hasAutofocusAction"
   [style]="style"
   [styleClass]="effectiveStyleClass"
   [position]="position"
@@ -60,6 +61,7 @@
             type="button"
             [class]="actionClass(a)"
             [disabled]="a.disabled || a.loading"
+            [attr.data-ef-autofocus]="a.autofocus ? '' : null"
             (click)="handleActionClick(a, $index)"
           >
             @if (a.icon) {
