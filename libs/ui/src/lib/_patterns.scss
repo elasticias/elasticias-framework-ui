@@ -4594,6 +4594,23 @@ input.ef-input[type='number'] {
     margin: calc(-1 * var(--s-4)) calc(-1 * var(--s-4)) 0;
     padding: 10px var(--s-4);
   }
+
+  /* Identity on top, actions on a row of their own beneath it. Sharing one
+     line, five or six actions left the identity a column about 80px wide: the
+     order number broke over three lines and the reference, payment state and
+     date were cut to "AND-202…". Save keeps the far end, as on desktop. */
+  .detail-toolbar .left,
+  .detail-toolbar .right {
+    flex: 1 1 100%;
+  }
+
+  .detail-toolbar .right .sep {
+    display: none;
+  }
+
+  .detail-toolbar .right > :last-child {
+    margin-inline-start: auto;
+  }
 }
 
 /* The date trigger's value can be long; on a phone it takes the room it has
