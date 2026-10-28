@@ -1,3 +1,9 @@
+## 1.0.47 (2026-10-28)
+
+### Fixed
+
+- **`ef-detail-toolbar` gives its actions their own row on phones.** Below the 767px breakpoint the identity (left slot) now takes the full width and the actions sit on a row beneath it, with the separator hidden and the last action, normally Save, at the far end as on desktop. Sharing one line, a screen with five or six actions, such as a shop order in ElasticERP, left the identity a column about 80px wide at 390px: the reference broke over three lines and the meta beside it was cut to an ellipsis. Every detail screen gets this layout on a phone. Tablet and desktop are unchanged.
+
 ## 1.0.46 (2026-10-20)
 
 ### Added
