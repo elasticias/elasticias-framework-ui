@@ -1,3 +1,9 @@
+## 1.0.48 (2026-11-01)
+
+### Fixed
+
+- **A field's `dir` no longer flips its label.** `dir="rtl"` on an `ef-input-text` or `ef-textarea` (an Arabic title on a French screen) used to flip the whole control, so its label sat on the right while every other label sat on the left; `dir="ltr"` (a URL or slug on an Arabic screen) did the mirror. The host now keeps the surrounding direction, so the label and error messages follow the page, and only the control part takes the field's `dir`. With `dir="auto"` the native input or textarea takes the direction of its own text. Applies to `ef-input-text`, `ef-textarea`, `ef-inputnumber`, `ef-select`, `ef-multi-select`, `ef-password`, `ef-datepicker` and `ef-datepicker-advanced` (field mode). `dir` stays on the host. Apps can drop any global rule they added for this (ElasticERP had one in `styles.scss`).
+
 ## 1.0.47 (2026-10-28)
 
 ### Fixed
