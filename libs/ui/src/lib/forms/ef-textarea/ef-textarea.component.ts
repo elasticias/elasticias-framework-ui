@@ -35,6 +35,7 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
     selector: 'ef-textarea',
     standalone: true,
     templateUrl: './ef-textarea.component.html',
+    styleUrl: './ef-textarea.component.scss',
     imports: [FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
 })
 export class EfTextareaComponent

@@ -1,3 +1,7 @@
+@use '../field-direction' as *;
+
+@include field-direction;
+
 :host {
   display: block;
 }

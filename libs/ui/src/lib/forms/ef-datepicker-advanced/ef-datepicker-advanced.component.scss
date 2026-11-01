@@ -1,3 +1,7 @@
+@use '../field-direction' as *;
+
+@include field-direction;
+
 /* All visual rules live in @elasticias/ui/styles/patterns under
    `.dp__*`. The component contributes only host layout. */
 
@@ -5,12 +9,12 @@
     display: inline-block;
 }
 
-/* Field mode is a form control — fill the column like any other ef-* field. */
+/* Field mode is a form control, so it fills the column like any other ef-* field. */
 :host(.dp-host--field) {
     display: block;
 }
 
-/* The preset hint mixes digits with a unit ("6 d", "Q3", "14 Aug — 12 Sep").
+/* The preset hint mixes digits with a unit ("6 d", "Q3", "14 Aug to 12 Sep").
    In an Arabic page those are neutral/LTR runs that the bidi algorithm
    reorders, which is how "6 j" came out as "j 6". `plaintext` takes the
    direction from the first strong character, the way <bdi> does. */

@@ -1,0 +1,36 @@
+/* A field's own `dir` (an Arabic title on a French screen, a URL or a slug
+   on an Arabic screen, free text in either language) describes the value
+   typed into it, not the field. The label and the error messages belong to
+   the page, so they keep the surrounding direction, and only the control part
+   takes the field's `dir`.
+
+   `dir` stays on the host, where apps set and read it. Its UA rule would flip
+   the whole host, `ef-label` included (`display: contents`, so the <label>
+   inherits from the host), so the host inherits instead: the page's direction
+   in a French or Arabic document, or that of any enclosing `dir` region.
+
+   `dir="auto"` would also resolve from the label's text, so the host keeps the
+   surrounding direction and the native control takes the direction of its own
+   first strong character (`unicode-bidi: plaintext`): "Nos parfums rares."
+   keeps its period at the end on an Arabic screen.
+
+   Included by every ef-* control that renders an `ef-label` beside an
+   `.ef-field-control`. */
+@mixin field-direction {
+  :host([dir]) {
+    direction: inherit;
+  }
+
+  :host([dir='rtl']) .ef-field-control > :not([role='alert']) {
+    direction: rtl;
+  }
+
+  :host([dir='ltr']) .ef-field-control > :not([role='alert']) {
+    direction: ltr;
+  }
+
+  :host([dir='auto']) .ef-field-control input,
+  :host([dir='auto']) .ef-field-control textarea {
+    unicode-bidi: plaintext;
+  }
+}
