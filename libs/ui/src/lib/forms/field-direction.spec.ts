@@ -23,30 +23,31 @@ import { EfDatepickerAdvancedComponent } from './ef-datepicker-advanced/ef-datep
  * stylesheets ASCII: a non-ASCII character makes Sass emit `@charset`, and
  * jsdom then drops the rule that follows it.
  */
-const CONTROLS: [string, Type<unknown>, string][] = [
-  ['ef-input-text', EfInputTextComponent, ''],
-  ['ef-textarea', EfTextareaComponent, ''],
-  ['ef-inputnumber', EfInputNumberComponent, ''],
-  ['ef-select', EfSelectComponent, ''],
-  ['ef-multi-select', EfMultiSelectComponent, ''],
-  ['ef-password', EfPasswordComponent, ''],
-  ['ef-datepicker', EfDatepickerComponent, ''],
-  ['ef-datepicker-advanced', EfDatepickerAdvancedComponent, 'mode="field"'],
+type Inputs = Record<string, unknown>;
+
+const CONTROLS: [string, Type<unknown>, Inputs][] = [
+  ['ef-input-text', EfInputTextComponent, {}],
+  ['ef-textarea', EfTextareaComponent, {}],
+  ['ef-inputnumber', EfInputNumberComponent, {}],
+  ['ef-select', EfSelectComponent, {}],
+  ['ef-multi-select', EfMultiSelectComponent, {}],
+  ['ef-password', EfPasswordComponent, {}],
+  ['ef-datepicker', EfDatepickerComponent, {}],
+  ['ef-datepicker-advanced', EfDatepickerAdvancedComponent, { mode: 'field' }],
 ];
 
-function render(selector: string, cmp: Type<unknown>, extra: string, dir: string | null) {
-  const dirAttr = dir === null ? '' : `dir="${dir}"`;
-  @Component({
-    standalone: true,
-    imports: [cmp],
-    template: `<${selector} ${dirAttr} ${extra} name="field" label="Titre (arabe)" />`,
-  })
-  class HostComponent {}
-
-  TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
-  const fixture = TestBed.createComponent(HostComponent);
+/* The control is the fixture's root, with `dir` set as an app sets it, on the
+   host element. (A host template built from a template literal would read
+   the same, but angular-eslint cannot parse an interpolated inline template.) */
+function render(cmp: Type<unknown>, inputs: Inputs, dir: string | null) {
+  TestBed.configureTestingModule({ imports: [cmp, TranslateModule.forRoot()] });
+  const fixture = TestBed.createComponent(cmp);
+  const host = fixture.nativeElement as HTMLElement;
+  if (dir !== null) host.setAttribute('dir', dir);
+  for (const [name, value] of Object.entries({ name: 'field', label: 'Titre (arabe)', ...inputs })) {
+    fixture.componentRef.setInput(name, value);
+  }
   fixture.detectChanges();
-  const host = fixture.nativeElement.querySelector(selector) as HTMLElement;
   const control = host.querySelector('.ef-field-control') as HTMLElement;
   const part = control.firstElementChild as HTMLElement;
   return { fixture, host, control, part };
@@ -54,27 +55,27 @@ function render(selector: string, cmp: Type<unknown>, extra: string, dir: string
 
 const direction = (el: Element) => getComputedStyle(el).direction;
 
-describe.each(CONTROLS)('%s: the label follows the page, the control follows its dir', (selector, cmp, extra) => {
+describe.each(CONTROLS)('%s: the label follows the page, the control follows its dir', (_selector, cmp, inputs) => {
   it('renders its label beside an .ef-field-control', () => {
-    const { host, control } = render(selector, cmp, extra, 'rtl');
+    const { host, control } = render(cmp, inputs, 'rtl');
     expect(host.querySelector('label')?.textContent).toContain('Titre (arabe)');
     expect(control).toBeTruthy();
     expect(control.contains(host.querySelector('label'))).toBe(false);
   });
 
   it.each(['rtl', 'ltr', 'auto'])('keeps the surrounding direction on the host when dir="%s"', (dir) => {
-    const { host } = render(selector, cmp, extra, dir);
+    const { host } = render(cmp, inputs, dir);
     expect(host.getAttribute('dir')).toBe(dir);
     expect(direction(host)).toBe('inherit');
   });
 
   it.each(['rtl', 'ltr'])('gives the control part dir="%s"', (dir) => {
-    const { part } = render(selector, cmp, extra, dir);
+    const { part } = render(cmp, inputs, dir);
     expect(direction(part)).toBe(dir);
   });
 
   it('declares no direction without a dir attribute', () => {
-    const { host, part } = render(selector, cmp, extra, null);
+    const { host, part } = render(cmp, inputs, null);
     expect(direction(host)).toBe('');
     expect(direction(part)).toBe('');
   });
@@ -86,14 +87,14 @@ describe('dir="auto" on a text field', () => {
     ['ef-textarea', EfTextareaComponent, 'textarea'],
   ] as [string, Type<unknown>, string][])(
     '%s lets the native control take the direction of its own text',
-    (selector, cmp, native) => {
-      const { host } = render(selector, cmp, '', 'auto');
+    (_selector, cmp, native) => {
+      const { host } = render(cmp, {}, 'auto');
       expect(getComputedStyle(host.querySelector(native) as HTMLElement).unicodeBidi).toBe('plaintext');
     },
   );
 
   it('leaves the native control alone otherwise', () => {
-    const { host } = render('ef-input-text', EfInputTextComponent, '', 'rtl');
+    const { host } = render(EfInputTextComponent, {}, 'rtl');
     expect(getComputedStyle(host.querySelector('input') as HTMLElement).unicodeBidi).toBe('');
   });
 });
