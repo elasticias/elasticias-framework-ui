@@ -1,7 +1,7 @@
 <p-fieldset
   [legend]="legendKey ? (legendKey | translate) : legend"
-  [toggleable]="toggleable"
-  [collapsed]="collapsed"
+  [toggleable]="variant === 'plain' ? false : toggleable"
+  [collapsed]="variant === 'plain' ? false : collapsed"
   [styleClass]="styleClass"
 >
   <ng-content />

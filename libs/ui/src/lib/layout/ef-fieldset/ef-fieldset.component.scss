@@ -1,0 +1,35 @@
+/* Plain: no frame, no padding, the legend is a section heading with a soft
+   rule. The PrimeNG fieldset lives in a child view, hence ::ng-deep, scoped
+   under the host class. `min-width: 0` lets it shrink in a grid or flex
+   parent; logical properties keep RTL right. */
+:host(.ef-fieldset--plain) {
+  display: block;
+  min-width: 0;
+}
+
+:host(.ef-fieldset--plain) ::ng-deep .p-fieldset {
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+:host(.ef-fieldset--plain) ::ng-deep .p-fieldset-legend {
+  display: block;
+  inline-size: 100%;
+  padding: 0 0 var(--s-2);
+  margin-block-end: var(--s-3);
+  border: 0;
+  border-block-end: 1px solid var(--rule-soft, var(--border-color, currentColor));
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--fs-sm, 0.875rem);
+  font-weight: 600;
+  color: var(--ink-soft, inherit);
+}
+
+:host(.ef-fieldset--plain) ::ng-deep .p-fieldset-content {
+  padding: 0;
+}
