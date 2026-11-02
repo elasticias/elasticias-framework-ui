@@ -200,12 +200,14 @@
       [attr.aria-busy]="loading() ? 'true' : null"
     >
       @for (row of rows(); track trackByRow($index, row); let i = $index) {
-        <li class="mrow" [class.is-open]="isExpanded(row, i)">
+        <li class="mrow" [class.is-open]="isExpanded(row, i)" [class.is-disabled]="isRowDisabled(row)">
           <div
             class="mrow__head"
             [class.is-tappable]="headIsControl()"
             [attr.role]="headIsControl() ? 'button' : null"
             [attr.tabindex]="headIsControl() ? 0 : null"
+            [attr.aria-pressed]="pressedAttr(row)"
+            [attr.aria-disabled]="isRowDisabled(row) ? 'true' : null"
             [attr.aria-expanded]="!rowNavigable() && hasDetail() ? isExpanded(row, i) : null"
             (click)="onRowHeadActivate(row, i, $event)"
             (keydown.enter)="onRowHeadActivate(row, i, $event)"
@@ -363,8 +365,12 @@
             [class.is-drop-target]="dragFrom() !== null && dragFrom() !== i && dragTo() === i"
             [attr.tabindex]="rowDoubleClickable() ? 0 : null"
             [attr.role]="rowDoubleClickable() ? 'button' : null"
+            [attr.aria-pressed]="pressedAttr(row)"
+            [attr.aria-disabled]="isRowDisabled(row) ? 'true' : null"
+            [class.is-disabled]="isRowDisabled(row)"
             (click)="onRowClick(row, $event)"
             (keydown.enter)="onRowKeydown(row, $event)"
+            (keydown.space)="onRowSpace(row, $event)"
           >
             @if (reorderable()) {
               <td class="tbl-drag">

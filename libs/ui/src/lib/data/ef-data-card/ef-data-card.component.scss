@@ -539,3 +539,18 @@
         margin-inline-start: calc((var(--hit-touch) - 11px) / 2 - var(--s-2) + 1px);
     }
 }
+
+/* A row that is shown but cannot be activated ([rowDisabled]). Dimmed, not
+   hidden: the operator should see it is there and why a click does nothing. */
+.tbl tbody tr.is-disabled {
+  cursor: not-allowed;
+}
+
+.tbl tbody tr.is-disabled td,
+.mrow.is-disabled .mrow__head {
+  opacity: 0.5;
+}
+
+.mrow.is-disabled .mrow__head {
+  cursor: not-allowed;
+}

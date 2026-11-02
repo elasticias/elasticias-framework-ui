@@ -148,6 +148,10 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     protected onRowHeadActivate(row: TRow, index: number, event: Event): void {
         const target = event.target as HTMLElement | null;
         if (target?.closest('.mrow__actions, .mrow__disclosure')) return;
+        if (this.rowNavigable() && this.isRowDisabled(row)) {
+            event.preventDefault();
+            return;
+        }
 
         // A phone has no double-click, so before this the head could only ever
         // expand: the record itself was reachable only through the row-actions
@@ -365,6 +369,38 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      * their native behaviour (toggle selection, run an action, …).
      */
     readonly rowDoubleClickable = input(false, { transform: booleanAttribute });
+
+    /**
+     * Turns an activatable row into a toggle button (APG button pattern):
+     * the row, already `role="button"` under `[rowDoubleClickable]`, gets
+     * `aria-pressed` from this function, on the desktop `<tr>` and on the
+     * phone row head alike. Enter and Space both activate. For a
+     * multi-select picker whose rows are the selection.
+     *
+     * `aria-pressed` rather than `aria-selected`: selection belongs to a
+     * grid or listbox, which own arrow-key focus management this table does
+     * not have, and `aria-selected` is not allowed on a button. Unset, no
+     * attribute is written.
+     */
+    readonly rowPressed = input<((row: TRow) => boolean) | null>(null);
+
+    /**
+     * A row that is shown but cannot be activated (a product already in the
+     * collection): `.is-disabled` dims it, `aria-disabled` says so, and
+     * click, Enter and Space are ignored. It stays focusable, so a screen
+     * reader user can still find it and hear why nothing happens.
+     */
+    readonly rowDisabled = input<((row: TRow) => boolean) | null>(null);
+
+    protected pressedAttr(row: TRow): 'true' | 'false' | null {
+        const fn = this.rowPressed();
+        if (!fn || !this.rowDoubleClickable()) return null;
+        return fn(row) ? 'true' : 'false';
+    }
+
+    protected isRowDisabled(row: TRow): boolean {
+        return !!this.rowDisabled()?.(row);
+    }
 
     /* ── Auto row-actions cell ─────────────────────────────────────
        When `[hasActionsColumn]` is set, ef-data-card appends a 48px
@@ -958,6 +994,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      */
     onRowClick(row: TRow, event: MouseEvent): void {
         if (!this.rowDoubleClickable()) return;
+        if (this.isRowDisabled(row)) return;
         if (this.isStructuralCell(event.target)) return;
         if (this.isInteractiveTarget(event.target, event.currentTarget)) return;
         if (this.hasTextSelection()) return;
@@ -985,8 +1022,19 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      */
     onRowKeydown(row: TRow, event: Event): void {
         if (!this.rowDoubleClickable()) return;
+        if (this.isRowDisabled(row)) return;
         event.preventDefault();
         this.rowDoubleClick.emit(row);
+    }
+
+    /**
+     * Space activates a button as Enter does (APG). Only when the row itself
+     * has focus: Space on a checkbox or button inside the row is theirs.
+     * preventDefault keeps the page (or a dialog body) from scrolling.
+     */
+    onRowSpace(row: TRow, event: Event): void {
+        if (event.target !== event.currentTarget) return;
+        this.onRowKeydown(row, event);
     }
 
     onHeaderClick(col: EfDataCardColumn): void {
