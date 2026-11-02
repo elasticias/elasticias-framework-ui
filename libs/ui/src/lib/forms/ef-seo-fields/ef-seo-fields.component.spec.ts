@@ -51,6 +51,32 @@ describe('EfSeoFieldsComponent', () => {
         expect(description.classList).not.toContain('is-over');
     });
 
+    it('colours an over-limit counter with the warning token, not the default', () => {
+        const { host } = render({ seoTitle: 'a'.repeat(61), seoDescription: 'b' });
+        const over = host.querySelector<HTMLElement>('[data-counter="fr-title"]')!;
+        const ok = host.querySelector<HTMLElement>('[data-counter="fr-description"]')!;
+        expect(getComputedStyle(over).color).toBe('var(--st-pending-fg)');
+        expect(getComputedStyle(ok).color).not.toBe('var(--st-pending-fg)');
+    });
+
+    it('links each counter to its field and says the limit as text', () => {
+        const { host, field } = render({ seoTitle: 'a'.repeat(61) });
+        const counter = host.querySelector<HTMLElement>('[data-counter="fr-title"]')!;
+        expect(counter.id).toBeTruthy();
+        expect(field('seoTitle').getAttribute('aria-describedby')).toContain(counter.id);
+        expect(counter.querySelector('.seo-counter__sr')?.textContent).toContain('ef_seo_fields_counter_hint');
+        expect(counter.querySelector('.seo-counter__sr')?.textContent).toContain('ef_seo_fields_over_hint');
+        const ok = host.querySelector<HTMLElement>('[data-counter="fr-description"]')!;
+        expect(ok.querySelector('.seo-counter__sr')?.textContent).not.toContain('ef_seo_fields_over_hint');
+    });
+
+    it('keeps the counter digits left to right in an RTL page', () => {
+        const { host } = render({ seoTitle: 'a'.repeat(74) });
+        const bdi = host.querySelector('[data-counter="fr-title"] bdi')!;
+        expect(bdi.getAttribute('dir')).toBe('ltr');
+        expect(bdi.textContent?.trim()).toBe('74 / 60');
+    });
+
     it('names the French controls for server errors', () => {
         const { field } = render();
         expect(field('seoTitle')).toBeTruthy();

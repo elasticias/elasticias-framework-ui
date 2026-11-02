@@ -21,6 +21,8 @@ export interface EfSeoPatch {
     seoDescriptionTranslations?: Record<string, string>;
 }
 
+let nextId = 0;
+
 type Field = 'title' | 'description';
 
 export const EF_SEO_DEFAULT_LOCALES: ReadonlyArray<EfSeoLocale> = [
@@ -75,6 +77,13 @@ export class EfSeoFieldsComponent {
         const dict = field === 'title' ? this.seoTitleTranslations() : this.seoDescriptionTranslations();
         return dict?.[locale] ?? '';
     }
+
+    /** Id of a counter, which the field it counts points at with `aria-describedby`. */
+    counterId(locale: string, field: Field): string {
+        return `${this.uid}-${this.name(locale, field)}-counter`;
+    }
+
+    private readonly uid = `ef-seo-fields-${nextId++}`;
 
     /** French matches the backend property; the others are unique for the label link. */
     name(locale: string, field: Field): string {

@@ -9,6 +9,7 @@
                     variant="comptoir"
                     [dir]="locale.dir"
                     [name]="name(locale.code, 'title')"
+                    [describedByExtra]="counterId(locale.code, 'title')"
                     labelKey="ef_seo_fields_title_label"
                     [maxlength]="titleMax()"
                     [value]="text(locale.code, 'title')"
@@ -16,17 +17,24 @@
                 />
                 <span
                     class="col-12 seo-counter"
+                    [id]="counterId(locale.code, 'title')"
                     [attr.data-counter]="locale.code + '-title'"
                     [class.is-over]="text(locale.code, 'title').length > titleAdvised()"
-                    [title]="'ef_seo_fields_counter_hint' | translate: { max: titleAdvised() }"
                 >
                     <bdi dir="ltr">{{ text(locale.code, 'title').length }} / {{ titleAdvised() }}</bdi>
+                    <span class="seo-counter__sr">
+                        {{ 'ef_seo_fields_counter_hint' | translate: { max: titleAdvised() } }}
+                        @if (text(locale.code, 'title').length > titleAdvised()) {
+                            {{ 'ef_seo_fields_over_hint' | translate: { max: titleAdvised() } }}
+                        }
+                    </span>
                 </span>
 
                 <ef-textarea
                     class="col-12"
                     [dir]="locale.dir"
                     [name]="name(locale.code, 'description')"
+                    [describedByExtra]="counterId(locale.code, 'description')"
                     labelKey="ef_seo_fields_description_label"
                     [rows]="3"
                     [maxlength]="descriptionMax()"
@@ -35,11 +43,17 @@
                 />
                 <span
                     class="col-12 seo-counter"
+                    [id]="counterId(locale.code, 'description')"
                     [attr.data-counter]="locale.code + '-description'"
                     [class.is-over]="text(locale.code, 'description').length > descriptionAdvised()"
-                    [title]="'ef_seo_fields_counter_hint' | translate: { max: descriptionAdvised() }"
                 >
                     <bdi dir="ltr">{{ text(locale.code, 'description').length }} / {{ descriptionAdvised() }}</bdi>
+                    <span class="seo-counter__sr">
+                        {{ 'ef_seo_fields_counter_hint' | translate: { max: descriptionAdvised() } }}
+                        @if (text(locale.code, 'description').length > descriptionAdvised()) {
+                            {{ 'ef_seo_fields_over_hint' | translate: { max: descriptionAdvised() } }}
+                        }
+                    </span>
                 </span>
             </ef-form-grid>
         </ef-fieldset>
