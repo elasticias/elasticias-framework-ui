@@ -23,8 +23,9 @@ import { EfServerErrorsDirective, resolveExternalErrors } from './ef-server-erro
  * - **ARIA** — `ariaLabelKey` / `ariaLabel` for screen-reader-only
  *   labels; `effectiveAriaLabel` returns `null` when a visible
  *   label is rendered (which already serves as the ARIA name).
- *   `errorsId` provides a stable id for the error/hint container
- *   so subclasses can wire `aria-describedby`.
+ *   `errorsId` and `hintId` give the error container and the hint
+ *   stable ids, and `describedBy()` joins them into the value
+ *   subclasses bind to `aria-describedby`.
  * - **State** — `required` / `readonly` / `disabled` shared inputs,
  *   used directly in subclass templates and toggled by CVA's
  *   `setDisabledState` in subclasses.
@@ -241,7 +242,7 @@ export abstract class AbstractEfFormControl {
         return ids.length ? ids.join(' ') : null;
     }
 
-    /** Stable id for the error container — wired through
+    /** Stable id for the error container, wired through
      *  `aria-describedby` on the input so screen readers announce
      *  the validation message together with the field name. */
     get errorsId(): string {
