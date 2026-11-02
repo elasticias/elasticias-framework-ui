@@ -1,3 +1,51 @@
+## 1.0.50 (2026-11-02)
+
+Bump all five packages together: `@elasticias/ui` needs `@elasticias/utils` 1.0.50 (`PhoneUtils`) and `@elasticias/screens` 1.0.50 (`keepInView`), and the peer ranges (`>=0.0.1`) will not stop npm from installing older ones.
+
+### Breaking
+
+- **`@elasticias/ui` is compiled with `strictNullChecks`, so the published types keep `null` and `undefined`.** In particular:
+  - `ef-quantity-stepper` `valueChange` emits `number | null`.
+  - `EfButtonComponent.pnSize` is `'small' | 'large' | undefined`.
+  - `OrderLineItem.product` may be `null`.
+  - Every signal input declared nullable is nullable in the published types.
+- **`ef-pill-group` `value` is an input with a `valueChange` output, no longer a `model`.** `[(value)]` still works; `.value.set()` from a parent does not. `valueChange` emits only a picked value, never `null`.
+- **`ef-detail-toolbar` wraps Print, Duplicate, Delete and Save, with their separator, in a `.std` group that never wraps inside itself.** App CSS aimed at `.right > .sep` or `.right > :last-child` no longer matches.
+
+### Added
+
+- **`ef-seo-fields`**: SEO title and description per locale, with counters (60/160 advised, 256/512 maximum) and a preview. Exports `EF_SEO_DEFAULT_LOCALES`, `EfSeoLocale` and `EfSeoPatch`. Keys: `ef_seo_fields_*`.
+- **`describedByExtra` on every form control**: ids of outside elements, such as a counter, appended to `aria-describedby`.
+- **`ef-order-builder`**:
+  - `[recipient]` (`EfOrderRecipient`): a read-only recipient strip in place of the customer select, for orders with no client. The `tel:` link uses E.164. Key: `order_builder.recipient`.
+  - `[defaultCallingCode]`, used to dial a national number.
+  - `[priceList]`, see below.
+  - An `[obRail]` content slot for host cards beside the totals.
+- **`priceList`** (`'wholesale'` by default, or `'retail'`) on `ef-order-builder`, `ef-product-typeahead` and `ef-product-catalogue`, plus `defaultUnitPrice()` and `EfOrderPriceList`. A Web order starts its lines at the shop price, and its catalogue cards show that same price.
+- **`EfDetailToolbarAction.keepInView`**: on a phone, the action stays inline beside Save, with its label, when the rest overflow into the menu.
+- **`ef-tabs` `ariaLabelKey`**: names the tablist in the reader's language.
+- **`ef-pdf-preview` `defaultCallingCode`**.
+- **`PhoneUtils.toE164` (`@elasticias/utils`)**, so no app hand-rolls international numbers.
+- **`ScreenConfig.RELOAD_AFTER_SAVE`** (default `false`): refresh the record after an in-place update, so server-owned fields such as a revision stay current.
+- **`ScreenConfig.STALE_RULE_CODES`**: a failed update with one of these listed 422 rule codes offers to reload the record. Only the listed codes do; a 409 is never treated as stale. Keys: `ef_stale_reload`, `ef_stale_reload_confirm` and `ef_stale_reload_header`; core has English fallbacks.
+- **`AbstractSearchScreenV2.afterSearch(result)`** hook, for screens whose search returns more than a page.
+
+### Changed
+
+- **`ef-detail-toolbar`**:
+  - The identity keeps a 22rem basis (`--detail-toolbar-identity-min`), so the actions wrap below it instead of squeezing it. Every existing toolbar therefore wraps earlier at tablet widths (768 to 1100px); this is not opt-in.
+  - The new `.std` wrapper changes the DOM, see Breaking.
+  - Every inline button has an accessible name, also on a phone where only the icon shows.
+  - The separator never dangles at the end of a row, and keeps its width when it hides.
+- **`ef-pdf-preview` WhatsApp share**: wa.me receives the international number as digits, so a national number with a calling code, or a `+` number, opens the chat.
+- **`.tbl .ref` stays on one line**, and `f-more` has a touch-size target. On a coarse pointer, `.f-pill`, `.f-more` and `.f-clear` are 48px tall.
+
+### Fixed
+
+- A 409 duplicate no longer offers a stale-record reload (4ec2cf1).
+- The detail-toolbar separator keeps its width when it hides, and label-only actions get an `aria-label` (81209d8).
+- `ef-seo-fields` counters keep their digits in order in right-to-left, and the over-limit counter uses the warning token and is announced as text.
+
 ## 1.0.49 (2026-11-02)
 
 ### Breaking
