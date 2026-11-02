@@ -62,6 +62,12 @@ describe('touch tier for form fields', () => {
     expect(decl(patterns, '.ef-input-group', 'box-sizing')).toBe('border-box');
   });
 
+  it('keeps a grouped field at the touch height when its clear shows', () => {
+    expect(decl(patterns, '.ef-input-group .ef-clear', 'margin-block', coarse)).toBe(
+      'calc((var(--hit-touch) - var(--ef-clear-size)) / 2 - 1px)',
+    );
+  });
+
   it('centres the datepicker clear on the field height', () => {
     expect(decl(patterns, '.dp__field-clear', 'top')).toBe('calc(var(--hit-field) / 2)');
   });

@@ -4703,6 +4703,14 @@ input.ef-input[type='number'] {
     margin: calc((var(--hit-touch) - var(--ef-clear-size)) / 2);
   }
 
+  /* Inside a grouped field the clear is a flex item, so its block margin
+     sized the group: 48px plus the group's 1px borders drew a 50px field
+     beside 48px ones. The group's inner height is the whole target here;
+     the margin stops 1px short on each side so the group stays 48px. */
+  .ef-input-group .ef-clear {
+    margin-block: calc((var(--hit-touch) - var(--ef-clear-size)) / 2 - 1px);
+  }
+
   /* The select / multiselect ✕ sits in the trigger's flex row, between the
      label and the caret, 10px (--es-gap) from each. It reserves only the
      inline room its 48px target still lacks after that gap, so the target
