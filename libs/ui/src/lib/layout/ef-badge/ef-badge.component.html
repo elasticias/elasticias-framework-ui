@@ -10,7 +10,9 @@
   }
 
   <!-- Label -->
-  @if (config().label) {
+  @if (labelKey()) {
+    <span>{{ labelKey()! | translate }}</span>
+  } @else if (config().label) {
     <span>{{ config().label }}</span>
   }
 </span>

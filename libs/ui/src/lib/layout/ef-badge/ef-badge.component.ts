@@ -1,5 +1,6 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, booleanAttribute, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import {
   EfBadgeConfig,
   EfBadgeColor,
@@ -45,13 +46,24 @@ import {
   standalone: true,
   templateUrl: './ef-badge.component.html',
   styleUrl: './ef-badge.component.scss',
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
 })
 export class EfBadgeComponent {
   /**
    * Badge label text
    */
   label = input<string>();
+
+  /**
+   * Translation key for the label; wins over `label`.
+   */
+  labelKey = input<string>();
+
+  /**
+   * Opt in to the pointer cursor and hover lift. Off by default so a
+   * read-only badge does not look like a button.
+   */
+  clickable = input(false, { transform: booleanAttribute });
 
   /**
    * Badge color (Tailwind color name)
@@ -102,6 +114,7 @@ export class EfBadgeComponent {
   badgeClasses = computed(() => {
     const cfg = this.config();
     const classes: string[] = ['ef-badge'];
+    if (this.clickable()) classes.push('is-clickable');
 
     // Base classes
     classes.push('inline-flex', 'items-center', 'gap-1.5', 'font-medium');
