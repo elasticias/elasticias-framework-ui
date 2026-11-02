@@ -1,4 +1,4 @@
-<div class="ef-tabs__list" role="tablist" [attr.aria-label]="ariaLabel">
+<div class="ef-tabs__list" role="tablist" [attr.aria-label]="ariaLabelKey ? (ariaLabelKey | translate) : ariaLabel">
   @for (item of items; track trackValue($index, item); let i = $index) {
     <button
       #tabEl

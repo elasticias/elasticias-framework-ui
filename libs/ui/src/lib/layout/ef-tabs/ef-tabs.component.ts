@@ -123,7 +123,11 @@ export class EfTabsComponent<T = string> implements AfterContentInit {
     /** Hide count badges even when items provide them. */
     @Input({ transform: booleanAttribute }) hideCounts = false;
 
+    /** Untranslated accessible name of the tablist. Prefer `ariaLabelKey`. */
     @Input() ariaLabel = 'tabs';
+
+    /** Translation key for the tablist's accessible name; wins over `ariaLabel`. */
+    @Input() ariaLabelKey?: string;
 
     /** Translation key used as the `aria-label` of the dirty dot.
      *  Defaults to `'common.dirty'` — apps add the matching entry to
