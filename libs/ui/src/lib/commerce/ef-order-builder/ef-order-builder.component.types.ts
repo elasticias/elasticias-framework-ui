@@ -1,4 +1,5 @@
 import { UuidUtils } from '@elasticias/utils';
+import { defaultUnitPrice, EfOrderPriceList } from '../order-pricing';
 
 /**
  * Summary item for product count groups
@@ -203,15 +204,22 @@ export class OrderLineItemHelper {
   /**
    * Create a line item from product selection
    * @param keyField - Field name used to identify the product (default: 'id')
+   * @param priceList - Which catalogue price the line starts at (see `EfOrderPriceList`)
    */
-  static createFromProduct(product: Record<string, unknown>, quantity = 1, keyField = 'id', variantId?: string): OrderLineItem {
+  static createFromProduct(
+    product: Record<string, unknown>,
+    quantity = 1,
+    keyField = 'id',
+    variantId?: string,
+    priceList: EfOrderPriceList = 'wholesale',
+  ): OrderLineItem {
     // Resolve variant data if variantId is provided and product has variants
     const variants = product['variants'] as Array<Record<string, unknown>> | undefined;
     const variant = variantId && variants?.length
       ? variants.find((v) => v['variantId'] === variantId)
       : undefined;
 
-    const unitPrice = variant?.['price'] ?? product.unitPrice ?? product.salePrice ?? 0;
+    const unitPrice = defaultUnitPrice(product, variant, priceList);
     const taxRate = product.taxRate || 0;
     const countGroup = (variant?.['countGroup'] ?? product['countGroup'] ?? '') as string;
 

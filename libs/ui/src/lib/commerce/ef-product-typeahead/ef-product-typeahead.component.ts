@@ -15,6 +15,7 @@ import {
   ProductTypeaheadRow,
   ProductTypeaheadSelection,
 } from './ef-product-typeahead.component.types';
+import { defaultUnitPrice, EfOrderPriceList } from '../order-pricing';
 
 /**
  * Keyboard-navigable product search. Filters products by display name,
@@ -55,6 +56,11 @@ export class EfProductTypeaheadComponent {
    * variant + unit price) is identical either way.
    */
   showVariants = input(true, { transform: booleanAttribute });
+  /**
+   * Which catalogue price each row shows and its selection carries: the
+   * wholesale price (default) or the shop price for a Web order.
+   */
+  priceList = input<EfOrderPriceList>('wholesale');
 
   productSelect = output<ProductTypeaheadSelection>();
 
@@ -171,11 +177,7 @@ export class EfProductTypeaheadComponent {
   }
 
   priceOf(row: ProductTypeaheadRow): number {
-    const variant = this.variantOf(row);
-    return (variant?.['price'] ??
-      row.product['unitPrice'] ??
-      row.product['salePrice'] ??
-      0) as number;
+    return defaultUnitPrice(row.product, this.variantOf(row), this.priceList());
   }
 
   setActiveVariant(row: ProductTypeaheadRow, index: number): void {

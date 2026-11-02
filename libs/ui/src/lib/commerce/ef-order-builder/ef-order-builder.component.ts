@@ -40,6 +40,7 @@ import { EfDataCardComponent } from '../../data/ef-data-card/ef-data-card.compon
 import { EfColumnTemplateDirective } from '../../data/ef-data-card/ef-column-template.directive';
 import type { EfDataCardColumn } from '../../data/ef-data-card/ef-data-card.types';
 import { ProductTypeaheadSelection } from '../ef-product-typeahead/ef-product-typeahead.component.types';
+import { EfOrderPriceList } from '../order-pricing';
 import { PhoneUtils, UuidUtils } from '@elasticias/utils';
 
 /**
@@ -138,6 +139,12 @@ export class EfOrderBuilderComponent implements OnInit {
   countGroupLabels = input<ProductCountGroupLabel[]>([]);
   /** Field name used to identify products (must match catalogue's trackByField) */
   productKeyField = input<string>('id');
+  /**
+   * Which catalogue price a new line starts at, in quick-add, its typeahead
+   * and the catalogue: `'wholesale'` (default, B2B sales) or `'retail'`, the
+   * shop price a Web order is charged. Lines already on the order keep theirs.
+   */
+  priceList = input<EfOrderPriceList>('wholesale');
   backendErrors = input<{ [key: string]: string[] }>({});
   /**
    * Delivery amount (TTC) the host owns. It is the builder's only fee source:
@@ -541,6 +548,7 @@ export class EfOrderBuilderComponent implements OnInit {
       this.quickAddQuantity(),
       this.productKeyField(),
       variantId,
+      this.priceList(),
     );
     const overridden = OrderLineItemHelper.updateCalculations({
       ...newItem,
@@ -598,6 +606,7 @@ export class EfOrderBuilderComponent implements OnInit {
           quantity,
           keyField,
           variantId,
+          this.priceList(),
         );
         currentItems.push(newItem);
         addedItems.push(newItem);

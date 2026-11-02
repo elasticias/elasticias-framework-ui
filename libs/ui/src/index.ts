@@ -10,6 +10,7 @@ export { EfOrderBuilderComponent } from './lib/commerce/ef-order-builder/ef-orde
 export * from './lib/commerce/ef-order-builder/ef-order-builder.component.types';
 export { EfProductTypeaheadComponent } from './lib/commerce/ef-product-typeahead/ef-product-typeahead.component';
 export * from './lib/commerce/ef-product-typeahead/ef-product-typeahead.component.types';
+export * from './lib/commerce/order-pricing';
 export { EfProductPickerComponent } from './lib/commerce/ef-product-picker/ef-product-picker.component';
 export type {
     EfProductPickerItem,
