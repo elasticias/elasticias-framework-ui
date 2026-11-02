@@ -67,6 +67,16 @@ export const EF_STATUS_COLOR_ALIASES: Readonly<Record<string, EfStatusColor>> = 
     purple: 'shipped',
     green: 'delivered',
     red: 'cancelled',
+    // PrimeNG severity vocabulary: the values workspace CLAUDE.md prescribes
+    // for reference data `metadata.color`.
+    success: 'delivered',
+    info: 'processing',
+    warn: 'pending',
+    warning: 'pending',
+    danger: 'cancelled',
+    secondary: 'onhold',
+    contrast: 'module',
+    primary: 'tenant',
 };
 
 /**
