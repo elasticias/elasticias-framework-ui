@@ -20,11 +20,20 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
  *   ariaLabelKey="sales_clients_toggle_active_aria"
  *   (checkedChange)="setActive(row, $event)" />
  * ```
+ *
+ * With a label, the host is a flex row: the switch keeps its size and a
+ * sentence-long label wraps beside it, not under it, at phone width.
+ * Screens no longer restyle `ef-toggleswitch` for this. Without a label
+ * (a table row's switch) the host keeps its inline box.
  */
 @Component({
   selector: 'ef-toggleswitch',
   standalone: true,
   imports: [ToggleSwitchModule, FormsModule, TranslateModule, EfLabelComponent],
+  styleUrl: './ef-toggleswitch.component.scss',
+  host: {
+    '[class.ef-toggleswitch--row]': '!!(labelKey() || label())',
+  },
   template: `
     <p-toggleswitch
       [autofocus]="autofocus"

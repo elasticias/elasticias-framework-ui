@@ -1,0 +1,18 @@
+/* A labelled toggle is a row: the switch keeps its size, the label takes the
+   rest and wraps beside it. `min-width: 0` lets the row shrink inside a grid
+   or flex parent instead of sizing it. `gap` is logical, so RTL mirrors. */
+:host(.ef-toggleswitch--row) {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+:host(.ef-toggleswitch--row) p-toggleswitch {
+  flex-shrink: 0;
+}
+
+:host(.ef-toggleswitch--row) label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
