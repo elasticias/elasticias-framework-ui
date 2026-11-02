@@ -47,7 +47,7 @@ describe('ef-inputnumber currency mode (comptoir)', () => {
   it.each([
     ['fr-MA', '1.234,50', 'MAD', 'suffix'],
     ['ar-MA', '1.234,50', 'د.م.', 'suffix'],
-    ['fr', '1 234,50', 'MAD', 'suffix'],
+    ['fr', '1\u202f234,50', 'MAD', 'suffix'],
     ['en-US', '1,234.50', 'MAD', 'prefix'],
   ])('%s: shows %s with %s as the %s addon', (locale, text, symbol, side) => {
     const { input, addon } = render({ value: 1234.5, locale });
@@ -74,7 +74,7 @@ describe('ef-inputnumber currency mode (comptoir)', () => {
       const { input, focus, type, blur, fixture } = render({ value: 1234.5, locale });
       focus();
       const editable = input().value;
-      expect(editable).not.toMatch(/[\s ]/);
+      expect(editable).not.toMatch(/[\s\u202f]/);
       type(editable);
       blur();
       expect(fixture.componentInstance.value).toBe(1234.5);
