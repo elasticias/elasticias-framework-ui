@@ -1221,13 +1221,8 @@
 
 /* ──────────── DETAIL GRID + CARD ───────────────────────────────── */
 
-/* Splits where the shell's desktop starts (EfViewportService, 1280px).
-   At 1100px the tablet chrome wrapped a desktop two-column layout. */
-@media (min-width: 1280px) {
-  .detail-grid {
-    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
-  }
-}
+/* .detail-grid is defined once, with its 1280px split, next to .detail-stack
+   further down. */
 
 /* ──────────── FORM GRID + FIELD ────────────────────────────────── */
 
