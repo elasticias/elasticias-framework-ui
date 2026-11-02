@@ -170,29 +170,33 @@
     /* Let the row reach the card edge so a half-visible pill reads as
        "scrollable" rather than as a layout mistake. */
     scroll-padding-inline: var(--s-2);
-    /* Room for the pills' 48px targets. The track scrolls on x, which
-       clips y too, so an overhang past its padding box would be cut off
-       and the target would stop at the track's edge. */
+  }
+}
+
+/* A narrow window with a fine pointer (a mouse, an emulated phone): the
+   coarse-pointer block above does not apply, so the pill keeps its 32px
+   desktop paint and reaches 48px through an invisible overhang, as the row
+   trigger and the clear button do. A touch phone keeps the painted 48px
+   pill from the coarse block; it already meets the target. */
+@media (max-width: 767px) and (pointer: fine) {
+  .ef-pill-group__track {
+    /* The track scrolls on x, which clips y too, so an overhang past its
+       padding box would be cut off at the track's edge. */
     padding-block: calc((var(--hit-touch) - var(--hit)) / 2);
   }
 
-  /* A phone keeps the desktop pill and reaches the touch tier through an
-     invisible overhang, as the row trigger and the clear button do. This
-     holds on a touch phone too, so it overrides the coarse-pointer
-     growth above; a tablet keeps that. */
   .ef-pill {
     position: relative;
-    block-size: var(--hit);
-    padding-inline: 14px;
-    font-size: 12.5px;
+    /* Width comes from the box, not the overhang: with a 4px gap an
+       inline overhang on a one-letter pill would cover its neighbour. */
+    min-inline-size: var(--hit-touch);
+    justify-content: center;
 
     &::after {
       content: '';
       position: absolute;
+      inset-inline: 0;
       inset-block: calc((var(--hit) - var(--hit-touch)) / 2);
-      /* A pill narrower than 48px (a short label, no count) still gets
-         a 48px-wide target. */
-      inset-inline: min(0px, calc((100% - var(--hit-touch)) / 2));
     }
   }
 }
