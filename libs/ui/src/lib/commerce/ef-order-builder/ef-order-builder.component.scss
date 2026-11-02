@@ -684,3 +684,23 @@
    ".ef-app-main__content:has(.order-builder .ob-fab)" in _patterns.scss. Padding
    the builder put the reserve between the lines and any card the host
    places after the builder, and left that card under the pill. */
+
+/* Touch targets on a coarse pointer (touch phone, tablet, touch laptop).
+   Last in the file so no base rule declared after it wins.
+
+   - The summary button is the only way to open the totals rail below
+     1280px; it painted 33px (41px in Arabic). It grows to the 48px tier
+     inside the 56px pill.
+   - An editable line value swaps to an ef-inputnumber on tap, which is
+     --hit-field (48px here) tall. At its ~30px read height the row grew by
+     18px mid-edit and the tap target was under the tier. Matching the
+     editor's height keeps the row still and makes the tap target 48px. */
+@media (pointer: coarse) {
+  :host .order-builder .ob-fab .open {
+    min-block-size: var(--hit-touch);
+  }
+
+  :host ef-data-card .ln-val {
+    min-block-size: var(--hit-field);
+  }
+}

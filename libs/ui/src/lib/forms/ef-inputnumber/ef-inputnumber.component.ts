@@ -126,7 +126,7 @@ export class EfInputNumberComponent
   /* ── Input attributes ────────────────────────────────────────── */
 
   @Input() inputSize?: number;
-  /** Default (undefined) = canonical `--hit-field` (40px, 48px on touch); `'small'` = dense 32px. */
+  /** PrimeNG variant only: `'small'` = dense 32px. The comptoir variant ignores it and is always `--hit-field` (40px, 48px on touch). */
   @Input() size?: 'small' | 'large';
   @Input() maxlength?: number;
   @Input() minlength?: number;
