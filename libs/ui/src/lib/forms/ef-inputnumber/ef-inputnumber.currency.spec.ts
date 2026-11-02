@@ -216,4 +216,18 @@ describe('ef-inputnumber currency mode (comptoir)', () => {
     expect(input().value).toBe('1234.5');
     expect(addon()).toBeNull();
   });
+
+  it('does not build number formatters on every change detection', () => {
+    const { fixture, focus, blur } = render({ value: 1234.5, locale: 'fr-MA' });
+    focus();
+    blur();
+    const spy = vi.spyOn(Intl, 'NumberFormat');
+    for (let i = 0; i < 5; i++) {
+      fixture.componentInstance.value = 1234.5 + i;
+      fixture.componentRef.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+    }
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
 });

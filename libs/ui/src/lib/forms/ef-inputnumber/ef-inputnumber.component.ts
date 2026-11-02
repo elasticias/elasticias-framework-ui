@@ -67,6 +67,20 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 /** Left-to-right / right-to-left / Arabic letter marks: layout hints, not content. */
 const BIDI_MARKS = /[\u200e\u200f\u061c]/g;
 
+/** Formatters by locale and options. Building an Intl.NumberFormat is
+ *  costly and the template reads the formatted text and the currency addon
+ *  on every change detection, so each distinct setup is built once. */
+const FORMATS = new Map<string, Intl.NumberFormat>();
+function numberFormat(locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
+  const key = `${locale}|${JSON.stringify(options)}`;
+  let format = FORMATS.get(key);
+  if (!format) {
+    format = new Intl.NumberFormat(locale, options);
+    FORMATS.set(key, format);
+  }
+  return format;
+}
+
 /** Half away from zero at `digits` decimals, like the backend rounds money
  *  (and `OrderEntityHelper.roundMoney`); toPrecision absorbs float noise. */
 function roundHalfAwayFromZero(value: number, digits: number): number {
@@ -217,7 +231,7 @@ export class EfInputNumberComponent
 
   /** Decimals: explicit inputs, else the currency's own (2 for MAD). */
   private get fractionDigits(): { min: number; max: number } {
-    const own = new Intl.NumberFormat(this.effectiveLocale, { style: 'currency', currency: this.currency })
+    const own = numberFormat(this.effectiveLocale, { style: 'currency', currency: this.currency })
       .resolvedOptions().maximumFractionDigits ?? 2;
     const min = this.minFractionDigits ?? Math.min(own, this.maxFractionDigits ?? own);
     const max = Math.max(min, this.maxFractionDigits ?? own);
@@ -232,7 +246,7 @@ export class EfInputNumberComponent
   private formatAmount(value: number | null, display: boolean): string {
     if (value == null) return '';
     const { min, max } = this.fractionDigits;
-    return new Intl.NumberFormat(this.effectiveLocale, {
+    return numberFormat(this.effectiveLocale, {
       minimumFractionDigits: min,
       maximumFractionDigits: max,
       useGrouping: display && this.useGrouping,
@@ -249,7 +263,7 @@ export class EfInputNumberComponent
    */
   get currencyAddon(): { symbol: string; side: 'prefix' | 'suffix' } | null {
     if (!this.isCurrency || this.prefix || this.suffix) return null;
-    const parts = new Intl.NumberFormat(this.effectiveLocale, {
+    const parts = numberFormat(this.effectiveLocale, {
       style: 'currency',
       currency: this.currency,
       currencyDisplay: (this.currencyDisplay as Intl.NumberFormatOptions['currencyDisplay']) ?? 'symbol',
@@ -276,7 +290,7 @@ export class EfInputNumberComponent
   private stripCurrencyGrouping(text: string): string {
     const locale = this.effectiveLocale;
     for (const display of ['code', 'symbol', 'narrowSymbol', 'name'] as const) {
-      const unit = new Intl.NumberFormat(locale, {
+      const unit = numberFormat(locale, {
         style: 'currency',
         currency: this.currency,
         currencyDisplay: display,
@@ -289,7 +303,7 @@ export class EfInputNumberComponent
     }
     text = text.replace(/\s/g, '');
     const group = (
-      new Intl.NumberFormat(locale, { numberingSystem: 'latn' } as Intl.NumberFormatOptions)
+      numberFormat(locale, { numberingSystem: 'latn' } as Intl.NumberFormatOptions)
         .formatToParts(1234567)
         .find((p) => p.type === 'group')?.value ?? ''
     ).replace(/\s/g, '');
