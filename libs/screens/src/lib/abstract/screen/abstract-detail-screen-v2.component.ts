@@ -395,8 +395,9 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
     /**
      * True when a failed save means the record changed since it was loaded:
-     * a 422 whose `ruleCode` is in the config's `STALE_RULE_CODES`, or a 409
-     * (the default, kept even when the config lists codes). Only a refusal
+     * a refusal whose `ruleCode` is in the config's `STALE_RULE_CODES`. A bare
+     * 409 is a duplicate (e.g. a slug already taken), not a stale record, so
+     * it never offers a reload. Only a refusal
      * the app's interceptor already toasted counts, so the user is never
      * told twice.
      */
@@ -404,7 +405,6 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         if (!isServerReported(error)) return false;
         const problem = extractProblem(error);
         if (!problem) return false;
-        if (problem.status === 409) return true;
         const codes = this.getConfig()?.STALE_RULE_CODES ?? [];
         return !!problem.ruleCode && codes.includes(problem.ruleCode);
     }

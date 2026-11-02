@@ -667,11 +667,18 @@ describe('AbstractDetailScreenV2 stale save', () => {
     expect(stale.gets).toBe(before + 1);
   });
 
-  it('treats a 409 as stale by default', async () => {
+  it('a 409 duplicate is not offered a reload', async () => {
     const { screen, stale } = await create(DefaultStaleScreen);
     stale.failWith = problem(409);
     screen.save();
-    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(confirmSpy).not.toHaveBeenCalled();
+  });
+
+  it('a 409 is not stale even when the config lists rule codes', async () => {
+    const { screen, stale } = await create(StaleScreen);
+    stale.failWith = problem(409);
+    screen.save();
+    expect(confirmSpy).not.toHaveBeenCalled();
   });
 
   it('does not treat an unlisted 422 rule code as stale', async () => {
