@@ -3,6 +3,8 @@ import {
   Component,
   EventEmitter,
   Input,
+  isDevMode,
+  OnInit,
   Output,
 } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
@@ -51,13 +53,21 @@ export type EfButtonSeverity = EfButtonPrimeNGSeverity | EfButtonComptoirSeverit
   templateUrl: './ef-button.component.html',
   imports: [ButtonModule, TooltipModule, TranslateModule],
 })
-export class EfButtonComponent {
+export class EfButtonComponent implements OnInit {
   /** Direct label text (not translated). */
   @Input() label?: string;
   /** Translation key — takes priority over `label`. */
   @Input() labelKey?: string;
 
   @Input() icon?: string;
+
+  /**
+   * Translation key for the button's accessible name (`aria-label`). Required
+   * in practice for an icon-only button: a tooltip is not read as the name.
+   * A button with a visible label does not need it. An icon-only button with
+   * neither a label nor this key logs a dev-mode warning.
+   */
+  @Input() ariaLabelKey?: string;
 
   /**
    * Which rendering surface to use. Default `'primeng'` keeps v1
@@ -183,6 +193,20 @@ export class EfButtonComponent {
   /** Inline danger tint for the `severity="danger"` Comptoir variant. */
   get comptoirInlineColor(): string | null {
     return this.severity === 'danger' ? 'var(--st-cancelled-fg)' : null;
+  }
+
+  ngOnInit(): void {
+    if (
+      isDevMode() &&
+      this.icon &&
+      !this.label &&
+      !this.labelKey &&
+      !this.ariaLabelKey
+    ) {
+      console.warn(
+        `ef-button: icon-only button "${this.icon}" has no label or ariaLabelKey, so it has no accessible name.`,
+      );
+    }
   }
 
   handleClick(event: Event): void {

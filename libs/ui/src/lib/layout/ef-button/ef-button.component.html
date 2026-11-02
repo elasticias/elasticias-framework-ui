@@ -9,6 +9,7 @@
         [class]="comptoirClass"
         [disabled]="disabled || loading"
         [style.color]="comptoirInlineColor"
+        [attr.aria-label]="ariaLabelKey ? (ariaLabelKey | translate) : null"
         [pTooltip]="effectiveTooltipKey ? (effectiveTooltipKey | translate) : effectiveTooltip"
         [tooltipPosition]="tooltipPosition"
         (click)="handleClick($event)"
@@ -27,6 +28,7 @@
     <p-button
       [autofocus]="autofocus"
       [buttonProps]="pnButtonProps"
+        [ariaLabel]="ariaLabelKey ? (ariaLabelKey | translate) : undefined"
         [label]="labelKey ? (labelKey | translate) : label"
         [icon]="icon"
         [severity]="$any(severity)"
