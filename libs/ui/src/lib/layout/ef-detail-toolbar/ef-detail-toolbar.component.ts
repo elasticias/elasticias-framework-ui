@@ -3,14 +3,18 @@ import {
   Component,
   booleanAttribute,
   computed,
+  inject,
   input,
   output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { EfViewportService } from '@elasticias/core';
 import { ScreenContext } from '@elasticias/screens';
 import { Permissions } from '@elasticias/types';
 import { EfButtonComponent } from '../ef-button/ef-button.component';
+import { EfRowActionsComponent } from '../../data/ef-row-actions/ef-row-actions.component';
+import { EfRowAction } from '../../data/ef-row-actions/ef-row-actions.types';
 import { EfDetailToolbarAction } from './ef-detail-toolbar.types';
 
 /**
@@ -49,6 +53,14 @@ import { EfDetailToolbarAction } from './ef-detail-toolbar.types';
  * </ef-detail-toolbar>
  * ```
  *
+ * Phone overflow: on the mobile tier, when the visible actions (custom and
+ * standard, Save included) outnumber `[overflowAfter]`, Save stays in view
+ * and every other action moves into a kebab menu (`ef-row-actions`, so it is
+ * a `role="menu"` with Escape, outside-click and RTL placement). The split
+ * happens after permission and `requiresWrite` filtering, so a hidden action
+ * is hidden in the menu too. The projected `[actions]` slot is not moved.
+ * Buttons are 48px on a coarse pointer (see `.detail-toolbar` in patterns).
+ *
  * Custom actions can declare `permission` and `visible` like
  * `EfRowAction`. With `[context]` bound, the toolbar filters them
  * against `ScreenContext.isGranted()` automatically.
@@ -63,7 +75,7 @@ import { EfDetailToolbarAction } from './ef-detail-toolbar.types';
 @Component({
   selector: 'ef-detail-toolbar',
   standalone: true,
-  imports: [CommonModule, TranslateModule, EfButtonComponent],
+  imports: [CommonModule, TranslateModule, EfButtonComponent, EfRowActionsComponent],
   templateUrl: './ef-detail-toolbar.component.html',
   host: { class: 'detail-toolbar' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -99,6 +111,13 @@ export class EfDetailToolbarComponent {
   /** i18n key for the Save button label. Screens typically pass
    *  `'common_create'` in create mode and `'common_save'` in edit. */
   readonly saveLabelKey = input<string>('common_save');
+
+  /** Most actions (Save included) kept inline on a phone; more than this
+   *  moves all but Save into the overflow menu. Desktop and tablet never
+   *  overflow. */
+  readonly overflowAfter = input(3, { transform: (v: number | string) => Number(v) });
+
+  private readonly viewport = inject(EfViewportService);
 
   /* ── Outputs ────────────────────────────────────────────────── */
 
@@ -155,6 +174,37 @@ export class EfDetailToolbarComponent {
   readonly hasCustomActions = computed(
     () => this.visibleCustomActions().length > 0,
   );
+
+  /** The phone is showing the overflow menu instead of inline buttons. */
+  readonly overflowing = computed(() => {
+    if (!this.viewport.isMobile()) return false;
+    const total =
+      this.visibleCustomActions().length +
+      [this.canPrint(), this.canDuplicate(), this.canDelete(), this.canSave()].filter(Boolean).length;
+    return total > this.overflowAfter();
+  });
+
+  /** Everything but Save, as menu items, in toolbar order. */
+  readonly overflowItems = computed<ReadonlyArray<EfRowAction>>(() => {
+    const items: EfRowAction[] = this.visibleCustomActions().map((a, i) => ({
+      id: `custom-${a.id ?? i}`,
+      labelKey: a.labelKey,
+      label: a.label,
+      icon: a.icon,
+      disabled: !!a.disabled,
+      severity: a.severity === 'danger' ? 'danger' : 'default',
+      command: () => this.onCustomClick(a),
+    }));
+    const standard: EfRowAction[] = [];
+    if (this.canPrint())
+      standard.push({ id: 'toolbar-print', labelKey: 'common_print', icon: 'pi pi-print', command: () => this.print.emit() });
+    if (this.canDuplicate())
+      standard.push({ id: 'toolbar-duplicate', labelKey: 'common_duplicate', icon: 'pi pi-clone', command: () => this.duplicate.emit() });
+    if (this.canDelete())
+      standard.push({ id: 'toolbar-delete', labelKey: 'common_delete', icon: 'pi pi-trash', severity: 'danger', command: () => this.delete.emit() });
+    if (items.length && standard.length) items.push({ separator: true });
+    return [...items, ...standard];
+  });
 
   /** Whether the `|` separator should render — both groups present. */
   readonly showSeparator = computed(

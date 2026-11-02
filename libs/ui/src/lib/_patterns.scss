@@ -4839,33 +4839,38 @@ input.ef-input[type='number'] {
 
 /* Toolbar buttons collapse to icon-only below 767px, so the blanket
    min-block-size above stretched a 40px-wide button to 48px tall and
-   produced a lozenge four-across in the header. Here the VISUAL stays
-   40px square and the TOUCH TARGET reaches the tier through a hit
-   slop, which is the point of the tier: a thumb needs 48px, an eye
-   does not.
+   produced a lozenge four-across in the header. On a touch phone the
+   button is now a true 48px (--hit-touch) square: the old 40px box with an
+   invisible 48px slop measured 32px to anyone checking the box, and a
+   detail screen keeps at most a few of them inline because
+   ef-detail-toolbar moves the rest into its overflow menu.
 
    Scoped to the same 767px as the rule that hides the label. Keyed on
    pointer type alone it also caught every tablet, which kept its label
    and got a 40px box: "Nouvelle commande" spilled out of the button and
    the detail actions piled into each other. Above 767px a touch screen
-   keeps the labelled button, 48px tall from the generic rule above. */
+   keeps the labelled button, 48px tall from the generic rule above.
+   Desktop (fine pointer) is unchanged. */
 @media (pointer: coarse) and (max-width: 767px) {
   .detail-toolbar .right .btn,
   .search-toolbar .right .btn {
-    position: relative;
-    inline-size: var(--hit-base);
-    block-size: var(--hit-base);
+    inline-size: var(--hit-touch);
+    block-size: var(--hit-touch);
     min-inline-size: 0;
     min-block-size: 0;
     padding: 0;
   }
+}
 
-  .detail-toolbar .right .btn::after,
-  .search-toolbar .right .btn::after {
-    content: '';
-    position: absolute;
-    /* (48 - 40) / 2 outward on every side */
-    inset: calc((var(--hit-touch) - var(--hit-base)) / -2);
+/* The toolbar's overflow trigger is the shared row-actions kebab. Inside
+   the toolbar it is a real 48px target (not the table's overhang trick,
+   which needs a row to reserve the margin), and a flex item that may not
+   shrink. */
+@media (pointer: coarse) {
+  .detail-toolbar .right .row-actions__trigger {
+    --ef-row-trigger-w: var(--hit-touch);
+    --ef-row-trigger-h: var(--hit-touch);
+    margin: 0;
   }
 }
 

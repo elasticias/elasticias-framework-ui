@@ -3,8 +3,18 @@
 </div>
 
 <div class="right">
+    @if (overflowing()) {
+        <!-- Phone, too many actions: everything but Save sits in a menu. -->
+        <ef-row-actions
+            class="overflow"
+            [items]="overflowItems()"
+            triggerIcon="pi pi-ellipsis-v"
+            triggerAriaKey="common_actions"
+        />
+    }
+
     <!-- Custom screen actions (before the standard group). -->
-    @for (action of visibleCustomActions(); track trackByAction($index, action)) {
+    @for (action of (overflowing() ? [] : visibleCustomActions()); track trackByAction($index, action)) {
         <ef-button
             variant="comptoir"
             size="small"
@@ -22,12 +32,12 @@
     <ng-content select="[actions]"></ng-content>
 
     <!-- Separator between custom and standard groups. -->
-    @if (showSeparator()) {
+    @if (showSeparator() && !overflowing()) {
         <span class="sep" aria-hidden="true">|</span>
     }
 
     <!-- Standard actions: Print → Duplicate → Delete → Save. -->
-    @if (canPrint()) {
+    @if (canPrint() && !overflowing()) {
         <ef-button
             variant="comptoir"
             severity="ghost"
@@ -38,7 +48,7 @@
         />
     }
 
-    @if (canDuplicate()) {
+    @if (canDuplicate() && !overflowing()) {
         <ef-button
             variant="comptoir"
             severity="ghost"
@@ -49,7 +59,7 @@
         />
     }
 
-    @if (canDelete()) {
+    @if (canDelete() && !overflowing()) {
         <ef-button
             variant="comptoir"
             severity="danger"
