@@ -1,0 +1,46 @@
+/* Only the picker's own cell content. The dialog size and the 48px rows
+   live in _patterns.scss under .ef-product-picker-dialog, because they
+   style ef-dialog and ef-data-card, which this file cannot reach. */
+.ef-product-picker {
+  display: grid;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.ef-product-picker__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.ef-product-picker__item.is-disabled {
+  opacity: 0.55;
+}
+
+/* A picture of the state: the row head under it is the control. */
+.ef-product-picker__tick {
+  pointer-events: none;
+}
+
+.ef-product-picker__text {
+  display: grid;
+  min-width: 0;
+}
+
+.ef-product-picker__title,
+.ef-product-picker__meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ef-product-picker__title .ref {
+  margin-inline-end: var(--s-2);
+}
+
+.ef-product-picker__meta {
+  color: var(--text-mute);
+  font-size: 12px;
+}

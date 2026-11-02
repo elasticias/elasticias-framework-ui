@@ -4278,6 +4278,19 @@ input.ef-input[type='number'] {
   flex: 1;
 }
 
+/* Product picker (ef-product-picker): 720px on a tablet or desktop, between
+   the lg and xl presets; three classes so it beats the size preset. Rows are
+   48px (--hit-touch) at every width, since the whole row is the toggle. */
+.es-dialog.ef-product-picker-dialog.p-dialog {
+  width: 720px;
+  max-width: 92vw;
+}
+
+.ef-product-picker-dialog .tbl tbody td {
+  --tbl-cell-pad-block: 6px;
+  height: var(--hit-touch);
+}
+
 /* ── Header inner structure (rendered via #header content template).
    `flex:1` on the title-block keeps the close right-aligned with or
    without the leading icon. */
@@ -4814,5 +4827,23 @@ input.ef-input[type='number'] {
 @media (max-width: 767px) {
   :root {
     --app-bottom-bar: 64px;
+  }
+}
+
+/* Product picker on a phone: edge to edge, not the 48px-gutter full preset.
+   The body scrolls between the fixed header and footer. */
+@media (max-width: 767px) {
+  .es-dialog.ef-product-picker-dialog--fullscreen.p-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .ef-product-picker-dialog--fullscreen .p-dialog-content {
+    max-height: none;
+    flex: 1;
   }
 }

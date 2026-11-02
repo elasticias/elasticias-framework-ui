@@ -1,0 +1,91 @@
+<ef-dialog
+  [visible]="open()"
+  [headerKey]="titleKey()"
+  [size]="dialogSize()"
+  [styleClass]="dialogClass()"
+  [actions]="actions()"
+  (visibleChange)="onVisibleChange($event)"
+>
+  <div class="ef-product-picker">
+    <ef-smart-bar
+      [(searchText)]="searchText"
+      [placeholderKey]="searchPlaceholderKey()"
+      [shortcut]="searchShortcut"
+      [showKbdHint]="false"
+      [loading]="loading()"
+      (search)="onSearch($event)"
+      (clear)="onClear()"
+    />
+
+    <ef-data-card
+      [columns]="columns()"
+      [rows]="rows()"
+      trackByField="id"
+      [pageNumber]="pageNumber()"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="pageSizeOptions()"
+      [totalCount]="totalCount()"
+      [loading]="loading()"
+      [errorMsg]="errorMsg()"
+      [searchTerm]="appliedText()"
+      mobileLayout="row"
+      rowDoubleClickable
+      (rowDoubleClick)="toggle($any($event))"
+      (pageChange)="onPageChange($event)"
+      (retry)="retry()"
+      (clearSearch)="onClear()"
+    >
+      <span tbl-head-info data-role="selected-count" role="status" aria-live="polite">
+        {{ 'ef_product_picker_selected' | translate: { count: selectedCount() } }}
+      </span>
+
+      <ng-template efColumnTemplate="select" let-row>
+        <input
+          type="checkbox"
+          class="cb"
+          [attr.data-id]="row.id"
+          [checked]="isSelected(row.id)"
+          [disabled]="!!row.disabled"
+          [attr.aria-label]="row.title"
+          (click)="$event.stopPropagation()"
+          (change)="toggle(row)"
+        />
+      </ng-template>
+
+      <ng-template efColumnTemplate="image" let-row>
+        <ef-identity-thumb [imageUrl]="row.thumbnailUrl" [name]="row.title" size="sm" />
+      </ng-template>
+
+      <!-- Phone: the row head is the toggle, so the tick here is a picture of
+           the state, not a second control (a real one would toggle twice). -->
+      <ng-template efColumnTemplate="item" let-row>
+        <span class="ef-product-picker__item" [class.is-disabled]="!!row.disabled">
+          <input
+            type="checkbox"
+            class="cb ef-product-picker__tick"
+            tabindex="-1"
+            aria-hidden="true"
+            [attr.data-id]="row.id"
+            [checked]="isSelected(row.id)"
+            [disabled]="!!row.disabled"
+          />
+          <ef-identity-thumb [imageUrl]="row.thumbnailUrl" [name]="row.title" size="sm" />
+          <span class="ef-product-picker__text">
+            <span class="ef-product-picker__title">
+              @if (row.reference) {
+                <span class="ref">{{ row.reference }}</span>
+              }
+              {{ row.title }}
+            </span>
+            @if (row.meta) {
+              <span class="ef-product-picker__meta">{{ row.meta }}</span>
+            }
+          </span>
+        </span>
+      </ng-template>
+
+      <ef-empty-state empty-state icon="pi pi-box" titleKey="ef_product_picker_empty" />
+      <ef-empty-state empty-state-mobile icon="pi pi-box" titleKey="ef_product_picker_empty" />
+    </ef-data-card>
+  </div>
+</ef-dialog>

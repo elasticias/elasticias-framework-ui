@@ -10,6 +10,12 @@ export { EfOrderBuilderComponent } from './lib/commerce/ef-order-builder/ef-orde
 export * from './lib/commerce/ef-order-builder/ef-order-builder.component.types';
 export { EfProductTypeaheadComponent } from './lib/commerce/ef-product-typeahead/ef-product-typeahead.component';
 export * from './lib/commerce/ef-product-typeahead/ef-product-typeahead.component.types';
+export { EfProductPickerComponent } from './lib/commerce/ef-product-picker/ef-product-picker.component';
+export type {
+    EfPage,
+    EfProductPickerItem,
+    EfProductPickerQuery,
+} from './lib/commerce/ef-product-picker/ef-product-picker.component.types';
 export { EfOrderSummaryComponent } from './lib/commerce/ef-order-summary/ef-order-summary.component';
 export type { ProductCountGroup, ProductCountGroupLabel, ProductWithCountGroup } from './lib/commerce/ef-order-summary/ef-order-summary.component';
 export { EfProductCatalogueFilterComponent } from './lib/commerce/ef-product-catalogue-filter/ef-product-catalogue-filter.component';
