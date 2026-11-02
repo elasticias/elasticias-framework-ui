@@ -3496,6 +3496,9 @@
   border: 1px solid var(--rule);
   border-radius: var(--r-md);
   overflow: hidden;
+  /* border-box, as .ef-input: the 1px border sits inside --hit-field, so
+     a grouped field (suffix, stepper, currency) matches a bare one. */
+  box-sizing: border-box;
   min-height: var(--hit-field);
   width: 100%;
   transition:
