@@ -30,6 +30,7 @@ import {
   CategoryGroup,
   SelectedFilter,
 } from '../ef-product-catalogue-filter/ef-product-catalogue-filter.component';
+import { defaultUnitPrice, EfOrderPriceList } from '../order-pricing';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 
 export interface CatalogueProductVariant {
@@ -103,6 +104,13 @@ export class EfProductCatalogueComponent implements OnChanges {
 
   /** Currency code for price formatting */
   currencyCode = input<string>('MAD');
+
+  /**
+   * Which price the cards show: `'wholesale'` (default) or `'retail'`, the shop price.
+   * Bind the same value as the order builder's `priceList`, so a card shows the price
+   * of the line it adds (the rule lives in `defaultUnitPrice`).
+   */
+  priceList = input<EfOrderPriceList>('wholesale');
 
   /** Locale used for number/currency formatting and the quantity stepper */
   localeCode = input<string>('fr-FR');
@@ -448,29 +456,46 @@ export class EfProductCatalogueComponent implements OnChanges {
     return this.productKey(product);
   }
 
+  /** The price a variant (or a simple product, `variant` null) is shown at under the active list. */
+  private priceOf(
+    product: CatalogueProduct,
+    variant: CatalogueProductVariant | null,
+  ): number | null | undefined {
+    if (this.priceList() === 'retail') {
+      return defaultUnitPrice(product, variant, 'retail');
+    }
+    return variant ? variant.price : product.unitPrice;
+  }
+
   formatPrice(product: CatalogueProduct): string {
     if (this.isVariableProduct(product)) {
       const variantId = this.getSelectedVariantId(product);
       const variant = product.variants?.find((v) => v.variantId === variantId);
       if (variant) {
-        return this.formatCurrency(variant.price);
+        return this.formatCurrency(this.priceOf(product, variant));
       }
       // Fallback: show price range
       const activeVariants = this.getActiveVariants(product);
       if (activeVariants.length > 0) {
-        const min = Math.min(...activeVariants.map((v) => v.price));
-        const max = Math.max(...activeVariants.map((v) => v.price));
+        const prices = activeVariants.map((v) => this.priceOf(product, v) ?? 0);
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
         if (min === max) return this.formatCurrency(min);
         return `${this.formatCurrency(min)} - ${this.formatCurrency(max)}`;
       }
     }
-    const price = product.unitPrice;
+    const price = this.priceOf(product, null);
     if (price == null) return '';
     return this.formatCurrency(price);
   }
 
-  formatVariantPrice(variant: CatalogueProductVariant): string {
-    return this.formatCurrency(variant.price);
+  formatVariantPrice(
+    variant: CatalogueProductVariant,
+    product?: CatalogueProduct,
+  ): string {
+    return this.formatCurrency(
+      product ? this.priceOf(product, variant) : variant.price,
+    );
   }
 
   private formatCurrency(value: number | null | undefined): string {

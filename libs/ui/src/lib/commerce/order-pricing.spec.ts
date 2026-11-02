@@ -5,6 +5,7 @@ import localeFr from '@angular/common/locales/fr';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfOrderBuilderComponent } from './ef-order-builder/ef-order-builder.component';
 import { OrderEntityHelper, OrderLineItemHelper } from './ef-order-builder/ef-order-builder.component.types';
+import { EfProductCatalogueComponent } from './ef-product-catalogue/ef-product-catalogue.component';
 import { EfProductTypeaheadComponent } from './ef-product-typeahead/ef-product-typeahead.component';
 import { defaultUnitPrice, EfOrderPriceList } from './order-pricing';
 
@@ -132,5 +133,45 @@ describe('EfOrderBuilderComponent price list', () => {
     const retail = build('retail');
     retail.componentInstance.addProductsFromCatalogue([{ product: PRODUCT, quantity: 1, variantId: 'v1' }]);
     expect(retail.componentInstance.order().orderLines[0].productUnitPrice).toBe(150);
+  });
+});
+
+describe('EfProductCatalogueComponent price list', () => {
+  const VARIABLE = {
+    id: 1,
+    productCode: 'P1',
+    name: 'Style',
+    displayName: 'Style',
+    productType: 'VARIABLE',
+    unitPrice: 100,
+    salePrice: 140,
+    defaultVariantId: 'v1',
+    variants: [{ variantId: 'v1', title: '30 ml', price: 100, salePrice: 150, compareAtPrice: 199, isActive: true }],
+  };
+  const SIMPLE = { id: 2, productCode: 'P2', name: 'Box', displayName: 'Box', unitPrice: 100, salePrice: 140 };
+  const digits = (s: string) => s.replace(/[^\d]/g, '');
+
+  function card(priceList?: EfOrderPriceList): EfProductCatalogueComponent {
+    TestBed.configureTestingModule({ imports: [EfProductCatalogueComponent, TranslateModule.forRoot()] });
+    const f = TestBed.createComponent(EfProductCatalogueComponent);
+    f.componentRef.setInput('products', [VARIABLE, SIMPLE]);
+    if (priceList) f.componentRef.setInput('priceList', priceList);
+    f.detectChanges();
+    return f.componentInstance;
+  }
+
+  it('shows the wholesale price by default, as before', () => {
+    const c = card();
+    expect(digits(c.formatPrice(VARIABLE))).toBe('10000');
+    expect(digits(c.formatPrice(SIMPLE))).toBe('10000');
+  });
+
+  it('shows the shop price for retail: the price of the line the builder adds', () => {
+    const c = card('retail');
+    expect(digits(c.formatPrice(VARIABLE))).toBe('15000'); // variant salePrice, not 199 compareAt
+    expect(digits(c.formatPrice(SIMPLE))).toBe('14000'); // product salePrice
+    expect(digits(c.formatPrice(VARIABLE))).toBe(
+      digits(String(OrderLineItemHelper.createFromProduct(VARIABLE, 1, 'id', 'v1', 'retail').productUnitPrice * 100)),
+    );
   });
 });
