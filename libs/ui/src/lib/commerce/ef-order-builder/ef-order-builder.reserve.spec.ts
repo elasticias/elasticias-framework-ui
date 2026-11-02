@@ -56,11 +56,21 @@ describe('ef-order-builder floating total reserve', () => {
   });
 
   it('reserves the space at the end of the shell scroll area, without counting the tab bar twice', () => {
-    const narrow = decl(patterns, '.ef-app-main__content:has(.order-builder .ob-fab)', 'padding-block-end', (m) => m.includes('max-width: 1279px'));
-    expect(narrow).toBeDefined();
-    expect(narrow).toContain('var(--ef-order-fab-h)');
-    expect(narrow).not.toContain('--app-bottom-bar');
+    const sel = '.ef-app-main__content:has(.order-builder .ob-fab)';
+    const phone = decl(patterns, sel, 'padding-block-end', (m) => m.includes('max-width: 767px'));
+    const tablet = decl(patterns, sel, 'padding-block-end', (m) => m.includes('min-width: 768px') && m.includes('max-width: 1279px'));
     const collapsed = decl(patterns, '.ef-app-main__content:has(.order-builder.ob-collapsed)', 'padding-block-end', (m) => m.includes('min-width: 1280px'));
-    expect(collapsed).toBe(narrow);
+    for (const v of [phone, tablet, collapsed]) {
+      expect(v).toContain('var(--ef-order-fab-h)');
+      expect(v).not.toContain('--app-bottom-bar');
+    }
+    expect(collapsed).toBe(tablet);
+  });
+
+  it('does not add the home indicator on a phone, where the tab bar already pads it', () => {
+    const phone = decl(patterns, '.ef-app-main__content:has(.order-builder .ob-fab)', 'padding-block-end', (m) => m.includes('max-width: 767px'));
+    expect(phone).toBe('calc(20px + var(--ef-order-fab-h) + var(--s-3))');
+    const tablet = decl(patterns, '.ef-app-main__content:has(.order-builder .ob-fab)', 'padding-block-end', (m) => m.includes('min-width: 768px'));
+    expect(tablet).toContain('env(safe-area-inset-bottom');
   });
 });

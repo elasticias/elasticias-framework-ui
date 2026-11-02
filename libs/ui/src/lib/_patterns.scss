@@ -4897,8 +4897,9 @@ input.ef-input[type='number'] {
    The reserve goes at the end of the scroll area, not in the builder, so
    it follows whatever the host renders after the builder (a delivery card,
    say) and nothing but the pill's own footprint is left blank: offset +
-   pill + one grid gap, plus the home indicator the pill also clears. The
-   tab bar is not added; the scroll area already stops above it.
+   pill + one grid gap, plus the home indicator where no tab bar already
+   pads it. The tab bar is not added; the scroll area already stops above
+   it.
 
    `.order-builder .ob-fab` inside :has() rather than the element name, so
    the selector outranks ef-app-main's own (encapsulated) padding rule.
@@ -4907,7 +4908,19 @@ input.ef-input[type='number'] {
   --ef-order-fab-h: 56px;
 }
 
-@media (max-width: 1279px) {
+/* Phone: the tab bar is in flow under the scroll area and already pads the
+   home indicator, so the scroll area ends above it and the reserve does not
+   add env(safe-area-inset-bottom) again (34px of blank space on a notched
+   iPhone otherwise). */
+@media (max-width: 767px) {
+  .ef-app-main__content:has(.order-builder .ob-fab) {
+    padding-block-end: calc(20px + var(--ef-order-fab-h) + var(--s-3));
+  }
+}
+
+/* Tablet and collapsed desktop: no tab bar, so the scroll area reaches the
+   bottom edge and the pill clears the home indicator itself. */
+@media (min-width: 768px) and (max-width: 1279px) {
   .ef-app-main__content:has(.order-builder .ob-fab) {
     padding-block-end: calc(env(safe-area-inset-bottom, 0px) + 20px + var(--ef-order-fab-h) + var(--s-3));
   }
