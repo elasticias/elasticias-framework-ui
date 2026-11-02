@@ -54,8 +54,9 @@ import { EfDetailToolbarAction } from './ef-detail-toolbar.types';
  * ```
  *
  * Phone overflow: on the mobile tier, when the visible actions (custom and
- * standard, Save included) outnumber `[overflowAfter]`, Save stays in view
- * and every other action moves into a kebab menu (`ef-row-actions`, so it is
+ * standard, Save included) outnumber `[overflowAfter]`, Save and any custom
+ * action flagged `keepInView` stay in view and every other action moves
+ * into a kebab menu (`ef-row-actions`, so it is
  * a `role="menu"` with Escape, outside-click and RTL placement). The split
  * happens after permission and `requiresWrite` filtering, so a hidden action
  * is hidden in the menu too. The projected `[actions]` slot is not moved.
@@ -189,9 +190,14 @@ export class EfDetailToolbarComponent {
     return total > this.overflowAfter();
   });
 
-  /** Everything but Save, as menu items, in toolbar order. */
+  /** Visible custom actions that stay inline on a phone even when the rest overflow. */
+  readonly keptInView = computed<ReadonlyArray<EfDetailToolbarAction>>(() =>
+    this.visibleCustomActions().filter((a) => a.keepInView),
+  );
+
+  /** Everything but Save and the keepInView actions, as menu items, in toolbar order. */
   readonly overflowItems = computed<ReadonlyArray<EfRowAction>>(() => {
-    const items: EfRowAction[] = this.visibleCustomActions().map((a, i) => ({
+    const items: EfRowAction[] = this.visibleCustomActions().filter((a) => !a.keepInView).map((a, i) => ({
       id: `custom-${a.id ?? i}`,
       labelKey: a.labelKey,
       label: a.label,

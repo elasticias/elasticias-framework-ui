@@ -179,6 +179,35 @@ describe('EfDetailToolbarComponent mobile overflow', () => {
     expect(trigger(el)).toBeNull();
   });
 
+  it('keeps a keepInView action inline beside Save and out of the menu', async () => {
+    const custom: EfDetailToolbarAction[] = [
+      { id: 'a', labelKey: 'a' },
+      { id: 'b', labelKey: 'b' },
+      { id: 'next', labelKey: 'next', keepInView: true, severity: 'primary' },
+      { id: 'c', labelKey: 'c' },
+    ];
+    const { fixture, el, cmp } = await make(true, { customActions: custom });
+    expect(cmp.overflowing()).toBe(true);
+    const inline = Array.from(inlineButtons(el)).map((b) => b.getAttribute('ng-reflect-label-key') ?? b.textContent?.trim());
+    expect(inline.length).toBe(2); // the kept action + Save
+    expect(inline[0]).toContain('next');
+    trigger(el)!.click();
+    fixture.detectChanges();
+    expect(menuLabels(el)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('does not keep in view an action its permission hides', async () => {
+    const custom: EfDetailToolbarAction[] = [
+      { id: 'a', labelKey: 'a' },
+      { id: 'b', labelKey: 'b' },
+      { id: 'next', labelKey: 'next', keepInView: true, requiresWrite: true },
+      { id: 'c', labelKey: 'c' },
+      { id: 'd', labelKey: 'd' },
+    ];
+    const { el } = await make(true, { customActions: custom, context: ctx(false) });
+    expect(Array.from(inlineButtons(el)).some((b) => b.textContent?.includes('next'))).toBe(false);
+  });
+
   it('names the trigger for assistive tech', async () => {
     const { el } = await make(true, { context: ctx(true) });
     expect(trigger(el)!.getAttribute('aria-label')).toBe('common_actions');

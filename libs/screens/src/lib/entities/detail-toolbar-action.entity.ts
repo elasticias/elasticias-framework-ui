@@ -67,6 +67,15 @@ export interface EfDetailToolbarAction {
      */
     requiresWrite?: boolean;
 
+    /**
+     * On a phone, when the actions overflow into the menu, this one stays
+     * inline beside Save (a screen's next step, which should never be one
+     * tap deeper). Filtering by `visible`, `permission` and `requiresWrite`
+     * still applies first. Ignored on tablet and desktop, which never
+     * overflow. Keep it to one action: each one kept takes row width.
+     */
+    keepInView?: boolean;
+
     /** Click handler. */
     command?: () => void;
 }
