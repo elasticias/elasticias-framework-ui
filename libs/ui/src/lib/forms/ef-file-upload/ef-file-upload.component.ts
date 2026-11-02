@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, input, output, signal, viewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { EfViewportService } from '@elasticias/core';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 
 export type EfFileRejectReason = 'size' | 'type';
@@ -24,7 +23,8 @@ export interface EfFileRejection {
  * - `maxSizeBytes` rejects larger files. A rejected file is not emitted;
  *   `(fileRejected)` fires and a live region shows `sizeErrorKey` or
  *   `typeErrorKey` (translated).
- * - On a phone the button is `--hit-touch` (48px).
+ * - On a coarse pointer (touch phone, tablet, touch laptop) the painted button
+ *   is `--hit-touch` (48px), as `ef-pill-group` does.
  *
  * ```html
  * <ef-file-upload labelKey="tenant_logo_upload" accept="image/png,image/jpeg"
@@ -39,7 +39,6 @@ export interface EfFileRejection {
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
         class: 'ef-file-upload',
-        '[class.ef-file-upload--touch]': 'viewport.isMobile()',
     },
     template: `
         <input
@@ -69,6 +68,7 @@ export interface EfFileRejection {
     styles: [
         `
             :host {
+                position: relative;
                 display: inline-flex;
                 flex-direction: column;
                 align-items: flex-start;
@@ -96,8 +96,6 @@ export interface EfFileRejection {
     ],
 })
 export class EfFileUploadComponent {
-    protected readonly viewport = inject(EfViewportService);
-
     /** Visible label (translation key). Omit for an icon-only button and set `ariaLabelKey`. */
     readonly labelKey = input<string | undefined>(undefined);
     readonly ariaLabelKey = input<string | undefined>(undefined);

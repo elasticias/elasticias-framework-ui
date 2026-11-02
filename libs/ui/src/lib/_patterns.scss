@@ -4846,10 +4846,11 @@ input.ef-input[type='number'] {
   }
 }
 
-/* ef-file-upload on a phone: the button reaches the 48px touch target. Last in
-   the file so it is not beaten by the base .btn rule. */
-@media (max-width: 767px) {
-  .ef-file-upload--touch .btn {
+/* ef-file-upload on a touch device: the painted button reaches the 48px touch
+   target. By pointer rather than width, like ef-pill-group, so a touch laptop
+   or tablet gets it too. Last in the file so the base .btn rule does not win. */
+@media (pointer: coarse) {
+  .ef-file-upload .btn {
     min-height: var(--hit-touch);
   }
 }

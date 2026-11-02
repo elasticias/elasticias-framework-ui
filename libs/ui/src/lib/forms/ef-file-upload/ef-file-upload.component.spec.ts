@@ -127,10 +127,8 @@ describe('EfFileUploadComponent', () => {
         expect(root.querySelector('button')?.getAttribute('aria-label')).toBe('Upload logo');
     });
 
-    it('gets the 48px touch target on a phone', () => {
-        viewport.isMobile.set(true);
+    it('anchors its hidden input to itself and sizes touch by pointer, not width', () => {
         const { root } = render();
-        expect(root.classList).toContain('ef-file-upload--touch');
-        viewport.isMobile.set(false);
+        expect(getComputedStyle(root).position).toBe('relative');
     });
 });

@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfViewportService } from '@elasticias/core';
+import { CsvUtils } from '@elasticias/utils';
 import { EfDataCardComponent } from './ef-data-card.component';
 import { EfDataCardColumn, EfDataCardExportRequest } from './ef-data-card.types';
 
@@ -66,5 +67,15 @@ describe('ef-data-card export value', () => {
         const col: EfDataCardColumn = { id: 'total', field: 'total', header: 'Total', type: 'number' };
         const req = await request([col]);
         expect(req.resolveCell(row, req.columns[0])).toBe(4);
+    });
+
+    it('a formula from exportValue is neutralised in the CSV, including after CR or tab', async () => {
+        const col: EfDataCardColumn = {
+            id: 'k', field: 'kind', header: 'K', type: 'text', exportValue: (r: any) => r.f,
+        };
+        const req = await request([col]);
+        const cells = ['=SUM(A1)', '\r=1', '\t=1'].map((f) => req.resolveCell({ f }, req.columns[0]) as string);
+        const csv = CsvUtils.toCsv(cells.map((k) => ({ k })), [{ key: 'k', header: 'K' }]);
+        for (const line of csv.split('\r\n').slice(1)) expect(line.replace(/^"/, '')).toMatch(/^'/);
     });
 });
