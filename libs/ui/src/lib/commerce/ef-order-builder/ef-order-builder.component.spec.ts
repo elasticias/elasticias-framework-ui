@@ -3,7 +3,7 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfOrderBuilderComponent } from './ef-order-builder.component';
-import { OrderEntity, OrderEntityHelper } from './ef-order-builder.component.types';
+import { EfOrderRecipient, OrderEntity, OrderEntityHelper } from './ef-order-builder.component.types';
 
 registerLocaleData(localeFr);
 
@@ -318,5 +318,105 @@ describe('EfOrderBuilderComponent (delivery amount)', () => {
     expect(c.finalTotal()).toBe(50);
     expect(c.exportOrder().finalTotal).toBe(50);
     expect(c.order().finalTotal).toBe(50);
+  });
+});
+
+describe('EfOrderBuilderComponent (recipient)', () => {
+  const RECIPIENT: EfOrderRecipient = {
+    name: 'Salma Bennani',
+    phone: '+212 6 12 34 56 78',
+    city: 'Casablanca',
+    address:
+      'Résidence Les Jardins d’Anfa, immeuble 12, appartement 34, angle boulevard Anfa et rue Ibnou Mounir, quartier Racine',
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [EfOrderBuilderComponent, TranslateModule.forRoot()],
+    }).compileComponents();
+  });
+
+  function buildRecipient(recipient: EfOrderRecipient | null): ComponentFixture<EfOrderBuilderComponent> {
+    const fixture = TestBed.createComponent(EfOrderBuilderComponent);
+    fixture.componentRef.setInput('order', {
+      ...makeOrder(),
+      orderLines: [
+        { id: 'l1', productId: 'p1', productUnitPrice: 10, quantity: 1, discount: 0, grossAmount: 10 },
+      ],
+    });
+    fixture.componentRef.setInput('products', [PRODUCT]);
+    fixture.componentRef.setInput('customers', []);
+    fixture.componentRef.setInput('recipient', recipient);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('recipient mode shows the strip and no customer select', () => {
+    const fixture = buildRecipient(RECIPIENT);
+    const el = fixture.nativeElement as HTMLElement;
+
+    expect(el.querySelector('#ob-cust')).toBeNull();
+    expect(el.querySelector('ef-select')).toBeNull();
+    const strip = el.querySelector('.ob-recipient') as HTMLElement;
+    expect(strip).toBeTruthy();
+    // A row inside the existing header card, not a card of its own.
+    expect(strip.closest('ef-card')?.querySelector('.ob-order-head')).toBeTruthy();
+    expect(el.querySelectorAll('ef-card .ob-recipient').length).toBe(1);
+    expect(strip.querySelector('.ob-recipient-name')?.textContent?.trim()).toBe('Salma Bennani');
+    const tel = strip.querySelector('a.ob-recipient-phone') as HTMLAnchorElement;
+    expect(tel.getAttribute('href')).toBe('tel:+212612345678');
+    expect(tel.textContent?.trim()).toBe('+212 6 12 34 56 78');
+    expect(strip.querySelector('.ob-recipient-city')?.textContent?.trim()).toBe('Casablanca');
+    expect(strip.querySelector('.ob-recipient-address')?.textContent?.trim()).toBe(RECIPIENT.address);
+  });
+
+  it('recipient mode leaves out the parts it does not have', () => {
+    const fixture = buildRecipient({ name: 'Salma Bennani', phone: null, city: '', address: null });
+    const strip = (fixture.nativeElement as HTMLElement).querySelector('.ob-recipient') as HTMLElement;
+    expect(strip.querySelector('.ob-recipient-phone')).toBeNull();
+    expect(strip.querySelector('.ob-recipient-city')).toBeNull();
+    expect(strip.querySelector('.ob-recipient-address')).toBeNull();
+  });
+
+  it('recipient mode validates without a customer', () => {
+    const c = buildRecipient(RECIPIENT).componentInstance;
+    expect(c.order().customerId).toBeFalsy();
+    expect(c.validate().errors['customerId']).toBeUndefined();
+    expect(c.validate().isValid).toBe(true);
+    expect(c.isValid()).toBe(true);
+  });
+
+  it('recipient mode still applies every other rule', () => {
+    const fixture = buildRecipient(RECIPIENT);
+    fixture.componentInstance.order.update((o) => ({ ...o, orderLines: [] }));
+    const result = fixture.componentInstance.validate();
+    expect(result.errors['customerId']).toBeUndefined();
+    expect(result.errors['orderLines']).toBeDefined();
+    expect(result.isValid).toBe(false);
+  });
+
+  it('without a recipient the customer select stays and is required', () => {
+    const fixture = buildRecipient(null);
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.ob-recipient')).toBeNull();
+    expect(el.querySelector('ef-select')).toBeTruthy();
+    expect(fixture.componentInstance.validate().errors['customerId']).toBeDefined();
+  });
+
+  it('recipient strip truncates a long address at 390 px', () => {
+    const fixture = buildRecipient(RECIPIENT);
+    const el = fixture.nativeElement as HTMLElement;
+    const strip = el.querySelector('.ob-recipient') as HTMLElement;
+    expect(getComputedStyle(strip).minWidth).toMatch(/^0(px)?$/);
+    for (const part of ['.ob-recipient-name', '.ob-recipient-phone', '.ob-recipient-city', '.ob-recipient-address']) {
+      const line = strip.querySelector(part) as HTMLElement;
+      const style = getComputedStyle(line);
+      expect(style.whiteSpace, part).toBe('nowrap');
+      expect(style.overflow, part).toBe('hidden');
+      expect(style.textOverflow, part).toBe('ellipsis');
+      expect(style.minWidth, part).toMatch(/^0(px)?$/);
+    }
+    // The full address stays reachable when the line is cut.
+    expect(strip.querySelector('.ob-recipient-address')?.getAttribute('title')).toBe(RECIPIENT.address);
   });
 });

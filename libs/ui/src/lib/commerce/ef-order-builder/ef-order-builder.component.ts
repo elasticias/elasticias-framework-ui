@@ -23,6 +23,7 @@ import {
   ValidationResult,
   OrderProductsSummary,
   OrderSummaryItem,
+  EfOrderRecipient,
 } from './ef-order-builder.component.types';
 import { ProductCountGroupLabel } from '../ef-order-summary/ef-order-summary.component';
 import { EfSelectComponent } from '../../forms/ef-select/ef-select.component';
@@ -108,6 +109,21 @@ export class EfOrderBuilderComponent implements OnInit {
   order = model.required<OrderEntity>();
   products = input.required<Record<string, unknown>[]>();
   customers = input.required<Record<string, unknown>[]>();
+  /**
+   * Who the order goes to when it has no client to pick (a storefront order).
+   * When set, the header shows it read-only instead of the customer select,
+   * `customers` may be `[]` and the order validates without a `customerId`.
+   * Null keeps the customer select and its required rule.
+   */
+  recipient = input<EfOrderRecipient | null>(null);
+
+  /** `tel:` target for the recipient's phone: digits and a leading "+" only. */
+  recipientTel = computed(() => {
+    const phone = this.recipient()?.phone?.trim() ?? '';
+    const digits = phone.replace(/\D/g, '');
+    if (!digits) return null;
+    return `tel:${phone.startsWith('+') ? '+' : ''}${digits}`;
+  });
   readonly = input<boolean>(false);
   countGroupLabels = input<ProductCountGroupLabel[]>([]);
   /** Field name used to identify products (must match catalogue's trackByField) */
@@ -236,8 +252,13 @@ export class EfOrderBuilderComponent implements OnInit {
     return { items, totalCount };
   });
 
-  validationResult = computed(() => {
-    return OrderEntityHelper.validate(this.order());
+  validationResult = computed<ValidationResult>(() => {
+    const result = OrderEntityHelper.validate(this.order());
+    if (!this.recipient() || !result.errors['customerId']) return result;
+    // An order with a recipient has no client to pick: drop that one rule.
+    const errors = { ...result.errors };
+    delete errors['customerId'];
+    return { ...result, errors, isValid: Object.keys(errors).length === 0 };
   });
 
   combinedErrors = computed(() => {

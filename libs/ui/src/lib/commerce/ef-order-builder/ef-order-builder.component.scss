@@ -102,6 +102,51 @@
       gap: var(--s-4);
     }
 
+    // ── Recipient strip: read-only stand-in for the customer select ──
+    // Every part stays on one line and cuts with an ellipsis, so a long
+    // address never widens the header on a phone; the address takes its own
+    // line under name, phone and city.
+    .ob-recipient {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: var(--s-3);
+      row-gap: 2px;
+      min-width: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text-soft);
+
+      > * {
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        // A Latin address on an Arabic screen keeps its own direction, so
+        // the ellipsis cuts its end, not its start.
+        unicode-bidi: plaintext;
+      }
+    }
+    .ob-recipient-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .ob-recipient-phone {
+      color: var(--tenant-700);
+      text-decoration: none;
+      font-variant-numeric: tabular-nums;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    .ob-recipient-address {
+      flex-basis: 100%;
+      color: var(--text-mute);
+    }
+
     // Express-add row — sits under the customer/date row, divided by a rule.
     // flex-wrap so fields reflow cleanly instead of crushing labels.
     .qa-grid {
@@ -691,6 +736,7 @@
    - The summary button is the only way to open the totals rail below
      1280px; it painted 33px (41px in Arabic). It grows to the 48px tier
      inside the 56px pill.
+   - The recipient phone (a tel: link) grows to the 48px tier.
    - An editable line value swaps to an ef-inputnumber on tap, which is
      --hit-field (48px here) tall. At its ~30px read height the row grew by
      18px mid-edit and the tap target was under the tier. Matching the
@@ -702,5 +748,10 @@
 
   :host ef-data-card .ln-val {
     min-block-size: var(--hit-field);
+  }
+
+  // The recipient's phone is a tel: link, so it is a tap target too.
+  :host .order-builder .ob-recipient-phone {
+    line-height: var(--hit-touch);
   }
 }

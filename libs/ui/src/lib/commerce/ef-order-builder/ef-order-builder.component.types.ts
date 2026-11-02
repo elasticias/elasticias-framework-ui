@@ -83,6 +83,18 @@ export interface OrderEntity {
 }
 
 /**
+ * The person an order goes to when there is no client to pick (a storefront
+ * order placed by a shopper). The builder shows it read-only in place of the
+ * customer select.
+ */
+export interface EfOrderRecipient {
+  name: string;
+  phone?: string | null;
+  city?: string | null;
+  address?: string | null;
+}
+
+/**
  * Configuration for document types (order, invoice, quote)
  */
 export interface DocumentConfig {

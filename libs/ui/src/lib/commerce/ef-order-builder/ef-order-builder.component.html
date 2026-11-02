@@ -11,23 +11,46 @@
         [overflowVisible]="true">
         <div class="ob-order-head">
           <div class="form-grid">
-            <div class="field col-6">
-              <ef-label labelKey="label.customer" for="ob-cust" [required]="true" />
-              <ef-select
-                inputId="ob-cust"
-                [options]="customers()"
-                optionLabel="companyName"
-                optionValue="customerId"
-                [ngModel]="order().customerId"
-                (ngModelChange)="updateCustomer($event)"
-                [disabled]="readonly()"
-                [showClear]="true"
-                [filter]="true"
-                filterBy="companyName"
-                filterPlaceholderKey="label.search_customer"
-                appendTo="body"
-                placeholderKey="label.select_customer" />
-            </div>
+            @if (recipient(); as r) {
+              <!-- No client to pick (a storefront order): who it goes to,
+                   read-only, in the customer's place. -->
+              <div class="field col-6">
+                <ef-label labelKey="order_builder.recipient" />
+                <div
+                  class="ob-recipient"
+                  role="group"
+                  [attr.aria-label]="'order_builder.recipient' | translate">
+                  <span class="ob-recipient-name">{{ r.name }}</span>
+                  @if (recipientTel(); as tel) {
+                    <a class="ob-recipient-phone" [href]="tel" dir="ltr">{{ r.phone }}</a>
+                  }
+                  @if (r.city) {
+                    <span class="ob-recipient-city">{{ r.city }}</span>
+                  }
+                  @if (r.address) {
+                    <span class="ob-recipient-address" [title]="r.address">{{ r.address }}</span>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="field col-6">
+                <ef-label labelKey="label.customer" for="ob-cust" [required]="true" />
+                <ef-select
+                  inputId="ob-cust"
+                  [options]="customers()"
+                  optionLabel="companyName"
+                  optionValue="customerId"
+                  [ngModel]="order().customerId"
+                  (ngModelChange)="updateCustomer($event)"
+                  [disabled]="readonly()"
+                  [showClear]="true"
+                  [filter]="true"
+                  filterBy="companyName"
+                  filterPlaceholderKey="label.search_customer"
+                  appendTo="body"
+                  placeholderKey="label.select_customer" />
+              </div>
+            }
             <div class="field col-3">
               <ef-label labelKey="label.order_date" for="ob-date" [required]="true" />
               <ef-datepicker-advanced
