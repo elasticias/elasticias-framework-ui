@@ -260,6 +260,58 @@ describe('EfOrderBuilderComponent (delivery amount)', () => {
     expect(c.exportOrder().finalTotal).toBe(80);
   });
 
+  it('rounds the grand total half away from zero like the backend', () => {
+    // 10.05 at 50% off is 5.025: the backend's decimal rounds it to 5.03,
+    // while the binary product is 5.02499999...
+    const fixture = build();
+    fixture.componentRef.setInput('shippingTotal', 30);
+    const c = fixture.componentInstance;
+    c.onTypeaheadSelect({ product: PRODUCT, variant: PRODUCT.variants[0], unitPrice: 10.05 });
+    c.addQuickProduct();
+    c.order.set({
+      ...c.order(),
+      orderLines: c.order().orderLines.map((l) => ({ ...l, discount: 50 })),
+    });
+    fixture.detectChanges();
+    expect(c.finalTotal()).toBe(35.03);
+    expect(c.exportOrder().finalTotal).toBe(35.03);
+    expect(c.order().finalTotal).toBe(35.03);
+  });
+
+  it('calculateTotals rounds a midpoint away from zero', () => {
+    const order: OrderEntity = {
+      ...OrderEntityHelper.createEmpty('order'),
+      orderLines: [{ id: 'l1', productId: 'p1', productUnitPrice: 10.05, quantity: 1, discount: 50 } as OrderEntity['orderLines'][number]],
+    };
+    expect(OrderEntityHelper.calculateTotals(order).finalTotal).toBe(5.03);
+    expect(OrderEntityHelper.roundMoney(1.005)).toBe(1.01);
+    expect(OrderEntityHelper.roundMoney(-1.005)).toBe(-1.01);
+    expect(OrderEntityHelper.roundMoney(322.49999999999994)).toBe(322.5);
+  });
+
+  it('leaves shippingTotal unset on a B2B order', () => {
+    const fixture = buildWithLine();
+    const c = fixture.componentInstance;
+    expect('shippingTotal' in c.order()).toBe(false);
+    expect('shippingTotal' in c.exportOrder()).toBe(false);
+  });
+
+  it('clamps a negative or NaN fee to 0 with a dev warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const fixture = buildWithLine(-5);
+    const c = fixture.componentInstance;
+    expect(c.shippingTotal()).toBe(0);
+    expect(c.finalTotal()).toBe(50);
+    expect(warn).toHaveBeenCalled();
+
+    fixture.componentRef.setInput('shippingTotal', Number.NaN);
+    fixture.detectChanges();
+    expect(c.shippingTotal()).toBe(0);
+    expect(c.exportOrder().finalTotal).toBe(50);
+    expect((fixture.nativeElement as HTMLElement).querySelector('.ob-totals .row.shipping')).toBeNull();
+    warn.mockRestore();
+  });
+
   it('keeps a B2B total unchanged when no fee is passed', () => {
     const fixture = buildWithLine();
     const c = fixture.componentInstance;

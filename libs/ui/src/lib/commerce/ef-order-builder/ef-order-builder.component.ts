@@ -3,6 +3,7 @@ import {
   computed,
   effect,
   input,
+  isDevMode,
   model,
   OnInit,
   output,
@@ -57,6 +58,18 @@ import { UuidUtils } from '@elasticias/utils';
 /** Numeric line columns that support inline click-to-edit. */
 type EditableLineField = 'price' | 'qty' | 'discount' | 'tva';
 
+/** A delivery fee is a non-negative amount; anything else counts as none. */
+function toFee(value: number | null | undefined): number {
+  if (value == null) return 0;
+  if (!Number.isFinite(value) || value < 0) {
+    if (isDevMode()) {
+      console.warn(`ef-order-builder: shippingTotal ${value} is not a valid fee, using 0.`);
+    }
+    return 0;
+  }
+  return value;
+}
+
 @Component({
   selector: 'ef-order-builder',
   standalone: true,
@@ -103,9 +116,13 @@ export class EfOrderBuilderComponent implements OnInit {
   /**
    * Delivery amount (TTC) the host owns. It is the builder's only fee source:
    * the rail, the bound order and `exportOrder()` all total it, so the saved
-   * total is the one shown. A host without a fee (B2B) leaves it at 0.
+   * total is the one shown. A host without a fee (B2B) leaves it at 0, and
+   * the bound order then carries no `shippingTotal` at all. A negative or
+   * non-numeric fee is treated as 0.
    */
-  shippingTotal = input<number>(0);
+  shippingTotal = input<number, number | null | undefined>(0, {
+    transform: toFee,
+  });
 
   /** Optional change-history entries; when non-empty the Historique rail card renders. */
   auditEntries = input<EfChangeHistoryEntry[]>([]);
@@ -149,14 +166,14 @@ export class EfOrderBuilderComponent implements OnInit {
     }, 0);
   });
 
-  finalTotal = computed(() => {
-    return (
+  finalTotal = computed(() =>
+    OrderEntityHelper.roundMoney(
       this.grossTotal() -
-      this.discountTotal() +
-      this.tvaTotal() +
-      this.shippingTotal()
-    );
-  });
+        this.discountTotal() +
+        this.tvaTotal() +
+        this.shippingTotal(),
+    ),
+  );
 
   currency = computed(() => this.config().currencyCode || 'MAD');
   locale = computed(() => this.config().locale || 'fr-FR');
@@ -685,11 +702,17 @@ export class EfOrderBuilderComponent implements OnInit {
     return this.withTotals();
   }
 
-  /** The bound order with its totals, the fee taken from the `shippingTotal` input. */
+  /**
+   * The bound order with its totals, the fee taken from the `shippingTotal`
+   * input. Without a fee the order carries no `shippingTotal`, so a B2B order
+   * stays exactly as it came in.
+   */
   private withTotals(): OrderEntity {
-    return OrderEntityHelper.calculateTotals({
-      ...this.order(),
-      shippingTotal: this.shippingTotal(),
-    });
+    const order: OrderEntity = { ...this.order() };
+    delete order.shippingTotal;
+    const fee = this.shippingTotal();
+    return OrderEntityHelper.calculateTotals(
+      fee > 0 ? { ...order, shippingTotal: fee } : order,
+    );
   }
 }

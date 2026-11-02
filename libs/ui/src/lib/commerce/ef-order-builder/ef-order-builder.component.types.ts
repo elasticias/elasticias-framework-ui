@@ -307,6 +307,17 @@ export class OrderEntityHelper {
   }
 
   /**
+   * Round to the centime, half away from zero, as the backend does
+   * (`Math.Round(x, 2, MidpointRounding.AwayFromZero)` on a decimal). The
+   * product goes through 15 significant digits first so a binary value such
+   * as 1.00499999... rounds as the decimal 1.005 would.
+   */
+  static roundMoney(value: number): number {
+    const cents = Number((Math.abs(value) * 100).toPrecision(15));
+    return (Math.sign(value) * Math.round(cents)) / 100 + 0;
+  }
+
+  /**
    * Calculate all totals for an order
    */
   static calculateTotals(order: OrderEntity): OrderEntity {
@@ -326,8 +337,9 @@ export class OrderEntityHelper {
       return total + (item.taxAmount || 0);
     }, 0);
 
-    const finalTotal =
-      grossTotal - discountTotal + taxTotal + (order.shippingTotal ?? 0);
+    const finalTotal = OrderEntityHelper.roundMoney(
+      grossTotal - discountTotal + taxTotal + (order.shippingTotal ?? 0),
+    );
 
     return {
       ...order,
