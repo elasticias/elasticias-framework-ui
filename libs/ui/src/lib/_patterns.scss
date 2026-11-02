@@ -3517,6 +3517,10 @@
 }
 
 .ef-input-group input {
+  /* The lib owns the box model and line height of every part of a grouped
+     field, as .ef-input does, so it measures the same whether or not the
+     app loads a CSS reset (ERP loads Tailwind without preflight). */
+  box-sizing: border-box;
   flex: 1;
   border: 0;
   background: transparent;
@@ -3524,11 +3528,13 @@
   padding: 10px 12px;
   font: inherit;
   font-size: 14px;
+  line-height: 1.2;
   color: var(--text);
   min-width: 0;
 }
 
 .ef-input-group .ef-input-addon {
+  box-sizing: border-box;
   background: var(--paper);
   padding: 9px 12px;
   font-family: var(--font-mono);
@@ -3559,6 +3565,7 @@
 }
 
 .ef-input-group button.ef-input-addon.is-stepper {
+  box-sizing: border-box;
   appearance: none;
   background: var(--paper);
   border: 0;

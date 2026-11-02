@@ -62,6 +62,13 @@ describe('touch tier for form fields', () => {
     expect(decl(patterns, '.ef-input-group', 'box-sizing')).toBe('border-box');
   });
 
+  it.each(['.ef-input-group input', '.ef-input-group .ef-input-addon', '.ef-input-group button.ef-input-addon.is-stepper'])(
+    '%s owns its box model, so a field measures the same with or without an app reset',
+    (selector) => {
+      expect(decl(patterns, selector, 'box-sizing')).toBe('border-box');
+    },
+  );
+
   it('keeps a grouped field at the touch height when its clear shows', () => {
     expect(decl(patterns, '.ef-input-group .ef-clear', 'margin-block', coarse)).toBe(
       'calc((var(--hit-touch) - var(--ef-clear-size)) / 2 - 1px)',
