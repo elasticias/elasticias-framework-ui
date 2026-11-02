@@ -85,6 +85,21 @@ export interface EfDataCardColumn {
     hideable?: boolean;
 
     /**
+     * Start the column hidden. The viewer can still show it from the
+     * Columns picker, and that choice is saved per `tableKey` through
+     * `EF_PREFERENCE_STORE` like any other hidden column, so it wins on
+     * the next visit. Use it for a column a wide table can do without at
+     * first sight (a sort position, an internal code).
+     *
+     * Ignored with `hideable: false` and on `select` / `actions`: a column
+     * the picker does not list could never be shown again.
+     *
+     * A table whose preferences were saved before the column became
+     * `defaultHidden` keeps the saved list, which shows it.
+     */
+    defaultHidden?: boolean;
+
+    /**
      * Set `false` to keep this column out of a CSV export. Use it for
      * columns that only make sense on screen — a thumbnail, a rendered
      * badge with no underlying value. Defaults to exported.

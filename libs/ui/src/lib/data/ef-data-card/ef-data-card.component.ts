@@ -475,9 +475,9 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
 
     /**
      * Stable key used to remember density and hidden columns for this
-     * table. Preferences are a per-viewer convenience, so they live in
-     * localStorage and are read defensively -- a private window or
-     * cleared site data simply falls back to the defaults.
+     * table, through `EF_PREFERENCE_STORE`. They are read defensively: a
+     * store that throws or holds nothing falls back to the defaults
+     * (`defaultDensity`, and each column's `defaultHidden`).
      */
     readonly tableKey = input<string>('');
 
@@ -776,8 +776,23 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     /** Row density. Applied as a class on `.tbl-wrap`. */
     readonly density = signal<EfTableDensity>('default');
 
-    /** Column ids the viewer has hidden. */
-    readonly hiddenColumnIds = signal<ReadonlyArray<string>>([]);
+    /**
+     * The viewer's own column choice: from the saved preferences, or from
+     * the Columns picker. `null` until there is one, so the columns'
+     * `defaultHidden` flags decide.
+     */
+    private readonly chosenHiddenColumnIds = signal<ReadonlyArray<string> | null>(null);
+
+    /** Columns hidden until the viewer says otherwise. Only ones the
+     *  picker lists, so a default can always be undone. */
+    private readonly defaultHiddenColumnIds = computed<ReadonlyArray<string>>(() =>
+        this.hideableColumns().filter(c => c.defaultHidden).map(c => c.id),
+    );
+
+    /** Column ids hidden right now: the viewer's choice, else the defaults. */
+    readonly hiddenColumnIds = computed<ReadonlyArray<string>>(
+        () => this.chosenHiddenColumnIds() ?? this.defaultHiddenColumnIds(),
+    );
 
     readonly densityOptions: ReadonlyArray<{
         value: EfTableDensity;
@@ -863,14 +878,16 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     }
 
     toggleColumn(id: string): void {
-        this.hiddenColumnIds.update(ids =>
+        const ids = this.hiddenColumnIds();
+        this.chosenHiddenColumnIds.set(
             ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id],
         );
         this.savePreferences();
     }
 
+    /** "Show all columns": every column, the `defaultHidden` ones included. */
     resetColumns(): void {
-        this.hiddenColumnIds.set([]);
+        this.chosenHiddenColumnIds.set([]);
         this.savePreferences();
     }
 
@@ -906,7 +923,7 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
             if (!saved) return;
             if (saved.density) this.density.set(saved.density);
             if (Array.isArray(saved.hiddenColumnIds))
-                this.hiddenColumnIds.set(saved.hiddenColumnIds);
+                this.chosenHiddenColumnIds.set(saved.hiddenColumnIds);
         } catch {
             // Storage can throw outright (blocked site data, previews) --
             // the defaults are a perfectly good table.
