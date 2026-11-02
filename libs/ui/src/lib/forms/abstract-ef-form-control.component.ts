@@ -216,6 +216,10 @@ export abstract class AbstractEfFormControl {
         return this.ariaLabel() || null;
     }
 
+    /** Ids of elements outside the control that describe it too (a character
+     *  counter, a help block), appended to `aria-describedby`. */
+    readonly describedByExtra = input<string>('');
+
     /** Translated hint (or empty string). */
     get effectiveHint(): string {
         if (this.hintKey()) {
@@ -239,6 +243,7 @@ export abstract class AbstractEfFormControl {
         const ids = [
             this.effectiveHint ? this.hintId : null,
             showErrors ? this.errorsId : null,
+            this.describedByExtra() || null,
             ...extra,
         ].filter((id): id is string => !!id);
         return ids.length ? ids.join(' ') : null;
