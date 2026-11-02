@@ -29,6 +29,7 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
  *   [rows]="4"
  *   [(value)]="description"
  * />
+ * <ef-textarea labelKey="store_pages_details_body_fr" mono [rows]="12" [(value)]="bodyFr" />
  * ```
  */
 @Component({
@@ -45,6 +46,9 @@ export class EfTextareaComponent
     @Input() rows = 4;
     @Input() maxlength?: number;
     @Input({ transform: booleanAttribute }) autofocus = false;
+    /** Monospace face for source text (an HTML body, a JSON snippet), where
+     *  tags and indentation must stay readable. */
+    @Input({ transform: booleanAttribute }) mono = false;
 
     @Output() valueChangeEvent = new EventEmitter<string>();
 
