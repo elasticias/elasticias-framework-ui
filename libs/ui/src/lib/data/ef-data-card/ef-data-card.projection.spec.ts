@@ -92,3 +92,37 @@ describe('ef-data-card clipping shell', () => {
         expect(wrap.classList).not.toContain('has-open-menu');
     });
 });
+
+@Component({
+    standalone: true,
+    imports: [EfDataCardComponent],
+    template: `
+        <ef-data-card [columns]="cols" [rows]="[]">
+            @if (info()) {
+                <span tbl-head-info>INFO</span>
+            }
+        </ef-data-card>
+    `,
+})
+class HeadHostComponent {
+    readonly info = signal(false);
+    cols = [{ id: 'name', field: 'name', header: 'Name' }];
+}
+
+describe('ef-data-card head strip', () => {
+    it('is hidden when nothing is projected into it, shown when something is', async () => {
+        TestBed.resetTestingModule();
+        await TestBed.configureTestingModule({
+            imports: [HeadHostComponent, TranslateModule.forRoot()],
+            providers: [{ provide: EfViewportService, useValue: viewport(false) }],
+        }).compileComponents();
+        const fixture = TestBed.createComponent(HeadHostComponent);
+        fixture.detectChanges();
+        const head = (fixture.nativeElement as HTMLElement).querySelector('.tbl-head') as HTMLElement;
+        expect(getComputedStyle(head).display).toBe('none');
+
+        fixture.componentInstance.info.set(true);
+        fixture.detectChanges();
+        expect(getComputedStyle(head).display).not.toBe('none');
+    });
+});

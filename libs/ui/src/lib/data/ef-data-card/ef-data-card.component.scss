@@ -554,3 +554,11 @@
 .mrow.is-disabled .mrow__head {
   cursor: not-allowed;
 }
+
+/* The head strip carries the projected info/actions and the table tools.
+   When none of them render, the strip is an empty padded band above the
+   table, so drop it. Angular strips whitespace and @if leaves only
+   comments, which :empty ignores. */
+.tbl-head:has(> .count:empty):has(> .tbl-tools:empty) {
+    display: none;
+}
