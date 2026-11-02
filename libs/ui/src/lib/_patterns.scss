@@ -4990,7 +4990,9 @@ input.ef-input[type='number'] {
    so the base .f-more min-height does not win. The row aligns its items to
    center, so the pills beside it keep their own height. */
 @media (pointer: coarse) {
-  .f-more {
+  .f-pill,
+  .f-more,
+  .f-clear {
     min-height: var(--hit-touch);
   }
 }
