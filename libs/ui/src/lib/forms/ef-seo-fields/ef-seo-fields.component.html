@@ -1,0 +1,55 @@
+<div class="seo-body">
+    <p class="seo-note text-mute">{{ 'ef_seo_fields_fallback_hint' | translate }}</p>
+
+    @for (locale of locales(); track locale.code) {
+        <ef-fieldset variant="plain" [legendKey]="locale.labelKey" [attr.lang]="locale.code">
+            <ef-form-grid>
+                <ef-input-text
+                    class="col-12"
+                    variant="comptoir"
+                    [dir]="locale.dir"
+                    [name]="name(locale.code, 'title')"
+                    labelKey="ef_seo_fields_title_label"
+                    [maxlength]="titleMax()"
+                    [value]="text(locale.code, 'title')"
+                    (valueChangeEvent)="setText(locale.code, 'title', $event)"
+                />
+                <span
+                    class="col-12 seo-counter"
+                    [attr.data-counter]="locale.code + '-title'"
+                    [class.is-over]="text(locale.code, 'title').length > titleAdvised()"
+                    [title]="'ef_seo_fields_counter_hint' | translate: { max: titleAdvised() }"
+                >
+                    {{ text(locale.code, 'title').length }} / {{ titleAdvised() }}
+                </span>
+
+                <ef-textarea
+                    class="col-12"
+                    [dir]="locale.dir"
+                    [name]="name(locale.code, 'description')"
+                    labelKey="ef_seo_fields_description_label"
+                    [rows]="3"
+                    [maxlength]="descriptionMax()"
+                    [value]="text(locale.code, 'description')"
+                    (valueChangeEvent)="setText(locale.code, 'description', $event)"
+                />
+                <span
+                    class="col-12 seo-counter"
+                    [attr.data-counter]="locale.code + '-description'"
+                    [class.is-over]="text(locale.code, 'description').length > descriptionAdvised()"
+                    [title]="'ef_seo_fields_counter_hint' | translate: { max: descriptionAdvised() }"
+                >
+                    {{ text(locale.code, 'description').length }} / {{ descriptionAdvised() }}
+                </span>
+            </ef-form-grid>
+        </ef-fieldset>
+    }
+
+    <ef-seo-preview
+        labelKey="ef_seo_fields_preview"
+        contentLang="fr"
+        [pageTitle]="previewTitle()"
+        [url]="previewUrl()"
+        [description]="previewDescription()"
+    />
+</div>
