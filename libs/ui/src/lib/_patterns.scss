@@ -3550,6 +3550,14 @@
 /* Stepper buttons (±) sit at either end of the group. They reuse the
    addon base so border weights stay consistent; the button override
    gives them affordance (cursor, hover/active feedback). */
+/* A currency symbol is a word, not a code: the mono face drew the Arabic
+   "د.م." with detached, oversized dots. The interface face renders it
+   as the locale writes it. */
+.ef-input-group .ef-input-addon.is-currency {
+  font-family: inherit;
+  font-size: 13px;
+}
+
 .ef-input-group button.ef-input-addon.is-stepper {
   appearance: none;
   background: var(--paper);
