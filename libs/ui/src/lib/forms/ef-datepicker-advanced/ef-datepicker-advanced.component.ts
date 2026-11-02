@@ -37,6 +37,8 @@ import {
  *  a `[start, end]` tuple for a range — so `ef-datepicker-advanced` is a
  *  drop-in replacement for the legacy `ef-datepicker` in forms. */
 export type EfDateFieldValue = Date | [Date, Date] | null;
+/** What the form receives: a Date shape, or with `valueFormat="local-datetime"` wall-time strings. */
+export type EfDateFieldOutput = EfDateFieldValue | string | [string, string];
 
 /**
  * Comptoir period selector for smart-bars — a pill trigger ("Date — 30
@@ -200,6 +202,18 @@ export class EfDatepickerAdvancedComponent
      */
     readonly showTime = input(false, { transform: booleanAttribute });
 
+    /**
+     * Field mode only: the value shape the form sees.
+     * - `'date'` (default): a `Date` (or `[start, end]`).
+     * - `'local-datetime'`: wall time as a `yyyy-MM-ddTHH:mm` string (or a
+     *   pair), read and written from the date's local components, never
+     *   through UTC. For times that belong to another zone than the
+     *   browser's (a shop's opening time, an offer's start), where the
+     *   server converts and the browser must not. A string in any other
+     *   shape (seconds, `Z`, an offset) is ignored rather than guessed.
+     */
+    readonly valueFormat = input<'date' | 'local-datetime'>('date');
+
     /* label / labelKey / placeholder / placeholderKey / ariaLabel / ariaLabelKey
        / required / inputId / name / errors (+ resolvedExternalErrors) all
        inherited from AbstractEfFormControl. */
@@ -357,7 +371,7 @@ export class EfDatepickerAdvancedComponent
     readonly fromTimeText = computed(() => this.formatTime(this.draftStartTime()));
     readonly toTimeText = computed(() => this.formatTime(this.draftEndTime()));
 
-    private onChange: (value: EfDateFieldValue) => void = () => { /* noop */ };
+    private onChange: (value: EfDateFieldOutput) => void = () => { /* noop */ };
     private onTouched: () => void = () => { /* noop */ };
 
     /* effectiveId / errorsId / _autoId inherited from AbstractEfFormControl. */
@@ -380,10 +394,14 @@ export class EfDatepickerAdvancedComponent
 
     /* ── ControlValueAccessor ───────────────────────────────────── */
 
-    writeValue(value: Date | Date[] | string | number | null | undefined): void {
-        this.fieldValue.set(this.coerceValue(value));
+    writeValue(value: Date | Date[] | string | string[] | number | null | undefined): void {
+        if (this.valueFormat() === 'local-datetime') {
+            this.fieldValue.set(this.coerceLocal(value));
+            return;
+        }
+        this.fieldValue.set(this.coerceValue(value as Date | Date[] | string | number | null | undefined));
     }
-    registerOnChange(fn: (value: EfDateFieldValue) => void): void {
+    registerOnChange(fn: (value: EfDateFieldOutput) => void): void {
         this.onChange = fn;
     }
     registerOnTouched(fn: () => void): void {
@@ -421,6 +439,43 @@ export class EfDatepickerAdvancedComponent
         return this.toDate(value);
     }
 
+    /** `local-datetime` in: `yyyy-MM-ddTHH:mm` built into a Date from its
+     *  parts (local time), never through `Date` string parsing. */
+    private coerceLocal(value: unknown): EfDateFieldValue {
+        if (value == null) return null;
+        if (Array.isArray(value)) {
+            const start = this.parseLocalDateTime(value[0]);
+            if (!start) return null;
+            const end = this.parseLocalDateTime(value[1]);
+            return end ? [start, end] : start;
+        }
+        return this.parseLocalDateTime(value);
+    }
+
+    private parseLocalDateTime(v: unknown): Date | null {
+        if (typeof v !== 'string') return null;
+        const m = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+        if (!m) return null;
+        const [y, mo, d, h, mi] = m.slice(1).map(Number);
+        const date = new Date(y, mo - 1, d, h, mi, 0, 0);
+        // Reject a rollover (31 Feb, 25:00) instead of showing another day.
+        if (date.getFullYear() !== y || date.getMonth() !== mo - 1 || date.getDate() !== d) return null;
+        return date;
+    }
+
+    /** `local-datetime` out: the Date's local components, zero-padded. */
+    private formatLocalDateTime(d: Date): string {
+        const p = (n: number) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    private toOutput(value: Date | [Date, Date]): EfDateFieldOutput {
+        if (this.valueFormat() !== 'local-datetime') return value;
+        return Array.isArray(value)
+            ? [this.formatLocalDateTime(value[0]), this.formatLocalDateTime(value[1])]
+            : this.formatLocalDateTime(value);
+    }
+
     private toDate(v: unknown): Date | null {
         // Preserve the time component — `showTime` mode needs it; date-only
         // paths re-normalise to start-of-day when they seed the calendar and
@@ -438,7 +493,7 @@ export class EfDatepickerAdvancedComponent
      *  and close the popover. `single` → `Date`, `range` → `[start, end]`. */
     private commitField(value: Date | [Date, Date]): void {
         this.fieldValue.set(value);
-        this.onChange(value);
+        this.onChange(this.toOutput(value));
         this.close();
     }
 

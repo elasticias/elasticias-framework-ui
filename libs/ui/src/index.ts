@@ -171,6 +171,7 @@ export type { EfPresetItem } from './lib/forms/ef-preset-pill/ef-preset-pill.com
 export {
     EfDatepickerAdvancedComponent,
     type EfDateFieldValue,
+    type EfDateFieldOutput,
 } from './lib/forms/ef-datepicker-advanced/ef-datepicker-advanced.component';
 export type {
     EfDatePreset,
