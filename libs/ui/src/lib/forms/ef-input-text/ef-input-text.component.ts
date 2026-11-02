@@ -3,6 +3,8 @@ import {
   Component,
   HostBinding,
   inject,
+  ElementRef,
+  HostListener,
   Input,
   Output,
   EventEmitter,
@@ -13,6 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
+import { insertAtSelection, placeCaret } from '../insert-at-cursor';
 
 @Component({
   selector: 'ef-input-text',
@@ -77,6 +80,7 @@ export class EfInputTextComponent
   private onTouched: () => void = () => { /* noop */ };
 
   readonly ngControl = inject(NgControl, { self: true, optional: true });
+  private readonly hostRef = inject(ElementRef);
 
   constructor() {
     super();
@@ -120,6 +124,35 @@ export class EfInputTextComponent
     this.value = value;
     this.onChange(value);
     this.valueChangeEvent.emit(value);
+  }
+
+  /** Set once the user has entered the field; see {@link insertAtSelection}. */
+  private wasFocused = false;
+
+  @HostListener('focusin')
+  protected markFocused(): void {
+      this.wasFocused = true;
+  }
+
+  /**
+   * Inserts `text` at the caret (replacing a selection), or at the end when
+   * the field was never focused, then puts the caret after it. Emits the
+   * change once, exactly as typing would. Does nothing when read-only or
+   * disabled.
+   */
+  insertAtCursor(text: string): void {
+      if (this.readonly() || this.isDisabled()) return;
+      const field = (this.hostRef.nativeElement as HTMLElement).querySelector('input') as
+          | HTMLInputElement
+          | HTMLTextAreaElement
+          | null;
+      if (!field) return;
+      const { value, caret } = insertAtSelection(field, text, this.wasFocused);
+      // Write the DOM first so the later [value] binding finds it unchanged
+      // and leaves the caret where we put it.
+      field.value = value;
+      this.handleInput(value);
+      placeCaret(field, caret);
   }
 
   handleBlur(): void {
