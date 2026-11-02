@@ -4,6 +4,7 @@ import {
   HostBinding,
   inject,
   Input,
+  LOCALE_ID,
   Output,
   EventEmitter,
   ViewChild,
@@ -34,6 +35,16 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
  * - `'primeng'`            — wraps `p-inputnumber`. Full locale-aware
  *   currency / decimal formatting, stepper buttons, prefix / suffix.
  *
+ * Currency on the comptoir variant: `mode="currency" currency="MAD"` shows
+ * the amount formatted for `locale` (default: the app's `LOCALE_ID`) at the
+ * currency's decimals (2 for MAD; `minFractionDigits` / `maxFractionDigits`
+ * override), in Latin digits, with the currency symbol as an addon on the
+ * side the locale puts it ("1.234,50" + "MAD" in fr-MA, "د.م." in ar-MA,
+ * "MAD" first in en-US). On focus the text switches to the plain number
+ * ("1234,50"), nothing is reformatted while typing, and on blur the model
+ * is rounded to the decimals and the text formatted again. An explicit
+ * `prefix` / `suffix` replaces the symbol.
+ *
  * Identity / label / placeholder / aria / required / readonly /
  * disabled are inherited from `AbstractEfFormControl`.
  *
@@ -52,6 +63,17 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
  *   [(value)]="variant.inventoryQuantity" />
  * ```
  */
+/** Left-to-right / right-to-left / Arabic letter marks: layout hints, not content. */
+const BIDI_MARKS = /[\u200e\u200f\u061c]/g;
+
+/** Half away from zero at `digits` decimals, like the backend rounds money
+ *  (and `OrderEntityHelper.roundMoney`); toPrecision absorbs float noise. */
+function roundHalfAwayFromZero(value: number, digits: number): number {
+  const factor = 10 ** digits;
+  const scaled = Number((Math.abs(value) * factor).toPrecision(15));
+  return (Math.sign(value) * Math.round(scaled)) / factor + 0;
+}
+
 @Component({
   selector: 'ef-inputnumber',
   standalone: true,
@@ -165,12 +187,92 @@ export class EfInputNumberComponent
     this.handleClear();
   }
 
+  /* ── Currency (comptoir variant) ────────────────────────────── */
+
+  /** True while the comptoir input has focus in currency mode. */
+  private focused = false;
+
+  /** What the user typed since focus, shown as is (never reformatted). */
+  private editText: string | null = null;
+
+  /** Comptoir currency formatting applies: `mode="currency"` and a currency code. */
+  get isCurrency(): boolean {
+    return this.variant === 'comptoir' && this.mode === 'currency' && !!this.currency;
+  }
+
+  private get effectiveLocale(): string {
+    return this.locale || this.localeId;
+  }
+
+  /** Decimals: explicit inputs, else the currency's own (2 for MAD). */
+  private get fractionDigits(): { min: number; max: number } {
+    const own = new Intl.NumberFormat(this.effectiveLocale, { style: 'currency', currency: this.currency })
+      .resolvedOptions().maximumFractionDigits ?? 2;
+    const min = this.minFractionDigits ?? Math.min(own, this.maxFractionDigits ?? own);
+    const max = Math.max(min, this.maxFractionDigits ?? own);
+    return { min, max };
+  }
+
+  /**
+   * The amount as text, in Latin digits and without bidi marks: grouped
+   * for display, ungrouped for editing (so the text always parses back
+   * through {@link parseComptoirValue}).
+   */
+  private formatAmount(value: number | null, display: boolean): string {
+    if (value == null) return '';
+    const { min, max } = this.fractionDigits;
+    return new Intl.NumberFormat(this.effectiveLocale, {
+      minimumFractionDigits: min,
+      maximumFractionDigits: max,
+      useGrouping: display && this.useGrouping,
+      numberingSystem: 'latn',
+    } as Intl.NumberFormatOptions)
+      .format(value)
+      .replace(BIDI_MARKS, '');
+  }
+
+  /**
+   * The currency addon: the locale's symbol and the side it goes on, or
+   * `null` outside currency mode or when an explicit prefix / suffix
+   * already shows the unit.
+   */
+  get currencyAddon(): { symbol: string; side: 'prefix' | 'suffix' } | null {
+    if (!this.isCurrency || this.prefix || this.suffix) return null;
+    const parts = new Intl.NumberFormat(this.effectiveLocale, {
+      style: 'currency',
+      currency: this.currency,
+      currencyDisplay: (this.currencyDisplay as Intl.NumberFormatOptions['currencyDisplay']) ?? 'symbol',
+      numberingSystem: 'latn',
+    } as Intl.NumberFormatOptions).formatToParts(1);
+    const at = parts.findIndex((p) => p.type === 'currency');
+    if (at < 0) return null;
+    const integerAt = parts.findIndex((p) => p.type === 'integer');
+    return {
+      symbol: parts[at].value.replace(BIDI_MARKS, ''),
+      side: at < integerAt ? 'prefix' : 'suffix',
+    };
+  }
+
+  /** Id of the currency addon, referenced by the input's aria-describedby. */
+  get currencyId(): string {
+    return `${this.effectiveId}-currency`;
+  }
+
+  /** Text bound to the comptoir input. */
+  get displayText(): string | number {
+    if (!this.isCurrency) return this.value ?? '';
+    if (this.focused) return this.editText ?? '';
+    return this.formatAmount(this.value ?? null, true);
+  }
+
   /* ── CVA ─────────────────────────────────────────────────────── */
 
   private onChange: (value: any) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
 
   readonly ngControl = inject(NgControl, { self: true, optional: true });
+
+  private readonly localeId = inject(LOCALE_ID);
 
   constructor() {
     super();
@@ -226,6 +328,7 @@ export class EfInputNumberComponent
   /** Comptoir native input handler — the text input emits a raw
    *  string; normalize + coerce to number or null (empty / invalid). */
   handleNativeInput(raw: string): void {
+    if (this.focused) this.editText = raw;
     const next = this.parseComptoirValue(raw);
     this.value = next;
     this.onChange(next);
@@ -240,10 +343,11 @@ export class EfInputNumberComponent
    * dot before parsing, and spaces (JS `\s` covers NBSP / narrow-NBSP
    * group separators) are stripped. Both `23,50` and `23.50` parse to
    * 23.5; unparseable text yields `null` (existing empty semantics).
+   * Bidi marks (an Arabic formatted amount carries U+200F) are dropped.
    */
   private parseComptoirValue(raw: string): number | null {
     if (raw == null) return null;
-    const normalized = raw.replace(/\s/g, '').replace(/,/g, '.');
+    const normalized = raw.replace(BIDI_MARKS, '').replace(/\s/g, '').replace(/,/g, '.');
     if (normalized === '') return null;
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
@@ -260,6 +364,7 @@ export class EfInputNumberComponent
     const current = this.value ?? null;
     let next = current;
     if (next != null) {
+      if (this.isCurrency) next = roundHalfAwayFromZero(next, this.fractionDigits.max);
       if (this.min != null && next < this.min) next = this.min;
       if (this.max != null && next > this.max) next = this.max;
     }
@@ -268,7 +373,9 @@ export class EfInputNumberComponent
       this.onChange(next);
       this.valueChangeEvent.emit(next);
     }
-    if (el) el.value = next == null ? '' : String(next);
+    this.focused = false;
+    this.editText = null;
+    if (el) el.value = this.isCurrency ? this.formatAmount(next, true) : next == null ? '' : String(next);
   }
 
   /** Comptoir stepper buttons handler — bumps `value` by `step`,
@@ -284,6 +391,12 @@ export class EfInputNumberComponent
   }
 
   handleFocus(event: Event): void {
+    if (this.isCurrency) {
+      this.focused = true;
+      this.editText = this.formatAmount(this.value ?? null, false);
+      const el = event.target as HTMLInputElement | null;
+      if (el) el.value = this.editText;
+    }
     this.focusEvent.emit(event);
   }
 

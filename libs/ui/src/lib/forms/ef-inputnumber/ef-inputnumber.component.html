@@ -3,7 +3,7 @@
 }
 <div class="ef-field-control">
   @if (variant === 'comptoir') {
-    @if (prefix || suffix || showButtons) {
+    @if (prefix || suffix || showButtons || currencyAddon) {
       <!-- Comptoir variant — native text input (inputmode=decimal, accepts
            "," or "." as decimal separator) wrapped in .ef-input-group when
            there's a prefix / suffix / stepper. min/max are enforced by
@@ -24,12 +24,15 @@
         @if (prefix) {
           <span class="ef-input-addon is-prefix" aria-hidden="true">{{ prefix }}</span>
         }
+        @if (currencyAddon?.side === 'prefix') {
+          <span class="ef-input-addon is-prefix is-currency" [id]="currencyId">{{ currencyAddon?.symbol }}</span>
+        }
         <input
           type="text"
           inputmode="decimal"
           [id]="effectiveId"
           [attr.name]="name() || null"
-          [value]="value ?? ''"
+          [value]="displayText"
           [attr.placeholder]="effectivePlaceholder || null"
           [readonly]="readonly()"
           [disabled]="isDisabled()"
@@ -37,7 +40,7 @@
           [attr.aria-label]="effectiveAriaLabel"
           [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
-          [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
+          [attr.aria-describedby]="describedBy(showRequired || !!serverErrors, currencyAddon ? currencyId : null)"
           (input)="handleNativeInput($any($event.target).value)"
           (focus)="handleFocus($event)"
           (blur)="handleBlur($event)"
@@ -52,6 +55,9 @@
         }
         @if (suffix) {
           <span class="ef-input-addon is-suffix" aria-hidden="true">{{ suffix }}</span>
+        }
+        @if (currencyAddon?.side === 'suffix') {
+          <span class="ef-input-addon is-suffix is-currency" [id]="currencyId">{{ currencyAddon?.symbol }}</span>
         }
         @if (showButtons) {
           <button
@@ -77,7 +83,7 @@
           [class.has-clear]="canClear"
           [id]="effectiveId"
           [attr.name]="name() || null"
-          [value]="value ?? ''"
+          [value]="displayText"
           [attr.placeholder]="effectivePlaceholder || null"
           [readonly]="readonly()"
           [disabled]="isDisabled()"
