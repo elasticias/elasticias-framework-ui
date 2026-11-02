@@ -86,7 +86,9 @@ export abstract class AbstractEfFormControl {
 
     /** Translation key for the hint, preferred over `hint`. The hint is
      *  linked to the control through `aria-describedby` (see
-     *  {@link describedBy}), so a screen reader reads it with the field. */
+     *  {@link describedBy}), so a screen reader reads it with the field.
+     *  Rendered by ef-input-text, ef-textarea, ef-inputnumber and ef-select;
+     *  the other controls inherit the input but do not render it yet. */
     readonly hintKey = input<string>('');
 
     /* ── Screen-reader-only label (when no visible label) ─────── */
