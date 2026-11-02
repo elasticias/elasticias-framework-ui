@@ -1,13 +1,3 @@
-/**
- * One page of a server-paginated search. Deliberately minimal so any paged
- * DTO maps onto it (`PagedResult<T>` from `@elasticias/types`, an NSwag
- * `PaginatedListOf...`): only the rows and the total are read.
- */
-export interface EfPage<T> {
-    items?: ReadonlyArray<T> | null;
-    totalCount?: number | null;
-}
-
 /** A product as the picker shows it. The caller maps its own DTO to this. */
 export interface EfProductPickerItem {
     id: string;

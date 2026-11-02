@@ -21,7 +21,8 @@ import { EfDataCardComponent } from '../../data/ef-data-card/ef-data-card.compon
 import { EfColumnTemplateDirective } from '../../data/ef-data-card/ef-column-template.directive';
 import { EfEmptyStateComponent } from '../../feedback/ef-empty-state/ef-empty-state.component';
 import { EfIdentityThumbComponent } from '../../data/ef-identity-thumb/ef-identity-thumb.component';
-import { EfPage, EfProductPickerItem, EfProductPickerQuery } from './ef-product-picker.component.types';
+import type { EfPage } from '@elasticias/types';
+import { EfProductPickerItem, EfProductPickerQuery } from './ef-product-picker.component.types';
 
 /**
  * Multi-select product picker: a dialog that searches the caller's catalogue

@@ -25,6 +25,16 @@ export interface PagedResult<T> {
   pageSize: number;
 }
 
+/**
+ * One page of a server-paginated search, as a component reads it: only the
+ * rows and the total. Deliberately minimal and tolerant, so any paged DTO is
+ * assignable to it: `PagedResult<T>` above, an NSwag `PaginatedListOf...`.
+ */
+export interface EfPage<T> {
+  items?: ReadonlyArray<T> | null;
+  totalCount?: number | null;
+}
+
 export enum DiscountType {
   PERCENTAGE = 'PERCENTAGE',
   FIXED = 'FIXED',

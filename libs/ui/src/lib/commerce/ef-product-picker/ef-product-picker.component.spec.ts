@@ -4,7 +4,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
 import { EfViewportService } from '@elasticias/core';
 import { EfProductPickerComponent } from './ef-product-picker.component';
-import { EfPage, EfProductPickerItem, EfProductPickerQuery } from './ef-product-picker.component.types';
+import type { EfPage } from '@elasticias/types';
+import { EfProductPickerItem, EfProductPickerQuery } from './ef-product-picker.component.types';
 
 function makeViewport(mobile: boolean) {
     return {

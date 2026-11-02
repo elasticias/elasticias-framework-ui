@@ -12,7 +12,6 @@ export { EfProductTypeaheadComponent } from './lib/commerce/ef-product-typeahead
 export * from './lib/commerce/ef-product-typeahead/ef-product-typeahead.component.types';
 export { EfProductPickerComponent } from './lib/commerce/ef-product-picker/ef-product-picker.component';
 export type {
-    EfPage,
     EfProductPickerItem,
     EfProductPickerQuery,
 } from './lib/commerce/ef-product-picker/ef-product-picker.component.types';
