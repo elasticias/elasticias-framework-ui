@@ -30,8 +30,13 @@ export interface EfRowAction {
     /** Render a divider in this slot — all other fields ignored. */
     separator?: boolean;
 
-    /** Disable without removing. */
+    /** Disable without removing. The item stays focusable and is exposed
+     *  as `aria-disabled`, so a keyboard user can land on it and read why. */
     disabled?: boolean;
+
+    /** Translation key saying why the item is disabled. Shown under the
+     *  label, as its tooltip, and as its `aria-describedby`. */
+    reasonKey?: string;
 
     /**
      * Hide the item explicitly. Combined with `permission` and any

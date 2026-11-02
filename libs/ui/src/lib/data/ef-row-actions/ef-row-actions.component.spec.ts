@@ -50,6 +50,9 @@ describe('EfRowActionsComponent keyboard shortcuts', () => {
         component.toggle(new MouseEvent('click'));
         fixture.detectChanges();
         expect(component.open()).toBe(true);
+        // Opening now moves focus into the menu (native Enter runs the
+        // focused item); the shortcut still serves focus left on the trigger.
+        fixture.nativeElement.querySelector('.row-actions__trigger').focus();
 
         pressEnter();
 

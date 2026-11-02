@@ -1681,10 +1681,24 @@
 }
 
 .row-actions__item[disabled],
+.row-actions__item[aria-disabled='true'],
 .ef-menu__item[disabled] {
   opacity: 0.45;
   cursor: not-allowed;
   background: transparent;
+}
+
+.row-actions__item[aria-disabled='true'] {
+  flex-wrap: wrap;
+}
+
+/* Why an item is disabled: a second line under its label. */
+.row-actions__item .reason {
+  flex: 0 0 100%;
+  padding-inline-start: 28px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-mute);
 }
 
 .row-actions__item .ico,

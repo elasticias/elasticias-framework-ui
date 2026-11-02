@@ -9,6 +9,7 @@
         [attr.aria-label]="triggerAriaKey() | translate"
         (click)="toggle($event)"
         (dblclick)="onDblClick($event)"
+        (keydown.arrowdown)="openFromKeyboard($event)"
     >
         <i [class]="triggerIcon()" aria-hidden="true"></i>
     </button>
@@ -27,6 +28,7 @@
             role="menu"
             [attr.aria-label]="triggerAriaKey() | translate"
             (dblclick)="onDblClick($event)"
+            (keydown)="onMenuKeydown($event)"
         >
             @for (action of visibleItems(); track trackByItem($index, action)) {
                 @if (action.separator) {
@@ -36,7 +38,9 @@
                         type="button"
                         class="row-actions__item"
                         [class.danger]="action.severity === 'danger'"
-                        [disabled]="action.disabled"
+                        [attr.aria-disabled]="action.disabled ? 'true' : null"
+                        [attr.aria-describedby]="action.disabled && action.reasonKey ? reasonId($index) : null"
+                        [attr.title]="action.disabled && action.reasonKey ? (action.reasonKey | translate) : null"
                         role="menuitem"
                         (click)="runCommand(action, $event)"
                     >
@@ -46,6 +50,9 @@
                         <span class="lbl">
                             {{ action.labelKey ? (action.labelKey | translate) : action.label }}
                         </span>
+                        @if (action.disabled && action.reasonKey) {
+                            <span class="reason" [id]="reasonId($index)">{{ action.reasonKey | translate }}</span>
+                        }
                         @if (action.kbd) {
                             <span class="kbd" aria-hidden="true">{{ action.kbd }}</span>
                         }

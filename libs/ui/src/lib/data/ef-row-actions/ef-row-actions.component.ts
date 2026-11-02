@@ -4,6 +4,8 @@ import {
     DestroyRef,
     ElementRef,
     HostListener,
+    Injector,
+    afterNextRender,
     booleanAttribute,
     computed,
     inject,
@@ -88,6 +90,7 @@ const ROW_SHORTCUTS: ReadonlyArray<{ actionId: string; keys: string; labelKey: s
 export class EfRowActionsComponent {
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly shortcuts = inject(EfShortcutService);
+    private readonly injector = inject(Injector);
 
     /** Distinguishes this instance's registrations from every other row's:
      *  each row on screen constructs its own component, and ids must not
@@ -118,7 +121,7 @@ export class EfRowActionsComponent {
                 // whichever item has focus. Without this, the `enter`
                 // registration would run "view" from underneath the
                 // focused "delete" button and swallow its click.
-                when: () => this.open() && !this.isFocusInsideMenu(),
+                when: () => this.open() && (keys !== 'enter' || !this.isFocusInsideMenu()),
                 handler: () => {
                     const action = this.visibleItems().find(a => a.id === actionId);
                     if (!action || action.disabled) return;
@@ -198,6 +201,7 @@ export class EfRowActionsComponent {
             this.place();
             this.listenForDisplacement();
             this.correctPlacementAfterRender();
+            this.focusItem('first');
         } else {
             this.stopListeningForDisplacement();
         }
@@ -212,6 +216,70 @@ export class EfRowActionsComponent {
         if (action.disabled || action.separator) return;
         action.command?.();
         this.close();
+        this.focusTrigger();
+    }
+
+    /** Id of the visible reason a disabled item carries. */
+    reasonId(index: number): string {
+        return `ef-row-actions-${this.instanceId}-reason-${index}`;
+    }
+
+    /** ArrowDown on the closed trigger opens the menu (APG menu button). */
+    openFromKeyboard(event: Event): void {
+        if (this.open()) return;
+        event.preventDefault();
+        this.toggle(new MouseEvent('click'));
+    }
+
+    /** Arrow Up/Down (wrapping), Home and End move between items; Escape
+     *  closes and hands focus back to the trigger. */
+    onMenuKeydown(event: KeyboardEvent): void {
+        const buttons = this.menuButtons();
+        if (!buttons.length) return;
+        const at = buttons.indexOf(document.activeElement as HTMLElement);
+        let next: number | null = null;
+        switch (event.key) {
+            case 'ArrowDown':
+                next = (at + 1) % buttons.length;
+                break;
+            case 'ArrowUp':
+                next = at <= 0 ? buttons.length - 1 : at - 1;
+                break;
+            case 'Home':
+                next = 0;
+                break;
+            case 'End':
+                next = buttons.length - 1;
+                break;
+            case 'Escape':
+                event.stopPropagation();
+                this.close();
+                this.focusTrigger();
+                return;
+            default:
+                return;
+        }
+        event.preventDefault();
+        buttons[next].focus();
+    }
+
+    private menuButtons(): HTMLElement[] {
+        return Array.from(this.host.nativeElement.querySelectorAll<HTMLElement>('.row-actions__item'));
+    }
+
+    private focusTrigger(): void {
+        this.host.nativeElement.querySelector<HTMLElement>('.row-actions__trigger')?.focus();
+    }
+
+    /** Once the menu is rendered, focus its first enabled item (or the first). */
+    private focusItem(_which: 'first'): void {
+        afterNextRender(
+            () => {
+                const buttons = this.menuButtons();
+                (buttons.find(b => b.getAttribute('aria-disabled') !== 'true') ?? buttons[0])?.focus();
+            },
+            { injector: this.injector },
+        );
     }
 
     close(): void {
@@ -456,7 +524,9 @@ export class EfRowActionsComponent {
     /** Escape closes the menu. */
     @HostListener('document:keydown.escape')
     onEscape(): void {
+        if (!this.open()) return;
         this.close();
+        this.focusTrigger();
     }
 
     /** Swallow dblclick so row-double-click doesn't fire from this column. */
