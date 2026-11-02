@@ -48,6 +48,16 @@ export abstract class ScreenConfig {
   STALE_RULE_CODES?: string[];
 
   /**
+   * Detail screens: after a successful in-place update (not a create or
+   * duplicate) refresh the record, so server-owned fields such as a
+   * concurrency revision are current for the next save. Uses the update
+   * response when it is the saved record (an object whose `id` is the
+   * screen's entity id), otherwise one `get(id)`. Change history reloads
+   * either way. Default false: the record is left as edited.
+   */
+  RELOAD_AFTER_SAVE?: boolean;
+
+  /**
    * Report screens (AbstractReportScreenV2): starting period preset for the
    * screen's ef-datepicker-advanced. Unset → 'last_30_days'.
    */

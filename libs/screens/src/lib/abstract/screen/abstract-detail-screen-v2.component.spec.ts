@@ -695,3 +695,93 @@ describe('AbstractDetailScreenV2 stale save', () => {
     expect(confirmSpy).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('AbstractDetailScreenV2 RELOAD_AFTER_SAVE', () => {
+  class ReloadClient {
+    gets = 0;
+    revision = 1;
+    sent: number[] = [];
+    updateReturns: (id: string) => unknown = () => undefined;
+    get() {
+      this.gets++;
+      return of({ revision: this.revision });
+    }
+    update(id: string, e: { revision: number }) {
+      this.sent.push(e.revision);
+      this.revision++;
+      return of(this.updateReturns(id));
+    }
+    create() {
+      return of({});
+    }
+  }
+  class ReloadConfig extends ScreenConfig {
+    static SCREEN = 'TestDetailItem';
+    static SERVICE: any = ReloadClient;
+    static RELOAD_AFTER_SAVE = true;
+  }
+  class PlainConfig extends ScreenConfig {
+    static SCREEN = 'TestDetailItem';
+    static SERVICE: any = ReloadClient;
+  }
+  @Component({ template: '', standalone: true })
+  class ReloadScreen extends AbstractDetailScreenV2<any> {
+    protected override getConfig() { return ReloadConfig; }
+  }
+  @Component({ template: '', standalone: true })
+  class PlainScreen extends AbstractDetailScreenV2<any> {
+    protected override getConfig() { return PlainConfig; }
+  }
+
+  async function make(cls: new () => AbstractDetailScreenV2<any>) {
+    sessionStorage.clear();
+    localStorage.clear();
+    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+      TestDetailItem: { permissions: [Permissions.Read, Permissions.Edit, Permissions.Create] },
+    });
+    const client = new ReloadClient();
+    await TestBed.configureTestingModule({
+      imports: [cls],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: routeFor('edit') },
+        { provide: ReloadClient, useValue: client },
+        { provide: CacheService, useValue: { configure() { /* no-op */ }, getCache: () => null, setCache() { /* no-op */ } } },
+        { provide: ToastService, useValue: { showSuccess() { /* no-op */ }, showError() { /* no-op */ } } },
+        { provide: ConfirmDialogService, useValue: { confirm() { /* no-op */ } } },
+        { provide: SCREEN_REF_DATA_SERVICE, useValue: fakeRefData },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(cls);
+    fixture.detectChanges();
+    return { screen: fixture.componentInstance, client };
+  }
+
+  it('save then save sends the fresh revision (reloads with a GET when the response is not the record)', async () => {
+    const { screen, client } = await make(ReloadScreen);
+    const gets = client.gets;
+    screen.save();
+    expect(client.gets).toBe(gets + 1);
+    screen.save();
+    expect(client.sent).toEqual([1, 2]);
+  });
+
+  it('uses an update response that is the saved record, without a second GET', async () => {
+    const { screen, client } = await make(ReloadScreen);
+    const id = screen.entityId();
+    client.updateReturns = () => ({ id, revision: 9 });
+    const gets = client.gets;
+    screen.save();
+    expect(client.gets).toBe(gets);
+    expect((screen.entity() as any).revision).toBe(9);
+  });
+
+  it('leaves the record untouched by default', async () => {
+    const { screen, client } = await make(PlainScreen);
+    const gets = client.gets;
+    screen.save();
+    screen.save();
+    expect(client.gets).toBe(gets);
+    expect(client.sent).toEqual([1, 1]);
+  });
+});

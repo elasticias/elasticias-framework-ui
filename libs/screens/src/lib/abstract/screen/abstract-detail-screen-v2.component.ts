@@ -318,14 +318,7 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
 
         this.loadSub?.unsubscribe();
         this.loadSub = this.serviceInstance.get(id).subscribe({
-            next: (result: any) => {
-                const vm = new ViewModelEntity(result) as unknown as TItem;
-                (vm as any).id = id;
-                this.entity.set(vm);
-                this.loading.set(false);
-                this.afterLoad();
-                this.loadAuditHistory();
-            },
+            next: (result: any) => this.applyLoaded(result, id),
             error: (err: any) => {
                 console.error('AbstractDetailScreenV2.loadData failed', err);
                 this.errorMsg.set(err?.message ?? 'Erreur de chargement');
@@ -339,6 +332,16 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                 }
             },
         });
+    }
+
+    /** Install a fetched (or save-returned) record as the current entity. */
+    private applyLoaded(result: any, id: string): void {
+        const vm = new ViewModelEntity(result) as unknown as TItem;
+        (vm as any).id = id;
+        this.entity.set(vm);
+        this.loading.set(false);
+        this.afterLoad();
+        this.loadAuditHistory();
     }
 
     /**
@@ -597,9 +600,22 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
             const newId = typeof result === 'object' ? (result?.id ?? result) : result;
             this.router.navigate([this.detailsBaseUrl(), newId]);
         } else {
-            // Update succeeded in place — refresh the change-history so the new
-            // entry shows without a manual reload.
-            this.loadAuditHistory();
+            if (cfg?.RELOAD_AFTER_SAVE) {
+                // The record carries server-owned state (a concurrency
+                // revision): take the fresh copy. An update response that is
+                // the saved record itself (same id) is used as is, anything
+                // else (void, id, flag) triggers one GET. Both refresh history.
+                const id = this.entityId();
+                if (result && typeof result === 'object' && String(result.id) === String(id)) {
+                    this.applyLoaded(result, id);
+                } else {
+                    this.loadData();
+                }
+            } else {
+                // Update succeeded in place — refresh the change-history so the new
+                // entry shows without a manual reload.
+                this.loadAuditHistory();
+            }
         }
     }
 
