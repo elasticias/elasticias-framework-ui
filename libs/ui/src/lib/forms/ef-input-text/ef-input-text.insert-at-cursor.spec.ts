@@ -65,6 +65,46 @@ describe('EfInputTextComponent insertAtCursor', () => {
         expect(native.value).toBe('Hello! world');
     });
 
+    it('insertAtCursor refuses a token that would pass maxlength, as typing would', () => {
+        // Hello world is 11 chars; a cut token like "{{custo" would be worse
+        // than no token, so the insert is refused whole rather than truncated.
+        const { cmp, native, onChange, emitted } = render({ maxlength: 15 });
+        native.focus();
+        native.setSelectionRange(5, 5);
+        cmp.insertAtCursor('{{name}}');
+        expect(native.value).toBe('Hello world');
+        expect(onChange).not.toHaveBeenCalled();
+        expect(emitted).toEqual([]);
+        cmp.insertAtCursor('!!!!');
+        expect(native.value).toBe('Hello!!!! world');
+    });
+
+    it('insertAtCursor counts the replaced selection against maxlength', () => {
+        // Replacing "world" (5) with "{{name}}" (8) gives 14 chars.
+        const refused = render({ maxlength: 13 });
+        refused.native.focus();
+        refused.native.setSelectionRange(6, 11);
+        refused.cmp.insertAtCursor('{{name}}');
+        expect(refused.native.value).toBe('Hello world');
+
+        TestBed.resetTestingModule();
+        const fits = render({ maxlength: 14 });
+        fits.native.focus();
+        fits.native.setSelectionRange(6, 11);
+        fits.cmp.insertAtCursor('{{name}}');
+        expect(fits.native.value).toBe('Hello {{name}}');
+    });
+
+    it('insertAtCursor ignores focus that landed on another element inside the control', () => {
+        const { cmp, native } = render();
+        native.setSelectionRange(0, 0);
+        const other = document.createElement('button');
+        (native.parentElement as HTMLElement).appendChild(other);
+        other.focus();
+        cmp.insertAtCursor('!');
+        expect(native.value).toBe('Hello world!');
+    });
+
     it('insertAtCursor is a no-op when read-only', () => {
         const { cmp, native, onChange, emitted } = render({ readonly: true });
         native.focus();

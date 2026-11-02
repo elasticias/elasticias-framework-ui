@@ -122,33 +122,42 @@ export class EfTextareaComponent
         this.valueChangeEvent.emit(value);
     }
 
-    /** Set once the user has entered the field; see {@link insertAtSelection}. */
+    /** Set once the field itself has had focus; see {@link insertAtSelection}. */
     private wasFocused = false;
 
-    @HostListener('focusin')
-    protected markFocused(): void {
-        this.wasFocused = true;
+    @HostListener('focusin', ['$event'])
+    protected markFocused(event: FocusEvent): void {
+        // Only the native field counts: focus on the clear button says nothing
+        // about where the user left the caret.
+        if (event.target === this.nativeField()) this.wasFocused = true;
     }
 
     /**
      * Inserts `text` at the caret (replacing a selection), or at the end when
      * the field was never focused, then puts the caret after it. Emits the
      * change once, exactly as typing would. Does nothing when read-only or
-     * disabled.
+     * disabled, and refuses the whole insert when the result would pass
+     * `maxlength` (a cut placeholder token is worse than none).
+     *
+     * The value is written programmatically, so the browser's undo history for
+     * the field is reset and no DOM `input` event fires; the form control
+     * (`onChange`) and `valueChangeEvent` are the contract.
      */
     insertAtCursor(text: string): void {
         if (this.readonly() || this.isDisabled()) return;
-        const field = (this.hostRef.nativeElement as HTMLElement).querySelector('textarea') as
-            | HTMLInputElement
-            | HTMLTextAreaElement
-            | null;
+        const field = this.nativeField();
         if (!field) return;
         const { value, caret } = insertAtSelection(field, text, this.wasFocused);
+        if (this.maxlength != null && value.length > this.maxlength) return;
         // Write the DOM first so the later [value] binding finds it unchanged
         // and leaves the caret where we put it.
         field.value = value;
         this.handleInput(value);
         placeCaret(field, caret);
+    }
+
+    private nativeField(): HTMLInputElement | HTMLTextAreaElement | null {
+        return (this.hostRef.nativeElement as HTMLElement).querySelector('textarea');
     }
 
     handleBlur(): void {
