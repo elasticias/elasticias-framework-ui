@@ -101,6 +101,31 @@ describe('extractProblem', () => {
         expect(p).toEqual({ status: 500, errors: {} });
     });
 
+    it('extracts ruleArgs and drops non-string values', () => {
+        // BR_EM_0001 carries the unknown placeholder as `token`; the screen
+        // interpolates it into the translated message.
+        const p = extractProblem({
+            status: 422,
+            ruleCode: 'BR_EM_0001',
+            ruleArgs: { token: 'customer_nam', count: 3, flag: true, nested: { a: 'b' }, gone: null },
+        });
+        expect(p?.ruleArgs).toEqual({ token: 'customer_nam' });
+    });
+
+    it('leaves ruleArgs out when the server sent none or none was a string', () => {
+        expect(extractProblem({ status: 422, ruleCode: 'BR_X' })).not.toHaveProperty('ruleArgs');
+        expect(extractProblem({ status: 422, ruleCode: 'BR_X', ruleArgs: { n: 1 } })).not.toHaveProperty('ruleArgs');
+        expect(extractProblem({ status: 422, ruleCode: 'BR_X', ruleArgs: ['a'] })).not.toHaveProperty('ruleArgs');
+    });
+
+    it('reads ruleArgs from an HttpErrorResponse body', () => {
+        const err = new HttpErrorResponse({
+            status: 422,
+            error: { status: 422, ruleCode: 'BR_EM_0002', ruleArgs: { removed: 'script,iframe' } },
+        });
+        expect(extractProblem(err)?.ruleArgs).toEqual({ removed: 'script,iframe' });
+    });
+
     it('returns null for something that is no server error', () => {
         expect(extractProblem(new Error('boom'))).toBeNull();
         expect(extractProblem(null)).toBeNull();

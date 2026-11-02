@@ -29,6 +29,12 @@ export interface EfProblem {
     detail?: string;
     /** Business-rule code, for example `BR_COL_0004`. */
     ruleCode?: string;
+    /**
+     * Values the rule's message interpolates, for example `{ token: 'x' }`
+     * for `BR_EM_0001`. Only string values are kept; absent when the server
+     * sent none.
+     */
+    ruleArgs?: Record<string, string>;
     /** Per-field messages, always as arrays. Empty when the server sent none. */
     errors: Record<string, string[]>;
 }
@@ -113,8 +119,17 @@ function normaliseErrors(errors: unknown): Record<string, string[]> {
     return out;
 }
 
+function stringArgs(args: unknown): Record<string, string> | undefined {
+    if (!isDict(args) || Array.isArray(args)) return undefined;
+    const out: Record<string, string> = {};
+    for (const [key, value] of Object.entries(args)) {
+        if (typeof value === 'string') out[key] = value;
+    }
+    return Object.keys(out).length > 0 ? out : undefined;
+}
+
 /**
- * Extracts `status`, `detail`, `ruleCode` and the per-field `errors` from a
+ * Extracts `status`, `detail`, `ruleCode`, `ruleArgs` and the per-field `errors` from a
  * server error of any of the shapes above. Returns `null` when the value is
  * not a server error at all (a plain `Error`, a string, nothing).
  */
@@ -132,5 +147,7 @@ export function extractProblem(error: unknown): EfProblem | null {
     if (detail) problem.detail = detail;
     const ruleCode = asString(payload?.['ruleCode']);
     if (ruleCode) problem.ruleCode = ruleCode;
+    const ruleArgs = stringArgs(payload?.['ruleArgs']);
+    if (ruleArgs) problem.ruleArgs = ruleArgs;
     return problem;
 }
