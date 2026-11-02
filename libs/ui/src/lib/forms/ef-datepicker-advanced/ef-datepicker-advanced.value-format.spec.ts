@@ -1,8 +1,7 @@
 // A screen that edits wall time in another zone (a shop in Casablanca, an owner
-// in Canada) must never see the browser's offset. Run these specs as if the
-// browser sat in Toronto: Node applies a TZ change at once, so a stray UTC
-// conversion (toISOString) moves the time by 4 to 5 hours and fails here.
-process.env.TZ = 'America/Toronto';
+// in Canada) must never see the browser's offset. The lib's vite config runs
+// specs in America/Toronto, so a stray UTC conversion (toISOString) moves the
+// time by 4 to 5 hours and fails here; the first spec guards that setting.
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';

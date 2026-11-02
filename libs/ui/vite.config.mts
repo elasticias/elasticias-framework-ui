@@ -4,6 +4,11 @@ import angular from '@analogjs/vite-plugin-angular';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 
+// Specs run as if the browser sat in Toronto, whatever the machine or CI zone:
+// a date field that slips through UTC then fails (a UTC runner would hide it).
+// Set before the workers start, so each one inherits it.
+process.env.TZ = 'America/Toronto';
+
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/libs/ui',
