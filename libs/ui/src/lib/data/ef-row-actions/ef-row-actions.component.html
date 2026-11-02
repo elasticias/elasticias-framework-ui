@@ -26,6 +26,7 @@
             [style.left]="menuPosition()?.left"
             [style.max-height]="menuPosition()?.maxHeight"
             role="menu"
+            tabindex="-1"
             [attr.aria-label]="triggerAriaKey() | translate"
             (dblclick)="onDblClick($event)"
             (keydown)="onMenuKeydown($event)"
