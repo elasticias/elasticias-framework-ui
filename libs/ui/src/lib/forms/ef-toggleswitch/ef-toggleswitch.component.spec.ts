@@ -28,6 +28,11 @@ describe('EfToggleSwitchComponent layout', () => {
         expect(style.minWidth).toBe('0');
         const sw = host.querySelector('p-toggleswitch') as HTMLElement;
         expect(getComputedStyle(sw).flexShrink).toBe('0');
+        // The flex item beside the switch is the ef-label host (its inner
+        // <label> lives in ef-label's own view), so that is what must shrink.
+        const label = host.querySelector('ef-label') as HTMLElement;
+        expect(getComputedStyle(label).minWidth).toBe('0');
+        expect(getComputedStyle(label).overflowWrap).toBe('anywhere');
     });
 
     it('leaves an unlabelled switch inline', () => {

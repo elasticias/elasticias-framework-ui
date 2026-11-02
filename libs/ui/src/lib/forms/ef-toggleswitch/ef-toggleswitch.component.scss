@@ -12,7 +12,11 @@
   flex-shrink: 0;
 }
 
-:host(.ef-toggleswitch--row) label {
+/* The flex item is the ef-label host: its inner <label> lives in ef-label's
+   own view, out of this stylesheet's reach. `display: contents` would hand
+   the label up as the item, so ef-label is given a box here instead. */
+:host(.ef-toggleswitch--row) ef-label {
+  display: block;
   min-width: 0;
   overflow-wrap: anywhere;
 }
