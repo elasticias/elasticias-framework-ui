@@ -13,13 +13,13 @@
   min-width: 0;
 }
 
-/* Field layout: label above, box centred in a --hit-base row so it
+/* Field layout: label above, box centred in a --hit-field row so it
    sits level with the ef-select / ef-input boxes in the same grid row. */
 :host(.ef-stacked) {
   display: block;
 
   > .ef-checkbox-control {
     display: flex;
-    min-height: var(--hit-base);
+    min-height: var(--hit-field);
   }
 }

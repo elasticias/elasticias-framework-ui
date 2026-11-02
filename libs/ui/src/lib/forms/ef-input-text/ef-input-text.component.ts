@@ -49,7 +49,7 @@ export class EfInputTextComponent
    * Rendering variant — same dual-mode pattern as `ef-button`.
    * - `'comptoir'` (default) — native `<input class="ef-input">` against
    *                           the Comptoir pattern styles. Renders at the
-   *                           canonical `--hit-base` (40px) control height.
+   *                           canonical `--hit-field` height (40px, 48px on touch).
    *                           Required for `prefix` / `suffix`.
    * - `'primeng'`            — wraps `<input pInputText>` (v1). Opt in when
    *                           you specifically need PrimeNG input behaviour.

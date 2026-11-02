@@ -1974,7 +1974,7 @@
   border-radius: var(--r-md);
   padding: 0 14px;
   width: 100%;
-  min-height: var(--hit-base);
+  min-height: var(--hit-field);
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -2035,14 +2035,14 @@
 
 /* Inline clear ✕ for the field-mode trigger (single mode only). Overlaid as a
    sibling — not nested in the trigger <button> — just left of the caret,
-   vertically centred on the --hit-base trigger box. */
+   vertically centred on the --hit-field trigger box. */
 .dp .ef-field-control {
   position: relative;
 }
 
 .dp__field-clear {
   position: absolute;
-  top: calc(var(--hit-base) / 2);
+  top: calc(var(--hit-field) / 2);
   inset-inline-end: 30px;
   transform: translateY(-50%);
 }
@@ -3312,7 +3312,7 @@
   border-radius: var(--r-md);
   color: var(--text);
   outline: 0;
-  height: var(--hit-base);
+  height: var(--hit-field);
   width: 100%;
   transition:
     border-color var(--t-fast) var(--ease-out),
@@ -3483,7 +3483,7 @@
   border: 1px solid var(--rule);
   border-radius: var(--r-md);
   overflow: hidden;
-  min-height: 40px;
+  min-height: var(--hit-field);
   width: 100%;
   transition:
     border-color var(--t-fast) var(--ease-out),
@@ -3617,7 +3617,7 @@ input.ef-input[type='number'] {
   background: var(--paper-alt);
   border: 1px solid var(--rule);
   border-radius: var(--r-md);
-  min-height: var(--hit-base);
+  min-height: var(--hit-field);
   padding: 0 10px 0 14px;
   display: inline-flex;
   align-items: center;

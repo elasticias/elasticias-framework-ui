@@ -103,7 +103,7 @@ export class EfInputNumberComponent
   /* ── Input attributes ────────────────────────────────────────── */
 
   @Input() inputSize?: number;
-  /** Default (undefined) = canonical `--hit-base` (40px); `'small'` = dense 32px. */
+  /** Default (undefined) = canonical `--hit-field` (40px, 48px on touch); `'small'` = dense 32px. */
   @Input() size?: 'small' | 'large';
   @Input() maxlength?: number;
   @Input() minlength?: number;
@@ -128,7 +128,7 @@ export class EfInputNumberComponent
    * Render variant.
    * - `'comptoir'` (default) — native `<input type="text" inputmode="decimal">`
    *                           styled against `.ef-input` / `.ef-input-group`,
-   *                           at the canonical `--hit-base` (40px) height.
+   *                           at the canonical `--hit-field` height (40px, 48px on touch).
    *                           Accepts `,` and `.` as decimal separator.
    * - `'primeng'`            — wraps `p-inputnumber`. Opt in for PrimeNG's
    *                           formatted stepper behaviour.

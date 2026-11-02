@@ -114,6 +114,11 @@
   --hit-base:   40px;  /* standard buttons */
   --hit-touch:  48px;  /* POS / mobile primary actions */
   --hit-pos:    64px;  /* POS number pad, big totals */
+  /* Form fields (inputs, selects, the datepicker trigger). --hit-base with
+     a mouse, --hit-touch on a coarse pointer: see the block at the end of
+     this file. A separate token because --hit-base itself must not move on
+     touch, the top-bar icons and toolbar buttons paint from it. */
+  --hit-field:  var(--hit-base);
 
   /* ── Layers ──────────────────────────────────────────────────── */
   /* Toasts sit above every modal and overlay. PrimeNG numbers its layers
@@ -283,5 +288,17 @@
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* -- Touch tier for form fields --------------------------------------
+   A field is a tap target too, so on a coarse pointer (touch phone,
+   tablet, touch laptop) it grows to --hit-touch (48px), like .btn does
+   in _patterns.scss. Keyed on pointer rather than width, as ef-pill-group
+   and ef-file-upload are: a narrow desktop window keeps 40px fields. Last
+   in the file so the base :root declaration does not win. */
+@media (pointer: coarse) {
+  :root {
+    --hit-field: var(--hit-touch);
   }
 }

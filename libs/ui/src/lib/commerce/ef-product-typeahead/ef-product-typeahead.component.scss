@@ -10,12 +10,12 @@
   // typeahead lines up with ef-inputnumber / ef-select in the same row.
   .input {
     width: 100%;
-    /* Match `.ef-input` exactly: fixed --hit-base height + border-box +
+    /* Match `.ef-input` exactly: fixed --hit-field height + border-box +
        tight line-height, so it renders 40px (not 43px) and lines up with
        ef-inputnumber / ef-select in the same row. Horizontal padding only
        (room for the leading search icon + trailing clear). */
     box-sizing: border-box;
-    height: var(--hit-base);
+    height: var(--hit-field);
     padding: 0 36px 0 38px;
     border: 1px solid var(--rule);
     border-radius: var(--r-md);

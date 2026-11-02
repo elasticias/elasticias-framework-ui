@@ -103,7 +103,7 @@ export class EfSelectComponent
 
   /* ── Layout / size ───────────────────────────────────────────── */
 
-  /** Control height. Default (undefined) = the canonical `--hit-base` (40px),
+  /** Control height. Default (undefined) = the canonical `--hit-field` (40px, 48px on touch),
    *  matching native inputs (ADR-009). `'small'` opts into the dense 32px
    *  variant for compact contexts (e.g. table-row editors). */
   @Input() size?: 'small' | 'large';
@@ -181,8 +181,8 @@ export class EfSelectComponent
    *                           the `.es` / `.es__panel` patterns (the custom
    *                           dropdown: filter, styled options, animated panel
    *                           — see `components.html` Section 04). Also pinned
-   *                           to the canonical `--hit-base` (40px) trigger
-   *                           height (`.es.p-select { min-height: --hit-base }`),
+   *                           to the canonical `--hit-field` (40px, 48px on touch) trigger
+   *                           height (`.es.p-select { min-height: --hit-field }`),
    *                           so it aligns with inputs/buttons in a row.
    * - `'comptoir'`           — lite native `<select class="ef-select-native">`.
    *                           No filter / panel / multi / templates; use it for

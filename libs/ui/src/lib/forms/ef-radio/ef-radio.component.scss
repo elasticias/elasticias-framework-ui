@@ -38,7 +38,7 @@
   flex-basis: 100%;
 }
 
-/* Field layout: label above, options in a --hit-base row so they sit
+/* Field layout: label above, options in a --hit-field row so they sit
    level with the ef-select / ef-input boxes in the same grid row. */
 :host(.ef-stacked) {
   display: block;
@@ -48,6 +48,6 @@
   }
 
   > .ef-radio-options {
-    min-height: var(--hit-base);
+    min-height: var(--hit-field);
   }
 }
