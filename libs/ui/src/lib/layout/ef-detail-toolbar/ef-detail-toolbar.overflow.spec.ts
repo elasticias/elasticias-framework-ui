@@ -106,6 +106,18 @@ describe('EfDetailToolbarComponent mobile overflow', () => {
     expect(el.querySelector('[role="menu"]')).toBeNull();
   });
 
+  it('passes the disabled reason of an action to the menu', async () => {
+    const custom: EfDetailToolbarAction[] = [
+      { id: 'a', labelKey: 'a', disabled: true, disabledReasonKey: 'why_a' },
+      { id: 'b', labelKey: 'b' },
+      { id: 'c', labelKey: 'c' },
+    ];
+    const { fixture, el } = await make(true, { customActions: custom });
+    trigger(el)!.click();
+    fixture.detectChanges();
+    expect(el.querySelector('.row-actions__item .reason')?.textContent?.trim()).toBe('why_a');
+  });
+
   it('emits the standard outputs from the menu', async () => {
     const { fixture, el, cmp } = await make(true, {
       context: ctx(true),
@@ -131,7 +143,7 @@ describe('EfDetailToolbarComponent mobile overflow', () => {
     trigger(el)!.click();
     fixture.detectChanges();
     const first = el.querySelector<HTMLButtonElement>('.row-actions__item')!;
-    expect(first.disabled).toBe(true);
+    expect(first.getAttribute('aria-disabled')).toBe('true');
     first.click();
     expect(command).not.toHaveBeenCalled();
   });

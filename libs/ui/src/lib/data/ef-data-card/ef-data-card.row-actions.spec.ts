@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfViewportService } from '@elasticias/core';
-import { EfDataCardComponent } from './ef-data-card.component';
+import { EfDataCardComponent, EfDataCardRowActionState } from './ef-data-card.component';
 
 type Row = { id: string; name: string; status: 'draft' | 'live' };
 
@@ -18,7 +18,7 @@ describe('ef-data-card row action state', () => {
     { id: '2', name: 'Globex', status: 'live' },
   ];
 
-  async function make(mobile: boolean, state?: (a: string, r: Row) => 'hidden' | 'disabled' | null | undefined) {
+  async function make(mobile: boolean, state?: (a: string, r: Row) => EfDataCardRowActionState) {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [EfDataCardComponent, TranslateModule.forRoot()],
@@ -65,6 +65,18 @@ describe('ef-data-card row action state', () => {
     const edit = cmp.defaultRowActions(rows[1]).find((i) => i.id === 'edit');
     expect(edit?.disabled).toBe(true);
     expect(cmp.defaultRowActions(rows[0]).find((i) => i.id === 'edit')?.disabled).toBeFalsy();
+  });
+
+  it('carries the reason of a disabled action', async () => {
+    const { cmp } = await make(false, (a, r) =>
+      a === 'delete' && r.status === 'live' ? { state: 'disabled', reasonKey: 'only_draft' } : null,
+    );
+    const del = cmp.defaultRowActions(rows[1]).find((i) => i.id === 'delete');
+    expect(del?.disabled).toBe(true);
+    expect(del?.reasonKey).toBe('only_draft');
+    const ok = cmp.defaultRowActions(rows[0]).find((i) => i.id === 'delete');
+    expect(ok?.disabled).toBeFalsy();
+    expect(ok?.reasonKey).toBeUndefined();
   });
 
   it('does not emit a disabled action', async () => {

@@ -48,9 +48,15 @@ import {
 export type EfDataCardRowAction = 'view' | 'edit' | 'duplicate' | 'delete';
 
 /** What `[rowActionState]` answers for one action on one row: `'hidden'`
- *  leaves it out of the menu, `'disabled'` shows it greyed and inert, and
+ *  leaves it out of the menu, `'disabled'` (or `{ state: 'disabled', reasonKey }`, which also says why, announced
+ *  and shown under the item) shows it greyed and inert, and
  *  `null` / `undefined` leaves it as it is. */
-export type EfDataCardRowActionState = 'hidden' | 'disabled' | null | undefined;
+export type EfDataCardRowActionState =
+    | 'hidden'
+    | 'disabled'
+    | { state: 'disabled'; reasonKey?: string }
+    | null
+    | undefined;
 
 /** Row height presets offered by the Density control. */
 export type EfTableDensity = 'compact' | 'default' | 'comfortable';
@@ -588,8 +594,16 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         const items: EfRowAction[] = [];
         const state = this.rowActionState();
         const stateOf = (action: EfDataCardRowAction) => state?.(action, row);
+        const isDisabled = (action: EfDataCardRowAction) => {
+            const st = stateOf(action);
+            return st === 'disabled' || (typeof st === 'object' && st?.state === 'disabled');
+        };
+        const reasonOf = (action: EfDataCardRowAction) => {
+            const st = stateOf(action);
+            return typeof st === 'object' && st?.state === 'disabled' ? st.reasonKey : undefined;
+        };
         const emit = (action: EfDataCardRowAction) => () => {
-            if (stateOf(action) === 'disabled') return;
+            if (isDisabled(action)) return;
             this.rowAction.emit({ action, row });
         };
 
@@ -600,7 +614,8 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 icon: 'pi pi-eye',
                 kbd: formatShortcut('enter'),
                 permission: Permissions.Read,
-                disabled: stateOf('view') === 'disabled',
+                disabled: isDisabled('view'),
+                reasonKey: reasonOf('view'),
                 command: emit('view'),
             });
         }
@@ -611,7 +626,8 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 icon: 'pi pi-pencil',
                 kbd: formatShortcut('e'),
                 permission: Permissions.Edit,
-                disabled: stateOf('edit') === 'disabled',
+                disabled: isDisabled('edit'),
+                reasonKey: reasonOf('edit'),
                 command: emit('edit'),
             });
         }
@@ -625,7 +641,8 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 // a duplicate form the user cannot save. Hiding the item
                 // also disarms mod+d, which only runs visible items.
                 permission: [Permissions.Duplicate, Permissions.Create],
-                disabled: stateOf('duplicate') === 'disabled',
+                disabled: isDisabled('duplicate'),
+                reasonKey: reasonOf('duplicate'),
                 command: emit('duplicate'),
             });
         }
@@ -638,7 +655,8 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 kbd: '⌫',
                 severity: 'danger',
                 permission: Permissions.Delete,
-                disabled: stateOf('delete') === 'disabled',
+                disabled: isDisabled('delete'),
+                reasonKey: reasonOf('delete'),
                 command: emit('delete'),
             });
         }

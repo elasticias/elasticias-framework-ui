@@ -47,6 +47,10 @@ export interface EfDetailToolbarAction {
     /** Disable without removing. */
     disabled?: boolean;
 
+    /** Translation key saying why the action is disabled; shown in the
+     *  phone overflow menu under the label and as its description. */
+    disabledReasonKey?: string;
+
     /**
      * If set, the action is hidden unless the bound `ScreenContext`
      * grants this permission. Actions with no `permission` always

@@ -192,6 +192,7 @@ export class EfDetailToolbarComponent {
       label: a.label,
       icon: a.icon,
       disabled: !!a.disabled,
+      reasonKey: a.disabled ? a.disabledReasonKey : undefined,
       severity: a.severity === 'danger' ? 'danger' : 'default',
       command: () => this.onCustomClick(a),
     }));
