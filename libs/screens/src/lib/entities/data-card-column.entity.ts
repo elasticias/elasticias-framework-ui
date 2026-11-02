@@ -106,6 +106,15 @@ export interface EfDataCardColumn {
      */
     exportable?: boolean;
 
+    /**
+     * The value this column writes to a CSV export, given the row. Use it
+     * where the screen shows a label composed from codes (a kind plus its
+     * rule), so the file says what the screen said. It wins over the
+     * built-in reference lookup and raw value; `null`/`undefined` become an
+     * empty cell.
+     */
+    exportValue?: (row: any) => unknown;
+
     /** Inline CSS width (e.g. `'40px'`, `'15%'`). */
     width?: string;
 

@@ -851,6 +851,8 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      * what the screen said.
      */
     private exportCellValue(row: TRow, col: EfDataCardColumn): unknown {
+        if (col.exportValue) return col.exportValue(row) ?? '';
+
         const raw = this.cellValue(row, col);
         if (raw === null || raw === undefined) return '';
 
