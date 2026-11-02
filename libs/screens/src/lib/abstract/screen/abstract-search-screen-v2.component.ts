@@ -720,6 +720,7 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         this.totalCount.set(result?.totalCount ?? 0);
         this.cacheService.setCache(this.screenStateKey, this.criteria());
         this.loading.set(false);
+        this.afterSearch(result);
       },
       error: (err: any) => {
         if (seq !== this.searchSeq) return;
@@ -728,6 +729,16 @@ export abstract class AbstractSearchScreenV2<TItem = any>
         this.loading.set(false);
       },
     });
+  }
+
+  /**
+   * Hook for a screen whose search returns more than a page of rows (counts,
+   * facets, a summary): called with the raw response after `items` and
+   * `totalCount` are set, for the latest issued search only. A stale or
+   * failed search never reaches it.
+   */
+  protected afterSearch(_result: unknown): void {
+    /* no-op by default */
   }
 
   /* ── Convenience criteria mutators ───────────────────────────── */

@@ -96,6 +96,41 @@ describe('AbstractSearchScreenV2', () => {
     expect(screen.totalCount()).toBe(1);
   });
 
+  it('afterSearch receives the latest result only', () => {
+    const seen: unknown[] = [];
+    let itemsAtHook: unknown = null;
+    (screen as any).afterSearch = (result: unknown) => {
+      seen.push(result);
+      itemsAtHook = screen.items();
+    };
+    fixture.detectChanges();
+    const bootstrap = { items: [{ id: 'bootstrap' }], totalCount: 1 };
+    fakeService.calls[0].next(bootstrap);
+    fakeService.calls[0].complete();
+    seen.length = 0;
+
+    screen.search();
+    screen.search();
+    const second = { items: [{ id: 'second' }], totalCount: 2 };
+    fakeService.calls[2].next(second);
+    fakeService.calls[2].complete();
+    fakeService.calls[1].next({ items: [{ id: 'first-stale' }], totalCount: 99 });
+    fakeService.calls[1].complete();
+
+    expect(seen).toEqual([second]);
+    // Called after items and totalCount are set, so the hook can read them.
+    expect(itemsAtHook).toEqual([{ id: 'second' }]);
+  });
+
+  it('afterSearch is not called when the search fails', () => {
+    const seen: unknown[] = [];
+    (screen as any).afterSearch = (result: unknown) => seen.push(result);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    fixture.detectChanges();
+    fakeService.calls[0].error(new Error('boom'));
+    expect(seen).toEqual([]);
+  });
+
   it('never puts a non-string search value into the criteria', () => {
     fixture.detectChanges();
     screen.searchQuery.set('acme');
