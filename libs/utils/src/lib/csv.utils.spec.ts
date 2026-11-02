@@ -53,4 +53,15 @@ describe('CsvUtils.toCsv', () => {
       'Produit;Qté;Note\r\n"\'@name";1;"\'+33612345678"\r\nok;2;',
     );
   });
+
+  it('neutralizes a leading CR or tab and quotes a cell holding a CR', () => {
+    const rows = [{ a: '\r=1+1', b: '\t=2', c: 'x\ry' }];
+    const csv = CsvUtils.toCsv(rows, [
+      { key: 'a', header: 'a' },
+      { key: 'b', header: 'b' },
+      { key: 'c', header: 'c' },
+    ]);
+    const line = csv.split('\r\n')[1];
+    expect(line).toBe('"\'\r=1+1";"\'\t=2";"x\ry"');
+  });
 });

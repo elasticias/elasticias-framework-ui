@@ -10,18 +10,18 @@ export class CsvUtils {
     columns: ReadonlyArray<CsvColumn<T>>,
     separator = ';',
   ): string {
-    // Excel/LibreOffice treat cells starting with =, +, -, @ or a tab as formulas.
+    // Excel/LibreOffice treat cells starting with =, +, -, @, a tab or a CR as formulas.
     // Operator-entered client/product names could carry these as their first
     // character, so string values are neutralized (numbers are never affected —
     // the guard only applies before coercion, when `raw` is actually a string).
-    const needsFormulaGuard = (value: string): boolean => /^[=+\-@\t]/.test(value);
+    const needsFormulaGuard = (value: string): boolean => /^[=+\-@\t\r]/.test(value);
     const escape = (raw: unknown): string => {
       if (raw === null || raw === undefined) return '';
       const isString = typeof raw === 'string';
       let s = String(raw);
       const guard = isString && needsFormulaGuard(s);
       if (guard) s = `'${s}`;
-      return guard || s.includes(separator) || s.includes('"') || s.includes('\n')
+      return guard || s.includes(separator) || s.includes('"') || s.includes('\n') || s.includes('\r')
         ? `"${s.replace(/"/g, '""')}"`
         : s;
     };
