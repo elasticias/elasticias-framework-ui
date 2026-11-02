@@ -150,7 +150,14 @@ export class EfOrderBuilderComponent implements OnInit {
     transform: toFee,
   });
 
-  /** Optional change-history entries; when non-empty the Historique rail card renders. */
+  /**
+   * Optional change-history entries; when non-empty the Historique rail card renders.
+   *
+   * Host cards that belong in the rail (a delivery card, internal notes) are
+   * projected with the `obRail` attribute: `<ef-card obRail ...>`. They sit
+   * after the totals and the recap and before the history, as a column at
+   * desktop width and inside the drawer below that or in focus mode.
+   */
   auditEntries = input<EfChangeHistoryEntry[]>([]);
 
   openCatalogue = output<void>();

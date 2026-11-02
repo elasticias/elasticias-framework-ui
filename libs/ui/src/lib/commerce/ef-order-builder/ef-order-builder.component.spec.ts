@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
@@ -444,5 +445,47 @@ describe('EfOrderBuilderComponent (recipient)', () => {
     }
     // The full address stays reachable when the line is cut.
     expect(strip.querySelector('.ob-recipient-address')?.getAttribute('title')).toBe(RECIPIENT.address);
+  });
+});
+
+@Component({
+  standalone: true,
+  imports: [EfOrderBuilderComponent],
+  template: `
+    <ef-order-builder [order]="order" [products]="[]" [customers]="[]" [auditEntries]="audit">
+      <section obRail class="host-rail-card">notes</section>
+      <section class="host-unslotted">not in the rail</section>
+    </ef-order-builder>
+  `,
+})
+class RailHostComponent {
+  order = makeOrder();
+  audit = [{ operation: 'updated', occurredAt: new Date().toISOString(), changes: [] }];
+}
+
+describe('EfOrderBuilderComponent (rail slot)', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RailHostComponent, TranslateModule.forRoot()],
+    }).compileComponents();
+  });
+
+  it('projects [obRail] content into the rail between the totals and the history', () => {
+    const fixture = TestBed.createComponent(RailHostComponent);
+    fixture.detectChanges();
+    const rail = (fixture.nativeElement as HTMLElement).querySelector('.ob-rail') as HTMLElement;
+    const card = rail.querySelector('.host-rail-card') as HTMLElement;
+    expect(card).toBeTruthy();
+
+    const children = Array.from(rail.children);
+    const totals = children.findIndex((c) => c.querySelector('.ob-totals'));
+    const history = children.findIndex((c) => c.tagName.toLowerCase() === 'ef-change-history');
+    const slotted = children.indexOf(card);
+    expect(totals).toBeGreaterThanOrEqual(0);
+    expect(history).toBeGreaterThan(slotted);
+    expect(slotted).toBeGreaterThan(totals);
+
+    // Content without the attribute is not projected anywhere.
+    expect((fixture.nativeElement as HTMLElement).querySelector('.host-unslotted')).toBeNull();
   });
 });

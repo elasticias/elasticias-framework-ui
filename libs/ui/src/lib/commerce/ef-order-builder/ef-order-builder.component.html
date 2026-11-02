@@ -339,6 +339,10 @@
         </ef-card>
       }
 
+      <!-- Host cards that belong beside the totals (delivery, notes): a column
+           at desktop width, below the totals in the drawer otherwise. -->
+      <ng-content select="[obRail]" />
+
       <!-- Historique (optional, component-owned) -->
       @if (hasAudit()) {
         <ef-change-history [entries]="auditEntries()" />
