@@ -15,7 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
  * the template's own styles apply.
  *
  * The frame always has an accessible name (WCAG 4.1.2): `titleKey`, or the
- * shared `preview.title` key when none is given. Consuming apps define it:
+ * shared `ef_html_preview_title` key when none is given. Consuming apps define it:
  * fr "Aperçu", ar "معاينة", en "Preview".
  *
  * `width: 100%` and `min-width: 0` keep a 600px email table scrolling inside
@@ -26,7 +26,7 @@ import { TranslateModule } from '@ngx-translate/core';
  * ```
  */
 /** The title key the frame falls back to; apps add it to fr.json, ar.json and en.json. */
-export const EF_HTML_PREVIEW_DEFAULT_TITLE_KEY = 'preview.title';
+export const EF_HTML_PREVIEW_DEFAULT_TITLE_KEY = 'ef_html_preview_title';
 
 @Component({
     selector: 'ef-html-preview',
@@ -46,7 +46,7 @@ export const EF_HTML_PREVIEW_DEFAULT_TITLE_KEY = 'preview.title';
 export class EfHtmlPreviewComponent {
     /** The full document to show. Sanitized by the server before it gets here. */
     readonly html = input<string>('');
-    /** i18n key of the frame's accessible title; `preview.title` when empty. */
+    /** i18n key of the frame's accessible title; `ef_html_preview_title` when empty. */
     readonly titleKey = input<string>('');
     /** Frame height in pixels. */
     readonly height = input<number>(480);

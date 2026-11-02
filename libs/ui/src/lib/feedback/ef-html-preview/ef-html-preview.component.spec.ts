@@ -16,7 +16,7 @@ describe('EfHtmlPreviewComponent', () => {
 
     function render(inputs: Record<string, unknown> = {}) {
         TestBed.configureTestingModule({ imports: [EfHtmlPreviewComponent, TranslateModule.forRoot()] });
-        TestBed.inject(TranslateService).setTranslation('fr', { preview_title: 'Aperçu du message', 'preview.title': 'Aperçu' });
+        TestBed.inject(TranslateService).setTranslation('fr', { preview_title: 'Aperçu du message', ef_html_preview_title: 'Aperçu' });
         TestBed.inject(TranslateService).use('fr');
         const fixture = TestBed.createComponent(EfHtmlPreviewComponent);
         fixture.componentRef.setInput('html', html);
@@ -65,7 +65,7 @@ describe('EfHtmlPreviewComponent', () => {
         expect(frame.getAttribute('title')).toBe('Aperçu du message');
     });
 
-    it('ef-html-preview always names the frame, with preview.title by default', () => {
+    it('ef-html-preview always names the frame, with ef_html_preview_title by default', () => {
         // An iframe without a title fails WCAG 4.1.2.
         expect(render().frame.getAttribute('title')).toBe('Aperçu');
         TestBed.resetTestingModule();
