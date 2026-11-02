@@ -11,8 +11,8 @@
         type="button"
         class="ef-pill"
         role="tab"
-        [class.is-active]="item.value === value()"
-        [attr.aria-selected]="item.value === value()"
+        [class.is-active]="item.value === selected()"
+        [attr.aria-selected]="item.value === selected()"
         (click)="select(item)"
       >
         <span class="ef-pill__label">{{ item.labelKey | translate }}</span>

@@ -7,7 +7,8 @@ import {
     effect,
     ElementRef,
     input,
-    model,
+    linkedSignal,
+    output,
     signal,
     viewChild,
 } from '@angular/core';
@@ -66,8 +67,17 @@ export interface EfPillItem<T = string> {
 export class EfPillGroupComponent<T = string> {
     readonly items = input.required<ReadonlyArray<EfPillItem<T>>>();
 
-    /** Two-way bound selection. */
-    readonly value = model<T | null>(null);
+    /** Selected value; `null` when nothing is selected. Two-way bindable
+     *  with `[(value)]`. */
+    readonly value = input<T | null>(null);
+
+    /** Emits the picked pill's value. Never `null`: a click always picks
+     *  a pill, so handlers can take `T` without a null check. */
+    readonly valueChange = output<T>();
+
+    /** What the pills render: the bound value, or the last pick when the
+     *  caller only listens to `valueChange`. */
+    protected readonly selected = linkedSignal(() => this.value());
 
     /** Translation key for the group's accessible name. */
     readonly ariaLabelKey = input<string>('common_filters');
@@ -95,7 +105,7 @@ export class EfPillGroupComponent<T = string> {
         });
 
         effect(() => {
-            this.value();
+            this.selected();
             this.items();
             queueMicrotask(() => {
                 this.measure();
@@ -105,7 +115,9 @@ export class EfPillGroupComponent<T = string> {
     }
 
     protected select(item: EfPillItem<T>): void {
-        if (this.value() !== item.value) this.value.set(item.value);
+        if (this.selected() === item.value) return;
+        this.selected.set(item.value);
+        this.valueChange.emit(item.value);
     }
 
     protected onScroll(): void {
