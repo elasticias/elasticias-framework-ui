@@ -113,6 +113,7 @@ export type { EfChartSeries, EfChartType } from './lib/data/ef-chart/ef-chart.co
 export { EfRankListComponent } from './lib/data/ef-rank-list/ef-rank-list.component';
 export type { EfRankRow } from './lib/data/ef-rank-list/ef-rank-list.component';
 export { EfIdentityThumbComponent } from './lib/data/ef-identity-thumb/ef-identity-thumb.component';
+export { EfSeoPreviewComponent } from './lib/data/ef-seo-preview/ef-seo-preview.component';
 export type { EfIdentityThumbSize } from './lib/data/ef-identity-thumb/ef-identity-thumb.component';
 
 // Forms

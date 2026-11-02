@@ -1,0 +1,6 @@
+<p class="ef-seo-preview__label" data-role="preview-label" [id]="labelId">{{ labelKey() | translate }}</p>
+<div class="ef-seo-preview__box" data-role="preview-box" [attr.lang]="contentLang()">
+    <p class="ef-seo-preview__url" data-role="preview-url" dir="ltr">{{ shownUrl() }}</p>
+    <p class="ef-seo-preview__title" data-role="preview-title" dir="auto">{{ shownTitle() }}</p>
+    <p class="ef-seo-preview__description" data-role="preview-description" dir="auto">{{ shownDescription() }}</p>
+</div>
