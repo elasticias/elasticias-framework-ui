@@ -38,7 +38,7 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
     <p-toggleswitch
       [autofocus]="autofocus"
       [inputId]="effectiveId"
-      [name]="name() || undefined"
+      [name]="$any(name() || undefined)"
       [ngModel]="checked"
       [ngModelOptions]="{ standalone: true }"
       [disabled]="isDisabled()"

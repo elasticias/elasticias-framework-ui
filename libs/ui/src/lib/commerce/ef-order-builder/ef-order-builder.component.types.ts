@@ -23,7 +23,7 @@ export interface OrderProductsSummary {
  */
 export interface OrderLineItem {
   id?: string | number;
-  product?: Record<string, unknown>;
+  product?: Record<string, unknown> | null;
   productId?: unknown;
   variantId?: string | null;
   countGroup?: string;

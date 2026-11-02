@@ -11,9 +11,9 @@
   [styleClass]="effectiveStyleClass"
   [position]="position"
   [appendTo]="appendTo"
-  [header]="variant === 'primeng' ? effectiveTitle : null"
+  [header]="variant === 'primeng' ? effectiveTitle : undefined"
   [closable]="variant === 'primeng' ? closable : false"
-  [footerTemplate]="variant === 'primeng' && !useDynamicActions && defaultActions ? defaultFooterTpl : null"
+  [footerTemplate]="variant === 'primeng' && !useDynamicActions && defaultActions ? defaultFooterTpl : undefined"
   (onShow)="handleShow()"
   (onHide)="handleHide()"
 >

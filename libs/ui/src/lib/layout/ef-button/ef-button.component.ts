@@ -173,8 +173,8 @@ export class EfButtonComponent implements OnInit {
    * `'small' | 'large'`, with the default (unset) being the normal height, so
    * `'base'` maps to `null` rather than being forwarded verbatim.
    */
-  get pnSize(): 'small' | 'large' | null {
-    return this.size === 'base' ? null : this.size;
+  get pnSize(): 'small' | 'large' | undefined {
+    return this.size === 'base' ? undefined : this.size;
   }
 
   /** Composed class string for the Comptoir variant —

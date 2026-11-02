@@ -52,7 +52,7 @@ const PRESETS: Record<string, Record<string, unknown>> = {
                             (click)="updateColors($event, 'primary', primaryColor)"
                             [ngClass]="{ 'active-color': primaryColor.name === selectedPrimaryColor() }"
                             [style]="{
-                                'background-color': primaryColor.name === 'noir' ? 'var(--text-color)' : primaryColor?.palette['500']
+                                'background-color': primaryColor.name === 'noir' ? 'var(--text-color)' : primaryColor.palette?.['500']
                             }"
                         ></button>
                     }
@@ -69,7 +69,7 @@ const PRESETS: Record<string, Record<string, unknown>> = {
                             (click)="updateColors($event, 'surface', surface)"
                             [ngClass]="{ 'active-color': selectedSurfaceColor() ? selectedSurfaceColor() === surface.name : configService.appState().darkTheme ? surface.name === 'zinc' : surface.name === 'slate' }"
                             [style]="{
-                                'background-color': surface.name === 'noir' ? 'var(--text-color)' : surface?.palette['500']
+                                'background-color': surface.name === 'noir' ? 'var(--text-color)' : surface.palette?.['500']
                             }"
                         ></button>
                     }
@@ -154,7 +154,7 @@ export class EfThemeConfiguratorComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.onPresetChange(this.configService.appState().preset);
+        this.onPresetChange(this.configService.appState().preset ?? 'Lara');
     }
 
     surfaces = [

@@ -5,7 +5,7 @@
   <p-datepicker
     [autofocus]="autofocus"
     [inputId]="effectiveId"
-    [name]="name"
+    [name]="$any(name)"
     [ngModel]="value"
     [ngModelOptions]="{standalone: true}"
     (ngModelChange)="handleChange($event)"

@@ -98,7 +98,7 @@ export class EfDatepickerComponent implements ControlValueAccessor {
 
   get showRequired(): boolean {
     const ctrl = this.ngControl?.control;
-    return ctrl?.hasError('required') && ctrl?.touched;
+    return !!(ctrl?.hasError('required') && ctrl?.touched);
   }
 
   get serverErrors(): string[] | null {
@@ -107,7 +107,7 @@ export class EfDatepickerComponent implements ControlValueAccessor {
 
   get isInvalid(): boolean {
     const ctrl = this.ngControl?.control;
-    return ctrl?.invalid && (ctrl?.touched || ctrl?.dirty);
+    return !!(ctrl?.invalid && (ctrl?.touched || ctrl?.dirty));
   }
 
   writeValue(value: any): void {

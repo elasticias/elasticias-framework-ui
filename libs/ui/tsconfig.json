@@ -4,6 +4,7 @@
     "isolatedModules": false,
     "moduleResolution": "bundler",
     "strict": false,
+    "strictNullChecks": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": false,
     "noImplicitReturns": false,

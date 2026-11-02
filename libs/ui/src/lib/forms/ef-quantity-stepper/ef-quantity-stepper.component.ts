@@ -96,7 +96,7 @@ export class EfQuantityStepperComponent implements ControlValueAccessor {
   /**
    * Callback to invoke when the value changes
    */
-  @Output() valueChange = new EventEmitter<number>();
+  @Output() valueChange = new EventEmitter<number | null>();
 
   /**
    * Pass Through configuration for custom styling
