@@ -47,6 +47,11 @@ import {
 /** Action identifier emitted by `ef-data-card`'s auto row-actions cell. */
 export type EfDataCardRowAction = 'view' | 'edit' | 'duplicate' | 'delete';
 
+/** What `[rowActionState]` answers for one action on one row: `'hidden'`
+ *  leaves it out of the menu, `'disabled'` shows it greyed and inert, and
+ *  `null` / `undefined` leaves it as it is. */
+export type EfDataCardRowActionState = 'hidden' | 'disabled' | null | undefined;
+
 /** Row height presets offered by the Density control. */
 export type EfTableDensity = 'compact' | 'default' | 'comfortable';
 
@@ -423,6 +428,21 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
     readonly showDuplicateAction = input(true, { transform: booleanAttribute });
     readonly showDeleteAction = input(true, { transform: booleanAttribute });
 
+    /**
+     * Per-row visibility of the built-in row actions, e.g. no Delete on a
+     * row that is not a draft:
+     *
+     * ```ts
+     * rowActionState = (action, row) =>
+     *   action === 'delete' && row.status !== 'draft' ? 'hidden' : null;
+     * ```
+     *
+     * Applied on top of the `show*Action` flags and the permission filter,
+     * on desktop rows and phone cards alike. A row whose actions are all
+     * hidden gets a disabled trigger. Unset, every row keeps every action.
+     */
+    readonly rowActionState = input<((action: EfDataCardRowAction, row: TRow) => EfDataCardRowActionState) | null>(null);
+
     /* ── Table tools (density / column picker) ──────────────────── */
 
     /** Render the Density control in the head row. */
@@ -566,28 +586,36 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
      *  menu is open, and a hardcoded `'⌘D'` would lie to a Windows user. */
     defaultRowActions(row: TRow): ReadonlyArray<EfRowAction> {
         const items: EfRowAction[] = [];
+        const state = this.rowActionState();
+        const stateOf = (action: EfDataCardRowAction) => state?.(action, row);
+        const emit = (action: EfDataCardRowAction) => () => {
+            if (stateOf(action) === 'disabled') return;
+            this.rowAction.emit({ action, row });
+        };
 
-        if (this.showViewAction()) {
+        if (this.showViewAction() && stateOf('view') !== 'hidden') {
             items.push({
                 id: 'view',
                 labelKey: 'common_view',
                 icon: 'pi pi-eye',
                 kbd: formatShortcut('enter'),
                 permission: Permissions.Read,
-                command: () => this.rowAction.emit({ action: 'view', row }),
+                disabled: stateOf('view') === 'disabled',
+                command: emit('view'),
             });
         }
-        if (this.showEditAction()) {
+        if (this.showEditAction() && stateOf('edit') !== 'hidden') {
             items.push({
                 id: 'edit',
                 labelKey: 'common_edit',
                 icon: 'pi pi-pencil',
                 kbd: formatShortcut('e'),
                 permission: Permissions.Edit,
-                command: () => this.rowAction.emit({ action: 'edit', row }),
+                disabled: stateOf('edit') === 'disabled',
+                command: emit('edit'),
             });
         }
-        if (this.showDuplicateAction()) {
+        if (this.showDuplicateAction() && stateOf('duplicate') !== 'hidden') {
             items.push({
                 id: 'duplicate',
                 labelKey: 'common_duplicate',
@@ -597,10 +625,11 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 // a duplicate form the user cannot save. Hiding the item
                 // also disarms mod+d, which only runs visible items.
                 permission: [Permissions.Duplicate, Permissions.Create],
-                command: () => this.rowAction.emit({ action: 'duplicate', row }),
+                disabled: stateOf('duplicate') === 'disabled',
+                command: emit('duplicate'),
             });
         }
-        if (this.showDeleteAction()) {
+        if (this.showDeleteAction() && stateOf('delete') !== 'hidden') {
             if (items.length > 0) items.push({ separator: true });
             items.push({
                 id: 'delete',
@@ -609,7 +638,8 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
                 kbd: '⌫',
                 severity: 'danger',
                 permission: Permissions.Delete,
-                command: () => this.rowAction.emit({ action: 'delete', row }),
+                disabled: stateOf('delete') === 'disabled',
+                command: emit('delete'),
             });
         }
 
