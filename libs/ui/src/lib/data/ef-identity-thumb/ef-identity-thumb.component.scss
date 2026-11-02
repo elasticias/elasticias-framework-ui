@@ -1,0 +1,23 @@
+/* Shape, colour and type come from the global .thumb pattern; this file only
+   sizes it and fits the image. */
+:host(.ef-identity-thumb--sm) {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+:host(.ef-identity-thumb--md) {
+  width: 40px;
+  height: 40px;
+}
+
+:host(.has-image) {
+  overflow: hidden;
+}
+
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

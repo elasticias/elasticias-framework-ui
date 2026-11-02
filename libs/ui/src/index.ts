@@ -107,6 +107,8 @@ export { buildChartConfig, EF_CHART_PALETTE } from './lib/data/ef-chart/ef-chart
 export type { EfChartSeries, EfChartType } from './lib/data/ef-chart/ef-chart.config';
 export { EfRankListComponent } from './lib/data/ef-rank-list/ef-rank-list.component';
 export type { EfRankRow } from './lib/data/ef-rank-list/ef-rank-list.component';
+export { EfIdentityThumbComponent } from './lib/data/ef-identity-thumb/ef-identity-thumb.component';
+export type { EfIdentityThumbSize } from './lib/data/ef-identity-thumb/ef-identity-thumb.component';
 
 // Forms
 export * from './lib/forms';
