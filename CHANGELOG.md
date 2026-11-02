@@ -1,3 +1,62 @@
+## 1.0.49 (2026-11-02)
+
+### Breaking
+
+- **`EfDataCardComponent.hiddenColumnIds` is now a read-only `computed`** (it was a writable `signal`). It is derived from the viewer's saved choice and the new `defaultHidden` columns. Code that called `.set()` or `.update()` on it stops compiling; change the columns through the Columns picker or the preference store.
+- **A disabled `ef-row-actions` item is `aria-disabled="true"`, not native `disabled`.** It stays focusable so a keyboard or screen-reader user can reach it and hear why, and click/Enter do nothing. App CSS written against `.row-actions__item:disabled` or `[disabled]` no longer matches; use `[aria-disabled='true']`.
+- **`ef-order-builder` takes the delivery fee only from its new `[shippingTotal]` input.** A `shippingTotal` placed on the bound `order` is ignored and removed; with no fee (B2B, POS) the bound order carries no `shippingTotal` at all. `finalTotal`, on the rail, the bound order and `exportOrder()`, is rounded to the centime half away from zero, as the backend rounds a decimal. `OrderEntityHelper.calculateTotals` rounds the same way and adds `order.shippingTotal`.
+- **`@elasticias/ui` declares `rxjs ~7.8.0` as a peer dependency.**
+
+### Added
+
+- **`ef-product-picker`**: a multi-select product picker in a dialog (full screen on a phone). It takes a `search` function (`EfProductPickerQuery` → `EfPage<EfProductPickerItem>`), keeps the selection across pages and searches, and emits the ticked ids in order. Keys: `ef_product_picker_selected` (`{{count}}`), `ef_product_picker_empty`, `ef_product_picker_search_placeholder`, `ef_product_picker_col_reference`, `ef_product_picker_col_title`, `ef_product_picker_col_meta`, plus `common_add`, `common_cancel`, `common_error_load_failed`.
+- **`EfPage<T>` (`@elasticias/types`)**: the minimal `{ items, totalCount }` page any paged DTO is assignable to.
+- **`ef-file-upload`**: a keyboard and screen-reader accessible file picker that re-checks `accept` and `maxSizeBytes` and emits the `File` (`fileSelected`) or `{ file, reason }` (`fileRejected`), so the app uploads through its NSwag client. Keys: `ef_file_upload_too_large`, `ef_file_upload_wrong_type` (or pass `sizeErrorKey` / `typeErrorKey`). 48px on a coarse pointer.
+- **`ef-seo-preview`**: the search-result preview (title, URL, description, cut at 60/160 by default). Key: `ef_seo_preview_label`.
+- **`ef-identity-thumb`**: an image or initials thumbnail (`EfIdentityThumbSize`).
+- **`hint` / `hintKey` on every form control** that derives from the form-control base. The hint renders under the field and is linked by `aria-describedby`, including on PrimeNG selects.
+- **`ef-inputnumber` currency mode on the comptoir variant** (`mode="currency" currency="MAD"`): it formats in the locale with the currency as an addon, parses pasted grouped amounts ("1.500" in a MAD field is 1 500), and builds its formatters once.
+- **`ef-datepicker-advanced` `valueFormat="local-datetime"`**: it takes and gives wall time as a local string (`EfDateFieldOutput`). The default `'date'` is unchanged.
+- **`ef-data-card`**:
+  - `EfDataCardColumn.defaultHidden`: a column starts hidden but stays in the Columns picker. Nothing is saved until the viewer chooses.
+  - `EfDataCardColumn.exportValue(row)`: the CSV value for a column, so files show labels, not codes.
+  - `[rowPressed]` and `[rowDisabled]`: rows as toggle buttons.
+  - `[rowActionState]`: hides or disables a row action per row, with a `reasonKey`.
+- **`EfRowAction.reasonKey`** and **`EfDetailToolbarAction.disabledReasonKey`**: say why an action is disabled. The reason shows under the label, as its tooltip, and as its `aria-describedby`.
+- **`ef-detail-toolbar` `[overflowAfter]`** (default 3): see Changed.
+- **`ef-button ariaLabelKey`**: an accessible name for an icon-only button. In dev mode, an icon-only button with neither a label nor `ariaLabelKey` logs a warning.
+- **`ef-badge labelKey`** and **`clickable`**.
+- **`ef-status-chip`** accepts the PrimeNG severity vocabulary (`success`, `info`, `warn`/`warning`, `danger`, `secondary`, `contrast`, `primary`), so a reference-data `metadata.color` can drive it directly.
+- **`ef-kpi-card` `hintKey` / `hintParams`**: a translated one-line hint under the value.
+- **`ef-fieldset variant="plain"`**: a heading-style fieldset for use inside an `ef-card`.
+- **`ef-textarea mono`**, for source text, and a **labelled `ef-toggleswitch`** that lays its label beside the switch.
+- **`AbstractSearchScreenV2.getDeleteConfirmOptions(id)`** (`EfDeleteConfirmOptions`): a screen can read delete details (an Observable or Promise) before the confirm opens.
+- **`isServerReported`, `extractProblem`, `EF_SERVER_REPORTED_STATUSES`, `EfProblem` (`@elasticias/core`)**: tell whether the interceptor has already toasted a server refusal, so a screen does not toast it twice.
+
+### Changed
+
+- **`ef-detail-toolbar` overflows into a menu on a phone.** On the `EfViewportService` mobile tier, when there are more visible actions than `overflowAfter` (Save counted), Save stays inline and the rest move into an `ef-row-actions` kebab. Permission and write filtering apply first. **Every app that uses the toolbar needs `common_actions`.** On a touch phone, toolbar icon buttons are a painted 48px square.
+- **Comptoir fields are 48px on a coarse pointer.** A new `--hit-field` token (40px; `--hit-touch` under `pointer: coarse`) sizes inputs, selects, grouped fields and the clear ✕. `--hit-base` is unchanged. A narrow desktop window keeps 40px fields.
+- **The detail grid splits into two columns at 1280px** (it was 1100px), where `EfViewportService` desktop starts.
+- **`ef-badge` shows a pointer cursor and hover lift only when `clickable`.**
+- **`ef-row-actions` follows the menu-button pattern.** Opening moves focus to the first enabled item, the arrow keys move through items, and Escape or a pick returns focus to the trigger. ArrowDown on the trigger opens it.
+- **`ef-pill-group` pills reach 48px on a touch phone.**
+
+### Fixed
+
+- **A comptoir dialog is named after its title.** Screen readers used to announce it only as "dialog".
+- **`ef-select`**: the chevron follows the text direction, and an unset select shows its placeholder or nothing, never dashes.
+- **A picked date and time read left to right in an Arabic form.**
+- **`AbstractSearchScreenV2`**: one delete confirm at a time, and none after leaving the screen.
+- **CSV export**: the formula guard also covers a leading CR, and quotes cells that hold one.
+- **`ef-order-builder`**:
+  - The phone summary button and line values reach 48px on touch.
+  - The phone reserve no longer counts the home indicator twice.
+  - The page reserves room for the floating total.
+  - The icon-only remove button has an accessible name (`common_delete`).
+- **`ef-data-card`** hides its head strip when nothing renders in it.
+- **Grouped fields** have the same height as bare ones on touch, own their box model, and keep a typed grouped amount.
+
 ## 1.0.48 (2026-11-01)
 
 ### Fixed
