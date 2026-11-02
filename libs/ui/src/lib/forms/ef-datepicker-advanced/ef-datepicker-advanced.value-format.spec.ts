@@ -132,4 +132,18 @@ describe('EfDatepickerAdvancedComponent valueFormat="local-datetime"', () => {
     fixture.detectChanges();
     expect(onChange.mock.calls[0][0]).toEqual(new Date(2026, 10, 15, 14, 30));
   });
+
+  it('keeps a shown date and time in reading order inside right-to-left text', () => {
+    const val = () => fixture.nativeElement.querySelector('.dp__field-trigger .val') as HTMLElement;
+    fixture.componentRef.setInput('placeholder', 'بدون تاريخ');
+    fixture.detectChanges();
+    // The field keeps the page's direction (alignment, room for the clear
+    // button); only the date run is isolated left to right.
+    expect(val().querySelector('bdi')).toBeNull();
+    comp.writeValue('2026-11-15T14:30');
+    fixture.detectChanges();
+    expect(val().getAttribute('dir')).toBeNull();
+    expect(val().querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
+    expect(val().querySelector('bdi')?.textContent).toBe('15/11/2026 14:30');
+  });
 });
