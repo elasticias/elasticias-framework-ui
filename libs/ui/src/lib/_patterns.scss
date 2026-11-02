@@ -890,6 +890,8 @@
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
+  /* Hyphenated codes (HA-100) break at the hyphen otherwise. */
+  white-space: nowrap;
 }
 
 .tbl .num {
@@ -4980,5 +4982,15 @@ input.ef-input[type='number'] {
 @media (min-width: 1280px) {
   .ef-app-main__content:has(.order-builder.ob-collapsed) {
     padding-block-end: calc(env(safe-area-inset-bottom, 0px) + 20px + var(--ef-order-fab-h) + var(--s-3));
+  }
+}
+
+/* .f-more ("More filters") on a touch device: reaches the 48px touch target.
+   By pointer rather than width, like the other touch rules. Last in the file
+   so the base .f-more min-height does not win. The row aligns its items to
+   center, so the pills beside it keep their own height. */
+@media (pointer: coarse) {
+  .f-more {
+    min-height: var(--hit-touch);
   }
 }
