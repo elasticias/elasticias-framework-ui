@@ -30,8 +30,11 @@ describe('EfPdfPreviewComponent (WhatsApp fallback)', () => {
     Object.defineProperty(navigator, 'canShare', { value: originalCanShare, configurable: true });
   });
 
-  function share(phone: string): string {
+  function share(phone: string, defaultCallingCode?: string): string {
     const fixture = TestBed.createComponent(EfPdfPreviewComponent);
+    if (defaultCallingCode !== undefined) {
+      fixture.componentRef.setInput('defaultCallingCode', defaultCallingCode);
+    }
     fixture.componentRef.setInput('blob', new Blob(['%PDF'], { type: 'application/pdf' }));
     fixture.componentRef.setInput('fileName', 'BL-0042.pdf');
     fixture.componentRef.setInput('whatsappPhone', phone);
@@ -55,5 +58,19 @@ describe('EfPdfPreviewComponent (WhatsApp fallback)', () => {
 
   it('treats a phone without any digit as no phone', () => {
     expect(share('+ -')).toBe('https://wa.me/?text=BL-0042.pdf');
+  });
+
+  it('wa.me fallback puts the default calling code on a national number', () => {
+    expect(share('06 12 34 56 78', '212')).toBe('https://wa.me/212612345678?text=BL-0042.pdf');
+  });
+
+  it('wa.me fallback keeps an international number whatever the default', () => {
+    expect(share('+33 6 12 34 56 78', '212')).toBe('https://wa.me/33612345678?text=BL-0042.pdf');
+  });
+
+  it('opens the contact picker for a national number without a default calling code', () => {
+    // wa.me/0612345678 lands on WhatsApp's error page; the picker at least
+    // lets the user choose the chat.
+    expect(share('0612345678')).toBe('https://wa.me/?text=BL-0042.pdf');
   });
 });

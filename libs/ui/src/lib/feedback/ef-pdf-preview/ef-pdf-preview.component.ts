@@ -13,6 +13,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PhoneUtils } from '@elasticias/utils';
 import {
   EfDialogAction,
   EfDialogComponent,
@@ -59,9 +60,13 @@ export class EfPdfPreviewComponent {
   showOpenInNewTab = input(true, { transform: booleanAttribute });
   /** Show the WhatsApp share button (Web Share API → wa.me fallback). */
   showWhatsappShare = input(false, { transform: booleanAttribute });
-  /** Optional recipient phone for the wa.me fallback, in international form
-   *  (any spacing or "+"; only the digits are kept). */
+  /** Optional recipient phone for the wa.me fallback, as typed: international
+   *  (`+`/`00`) or national with `defaultCallingCode`. */
   whatsappPhone = input<string>('');
+  /** Calling code (`'212'` or `'+212'`) that turns a national
+   *  `whatsappPhone` (`0612345678`) into the international number wa.me
+   *  needs. Without it a national number opens the contact picker. */
+  defaultCallingCode = input<string>('');
 
   private readonly objectUrl = signal<string | null>(null);
   private currentUrl: string | null = null;
@@ -181,8 +186,9 @@ export class EfPdfPreviewComponent {
 
   private openWhatsappWeb(): void {
     // wa.me takes the international number as digits only: a leading "+"
-    // lands on WhatsApp's error page instead of the chat.
-    const phone = (this.whatsappPhone() || '').replace(/\D/g, '');
+    // or a national number lands on WhatsApp's error page, not the chat.
+    const e164 = PhoneUtils.toE164(this.whatsappPhone(), this.defaultCallingCode());
+    const phone = e164 ? e164.slice(1) : '';
     const msg = encodeURIComponent(this.fileName());
     const url = phone
       ? `https://wa.me/${phone}?text=${msg}`
