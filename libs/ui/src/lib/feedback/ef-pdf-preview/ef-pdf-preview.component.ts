@@ -59,7 +59,8 @@ export class EfPdfPreviewComponent {
   showOpenInNewTab = input(true, { transform: booleanAttribute });
   /** Show the WhatsApp share button (Web Share API → wa.me fallback). */
   showWhatsappShare = input(false, { transform: booleanAttribute });
-  /** Optional recipient phone for the wa.me fallback (digits / +). */
+  /** Optional recipient phone for the wa.me fallback, in international form
+   *  (any spacing or "+"; only the digits are kept). */
   whatsappPhone = input<string>('');
 
   private readonly objectUrl = signal<string | null>(null);
@@ -179,7 +180,9 @@ export class EfPdfPreviewComponent {
   }
 
   private openWhatsappWeb(): void {
-    const phone = (this.whatsappPhone() || '').replace(/[^0-9+]/g, '');
+    // wa.me takes the international number as digits only: a leading "+"
+    // lands on WhatsApp's error page instead of the chat.
+    const phone = (this.whatsappPhone() || '').replace(/\D/g, '');
     const msg = encodeURIComponent(this.fileName());
     const url = phone
       ? `https://wa.me/${phone}?text=${msg}`
