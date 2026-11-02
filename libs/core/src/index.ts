@@ -19,6 +19,10 @@ export type {
 export { screenGuard, hasScreenPermission } from './lib/guards/screen.guard';
 export type { ScreenGuardConfig } from './lib/guards/screen.guard';
 
+// Server errors
+export { isServerReported, extractProblem, EF_SERVER_REPORTED_STATUSES } from './lib/errors/server-error';
+export type { EfProblem } from './lib/errors/server-error';
+
 // Theme
 export { EfThemeConfigService } from './lib/theme/ef-theme-config.service';
 export { EfTheme, EfComptoirTheme } from './lib/theme/ef-theme';
