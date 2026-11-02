@@ -22,14 +22,16 @@
        + subtitle + close X structure. Skipped in 'primeng' variant
        (which uses the [header] string input + native close). -->
   @if (variant === 'comptoir') {
-    <ng-template #header>
+    <!-- PrimeNG points the dialog's aria-labelledby at an id it passes to
+         this template; the title takes it, so the dialog is named. -->
+    <ng-template #header let-labelledBy="ariaLabelledBy">
       @if (effectiveIcon) {
         <span class="es-dialog__icon" aria-hidden="true">
           <i [class]="effectiveIcon"></i>
         </span>
       }
       <div class="es-dialog__title-block">
-        <div class="es-dialog__title">{{ effectiveTitle }}</div>
+        <div class="es-dialog__title" [attr.id]="labelledBy">{{ effectiveTitle }}</div>
         @if (effectiveSubtitle) {
           <div class="es-dialog__sub">{{ effectiveSubtitle }}</div>
         }
