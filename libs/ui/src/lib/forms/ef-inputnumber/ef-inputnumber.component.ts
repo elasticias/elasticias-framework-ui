@@ -1,5 +1,6 @@
 import {
   booleanAttribute,
+  ChangeDetectorRef,
   Component,
   HostBinding,
   inject,
@@ -195,6 +196,16 @@ export class EfInputNumberComponent
   /** What the user typed since focus, shown as is (never reformatted). */
   private editText: string | null = null;
 
+  /** A change that did not come from typing (clear, stepper, form write)
+   *  replaces the edit text while focused, or the box would keep the old
+   *  amount and the next keystroke would append to it. Marks the view,
+   *  since a programmatic call (zoneless) would not. */
+  private syncEditText(): void {
+    if (!this.focused) return;
+    this.editText = this.formatAmount(this.value ?? null, false);
+    this.cdr.markForCheck();
+  }
+
   /** Comptoir currency formatting applies: `mode="currency"` and a currency code. */
   get isCurrency(): boolean {
     return this.variant === 'comptoir' && this.mode === 'currency' && !!this.currency;
@@ -273,6 +284,7 @@ export class EfInputNumberComponent
   readonly ngControl = inject(NgControl, { self: true, optional: true });
 
   private readonly localeId = inject(LOCALE_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
     super();
@@ -301,6 +313,7 @@ export class EfInputNumberComponent
 
   writeValue(value: any): void {
     this.value = value;
+    this.syncEditText();
   }
 
   registerOnChange(fn: any): void {
@@ -343,11 +356,21 @@ export class EfInputNumberComponent
    * dot before parsing, and spaces (JS `\s` covers NBSP / narrow-NBSP
    * group separators) are stripped. Both `23,50` and `23.50` parse to
    * 23.5; unparseable text yields `null` (existing empty semantics).
-   * Bidi marks (an Arabic formatted amount carries U+200F) are dropped.
+   * Bidi marks (an Arabic formatted amount carries U+200F) are dropped,
+   * and when both `.` and `,` appear the last one is the decimal.
    */
   private parseComptoirValue(raw: string): number | null {
     if (raw == null) return null;
-    const normalized = raw.replace(BIDI_MARKS, '').replace(/\s/g, '').replace(/,/g, '.');
+    let normalized = raw.replace(BIDI_MARKS, '').replace(/\s/g, '');
+    // Both separators present ("1.234,50", "1,234.50"): the last one is the
+    // decimal, the other is grouping. A currency field displays the first.
+    const lastDot = normalized.lastIndexOf('.');
+    const lastComma = normalized.lastIndexOf(',');
+    if (lastDot >= 0 && lastComma >= 0) {
+      const group = lastDot > lastComma ? ',' : '.';
+      normalized = normalized.split(group).join('');
+    }
+    normalized = normalized.replace(/,/g, '.');
     if (normalized === '') return null;
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
@@ -386,6 +409,7 @@ export class EfInputNumberComponent
     if (this.min != null) next = Math.max(this.min, next);
     if (this.max != null) next = Math.min(this.max, next);
     this.value = next;
+    this.syncEditText();
     this.onChange(next);
     this.valueChangeEvent.emit(next);
   }
@@ -414,6 +438,7 @@ export class EfInputNumberComponent
 
   handleClear(): void {
     this.value = null;
+    this.syncEditText();
     this.onChange(null);
     this.valueChangeEvent.emit(null);
     this.clearEvent.emit();

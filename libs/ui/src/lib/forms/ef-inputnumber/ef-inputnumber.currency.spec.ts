@@ -112,6 +112,39 @@ describe('ef-inputnumber currency mode (comptoir)', () => {
     expect(fixture.componentInstance.value).toBe(30.5);
   });
 
+  it('clearing while focused empties the box, so typing does not append to the old amount', () => {
+    const { input, focus, fixture } = render({ value: 30, locale: 'fr-MA' });
+    focus();
+    expect(input().value).toBe('30,00');
+    fixture.componentInstance.clearValue();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.value).toBeNull();
+    expect(input().value).toBe('');
+  });
+
+  it('a stepper or form write while focused shows the new amount', () => {
+    const { input, focus, fixture } = render({ value: 30, locale: 'fr-MA', step: 5 });
+    focus();
+    fixture.componentInstance.step$(1);
+    fixture.detectChanges();
+    expect(input().value).toBe('35,00');
+    fixture.componentInstance.writeValue(12.5);
+    fixture.detectChanges();
+    expect(input().value).toBe('12,50');
+  });
+
+  it.each([
+    ['1.234,50', 1234.5],
+    ['1,234.50', 1234.5],
+    ['1 234,50', 1234.5],
+  ])('typing the grouped form "%s" keeps the amount (%s)', (text, expected) => {
+    const { focus, type, blur, fixture } = render({ value: null, locale: 'fr-MA' });
+    focus();
+    type(text);
+    blur();
+    expect(fixture.componentInstance.value).toBe(expected);
+  });
+
   it('an explicit suffix wins over the currency symbol, so the unit shows once', () => {
     const { host, addon } = render({ value: 30, locale: 'fr-MA', suffix: 'MAD' });
     expect(addon()).toBeNull();
