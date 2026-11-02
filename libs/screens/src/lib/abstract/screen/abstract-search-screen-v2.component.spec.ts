@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
-import { Observable, Subject, of, throwError } from 'rxjs';
+import { Observable, Subject, of, take, throwError } from 'rxjs';
 import { CacheService, ConfirmDialogService, ToastService } from '@elasticias/core';
 import { AbstractSearchScreenV2 } from './abstract-search-screen-v2.component';
 import { ScreenConfig } from '../../config/screen-config';
@@ -481,6 +481,7 @@ describe('AbstractSearchScreenV2', () => {
 
     let confirms: any[];
     let toasts: number;
+    let fx: ComponentFixture<HookScreen>;
 
     function create(): HookScreen {
       TestBed.resetTestingModule();
@@ -514,6 +515,7 @@ describe('AbstractSearchScreenV2', () => {
         ],
       });
       const f = TestBed.createComponent(HookScreen);
+      fx = f;
       f.detectChanges();
       fakeService.calls[0].next({ items: [{ id: 'c1', title: 'Promos' }], totalCount: 1 });
       fakeService.calls[0].complete();
@@ -614,6 +616,60 @@ describe('AbstractSearchScreenV2', () => {
       s.hook = (id) => { seen.push(id); return of({}); };
       s.delete('c1');
       expect(seen).toEqual(['c1']);
+    });
+
+    it('ignores a second delete while the hook is still loading', () => {
+      const s = create();
+      const impact = new Subject<any>();
+      let calls = 0;
+      s.hook = () => { calls++; return impact.asObservable(); };
+      s.delete('c1');
+      s.delete('c1');
+      impact.next({ messageKey: 'impact_message' });
+      expect(calls).toBe(1);
+      expect(confirms.length).toBe(1);
+    });
+
+    it('ignores a second delete while the confirm is open, until it is answered', () => {
+      const s = create();
+      s.delete('c1');
+      s.delete('c1');
+      expect(confirms.length).toBe(1);
+      confirms[0].reject();
+      s.delete('c1');
+      expect(confirms.length).toBe(2);
+      confirms[1].accept();
+      s.delete('c1');
+      expect(confirms.length).toBe(3);
+    });
+
+    it('allows a new delete after the hook failed', () => {
+      const s = create();
+      let calls = 0;
+      s.hook = () => { calls++; return calls === 1 ? throwError(() => new Error('500')) : of({}); };
+      s.delete('c1');
+      s.delete('c1');
+      expect(calls).toBe(2);
+      expect(confirms.length).toBe(1);
+    });
+
+    it('allows a new delete after the hook completed without a value', () => {
+      const s = create();
+      let calls = 0;
+      s.hook = () => { calls++; return calls === 1 ? new Subject<any>().pipe(take(0)) : of({}); };
+      s.delete('c1');
+      s.delete('c1');
+      expect(confirms.length).toBe(1);
+    });
+
+    it('opens no confirm when the screen is destroyed while the hook loads', () => {
+      const s = create();
+      const impact = new Subject<any>();
+      s.hook = () => impact.asObservable();
+      s.delete('c1');
+      fx.destroy();
+      impact.next({ messageKey: 'impact_message' });
+      expect(confirms.length).toBe(0);
     });
   });
 });

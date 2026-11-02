@@ -1,12 +1,14 @@
 import {
   Component,
   computed,
+  DestroyRef,
   inject,
   Injector,
   OnDestroy, OnInit,
   signal,
 } from '@angular/core';
 import { Observable, from, take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { EfConfirmOptions } from '@elasticias/core';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
@@ -93,6 +95,16 @@ export abstract class AbstractSearchScreenV2<TItem = any>
 {
   protected readonly screenState = ScreenStateEnum.SEARCH;
   protected readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /**
+   * A delete confirm is loading or open. A second click (or the row
+   * shortcut) meanwhile is ignored, so one gesture cannot start two impact
+   * reads or stack two confirms. Cleared when the confirm is answered
+   * (PrimeNG calls reject on close and Escape too) or when the read
+   * yields no confirm.
+   */
+  private deleteConfirmBusy = false;
   private serviceInstance: any;
 
   /**
@@ -1029,7 +1041,9 @@ export abstract class AbstractSearchScreenV2<TItem = any>
    * getDeleteConfirmName(id) }`. Only the first value of an Observable is
    * used. If the read fails (the HTTP interceptor toasts it) or completes
    * without a value, no confirm opens and nothing is deleted. Return
-   * `undefined`, the default, to open the confirm at once.
+   * `undefined`, the default, to open the confirm at once. While the read
+   * is in flight or the confirm is open, another delete is ignored, and a
+   * screen destroyed during the read opens nothing.
    */
   protected getDeleteConfirmOptions(
     _id: any,
@@ -1042,18 +1056,30 @@ export abstract class AbstractSearchScreenV2<TItem = any>
       this.recordNotFound();
       return;
     }
+    if (this.deleteConfirmBusy) return;
+    this.deleteConfirmBusy = true;
     const details = this.getDeleteConfirmOptions(id);
     if (!details) {
       this.openDeleteConfirm(id, {});
       return;
     }
+    let opened = false;
     from(details)
-      .pipe(take(1))
+      // A screen left while the read was in flight opens nothing.
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (extra) => this.openDeleteConfirm(id, extra ?? {}),
+        next: (extra) => {
+          opened = true;
+          this.openDeleteConfirm(id, extra ?? {});
+        },
         // A failed read is the interceptor's to report; without its details
         // the confirm would understate what the delete takes with it.
-        error: () => undefined,
+        error: () => {
+          this.deleteConfirmBusy = false;
+        },
+        complete: () => {
+          if (!opened) this.deleteConfirmBusy = false;
+        },
       });
   }
 
@@ -1063,7 +1089,11 @@ export abstract class AbstractSearchScreenV2<TItem = any>
       intent: 'delete',
       name: this.getDeleteConfirmName(id),
       ...details,
-      accept: () =>
+      reject: () => {
+        this.deleteConfirmBusy = false;
+      },
+      accept: () => {
+        this.deleteConfirmBusy = false;
         this.serviceInstance.delete(id).subscribe({
           next: (result: any) => {
             if (result?.errors?.length) {
@@ -1077,7 +1107,8 @@ export abstract class AbstractSearchScreenV2<TItem = any>
           // here so a rejected delete (e.g. a 422 business-rule violation)
           // doesn't bubble up as an unhandled error.
           error: () => undefined,
-        }),
+        });
+      },
     });
   }
 
