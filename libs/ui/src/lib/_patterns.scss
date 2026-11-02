@@ -4854,3 +4854,35 @@ input.ef-input[type='number'] {
     min-height: var(--hit-touch);
   }
 }
+
+/* -- Order builder: room for its floating total ----------------------
+   ef-order-builder pins its total pill (`.ob-fab`, --ef-order-fab-h tall)
+   20px above the bottom of the viewport's usable area: above the phone
+   tab bar, which is an in-flow row under the scroll area, so the scroll
+   area already ends where the bar begins. The pill shows up to 1279px,
+   and on a wider screen once the builder is collapsed.
+
+   The reserve goes at the end of the scroll area, not in the builder, so
+   it follows whatever the host renders after the builder (a delivery card,
+   say) and nothing but the pill's own footprint is left blank: offset +
+   pill + one grid gap, plus the home indicator the pill also clears. The
+   tab bar is not added; the scroll area already stops above it.
+
+   `.order-builder .ob-fab` inside :has() rather than the element name, so
+   the selector outranks ef-app-main's own (encapsulated) padding rule.
+   Last in the file, after every rule it overrides. */
+:root {
+  --ef-order-fab-h: 56px;
+}
+
+@media (max-width: 1279px) {
+  .ef-app-main__content:has(.order-builder .ob-fab) {
+    padding-block-end: calc(env(safe-area-inset-bottom, 0px) + 20px + var(--ef-order-fab-h) + var(--s-3));
+  }
+}
+
+@media (min-width: 1280px) {
+  .ef-app-main__content:has(.order-builder.ob-collapsed) {
+    padding-block-end: calc(env(safe-area-inset-bottom, 0px) + 20px + var(--ef-order-fab-h) + var(--s-3));
+  }
+}

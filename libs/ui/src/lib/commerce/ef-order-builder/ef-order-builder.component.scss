@@ -455,6 +455,12 @@
       z-index: 30;
       align-items: center;
       gap: 10px;
+      /* A fixed height, shared with the scroll-area reserve in
+         _patterns.scss (--ef-order-fab-h). Left to its content the pill
+         was 49px in French and 57px in Arabic, whose glyphs are taller, so
+         any reserve sized for one overlapped in the other. */
+      box-sizing: border-box;
+      block-size: var(--ef-order-fab-h);
       /* The pill is painted on the *inverted* ground: --ink-active and
          --paper are the two ends of the ink ramp and swap places under
          .p-dark (light: #0f1115 on #f8f9fb, dark: #f8f9fb on #0f1115).
@@ -471,7 +477,8 @@
       background: var(--ob-fab-ground);
       color: var(--ob-fab-on);
       border-radius: var(--r-pill);
-      padding: 8px 10px 8px 16px;
+      padding-block: 0;
+      padding-inline: 16px 10px;
       box-shadow: var(--shadow-3);
 
       .ft {
@@ -672,23 +679,8 @@
   }
 }
 
-/* ──────────────────────────────────────────────────────────────────
-   Bottom clearance on a phone.
-
-   The floating summary is `position: fixed` above the tab bar, so it sits
-   over the end of the lines list rather than after it. Without matching
-   padding the last line is permanently underneath it and can never be read
-   or deleted — which is exactly what a long order ends with.
-
-   The value mirrors the FAB's own offset (tab bar + home indicator + 20px)
-   and adds its height plus a gap, so the list always stops clear of it.
-   Last in the file on purpose: a media query adds no specificity, so a base
-   rule declared later would beat it at every width.
-   ────────────────────────────────────────────────────────────────── */
-@media (max-width: 767px) {
-  :host .order-builder {
-    padding-bottom: calc(
-      var(--app-bottom-bar, 0px) + env(safe-area-inset-bottom, 0px) + 20px + 56px + var(--s-4)
-    );
-  }
-}
+/* Bottom clearance: the floating summary is `position: fixed`, so the space
+   it needs is reserved at the end of the shell's scroll area, not here. See
+   ".ef-app-main__content:has(.order-builder .ob-fab)" in _patterns.scss. Padding
+   the builder put the reserve between the lines and any card the host
+   places after the builder, and left that card under the pill. */
