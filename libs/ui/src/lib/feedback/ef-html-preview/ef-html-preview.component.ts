@@ -14,6 +14,10 @@ import { TranslateModule } from '@ngx-translate/core';
  * inherits the host page's policy, whose `style-src 'unsafe-inline'` lets
  * the template's own styles apply.
  *
+ * The frame always has an accessible name (WCAG 4.1.2): `titleKey`, or the
+ * shared `preview.title` key when none is given. Consuming apps define it:
+ * fr "Aperçu", ar "معاينة", en "Preview".
+ *
  * `width: 100%` and `min-width: 0` keep a 600px email table scrolling inside
  * the frame on a phone instead of widening the page.
  *
@@ -21,6 +25,9 @@ import { TranslateModule } from '@ngx-translate/core';
  * <ef-html-preview [html]="previewHtml()" titleKey="email_templates_preview_title" [height]="560" />
  * ```
  */
+/** The title key the frame falls back to; apps add it to fr.json, ar.json and en.json. */
+export const EF_HTML_PREVIEW_DEFAULT_TITLE_KEY = 'preview.title';
+
 @Component({
     selector: 'ef-html-preview',
     standalone: true,
@@ -30,7 +37,7 @@ import { TranslateModule } from '@ngx-translate/core';
         sandbox=""
         referrerpolicy="no-referrer"
         [srcdoc]="trustedHtml()"
-        [attr.title]="titleKey() ? (titleKey() | translate) : null"
+        [attr.title]="effectiveTitleKey() | translate"
         [style.height.px]="height()"
     ></iframe>`,
     styleUrl: './ef-html-preview.component.scss',
@@ -39,20 +46,24 @@ import { TranslateModule } from '@ngx-translate/core';
 export class EfHtmlPreviewComponent {
     /** The full document to show. Sanitized by the server before it gets here. */
     readonly html = input<string>('');
-    /** i18n key of the frame's accessible title. */
+    /** i18n key of the frame's accessible title; `preview.title` when empty. */
     readonly titleKey = input<string>('');
     /** Frame height in pixels. */
     readonly height = input<number>(480);
 
     private readonly sanitizer = inject(DomSanitizer);
 
+    protected readonly effectiveTitleKey = computed(() => this.titleKey() || EF_HTML_PREVIEW_DEFAULT_TITLE_KEY);
+
     /**
      * Angular's sanitizer strips every `style` attribute and `<style>` block
      * from a bound `srcdoc`, which would preview an email without its
-     * layout. Bypassing it is justified only because the frame's sandbox is
-     * empty (nothing in the document can run or reach this page) and the
-     * server sanitizes the template HTML before storing and rendering it.
-     * Do not reuse this bypass for markup rendered outside such a frame.
+     * layout, so the HTML is trusted explicitly. The guarantee is the frame's
+     * empty sandbox: nothing in the document can run, submit, open a window
+     * or reach this page, even for raw author HTML of an unsaved edit. The
+     * server's sanitization of stored templates is a second layer, not the
+     * reason this is safe. Never reuse this bypass for markup rendered
+     * outside such a frame.
      */
     protected readonly trustedHtml = computed<SafeHtml>(() =>
         this.sanitizer.bypassSecurityTrustHtml(this.html() ?? ''),

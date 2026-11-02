@@ -79,7 +79,7 @@ export { EfBlockUiComponent } from './lib/feedback/ef-block-ui/ef-block-ui.compo
 export { EfBlockableDivComponent } from './lib/feedback/ef-blockable-div/ef-blockable-div.component';
 export { EfPulseComponent } from './lib/feedback/ef-pulse/ef-pulse.component';
 export { EfPdfPreviewComponent } from './lib/feedback/ef-pdf-preview/ef-pdf-preview.component';
-export { EfHtmlPreviewComponent } from './lib/feedback/ef-html-preview/ef-html-preview.component';
+export { EfHtmlPreviewComponent, EF_HTML_PREVIEW_DEFAULT_TITLE_KEY } from './lib/feedback/ef-html-preview/ef-html-preview.component';
 export { EfStatusChipComponent } from './lib/feedback/ef-status-chip/ef-status-chip.component';
 export type { EfStatusColor, EfStatusReferenceItem } from './lib/feedback/ef-status-chip/ef-status-chip.types';
 export {

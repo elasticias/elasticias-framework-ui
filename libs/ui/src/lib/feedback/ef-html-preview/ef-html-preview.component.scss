@@ -13,5 +13,7 @@
     min-width: 0;
     border: 1px solid var(--rule, #e5e5e5);
     border-radius: var(--r-2, 8px);
+    // White on purpose, in both themes: it is the email canvas, which mail
+    // clients render white. Not a missing dark-mode token.
     background: #fff;
 }

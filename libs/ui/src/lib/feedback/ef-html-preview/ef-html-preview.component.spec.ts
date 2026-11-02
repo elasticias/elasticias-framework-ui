@@ -1,3 +1,4 @@
+import { reflectComponentType } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfHtmlPreviewComponent } from './ef-html-preview.component';
@@ -15,7 +16,7 @@ describe('EfHtmlPreviewComponent', () => {
 
     function render(inputs: Record<string, unknown> = {}) {
         TestBed.configureTestingModule({ imports: [EfHtmlPreviewComponent, TranslateModule.forRoot()] });
-        TestBed.inject(TranslateService).setTranslation('fr', { preview_title: 'Aperçu du message' });
+        TestBed.inject(TranslateService).setTranslation('fr', { preview_title: 'Aperçu du message', 'preview.title': 'Aperçu' });
         TestBed.inject(TranslateService).use('fr');
         const fixture = TestBed.createComponent(EfHtmlPreviewComponent);
         fixture.componentRef.setInput('html', html);
@@ -38,10 +39,10 @@ describe('EfHtmlPreviewComponent', () => {
     });
 
     it('ef-html-preview exposes no input that could loosen the sandbox', () => {
-        const { fixture, frame } = render();
-        const cmp = fixture.componentInstance as unknown as Record<string, unknown>;
-        expect('sandbox' in cmp).toBe(false);
-        expect(frame.getAttribute('sandbox')).toBe('');
+        // Any new input is a deliberate contract change; none may reach the frame's flags.
+        const inputs = (reflectComponentType(EfHtmlPreviewComponent)?.inputs ?? []).map((i) => i.propName);
+        expect(inputs.sort()).toEqual(['height', 'html', 'titleKey']);
+        expect(render().frame.getAttribute('sandbox')).toBe('');
     });
 
     it('ef-html-preview keeps inline styles in srcdoc', () => {
@@ -62,6 +63,13 @@ describe('EfHtmlPreviewComponent', () => {
     it('ef-html-preview titles the frame from titleKey', () => {
         const { frame } = render({ titleKey: 'preview_title' });
         expect(frame.getAttribute('title')).toBe('Aperçu du message');
+    });
+
+    it('ef-html-preview always names the frame, with preview.title by default', () => {
+        // An iframe without a title fails WCAG 4.1.2.
+        expect(render().frame.getAttribute('title')).toBe('Aperçu');
+        TestBed.resetTestingModule();
+        expect(render({ titleKey: '' }).frame.getAttribute('title')).toBe('Aperçu');
     });
 
     it('ef-html-preview is 480px tall by default and takes a height', () => {
