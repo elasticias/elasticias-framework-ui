@@ -191,3 +191,80 @@ describe('EfOrderBuilderComponent (readonly)', () => {
     expect(cells.every((b) => b.disabled)).toBe(true);
   });
 });
+
+describe('EfOrderBuilderComponent (delivery amount)', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [EfOrderBuilderComponent, TranslateModule.forRoot()],
+    }).compileComponents();
+  });
+
+  /** One line of 2 x 25 = 50, an amount exact in binary. */
+  function buildWithLine(shippingTotal?: number): ComponentFixture<EfOrderBuilderComponent> {
+    const fixture = build();
+    if (shippingTotal !== undefined) fixture.componentRef.setInput('shippingTotal', shippingTotal);
+    const c = fixture.componentInstance;
+    c.quickAddQuantity.set(2);
+    c.onTypeaheadSelect({ product: PRODUCT, variant: PRODUCT.variants[0], unitPrice: 25 });
+    c.addQuickProduct();
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('final total includes shipping', () => {
+    const c = buildWithLine(30).componentInstance;
+    expect(c.finalTotal()).toBe(80);
+  });
+
+  it('shipping row hidden at 0 and shown at 30', () => {
+    const fixture = buildWithLine();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.ob-totals .row.shipping')).toBeNull();
+
+    fixture.componentRef.setInput('shippingTotal', 30);
+    fixture.detectChanges();
+    const row = el.querySelector('.ob-totals .row.shipping');
+    expect(row).toBeTruthy();
+    expect(row!.querySelector('.lbl')!.textContent!.trim()).toBe('order_builder.shipping');
+    expect(row!.querySelector('.v')!.textContent!.trim()).toBe('30,00');
+
+    // Between the tax row and the grand total.
+    const rows = Array.from(el.querySelectorAll('.ob-totals > .row'));
+    expect(rows.indexOf(row!)).toBe(3);
+    expect(rows[4].classList.contains('grand')).toBe(true);
+  });
+
+  it('calculateTotals adds shippingTotal', () => {
+    const order: OrderEntity = {
+      ...OrderEntityHelper.createEmpty('order'),
+      orderLines: [{ id: 'l1', productId: 'p1', productUnitPrice: 25, quantity: 2 } as OrderEntity['orderLines'][number]],
+      shippingTotal: 30,
+    };
+    expect(OrderEntityHelper.calculateTotals(order).finalTotal).toBe(80);
+    expect(OrderEntityHelper.calculateTotals({ ...order, shippingTotal: undefined }).finalTotal).toBe(50);
+  });
+
+  it('exported total equals rail total with shipping', () => {
+    const c = buildWithLine(30).componentInstance;
+    const exported = c.exportOrder();
+    expect(exported.shippingTotal).toBe(30);
+    expect(exported.finalTotal).toBe(c.finalTotal());
+    expect(c.order().finalTotal).toBe(c.finalTotal());
+  });
+
+  it('exports the host fee even when the bound order carries another one', () => {
+    const fixture = buildWithLine(30);
+    const c = fixture.componentInstance;
+    c.order.set({ ...c.order(), shippingTotal: 99 });
+    expect(c.exportOrder().shippingTotal).toBe(30);
+    expect(c.exportOrder().finalTotal).toBe(80);
+  });
+
+  it('keeps a B2B total unchanged when no fee is passed', () => {
+    const fixture = buildWithLine();
+    const c = fixture.componentInstance;
+    expect(c.finalTotal()).toBe(50);
+    expect(c.exportOrder().finalTotal).toBe(50);
+    expect(c.order().finalTotal).toBe(50);
+  });
+});

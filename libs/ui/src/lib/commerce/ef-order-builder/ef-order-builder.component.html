@@ -278,6 +278,12 @@
             <span class="lbl">{{ 'order_builder.tax' | translate }}</span>
             <span class="v">{{ tvaTotal() | number: '1.2-2' : locale() }}</span>
           </div>
+          @if (shippingTotal() > 0) {
+            <div class="row shipping">
+              <span class="lbl">{{ 'order_builder.shipping' | translate }}</span>
+              <span class="v">{{ shippingTotal() | number: '1.2-2' : locale() }}</span>
+            </div>
+          }
           <hr />
           <div class="row grand">
             <span class="lbl">{{ 'order_builder.grand_total' | translate }}</span>

@@ -100,6 +100,12 @@ export class EfOrderBuilderComponent implements OnInit {
   /** Field name used to identify products (must match catalogue's trackByField) */
   productKeyField = input<string>('id');
   backendErrors = input<{ [key: string]: string[] }>({});
+  /**
+   * Delivery amount (TTC) the host owns. It is the builder's only fee source:
+   * the rail, the bound order and `exportOrder()` all total it, so the saved
+   * total is the one shown. A host without a fee (B2B) leaves it at 0.
+   */
+  shippingTotal = input<number>(0);
 
   /** Optional change-history entries; when non-empty the Historique rail card renders. */
   auditEntries = input<EfChangeHistoryEntry[]>([]);
@@ -144,7 +150,12 @@ export class EfOrderBuilderComponent implements OnInit {
   });
 
   finalTotal = computed(() => {
-    return this.grossTotal() - this.discountTotal() + this.tvaTotal();
+    return (
+      this.grossTotal() -
+      this.discountTotal() +
+      this.tvaTotal() +
+      this.shippingTotal()
+    );
   });
 
   currency = computed(() => this.config().currencyCode || 'MAD');
@@ -373,13 +384,14 @@ export class EfOrderBuilderComponent implements OnInit {
     effect(() => {
       if (!this.initialized()) return;
 
-      const updatedOrder = OrderEntityHelper.calculateTotals(this.order());
+      const updatedOrder = this.withTotals();
       const summary = this.productsSummary();
 
       if (
         updatedOrder.grossTotal !== this.order().grossTotal ||
         updatedOrder.discountTotal !== this.order().discountTotal ||
         updatedOrder.taxTotal !== this.order().taxTotal ||
+        updatedOrder.shippingTotal !== this.order().shippingTotal ||
         updatedOrder.finalTotal !== this.order().finalTotal ||
         JSON.stringify(updatedOrder.productsSummary) !== JSON.stringify(summary)
       ) {
@@ -664,11 +676,20 @@ export class EfOrderBuilderComponent implements OnInit {
       grossTotal: this.grossTotal(),
       discountTotal: this.discountTotal(),
       tvaTotal: this.tvaTotal(),
+      shippingTotal: this.shippingTotal(),
       finalTotal: this.finalTotal(),
     };
   }
 
   exportOrder(): OrderEntity {
-    return OrderEntityHelper.calculateTotals(this.order());
+    return this.withTotals();
+  }
+
+  /** The bound order with its totals, the fee taken from the `shippingTotal` input. */
+  private withTotals(): OrderEntity {
+    return OrderEntityHelper.calculateTotals({
+      ...this.order(),
+      shippingTotal: this.shippingTotal(),
+    });
   }
 }

@@ -67,6 +67,8 @@ export interface OrderEntity {
   grossTotal: number;
   discountTotal: number;
   taxTotal: number;
+  /** Delivery amount (TTC). Absent or 0 for orders without one (B2B, POS). */
+  shippingTotal?: number;
   finalTotal: number;
 
   // Optional fields
@@ -324,7 +326,8 @@ export class OrderEntityHelper {
       return total + (item.taxAmount || 0);
     }, 0);
 
-    const finalTotal = grossTotal - discountTotal + taxTotal;
+    const finalTotal =
+      grossTotal - discountTotal + taxTotal + (order.shippingTotal ?? 0);
 
     return {
       ...order,
