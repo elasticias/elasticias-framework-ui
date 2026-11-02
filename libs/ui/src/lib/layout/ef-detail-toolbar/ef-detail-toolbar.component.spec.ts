@@ -156,6 +156,18 @@ describe('EfDetailToolbarComponent separator', () => {
     top(std, 50);
     fixture.componentInstance.measureWrap();
     fixture.detectChanges();
-    expect(el.querySelector('.sep')).toBeNull();
+    const sep = el.querySelector('.sep') as HTMLElement;
+    expect(sep).not.toBeNull();
+    expect(sep.classList.contains('is-hidden')).toBe(true);
+  });
+
+  it('names a label-only custom action for assistive tech', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({ imports: [EfDetailToolbarComponent, TranslateModule.forRoot()] }).compileComponents();
+    const fixture = TestBed.createComponent(EfDetailToolbarComponent);
+    fixture.componentRef.setInput('customActions', [{ id: 'x', label: 'Export now', icon: 'pi pi-download' }]);
+    fixture.detectChanges();
+    const btn = (fixture.nativeElement as HTMLElement).querySelector('.right button');
+    expect(btn?.getAttribute('aria-label')).toBe('Export now');
   });
 });

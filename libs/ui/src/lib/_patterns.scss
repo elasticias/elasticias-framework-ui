@@ -2834,6 +2834,11 @@
   color: var(--text-soft);
 }
 
+/* Keeps its width: removing it would narrow the group and let it unwrap. */
+.detail-toolbar .sep.is-hidden {
+  visibility: hidden;
+}
+
 /* Print … Save travel together with their separator, so a wrap never leaves
    the "|" at the end of one row and Save alone on the next. The group keeps
    the far end of its row, like Save on a phone. */

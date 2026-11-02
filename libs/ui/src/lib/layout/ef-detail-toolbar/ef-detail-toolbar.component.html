@@ -24,7 +24,7 @@
             [icon]="action.icon"
             [label]="action.label"
             [labelKey]="action.labelKey"
-            [ariaLabelKey]="action.labelKey"
+            [ariaLabelKey]="action.labelKey || action.label"
             [styleClass]="action.keepInView ? 'btn--keep-label' : undefined"
             [disabled]="!!action.disabled"
             (clickEvent)="onCustomClick(action)"
@@ -37,12 +37,12 @@
 
     <!-- Standard actions: Print → Duplicate → Delete → Save, in one group
          that never wraps inside itself, with the separator at its head. When
-         the group drops to a row of its own the separator is hidden, rather
-         than left dangling at the end of the row above. -->
+         the group drops to a row of its own the separator turns invisible but
+         keeps its width, so the wrap state cannot flip back and forth. -->
     @if (hasStandardActions()) {
         <span class="std">
-            @if (showSeparator() && !overflowing() && !standardWrapped()) {
-                <span class="sep" aria-hidden="true">|</span>
+            @if (showSeparator() && !overflowing()) {
+                <span class="sep" [class.is-hidden]="standardWrapped()" aria-hidden="true">|</span>
             }
 
             @if (canPrint() && !overflowing()) {
