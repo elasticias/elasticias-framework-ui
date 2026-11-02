@@ -1,0 +1,17 @@
+// The host is a block that may shrink below its content: a 600px email
+// table must scroll inside the frame, never widen the card or the page.
+:host {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.ef-html-preview__frame {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    border: 1px solid var(--rule, #e5e5e5);
+    border-radius: var(--r-2, 8px);
+    background: #fff;
+}
