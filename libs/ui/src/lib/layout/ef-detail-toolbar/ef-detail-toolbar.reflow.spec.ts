@@ -57,4 +57,13 @@ describe('ef-detail-toolbar reflow', () => {
     expect(last.media).toContain('max-width: 767px');
     expect(last.value).toBe('1 1 100%');
   });
+
+  it('keeps the label of a keepInView action on a phone, after the rule that hides the others', () => {
+    const hide = decls('.detail-toolbar .right .btn > span', 'display');
+    const keep = decls('.detail-toolbar .right .btn.btn--keep-label > span', 'display');
+    expect(hide.some((d) => d.media.includes('max-width: 767px') && d.value === 'none')).toBe(true);
+    expect(keep.length).toBeGreaterThan(0);
+    expect(keep[keep.length - 1].value).not.toBe('none');
+    expect(keep[keep.length - 1].media).toContain('max-width: 767px');
+  });
 });

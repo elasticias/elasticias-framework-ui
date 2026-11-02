@@ -13,7 +13,9 @@
         />
     }
 
-    <!-- Custom screen actions (before the standard group). -->
+    <!-- Custom screen actions (before the standard group). Each is named by
+         its label key, so it keeps a name when a phone shows only its icon;
+         a keepInView action keeps its visible label there too. -->
     @for (action of (overflowing() ? keptInView() : visibleCustomActions()); track trackByAction($index, action)) {
         <ef-button
             variant="comptoir"
@@ -22,6 +24,8 @@
             [icon]="action.icon"
             [label]="action.label"
             [labelKey]="action.labelKey"
+            [ariaLabelKey]="action.labelKey"
+            [styleClass]="action.keepInView ? 'btn--keep-label' : undefined"
             [disabled]="!!action.disabled"
             (clickEvent)="onCustomClick(action)"
         />
@@ -31,55 +35,65 @@
          after the customActions array, before the standard group. -->
     <ng-content select="[actions]"></ng-content>
 
-    <!-- Separator between custom and standard groups. -->
-    @if (showSeparator() && !overflowing()) {
-        <span class="sep" aria-hidden="true">|</span>
-    }
+    <!-- Standard actions: Print → Duplicate → Delete → Save, in one group
+         that never wraps inside itself, with the separator at its head. When
+         the group drops to a row of its own the separator is hidden, rather
+         than left dangling at the end of the row above. -->
+    @if (hasStandardActions()) {
+        <span class="std">
+            @if (showSeparator() && !overflowing() && !standardWrapped()) {
+                <span class="sep" aria-hidden="true">|</span>
+            }
 
-    <!-- Standard actions: Print → Duplicate → Delete → Save. -->
-    @if (canPrint() && !overflowing()) {
-        <ef-button
-            variant="comptoir"
-            severity="ghost"
-            size="small"
-            icon="pi pi-print"
-            labelKey="common_print"
-            (clickEvent)="print.emit()"
-        />
-    }
+            @if (canPrint() && !overflowing()) {
+                <ef-button
+                    variant="comptoir"
+                    severity="ghost"
+                    size="small"
+                    icon="pi pi-print"
+                    labelKey="common_print"
+                    ariaLabelKey="common_print"
+                    (clickEvent)="print.emit()"
+                />
+            }
 
-    @if (canDuplicate() && !overflowing()) {
-        <ef-button
-            variant="comptoir"
-            severity="ghost"
-            size="small"
-            icon="pi pi-clone"
-            labelKey="common_duplicate"
-            (clickEvent)="duplicate.emit()"
-        />
-    }
+            @if (canDuplicate() && !overflowing()) {
+                <ef-button
+                    variant="comptoir"
+                    severity="ghost"
+                    size="small"
+                    icon="pi pi-clone"
+                    labelKey="common_duplicate"
+                    ariaLabelKey="common_duplicate"
+                    (clickEvent)="duplicate.emit()"
+                />
+            }
 
-    @if (canDelete() && !overflowing()) {
-        <ef-button
-            variant="comptoir"
-            severity="danger"
-            size="small"
-            icon="pi pi-trash"
-            labelKey="common_delete"
-            (clickEvent)="delete.emit()"
-        />
-    }
+            @if (canDelete() && !overflowing()) {
+                <ef-button
+                    variant="comptoir"
+                    severity="danger"
+                    size="small"
+                    icon="pi pi-trash"
+                    labelKey="common_delete"
+                    ariaLabelKey="common_delete"
+                    (clickEvent)="delete.emit()"
+                />
+            }
 
-    @if (canSave()) {
-        <ef-button
-            variant="comptoir"
-            severity="tenant"
-            size="small"
-            icon="pi pi-save"
-            [labelKey]="saveLabelKey()"
-            [disabled]="saving()"
-            [loading]="saving()"
-            (clickEvent)="save.emit()"
-        />
+            @if (canSave()) {
+                <ef-button
+                    variant="comptoir"
+                    severity="tenant"
+                    size="small"
+                    icon="pi pi-save"
+                    [labelKey]="saveLabelKey()"
+                    [ariaLabelKey]="saveLabelKey()"
+                    [disabled]="saving()"
+                    [loading]="saving()"
+                    (clickEvent)="save.emit()"
+                />
+            }
+        </span>
     }
 </div>

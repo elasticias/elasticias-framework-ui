@@ -52,7 +52,7 @@ describe('EfDetailToolbarComponent mobile overflow', () => {
     return { fixture, el: fixture.nativeElement as HTMLElement, cmp: fixture.componentInstance };
   }
 
-  const inlineButtons = (el: HTMLElement) => el.querySelectorAll('.right > ef-button');
+  const inlineButtons = (el: HTMLElement) => el.querySelectorAll('.right > ef-button, .right > .std > ef-button');
   const trigger = (el: HTMLElement) => el.querySelector<HTMLButtonElement>('.row-actions__trigger');
   const menuLabels = (el: HTMLElement) =>
     Array.from(el.querySelectorAll('.row-actions__item .lbl')).map((n) => n.textContent?.trim());
@@ -206,6 +206,30 @@ describe('EfDetailToolbarComponent mobile overflow', () => {
     ];
     const { el } = await make(true, { customActions: custom, context: ctx(false) });
     expect(Array.from(inlineButtons(el)).some((b) => b.textContent?.includes('next'))).toBe(false);
+  });
+
+  it('names every inline button, even when the phone hides its label', async () => {
+    const custom: EfDetailToolbarAction[] = [{ id: 'next', labelKey: 'next', keepInView: true }];
+    const { el } = await make(true, { customActions: custom, context: ctx(true) });
+    const buttons = Array.from(el.querySelectorAll<HTMLElement>('.right .btn'));
+    expect(buttons.length).toBe(2);
+    for (const b of buttons) expect(b.getAttribute('aria-label'), b.outerHTML).toBeTruthy();
+    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual(['next', 'common_save']);
+  });
+
+  it('marks a keepInView action so the phone keeps its visible label', async () => {
+    const custom: EfDetailToolbarAction[] = [
+      { id: 'a', labelKey: 'a' },
+      { id: 'b', labelKey: 'b' },
+      { id: 'next', labelKey: 'next', keepInView: true },
+      { id: 'c', labelKey: 'c' },
+    ];
+    const { el } = await make(true, { customActions: custom });
+    const kept = el.querySelector<HTMLElement>('.right .btn.btn--keep-label');
+    expect(kept).not.toBeNull();
+    expect(kept!.textContent).toContain('next');
+    // Save stays icon-only beside it.
+    expect(el.querySelectorAll('.right .btn.btn--keep-label').length).toBe(1);
   });
 
   it('names the trigger for assistive tech', async () => {

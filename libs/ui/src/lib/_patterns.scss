@@ -2834,6 +2834,17 @@
   color: var(--text-soft);
 }
 
+/* Print … Save travel together with their separator, so a wrap never leaves
+   the "|" at the end of one row and Save alone on the next. The group keeps
+   the far end of its row, like Save on a phone. */
+.detail-toolbar .std {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  margin-inline-start: auto;
+}
+
 .detail-toolbar .right {
   display: flex;
   align-items: center;
@@ -4881,6 +4892,28 @@ input.ef-input[type='number'] {
     min-inline-size: 0;
     min-block-size: 0;
     padding: 0;
+  }
+}
+
+/* A keepInView action is the screen's next step (confirm, prepare, ...): on a
+   phone it keeps its word beside the icon. Icons alone could not tell
+   "Confirmer" (pi-check) from "Livrer" (pi-check-circle). Declared after the
+   two rules above that hide toolbar labels and square the buttons, because
+   a media query adds no specificity. */
+@media (max-width: 767px) {
+  .detail-toolbar .right .btn.btn--keep-label > span {
+    display: inline;
+  }
+
+  .detail-toolbar .right .btn.btn--keep-label {
+    padding: 7px 14px;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 767px) {
+  .detail-toolbar .right .btn.btn--keep-label {
+    inline-size: auto;
+    padding: 0 16px;
   }
 }
 

@@ -1,11 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
   booleanAttribute,
   computed,
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -222,6 +226,37 @@ export class EfDetailToolbarComponent {
   readonly showSeparator = computed(
     () => this.hasCustomActions() && this.hasStandardActions(),
   );
+
+  /* ── Wrap of the standard group ─────────────────────────────── */
+
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** The standard group (separator, Print … Save) starts a row of its own,
+   *  below the custom actions: its leading separator would separate nothing. */
+  readonly standardWrapped = signal(false);
+
+  constructor() {
+    afterNextRender(() => {
+      if (typeof ResizeObserver === 'undefined') return;
+      const right = this.host.nativeElement.querySelector('.right');
+      if (!right) return;
+      const observer = new ResizeObserver(() => this.measureWrap());
+      observer.observe(right);
+      this.destroyRef.onDestroy(() => observer.disconnect());
+    });
+  }
+
+  /** Compares the standard group's row with the first item of the right
+   *  group. Public for specs: jsdom lays nothing out. */
+  measureWrap(): void {
+    const right = this.host.nativeElement.querySelector('.right');
+    const std = right?.querySelector(':scope > .std');
+    const first = right?.firstElementChild;
+    const wrapped =
+      !!std && !!first && first !== std && std.getBoundingClientRect().top > first.getBoundingClientRect().top + 1;
+    if (wrapped !== this.standardWrapped()) this.standardWrapped.set(wrapped);
+  }
 
   /* ── Click bridge ───────────────────────────────────────────── */
 

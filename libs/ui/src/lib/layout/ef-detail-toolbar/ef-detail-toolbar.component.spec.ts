@@ -125,3 +125,37 @@ describe('EfDetailToolbarComponent write gating', () => {
     });
   });
 });
+
+describe('EfDetailToolbarComponent separator', () => {
+  async function make() {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({ imports: [EfDetailToolbarComponent, TranslateModule.forRoot()] }).compileComponents();
+    const fixture = TestBed.createComponent(EfDetailToolbarComponent);
+    fixture.componentRef.setInput('customActions', [{ id: 'a', labelKey: 'a' }, { id: 'b', labelKey: 'b' }]);
+    fixture.detectChanges();
+    return fixture;
+  }
+  const top = (el: Element, y: number) =>
+    vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({ top: y } as DOMRect);
+
+  it('travels with the standard actions, and hides when they wrap to a row of their own', async () => {
+    const fixture = await make();
+    const el = fixture.nativeElement as HTMLElement;
+    const std = el.querySelector('.right .std') as HTMLElement;
+    expect(std).not.toBeNull();
+    expect(std.querySelector('.sep')).not.toBeNull();
+
+    // Same row as the first custom action: the separator stays.
+    top(el.querySelector('.right')!.firstElementChild!, 10);
+    top(std, 10);
+    fixture.componentInstance.measureWrap();
+    fixture.detectChanges();
+    expect(el.querySelector('.sep')).not.toBeNull();
+
+    // Save dropped to the next row: a leading "|" would dangle, so it goes.
+    top(std, 50);
+    fixture.componentInstance.measureWrap();
+    fixture.detectChanges();
+    expect(el.querySelector('.sep')).toBeNull();
+  });
+});
