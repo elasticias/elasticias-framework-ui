@@ -145,6 +145,54 @@ describe('ef-inputnumber currency mode (comptoir)', () => {
     expect(fixture.componentInstance.value).toBe(expected);
   });
 
+  /* Money safety: with at most 2 decimals, the locale's own group separator
+     followed by groups of exactly 3 digits is grouping, never a decimal.
+     "1.500" typed into a fr-MA MAD field is 1 500 MAD, not 1,50. */
+  it.each([
+    ['fr-MA', '1.500', 1500],
+    ['fr-MA', '1 500', 1500],
+    ['fr-MA', '1.234.567', 1234567],
+    ['fr-MA', '1,5', 1.5],
+    ['fr-MA', '1,500', 1.5],
+    ['fr-MA', '12.50', 12.5],
+    ['fr-MA', '0.500', 0.5],
+    ['fr-MA', '1.234,50 MAD', 1234.5],
+    ['fr-MA', '\u200f1.500', 1500],
+    ['ar-MA', '1.500', 1500],
+    ['ar-MA', '1,5', 1.5],
+    ['ar-MA', '\u200f1.234,50 \u062f.\u0645.\u200f', 1234.5],
+    ['ar', '1,500', 1500],
+    ['ar', '1.5', 1.5],
+    ['fr', '1\u202f500', 1500],
+    ['fr', '1,5', 1.5],
+    ['en-US', '1,500', 1500],
+    ['en-US', '1.5', 1.5],
+    ['en-US', 'MAD 1,234.50', 1234.5],
+    ['en-US', '-1,500', -1500],
+  ])('%s: typed or pasted "%s" is %s', (locale, text, expected) => {
+    const { focus, type, blur, fixture } = render({ value: null, locale });
+    focus();
+    type(text);
+    blur();
+    expect(fixture.componentInstance.value).toBe(expected);
+  });
+
+  it('a currency field with 3 decimals keeps the separator as a decimal', () => {
+    const { focus, type, blur, fixture } = render({ value: null, locale: 'fr-MA', currency: 'TND' });
+    focus();
+    type('1.500');
+    blur();
+    expect(fixture.componentInstance.value).toBe(1.5);
+  });
+
+  it('decimal mode keeps reading a lone separator as the decimal', () => {
+    const { input, fixture } = render({ value: null, locale: 'fr-MA', mode: 'decimal' });
+    input().value = '1.500';
+    input().dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.value).toBe(1.5);
+  });
+
   it('an explicit suffix wins over the currency symbol, so the unit shows once', () => {
     const { host, addon } = render({ value: 30, locale: 'fr-MA', suffix: 'MAD' });
     expect(addon()).toBeNull();

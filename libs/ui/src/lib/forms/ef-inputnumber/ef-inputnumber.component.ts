@@ -264,6 +264,40 @@ export class EfInputNumberComponent
     };
   }
 
+  /**
+   * Currency mode, before the generic parse: drops the currency's names (a
+   * pasted "1.234,50 MAD" or "1.234,50 د.م."), then, when the currency has
+   * at most 2 decimals, reads the locale's own group separator followed by
+   * groups of exactly 3 digits as grouping. "1.500" in a fr-MA or ar-MA MAD
+   * field is 1 500, not 1,50: a 3-digit tail cannot be a decimal there.
+   * Only the locale's group character counts, so a French "1,500" stays
+   * 1,5, and "0.500" or "12.50" stay decimals.
+   */
+  private stripCurrencyGrouping(text: string): string {
+    const locale = this.effectiveLocale;
+    for (const display of ['code', 'symbol', 'narrowSymbol', 'name'] as const) {
+      const unit = new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: this.currency,
+        currencyDisplay: display,
+        numberingSystem: 'latn',
+      } as Intl.NumberFormatOptions)
+        .formatToParts(1)
+        .find((p) => p.type === 'currency')
+        ?.value.replace(BIDI_MARKS, '');
+      if (unit) text = text.split(unit).join('');
+    }
+    text = text.replace(/\s/g, '');
+    const group = (
+      new Intl.NumberFormat(locale, { numberingSystem: 'latn' } as Intl.NumberFormatOptions)
+        .formatToParts(1234567)
+        .find((p) => p.type === 'group')?.value ?? ''
+    ).replace(/\s/g, '');
+    if (!group || this.fractionDigits.max >= 3) return text;
+    const g = group.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`^-?[1-9]\\d{0,2}(${g}\\d{3})+$`).test(text) ? text.split(group).join('') : text;
+  }
+
   /** Id of the currency addon, referenced by the input's aria-describedby. */
   get currencyId(): string {
     return `${this.effectiveId}-currency`;
@@ -361,7 +395,9 @@ export class EfInputNumberComponent
    */
   private parseComptoirValue(raw: string): number | null {
     if (raw == null) return null;
-    let normalized = raw.replace(BIDI_MARKS, '').replace(/\s/g, '');
+    let normalized = raw.replace(BIDI_MARKS, '');
+    if (this.isCurrency) normalized = this.stripCurrencyGrouping(normalized);
+    normalized = normalized.replace(/\s/g, '');
     // Both separators present ("1.234,50", "1,234.50"): the last one is the
     // decimal, the other is grouping. A currency field displays the first.
     const lastDot = normalized.lastIndexOf('.');
