@@ -237,3 +237,37 @@ describe('EfSelectComponent', () => {
     });
   });
 });
+
+describe('EfSelectComponent placeholder text', () => {
+  @Component({
+    standalone: true,
+    imports: [EfSelectComponent],
+    template: `<ef-select name="s" variant="comptoir" [placeholder]="placeholder" [options]="options" optionLabel="name" optionValue="id" />`,
+  })
+  class NativeHostComponent {
+    placeholder = '';
+    options = [{ id: 1, name: 'A' }];
+  }
+
+  function render(placeholder: string) {
+    TestBed.configureTestingModule({ imports: [NativeHostComponent, TranslateModule.forRoot()] });
+    const f = TestBed.createComponent(NativeHostComponent);
+    f.componentInstance.placeholder = placeholder;
+    f.detectChanges();
+    return f.nativeElement.querySelector('select') as HTMLSelectElement;
+  }
+
+  it('shows the placeholder text as is, with no dashes added', () => {
+    const option = render('Aucune').options[0];
+    expect(option.value).toBe('');
+    expect(option.textContent?.trim()).toBe('Aucune');
+  });
+
+  it.each(['', ' ', '—', '— —', '-'])('shows nothing for the unset state when the placeholder is %j', (ph) => {
+    const select = render(ph);
+    expect(select.options[0].value).toBe('');
+    expect(select.options[0].textContent?.trim()).toBe('');
+    expect(select.options[0].selected).toBe(true);
+  });
+});
+

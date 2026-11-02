@@ -3418,6 +3418,13 @@
   cursor: pointer;
 }
 
+/* The chevron is a background image, which has no logical position: in Arabic
+   the reserved padding sits on the left, so the chevron moves there too. */
+[dir='rtl'] .ef-select-native,
+[dir='rtl'] .ef-field select {
+  background-position: left 12px center;
+}
+
 /* Native checkbox — keeps the underlying <input> for native keyboard
    handling, hidden visually; the .ef-checkbox-box gets the visuals. */
 .ef-checkbox-native {
@@ -3660,7 +3667,8 @@ input.ef-input[type='number'] {
   border: 1px solid var(--rule);
   border-radius: var(--r-md);
   min-height: var(--hit-field);
-  padding: 0 10px 0 14px;
+  padding-block: 0;
+  padding-inline: 14px 10px;
   display: inline-flex;
   align-items: center;
   gap: var(--es-gap);
@@ -3697,7 +3705,7 @@ input.ef-input[type='number'] {
 .es--sm.p-multiselect {
   font-size: 12.5px;
   min-height: 32px;
-  padding: 0 8px 0 12px;
+  padding-inline: 12px 8px;
   border-radius: var(--r-sm);
 }
 

@@ -235,6 +235,17 @@ export class EfSelectComponent
   /* effectiveId / effectivePlaceholder / effectiveAriaLabel /
      errorsId all inherited from AbstractEfFormControl. */
 
+  /**
+   * The text an unset select shows: the placeholder, or nothing. A blank or
+   * dash-only placeholder (a translation of " " or "—") counts as nothing, so
+   * the unset state can never read as "— —". The native variant used to wrap
+   * any truthy placeholder in dashes, which turned " " into exactly that.
+   */
+  get placeholderText(): string {
+    const text = this.effectivePlaceholder.trim();
+    return /^[\s\u2014\u2013-]*$/.test(text) ? '' : text;
+  }
+
   /** Translated filter placeholder. Falls back to a generic key, then
    *  to "Search…" so it always renders something readable. */
   get effectiveFilterPlaceholder(): string {

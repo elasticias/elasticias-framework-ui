@@ -18,9 +18,7 @@
       [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
       (change)="handleNativeSelectChange($any($event.target).value)"
     >
-      @if (effectivePlaceholder) {
-        <option value="" [selected]="value === null || value === undefined">— {{ effectivePlaceholder }} —</option>
-      }
+      <option value="" [selected]="value === null || value === undefined">{{ placeholderText }}</option>
       @for (opt of filteredOptions; track $index) {
         <option
           [value]="optionValue ? opt[optionValue] : opt"
@@ -50,7 +48,7 @@
       [group]="group"
       [optionGroupLabel]="optionGroupLabel"
       [optionGroupChildren]="optionGroupChildren"
-      [placeholder]="effectivePlaceholder"
+      [placeholder]="placeholderText"
       [filter]="filter"
       [filterPlaceHolder]="effectiveFilterPlaceholder"
       [autofocusFilter]="autofocusFilter"
@@ -152,7 +150,7 @@
       [group]="group"
       [optionGroupLabel]="optionGroupLabel"
       [optionGroupChildren]="optionGroupChildren"
-      [placeholder]="effectivePlaceholder"
+      [placeholder]="placeholderText"
       [size]="size"
       [filter]="filter"
       [filterPlaceholder]="effectiveFilterPlaceholder"
