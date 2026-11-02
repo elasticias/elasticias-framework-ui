@@ -336,8 +336,14 @@ describe('EfOrderBuilderComponent (recipient)', () => {
     }).compileComponents();
   });
 
-  function buildRecipient(recipient: EfOrderRecipient | null): ComponentFixture<EfOrderBuilderComponent> {
+  function buildRecipient(
+    recipient: EfOrderRecipient | null,
+    defaultCallingCode?: string,
+  ): ComponentFixture<EfOrderBuilderComponent> {
     const fixture = TestBed.createComponent(EfOrderBuilderComponent);
+    if (defaultCallingCode !== undefined) {
+      fixture.componentRef.setInput('defaultCallingCode', defaultCallingCode);
+    }
     fixture.componentRef.setInput('order', {
       ...makeOrder(),
       orderLines: [
@@ -368,6 +374,26 @@ describe('EfOrderBuilderComponent (recipient)', () => {
     expect(tel.textContent?.trim()).toBe('+212 6 12 34 56 78');
     expect(strip.querySelector('.ob-recipient-city')?.textContent?.trim()).toBe('Casablanca');
     expect(strip.querySelector('.ob-recipient-address')?.textContent?.trim()).toBe(RECIPIENT.address);
+  });
+
+  it('recipient phone dials a national number in E.164 with the default calling code', () => {
+    const fixture = buildRecipient({ name: 'Salma Bennani', phone: '06 12 34 56 78' }, '212');
+    const tel = (fixture.nativeElement as HTMLElement).querySelector('a.ob-recipient-phone') as HTMLAnchorElement;
+    expect(tel.getAttribute('href')).toBe('tel:+212612345678');
+    // The number reads as the shopper typed it.
+    expect(tel.textContent?.trim()).toBe('06 12 34 56 78');
+  });
+
+  it('recipient phone keeps an international number whatever the default', () => {
+    const fixture = buildRecipient({ name: 'Salma Bennani', phone: '0033 6 12 34 56 78' }, '212');
+    const tel = (fixture.nativeElement as HTMLElement).querySelector('a.ob-recipient-phone') as HTMLAnchorElement;
+    expect(tel.getAttribute('href')).toBe('tel:+33612345678');
+  });
+
+  it('recipient phone dials a national number as is without a default calling code', () => {
+    const fixture = buildRecipient({ name: 'Salma Bennani', phone: '06 12 34 56 78' });
+    const tel = (fixture.nativeElement as HTMLElement).querySelector('a.ob-recipient-phone') as HTMLAnchorElement;
+    expect(tel.getAttribute('href')).toBe('tel:0612345678');
   });
 
   it('recipient mode leaves out the parts it does not have', () => {

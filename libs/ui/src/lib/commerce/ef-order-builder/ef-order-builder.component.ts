@@ -40,7 +40,7 @@ import { EfDataCardComponent } from '../../data/ef-data-card/ef-data-card.compon
 import { EfColumnTemplateDirective } from '../../data/ef-data-card/ef-column-template.directive';
 import type { EfDataCardColumn } from '../../data/ef-data-card/ef-data-card.types';
 import { ProductTypeaheadSelection } from '../ef-product-typeahead/ef-product-typeahead.component.types';
-import { UuidUtils } from '@elasticias/utils';
+import { PhoneUtils, UuidUtils } from '@elasticias/utils';
 
 /**
  * Reusable order builder component for orders, invoices, and quotes
@@ -117,12 +117,22 @@ export class EfOrderBuilderComponent implements OnInit {
    */
   recipient = input<EfOrderRecipient | null>(null);
 
-  /** `tel:` target for the recipient's phone: digits and a leading "+" only. */
+  /**
+   * Calling code (`'212'` or `'+212'`) for a national recipient phone, so the
+   * `tel:` link dials `+212612345678` for `0612345678` from anywhere.
+   */
+  defaultCallingCode = input<string>('');
+
+  /**
+   * `tel:` target for the recipient's phone: E.164 when it can be made, else
+   * the digits as typed (a national number still dials inside the country).
+   */
   recipientTel = computed(() => {
-    const phone = this.recipient()?.phone?.trim() ?? '';
+    const phone = this.recipient()?.phone ?? '';
+    const e164 = PhoneUtils.toE164(phone, this.defaultCallingCode());
+    if (e164) return `tel:${e164}`;
     const digits = phone.replace(/\D/g, '');
-    if (!digits) return null;
-    return `tel:${phone.startsWith('+') ? '+' : ''}${digits}`;
+    return digits ? `tel:${digits}` : null;
   });
   readonly = input<boolean>(false);
   countGroupLabels = input<ProductCountGroupLabel[]>([]);
