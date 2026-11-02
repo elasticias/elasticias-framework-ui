@@ -6,7 +6,8 @@ import {
   OnDestroy, OnInit,
   signal,
 } from '@angular/core';
-import { take } from 'rxjs';
+import { Observable, from, take } from 'rxjs';
+import type { EfConfirmOptions } from '@elasticias/core';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { ActiveFilter } from '../../entities/active-filter.entity';
@@ -19,6 +20,14 @@ import {
   EfReferenceColumnOpts,
 } from '../../entities/data-card-column.entity';
 import { EfDateRange } from '../../entities/date-range.entity';
+
+/**
+ * What a search screen may add to its delete confirmation: the copy, the
+ * name, the params. `accept` and `reject` stay with the base, so the
+ * delete call, the `errors` handling, the new search and the toast are
+ * the same on every screen.
+ */
+export type EfDeleteConfirmOptions = Partial<Omit<EfConfirmOptions, 'accept' | 'reject' | 'intent'>>;
 import {
   PaginationEnum,
   SearchEntity,
@@ -1000,14 +1009,60 @@ export abstract class AbstractSearchScreenV2<TItem = any>
     return undefined;
   }
 
+  /**
+   * Async details for the delete confirmation, read before it opens. Use
+   * it when the confirm has to say what the delete will take with it, such
+   * as how many products lose a collection:
+   *
+   * ```ts
+   * protected override getDeleteConfirmOptions(id: any) {
+   *   return this.collectionsClient.deleteImpact(id).pipe(
+   *     map(impact => ({
+   *       messageKey: impact.onHome ? 'x_delete_message_home' : 'x_delete_message',
+   *       messageParams: { count: impact.productCount ?? 0 },
+   *     })),
+   *   );
+   * }
+   * ```
+   *
+   * The returned options are merged over `{ intent: 'delete', name:
+   * getDeleteConfirmName(id) }`. Only the first value of an Observable is
+   * used. If the read fails (the HTTP interceptor toasts it) or completes
+   * without a value, no confirm opens and nothing is deleted. Return
+   * `undefined`, the default, to open the confirm at once.
+   */
+  protected getDeleteConfirmOptions(
+    _id: any,
+  ): Observable<EfDeleteConfirmOptions> | Promise<EfDeleteConfirmOptions> | undefined {
+    return undefined;
+  }
+
   delete(id: any): void {
     if (!id) {
       this.recordNotFound();
       return;
     }
+    const details = this.getDeleteConfirmOptions(id);
+    if (!details) {
+      this.openDeleteConfirm(id, {});
+      return;
+    }
+    from(details)
+      .pipe(take(1))
+      .subscribe({
+        next: (extra) => this.openDeleteConfirm(id, extra ?? {}),
+        // A failed read is the interceptor's to report; without its details
+        // the confirm would understate what the delete takes with it.
+        error: () => undefined,
+      });
+  }
+
+  private openDeleteConfirm(id: any, extra: EfDeleteConfirmOptions): void {
+    const { accept: _a, reject: _r, intent: _i, ...details } = extra as EfConfirmOptions;
     this.confirmDialogService.confirm({
       intent: 'delete',
       name: this.getDeleteConfirmName(id),
+      ...details,
       accept: () =>
         this.serviceInstance.delete(id).subscribe({
           next: (result: any) => {

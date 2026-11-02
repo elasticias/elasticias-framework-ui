@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { CacheService, ConfirmDialogService, ToastService } from '@elasticias/core';
 import { AbstractSearchScreenV2 } from './abstract-search-screen-v2.component';
 import { ScreenConfig } from '../../config/screen-config';
@@ -16,6 +16,11 @@ class FakeSearchClient {
     this.calls.push(subject);
     this.criteria.push(criteria);
     return subject.asObservable();
+  }
+  readonly deleted: any[] = [];
+  delete(id: any) {
+    this.deleted.push(id);
+    return of(null);
   }
 }
 
@@ -454,6 +459,161 @@ describe('AbstractSearchScreenV2', () => {
         expect(lastSent().start).toBeNull();
         expect(lastSent().end).toBeNull();
       });
+    });
+  });
+
+  describe('delete confirmation', () => {
+    type Hook = (id: any) => Observable<any> | Promise<any> | undefined;
+
+    @Component({ template: '', standalone: true })
+    class HookScreen extends AbstractSearchScreenV2<{ id: string; title: string }> {
+      hook: Hook | null = null;
+      protected override getConfig() {
+        return TestConfig;
+      }
+      protected override getDeleteConfirmName(id: any) {
+        return this.items().find((r) => r.id === id)?.title;
+      }
+      protected override getDeleteConfirmOptions(id: any) {
+        return this.hook ? this.hook(id) : super.getDeleteConfirmOptions(id);
+      }
+    }
+
+    let confirms: any[];
+    let toasts: number;
+
+    function create(): HookScreen {
+      TestBed.resetTestingModule();
+      sessionStorage.clear();
+      localStorage.clear();
+      fakeService = new FakeSearchClient();
+      confirms = [];
+      toasts = 0;
+      TestBed.configureTestingModule({
+        imports: [HookScreen],
+        providers: [
+          provideRouter([]),
+          { provide: FakeSearchClient, useValue: fakeService },
+          {
+            provide: CacheService,
+            useValue: { configure() { /* no-op */ }, getCache: () => null, setCache() { /* no-op */ } },
+          },
+          { provide: ToastService, useValue: { showSuccess: () => { toasts++; }, showError() { /* no-op */ } } },
+          { provide: ConfirmDialogService, useValue: { confirm: (o: any) => { confirms.push(o); } } },
+          {
+            provide: SCREEN_REF_DATA_SERVICE,
+            useValue: {
+              getReference: () => signal([]),
+              hasReference: () => false,
+              loadReferenceKeys: async () => { /* no-op */ },
+              loadStaticRefs: async () => { /* no-op */ },
+              refreshKeys: async () => { /* no-op */ },
+              invalidateKeys: async () => { /* no-op */ },
+            },
+          },
+        ],
+      });
+      const f = TestBed.createComponent(HookScreen);
+      f.detectChanges();
+      fakeService.calls[0].next({ items: [{ id: 'c1', title: 'Promos' }], totalCount: 1 });
+      fakeService.calls[0].complete();
+      return f.componentInstance;
+    }
+
+    it('opens the delete confirm at once, named after the row, when no hook is given', () => {
+      const s = create();
+      s.delete('c1');
+      expect(confirms.length).toBe(1);
+      expect(confirms[0].intent).toBe('delete');
+      expect(confirms[0].name).toBe('Promos');
+      expect(confirms[0].messageKey).toBeUndefined();
+    });
+
+    it('accepting deletes through the service, searches again and toasts', () => {
+      const s = create();
+      s.delete('c1');
+      const before = fakeService.criteria.length;
+      confirms[0].accept();
+      expect(fakeService.deleted).toEqual(['c1']);
+      expect(fakeService.criteria.length).toBe(before + 1);
+      expect(toasts).toBe(1);
+    });
+
+    it('waits for an Observable hook and merges its options over the defaults', () => {
+      const s = create();
+      const impact = new Subject<any>();
+      s.hook = () => impact.asObservable();
+      s.delete('c1');
+      expect(confirms.length).toBe(0);
+      impact.next({ messageKey: 'impact_message', messageParams: { count: 3 } });
+      impact.complete();
+      expect(confirms.length).toBe(1);
+      expect(confirms[0].intent).toBe('delete');
+      expect(confirms[0].name).toBe('Promos');
+      expect(confirms[0].messageKey).toBe('impact_message');
+      expect(confirms[0].messageParams).toEqual({ count: 3 });
+    });
+
+    it('keeps the base accept body when a hook returns options', () => {
+      const s = create();
+      s.hook = () => of({ messageKey: 'impact_message', accept: () => { throw new Error('not used'); } });
+      s.delete('c1');
+      confirms[0].accept();
+      expect(fakeService.deleted).toEqual(['c1']);
+      expect(toasts).toBe(1);
+    });
+
+    it('lets the hook rename the row', () => {
+      const s = create();
+      s.hook = () => of({ name: 'Other name' });
+      s.delete('c1');
+      expect(confirms[0].name).toBe('Other name');
+    });
+
+    it('accepts a Promise hook', async () => {
+      const s = create();
+      s.hook = () => Promise.resolve({ messageKey: 'impact_message' });
+      s.delete('c1');
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(confirms.length).toBe(1);
+      expect(confirms[0].messageKey).toBe('impact_message');
+    });
+
+    it('opens no confirm when the hook fails, and deletes nothing', () => {
+      const s = create();
+      s.hook = () => throwError(() => new Error('403'));
+      s.delete('c1');
+      expect(confirms.length).toBe(0);
+      expect(fakeService.deleted).toEqual([]);
+    });
+
+    it('opens no confirm when the hook completes without a value', () => {
+      const s = create();
+      const empty = new Subject<any>();
+      s.hook = () => empty.asObservable();
+      s.delete('c1');
+      empty.complete();
+      expect(confirms.length).toBe(0);
+    });
+
+    it('asks the hook only for the first value of a long-lived stream', () => {
+      const s = create();
+      const stream = new Subject<any>();
+      s.hook = () => stream.asObservable();
+      s.delete('c1');
+      stream.next({ messageKey: 'a' });
+      stream.next({ messageKey: 'b' });
+      expect(confirms.length).toBe(1);
+      expect(confirms[0].messageKey).toBe('a');
+    });
+
+    it('passes the row id to the hook', () => {
+      const s = create();
+      const seen: any[] = [];
+      s.hook = (id) => { seen.push(id); return of({}); };
+      s.delete('c1');
+      expect(seen).toEqual(['c1']);
     });
   });
 });
