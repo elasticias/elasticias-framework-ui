@@ -4,5 +4,6 @@ export { UuidUtils } from './lib/uuid.utils';
 export { CsvUtils } from './lib/csv.utils';
 export type { CsvColumn } from './lib/csv.utils';
 export { NumberUtils } from './lib/number.utils';
+export { PhoneUtils } from './lib/phone.utils';
 export { PersistedState } from './lib/persisted-state';
 export type { PersistedStateOptions } from './lib/persisted-state';
