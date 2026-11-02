@@ -3214,6 +3214,17 @@
   color: var(--text);
 }
 
+.kpi-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
 .kpi-value .unit {
   font-family: var(--font-mono);
   font-size: 0.32em;

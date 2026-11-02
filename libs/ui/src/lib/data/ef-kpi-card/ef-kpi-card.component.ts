@@ -44,6 +44,10 @@ import { EfKpiDeltaTone, EfKpiSparkline } from './ef-kpi-card.types';
             {{ value() }}@if (unit()) {<span class="unit">{{ unit() }}</span>}
         </div>
 
+        @if (hintKey()) {
+            <p class="kpi-hint">{{ hintKey() | translate: hintParams() }}</p>
+        }
+
         @if (sparkPoints()) {
             <svg class="spark" viewBox="0 0 200 28" preserveAspectRatio="none" aria-hidden="true">
                 <polyline
@@ -75,6 +79,12 @@ export class EfKpiCardComponent {
 
     /** Delta tone — drives the arrow color. */
     readonly deltaTone = input<EfKpiDeltaTone>('up');
+
+    /** Translation key of a secondary line under the value (e.g. "of which delivery: 120 MAD"). */
+    readonly hintKey = input<string>('');
+
+    /** Interpolation params for `hintKey`. */
+    readonly hintParams = input<Record<string, unknown>>({});
 
     /** Raw series for the sparkline. */
     readonly spark = input<EfKpiSparkline>([]);
