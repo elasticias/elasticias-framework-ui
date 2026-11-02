@@ -4845,3 +4845,11 @@ input.ef-input[type='number'] {
     flex: 1;
   }
 }
+
+/* ef-file-upload on a phone: the button reaches the 48px touch target. Last in
+   the file so it is not beaten by the base .btn rule. */
+@media (max-width: 767px) {
+  .ef-file-upload--touch .btn {
+    min-height: var(--hit-touch);
+  }
+}
