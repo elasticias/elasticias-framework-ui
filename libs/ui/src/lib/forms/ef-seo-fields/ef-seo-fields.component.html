@@ -20,7 +20,7 @@
                     [class.is-over]="text(locale.code, 'title').length > titleAdvised()"
                     [title]="'ef_seo_fields_counter_hint' | translate: { max: titleAdvised() }"
                 >
-                    {{ text(locale.code, 'title').length }} / {{ titleAdvised() }}
+                    <bdi dir="ltr">{{ text(locale.code, 'title').length }} / {{ titleAdvised() }}</bdi>
                 </span>
 
                 <ef-textarea
@@ -39,7 +39,7 @@
                     [class.is-over]="text(locale.code, 'description').length > descriptionAdvised()"
                     [title]="'ef_seo_fields_counter_hint' | translate: { max: descriptionAdvised() }"
                 >
-                    {{ text(locale.code, 'description').length }} / {{ descriptionAdvised() }}
+                    <bdi dir="ltr">{{ text(locale.code, 'description').length }} / {{ descriptionAdvised() }}</bdi>
                 </span>
             </ef-form-grid>
         </ef-fieldset>
