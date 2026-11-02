@@ -61,6 +61,11 @@ import { EfDetailToolbarAction } from './ef-detail-toolbar.types';
  * is hidden in the menu too. The projected `[actions]` slot is not moved.
  * Buttons are 48px on a coarse pointer (see `.detail-toolbar` in patterns).
  *
+ * Tablet and desktop reflow: the identity has a basis
+ * (`--detail-toolbar-identity-min`, 22rem), so when it and the actions
+ * cannot share a row the actions wrap below it, rather than squeezing the
+ * identity until its notices are cut.
+ *
  * Custom actions can declare `permission` and `visible` like
  * `EfRowAction`. With `[context]` bound, the toolbar filters them
  * against `ScreenContext.isGranted()` automatically.

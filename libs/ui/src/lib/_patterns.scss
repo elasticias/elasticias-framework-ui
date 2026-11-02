@@ -2806,11 +2806,17 @@
   flex-wrap: wrap;
 }
 
+/* The identity takes a real basis, not 0: with `flex: 1` it always "fit",
+   so a screen with many actions squeezed it to a sliver and cut its notices
+   ("Prise en charge par ...") to an ellipsis. Now, when the identity and the
+   actions cannot share a row at that width, the actions wrap onto a row of
+   their own and the identity keeps the whole line. A screen may tune the
+   basis with --detail-toolbar-identity-min. */
 .detail-toolbar .left {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
+  flex: 1 1 var(--detail-toolbar-identity-min, 22rem);
   min-width: 0;
   flex-wrap: wrap;
 }
