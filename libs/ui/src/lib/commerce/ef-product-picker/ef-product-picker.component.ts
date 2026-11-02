@@ -6,6 +6,7 @@ import {
     effect,
     inject,
     input,
+    model,
     output,
     signal,
     untracked,
@@ -35,18 +36,21 @@ import { EfProductPickerItem, EfProductPickerQuery } from './ef-product-picker.c
  * the dialog is full screen and the table becomes a list whose row head is
  * the toggle.
  *
- * `[open]` is one-way. The picker closes itself on X, Escape, Cancel and
- * after a confirm, and emits `(closed)` each time: the parent must set
- * `open` back to false on `(closed)`, or the next open is a no-op. Each open
- * starts over: empty selection, empty search, page one.
+ * `[(open)]` is two-way. The picker closes itself on X, Escape, Cancel and
+ * after a confirm, sets `open` back to false and emits `(closed)` each time.
+ * Each open starts over: empty selection, empty search, page one.
+ *
+ * Rows are toggle buttons (`ef-data-card` `rowPressed`): one tab stop each,
+ * Enter and Space toggle, `aria-pressed` says the state. The tick in the
+ * row is a picture of that state, not a second control. A `disabled` item is
+ * dimmed, `aria-disabled`, and cannot be picked.
  *
  * ```html
  * <ef-product-picker
- *   [open]="pickerOpen()"
+ *   [(open)]="pickerOpen"
  *   [search]="searchCandidates"
  *   titleKey="collections_products_picker_title"
  *   (confirm)="addProducts($event)"
- *   (closed)="pickerOpen.set(false)"
  * />
  * ```
  */
@@ -72,7 +76,9 @@ export class EfProductPickerComponent {
 
     /* ── Inputs ─────────────────────────────────────────────── */
 
-    readonly open = input(false);
+    /** Two-way: `[(open)]="pickerOpen"`. The picker sets it back to false
+     *  on every close path, so the next open always opens. */
+    readonly open = model(false);
     /** Called for every page and search. Map the caller's DTO to items. */
     readonly search =
         input.required<(q: EfProductPickerQuery) => Observable<EfPage<EfProductPickerItem>>>();
@@ -124,7 +130,9 @@ export class EfProductPickerComponent {
         this.isMobile()
             ? [{ id: 'item', type: 'custom', mobile: 'primary', hideable: false }]
             : [
-                  { id: 'select', width: '48px', hideable: false },
+                  // Not data-card's structural 'select' column: a click on this
+                  // cell must reach the row, which is the one control.
+                  { id: 'tick', type: 'custom', width: '48px', hideable: false, exportable: false },
                   { id: 'image', type: 'custom', width: '56px', hideable: false, exportable: false },
                   {
                       id: 'reference',
@@ -160,7 +168,11 @@ export class EfProductPickerComponent {
                     this.search()(q).pipe(
                         catchError((err: unknown) => {
                             this.loading.set(false);
-                            this.errorMsg.set((err as { message?: string })?.message || 'error');
+                            // Only ever read from data-error (devtools); the error
+                            // state shows its own translated copy.
+                            this.errorMsg.set(
+                                (err as { message?: string })?.message || 'common_error_load_failed',
+                            );
                             return EMPTY;
                         }),
                     ),
@@ -205,6 +217,10 @@ export class EfProductPickerComponent {
         return this.selected().has(id);
     }
 
+    /** Row state for ef-data-card. Arrow functions: data-card calls them. */
+    protected readonly rowPressed = (row: EfProductPickerItem) => this.selected().has(row.id);
+    protected readonly rowDisabled = (row: EfProductPickerItem) => !!row.disabled;
+
     toggle(item: EfProductPickerItem | null | undefined): void {
         if (!item || item.disabled) return;
         const next = new Set(this.selected());
@@ -213,7 +229,9 @@ export class EfProductPickerComponent {
     }
 
     onVisibleChange(visible: boolean): void {
-        if (!visible) this.closed.emit();
+        if (visible) return;
+        this.open.set(false);
+        this.closed.emit();
     }
 
     private startOver(): void {

@@ -1,7 +1,9 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
-import { Observable, of } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
+import { By } from '@angular/platform-browser';
+import { EfSmartBarComponent } from '../../data/ef-smart-bar/ef-smart-bar.component';
 import { EfViewportService } from '@elasticias/core';
 import { EfProductPickerComponent } from './ef-product-picker.component';
 import type { EfPage } from '@elasticias/types';
@@ -44,7 +46,7 @@ function fakeSearch(calls: EfProductPickerQuery[]) {
  * it.
  */
 describe('EfProductPickerComponent', () => {
-    async function setup(mobile = false) {
+    async function setup(mobile = false, search?: (q: EfProductPickerQuery) => Observable<EfPage<EfProductPickerItem>>) {
         TestBed.resetTestingModule();
         await TestBed.configureTestingModule({
             imports: [EfProductPickerComponent, TranslateModule.forRoot()],
@@ -52,7 +54,10 @@ describe('EfProductPickerComponent', () => {
         }).compileComponents();
         const calls: EfProductPickerQuery[] = [];
         const fixture = TestBed.createComponent(EfProductPickerComponent);
-        fixture.componentRef.setInput('search', fakeSearch(calls));
+        fixture.componentRef.setInput(
+            'search',
+            search ? (q: EfProductPickerQuery) => (calls.push(q), search(q)) : fakeSearch(calls),
+        );
         fixture.componentRef.setInput('titleKey', 'collections_picker_title');
         const confirmed: string[][] = [];
         let closed = 0;
@@ -71,6 +76,9 @@ describe('EfProductPickerComponent', () => {
         const dialog = () => document.querySelector<HTMLElement>('.es-dialog.ef-product-picker-dialog');
         const checkbox = (id: string) =>
             document.querySelector<HTMLInputElement>(`.ef-product-picker-dialog input[data-id="${id}"]`);
+        /** The desktop row of a product: the control the operator uses. */
+        const row = (id: string) => checkbox(id)?.closest('tr') as HTMLElement;
+        const pick = (id: string) => row(id).querySelector<HTMLElement>('td[data-col="title"]')?.click();
         const footerButtons = () =>
             Array.from(document.querySelectorAll<HTMLButtonElement>('.ef-product-picker-dialog .p-dialog-footer .btn'));
         const settle = async () => {
@@ -88,6 +96,8 @@ describe('EfProductPickerComponent', () => {
             shut,
             dialog,
             checkbox,
+            row,
+            pick,
             footerButtons,
             settle,
         };
@@ -103,20 +113,20 @@ describe('EfProductPickerComponent', () => {
     });
 
     it('keeps the selection across pages and searches', async () => {
-        const { open, cmp, checkbox, settle } = await setup();
+        const { open, cmp, checkbox, pick, settle } = await setup();
         await open();
 
-        checkbox('p1')!.click();
+        pick('p1');
         await settle();
 
         cmp.onPageChange(2);
         await settle();
-        checkbox('p21')!.click();
+        pick('p21');
         await settle();
 
         cmp.onSearch('musc');
         await settle();
-        checkbox('p2')!.click();
+        pick('p2');
         await settle();
 
         cmp.onPageChange(1);
@@ -141,10 +151,10 @@ describe('EfProductPickerComponent', () => {
     });
 
     it('emits the selected ids on confirm, then closes', async () => {
-        const { open, checkbox, settle, footerButtons, confirmed, closedCount } = await setup();
+        const { open, pick, settle, footerButtons, confirmed, closedCount } = await setup();
         await open();
-        checkbox('p1')!.click();
-        checkbox('p4')!.click();
+        pick('p1');
+        pick('p4');
         await settle();
 
         const [cancel, add] = footerButtons();
@@ -164,23 +174,99 @@ describe('EfProductPickerComponent', () => {
     });
 
     it('disables already-selected items passed as disabled', async () => {
-        const { open, cmp, checkbox, settle } = await setup();
+        const { open, cmp, row, settle } = await setup();
         await open();
-        const cb = checkbox('p3')!;
-        expect(cb.disabled).toBe(true);
+        const tr = row('p3');
+        expect(tr.classList).toContain('is-disabled');
+        expect(tr.getAttribute('aria-disabled')).toBe('true');
 
-        // Neither the row nor a programmatic toggle can pick it.
-        const row = cb.closest('tr')!;
-        row.querySelector<HTMLElement>('td[data-col="title"]')!.click();
+        // Neither the row, the keyboard nor a programmatic toggle can pick it.
+        tr.querySelector<HTMLElement>('td[data-col="title"]')!.click();
+        tr.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
         cmp.toggle(CATALOGUE[2]);
         await settle();
         expect(cmp.selectedIds()).toEqual([]);
     });
 
-    it('emits closed on cancel, and starts over when the parent reopens it', async () => {
-        const { open, shut, checkbox, settle, footerButtons, closedCount, cmp, calls, confirmed } = await setup();
+    it('is one tab stop per row, toggled by Space and Enter, its state announced', async () => {
+        const { open, cmp, row, checkbox, settle } = await setup();
         await open();
-        checkbox('p1')!.click();
+        const tr = row('p1');
+        expect(tr.getAttribute('role')).toBe('button');
+        expect(tr.getAttribute('tabindex')).toBe('0');
+        expect(tr.getAttribute('aria-pressed')).toBe('false');
+        // The tick is a picture of the state, not a second stop.
+        expect(checkbox('p1')!.getAttribute('tabindex')).toBe('-1');
+        expect(checkbox('p1')!.getAttribute('aria-hidden')).toBe('true');
+
+        tr.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+        await settle();
+        expect(cmp.selectedIds()).toEqual(['p1']);
+        expect(row('p1').getAttribute('aria-pressed')).toBe('true');
+
+        row('p1').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        await settle();
+        expect(cmp.selectedIds()).toEqual([]);
+    });
+
+    it('keeps the newest answer when an older one arrives late', async () => {
+        const answers = new Map<number, Subject<EfPage<EfProductPickerItem>>>();
+        const slow = (q: EfProductPickerQuery) => {
+            const s = new Subject<EfPage<EfProductPickerItem>>();
+            answers.set(q.pageNumber, s);
+            return s.asObservable();
+        };
+        const { open, cmp, settle } = await setup(false, slow);
+        await open();
+        answers.get(1)!.next({ items: CATALOGUE.slice(0, 20), totalCount: 30 });
+        await settle();
+
+        cmp.onPageChange(2);
+        const late = answers.get(2)!;
+        cmp.onPageChange(1);
+        const fresh = answers.get(1)!;
+        fresh.next({ items: CATALOGUE.slice(0, 20), totalCount: 30 });
+        late.next({ items: CATALOGUE.slice(20), totalCount: 30 });
+        await settle();
+
+        const titles = Array.from(document.querySelectorAll('.ef-product-picker-dialog tbody td[data-col="title"]'));
+        expect(titles[0].textContent?.trim()).toBe(CATALOGUE[0].title);
+    });
+
+    it('shows the error state and retries the same query', async () => {
+        let fail = true;
+        const flaky = (q: EfProductPickerQuery) =>
+            fail
+                ? throwError(() => new Error('500'))
+                : of({ items: CATALOGUE.slice(0, q.pageSize), totalCount: 30 });
+        const { open, calls, settle } = await setup(false, flaky);
+        await open();
+        const retry = document.querySelector<HTMLButtonElement>('.ef-product-picker-dialog .tbl-empty--error button');
+        expect(retry).toBeTruthy();
+
+        fail = false;
+        retry!.click();
+        await settle();
+        expect(calls).toEqual([
+            { text: '', pageNumber: 1, pageSize: 20 },
+            { text: '', pageNumber: 1, pageSize: 20 },
+        ]);
+        expect(document.querySelectorAll('.ef-product-picker-dialog tbody tr').length).toBe(20);
+    });
+
+    it('emits closed and sets open back to false when the X closes it', async () => {
+        const { open, cmp, settle, closedCount } = await setup();
+        await open();
+        document.querySelector<HTMLButtonElement>('.ef-product-picker-dialog .es-dialog__close')!.click();
+        await settle();
+        expect(closedCount()).toBe(1);
+        expect(cmp.open()).toBe(false);
+    });
+
+    it('emits closed on cancel, and starts over when the parent reopens it', async () => {
+        const { open, shut, pick, settle, footerButtons, closedCount, cmp, calls, confirmed } = await setup();
+        await open();
+        pick('p1');
         cmp.onPageChange(2);
         await settle();
 
@@ -196,11 +282,22 @@ describe('EfProductPickerComponent', () => {
         expect(calls.at(-1)).toEqual({ text: '', pageNumber: 1, pageSize: 20 });
     });
 
-    it('shows how many products are selected', async () => {
-        const { open, checkbox, settle } = await setup();
+    it('shows how many products are selected, even while a page loads', async () => {
+        const pending = new Subject<EfPage<EfProductPickerItem>>();
+        let first = true;
+        const search = (q: EfProductPickerQuery) => {
+            if (first) {
+                first = false;
+                return of({ items: CATALOGUE.slice(0, q.pageSize), totalCount: 30 });
+            }
+            return pending.asObservable();
+        };
+        const { open, pick, cmp, settle } = await setup(false, search);
         await open();
-        checkbox('p1')!.click();
-        checkbox('p2')!.click();
+        pick('p1');
+        pick('p2');
+        await settle();
+        cmp.onPageChange(2);
         await settle();
         const status = document.querySelector('.ef-product-picker-dialog [data-role="selected-count"]')!;
         expect(status.getAttribute('aria-live')).toBe('polite');
@@ -208,9 +305,14 @@ describe('EfProductPickerComponent', () => {
     });
 
     it('does not take the screen-wide search shortcut', async () => {
-        const { open, cmp } = await setup();
+        const { open, fixture } = await setup();
         await open();
-        expect(cmp.searchShortcut).toBeNull();
+        const bar = fixture.debugElement.query(By.directive(EfSmartBarComponent))
+            ?? null;
+        const instance = (bar?.componentInstance
+            ?? fixture.debugElement.injector.get(EfSmartBarComponent, null)) as EfSmartBarComponent | null;
+        expect(instance).toBeTruthy();
+        expect(instance!.shortcut()).toBeNull();
     });
 
     it('is full screen at 390 px', async () => {

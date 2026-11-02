@@ -17,6 +17,13 @@
       (clear)="onClear()"
     />
 
+    <!-- Outside ef-data-card on purpose: its head info gives way to the
+         loading text and the error chip, and a live region that is removed
+         and re-inserted is often not announced. -->
+    <p class="ef-product-picker__count" data-role="selected-count" role="status" aria-live="polite">
+      {{ 'ef_product_picker_selected' | translate: { count: selectedCount() } }}
+    </p>
+
     <ef-data-card
       [columns]="columns()"
       [rows]="rows()"
@@ -30,25 +37,24 @@
       [searchTerm]="appliedText()"
       mobileLayout="row"
       rowDoubleClickable
+      [rowPressed]="rowPressed"
+      [rowDisabled]="rowDisabled"
       (rowDoubleClick)="toggle($any($event))"
       (pageChange)="onPageChange($event)"
       (retry)="retry()"
       (clearSearch)="onClear()"
     >
-      <span tbl-head-info data-role="selected-count" role="status" aria-live="polite">
-        {{ 'ef_product_picker_selected' | translate: { count: selectedCount() } }}
-      </span>
-
-      <ng-template efColumnTemplate="select" let-row>
+      <!-- The row is the toggle button and carries aria-pressed; the tick only
+           draws its state, so it is out of the tab order and the a11y tree. -->
+      <ng-template efColumnTemplate="tick" let-row>
         <input
           type="checkbox"
-          class="cb"
+          class="cb ef-product-picker__tick"
+          tabindex="-1"
+          aria-hidden="true"
           [attr.data-id]="row.id"
           [checked]="isSelected(row.id)"
           [disabled]="!!row.disabled"
-          [attr.aria-label]="row.title"
-          (click)="$event.stopPropagation()"
-          (change)="toggle(row)"
         />
       </ng-template>
 
@@ -59,7 +65,7 @@
       <!-- Phone: the row head is the toggle, so the tick here is a picture of
            the state, not a second control (a real one would toggle twice). -->
       <ng-template efColumnTemplate="item" let-row>
-        <span class="ef-product-picker__item" [class.is-disabled]="!!row.disabled">
+        <span class="ef-product-picker__item">
           <input
             type="checkbox"
             class="cb ef-product-picker__tick"

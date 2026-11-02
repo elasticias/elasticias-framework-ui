@@ -14,11 +14,7 @@
   min-width: 0;
 }
 
-.ef-product-picker__item.is-disabled {
-  opacity: 0.55;
-}
-
-/* A picture of the state: the row head under it is the control. */
+/* A picture of the state: the row (or row head) under it is the control. */
 .ef-product-picker__tick {
   pointer-events: none;
 }
@@ -43,4 +39,11 @@
 .ef-product-picker__meta {
   color: var(--text-mute);
   font-size: 12px;
+}
+
+.ef-product-picker__count {
+  margin: 0;
+  min-width: 0;
+  color: var(--text-mute);
+  font-size: 13px;
 }
