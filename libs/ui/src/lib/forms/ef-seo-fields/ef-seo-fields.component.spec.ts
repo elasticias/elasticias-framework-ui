@@ -46,7 +46,7 @@ describe('EfSeoFieldsComponent', () => {
         const { host } = render({ seoTitle: 'a'.repeat(61), seoDescription: 'b'.repeat(160) });
         const title = host.querySelector('[data-counter="fr-title"]')!;
         const description = host.querySelector('[data-counter="fr-description"]')!;
-        expect(title.textContent?.trim()).toBe('61 / 60');
+        expect(title.querySelector('bdi')?.textContent?.trim()).toBe('61 / 60');
         expect(title.classList).toContain('is-over');
         expect(description.classList).not.toContain('is-over');
     });
