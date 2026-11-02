@@ -10,7 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Location } from '@angular/common';
 import { Subscription, distinctUntilChanged, map, merge } from 'rxjs';
-import { EfShortcutService } from '@elasticias/core';
+import { EfShortcutService, extractProblem, isServerReported } from '@elasticias/core';
 import { AbstractScreenComponent } from './abstract-screen.component';
 import { ScreenStateEnum } from '../../config/screen-state.enum';
 import { EfDetailToolbarAction } from '../../entities/detail-toolbar-action.entity';
@@ -385,7 +385,41 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
                     this.setFormErrors(response.errors);
                     this.onSaveError(response.errors);
                 }
+                if (!isCreate && this.isStaleSave(response)) this.offerStaleReload();
             },
+        });
+    }
+
+    /**
+     * True when a failed save means the record changed since it was loaded:
+     * a 422 whose `ruleCode` is in the config's `STALE_RULE_CODES`, or a 409
+     * (the default, kept even when the config lists codes). Only a refusal
+     * the app's interceptor already toasted counts, so the user is never
+     * told twice.
+     */
+    protected isStaleSave(error: unknown): boolean {
+        if (!isServerReported(error)) return false;
+        const problem = extractProblem(error);
+        if (!problem) return false;
+        if (problem.status === 409) return true;
+        const codes = this.getConfig()?.STALE_RULE_CODES ?? [];
+        return !!problem.ruleCode && codes.includes(problem.ruleCode);
+    }
+
+    /**
+     * Asks, in an accessible confirm dialog (focus trapped, Escape cancels),
+     * whether to reload the record. Accepting discards the unsaved edits,
+     * and the message says so. The refusal itself was already toasted.
+     * App keys: `ef_stale_reload` (button), `ef_stale_reload_confirm`
+     * (message) and optionally `ef_stale_reload_header`.
+     */
+    protected offerStaleReload(): void {
+        this.confirmDialogService.confirm({
+            messageKey: 'ef_stale_reload_confirm',
+            headerKey: 'ef_stale_reload_header',
+            acceptLabelKey: 'ef_stale_reload',
+            icon: 'pi pi-refresh',
+            accept: () => this.loadData(),
         });
     }
 

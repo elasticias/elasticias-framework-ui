@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { BehaviorSubject, Subject, of } from 'rxjs';
+import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { CacheService, ConfirmDialogService, ToastService } from '@elasticias/core';
 import { Permissions } from '@elasticias/types';
 import { StorageUtils } from '@elasticias/utils';
@@ -563,5 +563,135 @@ describe('AbstractDetailScreenV2 route changes on a reused instance', () => {
 
     expect(screen.entity()).toEqual({});
     expect(screen.loading()).toBe(false);
+  });
+});
+
+describe('AbstractDetailScreenV2 stale save', () => {
+  let client: FakeDetailClient & { gets: number };
+  let confirmSpy: ReturnType<typeof vi.fn>;
+  let toastError: ReturnType<typeof vi.fn>;
+
+  class StaleClient {
+    gets = 0;
+    failWith: unknown = null;
+    get() {
+      this.gets++;
+      return of({});
+    }
+    update() {
+      return throwError(() => this.failWith);
+    }
+    create() {
+      return throwError(() => this.failWith);
+    }
+  }
+
+  class StaleConfig extends ScreenConfig {
+    static SCREEN = 'TestDetailItem';
+    static SERVICE: any = StaleClient;
+    static STALE_RULE_CODES = ['BR_SO_0123'];
+  }
+
+  class DefaultConfig extends ScreenConfig {
+    static SCREEN = 'TestDetailItem';
+    static SERVICE: any = StaleClient;
+  }
+
+  @Component({ template: '', standalone: true })
+  class StaleScreen extends AbstractDetailScreenV2<{ id: string }> {
+    protected override getConfig() {
+      return StaleConfig;
+    }
+  }
+
+  @Component({ template: '', standalone: true })
+  class DefaultStaleScreen extends AbstractDetailScreenV2<{ id: string }> {
+    protected override getConfig() {
+      return DefaultConfig;
+    }
+  }
+
+  async function create<T extends AbstractDetailScreenV2>(cls: new () => T, mode: 'edit' | 'new' = 'edit') {
+    sessionStorage.clear();
+    localStorage.clear();
+    StorageUtils.setSession('CURRENT_USER_GRANTS', {
+      TestDetailItem: { permissions: [Permissions.Read, Permissions.Edit, Permissions.Create] },
+    });
+    const stale = new StaleClient();
+    client = stale as any;
+    confirmSpy = vi.fn();
+    toastError = vi.fn();
+    await TestBed.configureTestingModule({
+      imports: [cls],
+      providers: [
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: routeFor(mode) },
+        { provide: StaleClient, useValue: stale },
+        {
+          provide: CacheService,
+          useValue: { configure() { /* no-op */ }, getCache: () => null, setCache() { /* no-op */ } },
+        },
+        { provide: ToastService, useValue: { showSuccess() { /* no-op */ }, showError: toastError } },
+        { provide: ConfirmDialogService, useValue: { confirm: confirmSpy } },
+        { provide: SCREEN_REF_DATA_SERVICE, useValue: fakeRefData },
+      ],
+    }).compileComponents();
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(cls);
+    fixture.detectChanges();
+    return { screen: fixture.componentInstance, stale };
+  }
+
+  const problem = (status: number, ruleCode?: string) => ({ status, ruleCode, detail: 'x', errors: {} });
+
+  it('offers a reload after a 422 whose rule code is configured, without its own toast', async () => {
+    const { screen, stale } = await create(StaleScreen);
+    stale.failWith = problem(422, 'BR_SO_0123');
+    screen.save();
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    const opts = confirmSpy.mock.calls[0][0];
+    expect(opts.messageKey).toBe('ef_stale_reload_confirm');
+    expect(opts.acceptLabelKey).toBe('ef_stale_reload');
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it('reloads the record when the user accepts, and keeps the edits when they decline', async () => {
+    const { screen, stale } = await create(StaleScreen);
+    stale.failWith = problem(422, 'BR_SO_0123');
+    const before = stale.gets;
+    screen.save();
+    confirmSpy.mock.calls[0][0].reject?.();
+    expect(stale.gets).toBe(before);
+    confirmSpy.mock.calls[0][0].accept();
+    expect(stale.gets).toBe(before + 1);
+  });
+
+  it('treats a 409 as stale by default', async () => {
+    const { screen, stale } = await create(DefaultStaleScreen);
+    stale.failWith = problem(409);
+    screen.save();
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not treat an unlisted 422 rule code as stale', async () => {
+    const { screen, stale } = await create(StaleScreen);
+    stale.failWith = problem(422, 'BR_OTHER_0001');
+    screen.save();
+    expect(confirmSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not offer a reload when creating', async () => {
+    const { screen, stale } = await create(StaleScreen, 'new');
+    stale.failWith = problem(409);
+    screen.save();
+    expect(confirmSpy).not.toHaveBeenCalled();
+  });
+
+  it('reads an NSwag exception shape', async () => {
+    const { screen, stale } = await create(StaleScreen);
+    stale.failWith = { status: 422, response: JSON.stringify({ ruleCode: 'BR_SO_0123' }) };
+    screen.save();
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
   });
 });

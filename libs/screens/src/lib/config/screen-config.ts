@@ -38,6 +38,16 @@ export abstract class ScreenConfig {
   AUDIT_ENTITY_TYPE?: string;
 
   /**
+   * Detail screens: business-rule codes (422 `ruleCode`) meaning "the record
+   * changed since you loaded it", e.g. ERP `['BR_SO_0123']`. A failed update
+   * with one of them (or any 409, always) offers a "reload" confirm; accepting
+   * reloads the record and drops the unsaved edits. The app must define the
+   * i18n keys `ef_stale_reload` (button), `ef_stale_reload_confirm` (message,
+   * say that unsaved edits are lost) and `ef_stale_reload_header`.
+   */
+  STALE_RULE_CODES?: string[];
+
+  /**
    * Report screens (AbstractReportScreenV2): starting period preset for the
    * screen's ef-datepicker-advanced. Unset → 'last_30_days'.
    */
