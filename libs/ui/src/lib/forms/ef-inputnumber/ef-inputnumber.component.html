@@ -37,7 +37,7 @@
           [attr.aria-label]="effectiveAriaLabel"
           [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
-          [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+          [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
           (input)="handleNativeInput($any($event.target).value)"
           (focus)="handleFocus($event)"
           (blur)="handleBlur($event)"
@@ -86,7 +86,7 @@
           [attr.aria-label]="effectiveAriaLabel"
           [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
-          [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+          [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
           (input)="handleNativeInput($any($event.target).value)"
           (focus)="handleFocus($event)"
           (blur)="handleBlur($event)"
@@ -144,6 +144,7 @@
       [title]="title"
       [ariaLabel]="effectiveAriaLabel"
       [ariaLabelledBy]="ariaLabelledBy"
+      [ariaDescribedBy]="describedBy(showRequired || !!serverErrors)"
       [ariaRequired]="required()"
       [inputStyle]="inputStyle"
       [inputStyleClass]="inputStyleClass"
@@ -164,6 +165,9 @@
       (onKeyDown)="handleKeyDown($event)"
       (onClear)="handleClear()"
     />
+  }
+  @if (effectiveHint) {
+    <small class="ef-field-hint" [id]="hintId">{{ effectiveHint }}</small>
   }
   @if (showRequired || serverErrors) {
     <div [id]="errorsId" role="alert" aria-live="polite">

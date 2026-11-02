@@ -14,6 +14,9 @@
    first strong character (`unicode-bidi: plaintext`): "Nos parfums rares."
    keeps its period at the end on an Arabic screen.
 
+   The hint (`.ef-field-hint`) is page text like the label, so it keeps the
+   surrounding direction too.
+
    Included by every ef-* control that renders an `ef-label` beside an
    `.ef-field-control`. */
 @mixin field-direction {
@@ -21,11 +24,11 @@
     direction: inherit;
   }
 
-  :host([dir='rtl']) .ef-field-control > :not([role='alert']) {
+  :host([dir='rtl']) .ef-field-control > :not([role='alert']):not(.ef-field-hint) {
     direction: rtl;
   }
 
-  :host([dir='ltr']) .ef-field-control > :not([role='alert']) {
+  :host([dir='ltr']) .ef-field-control > :not([role='alert']):not(.ef-field-hint) {
     direction: ltr;
   }
 

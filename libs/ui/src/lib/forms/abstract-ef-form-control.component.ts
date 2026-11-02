@@ -78,6 +78,16 @@ export abstract class AbstractEfFormControl {
     readonly placeholder = input<string>('');
     readonly placeholderKey = input<string>('');
 
+    /* ── Hint (i18n) ──────────────────────────────────────────── */
+
+    /** Short help text shown under the control. Use `hintKey` for i18n. */
+    readonly hint = input<string>('');
+
+    /** Translation key for the hint, preferred over `hint`. The hint is
+     *  linked to the control through `aria-describedby` (see
+     *  {@link describedBy}), so a screen reader reads it with the field. */
+    readonly hintKey = input<string>('');
+
     /* ── Screen-reader-only label (when no visible label) ─────── */
 
     readonly ariaLabel = input<string>('');
@@ -203,7 +213,35 @@ export abstract class AbstractEfFormControl {
         return this.ariaLabel() || null;
     }
 
-    /** Stable id for the error / hint container — wired through
+    /** Translated hint (or empty string). */
+    get effectiveHint(): string {
+        if (this.hintKey()) {
+            return this.translateService.instant(this.hintKey());
+        }
+        return this.hint() || '';
+    }
+
+    /** Stable id of the hint element, `<id>-hint`. */
+    get hintId(): string {
+        return `${this.effectiveId}-hint`;
+    }
+
+    /**
+     * The control's `aria-describedby`: the hint id when a hint is shown,
+     * then the errors id when `showErrors` (the subclass knows when its
+     * error container renders), then any `extra` ids. `null` (no
+     * attribute) when there is nothing to point at.
+     */
+    describedBy(showErrors: boolean, ...extra: (string | null | undefined)[]): string | null {
+        const ids = [
+            this.effectiveHint ? this.hintId : null,
+            showErrors ? this.errorsId : null,
+            ...extra,
+        ].filter((id): id is string => !!id);
+        return ids.length ? ids.join(' ') : null;
+    }
+
+    /** Stable id for the error container — wired through
      *  `aria-describedby` on the input so screen readers announce
      *  the validation message together with the field name. */
     get errorsId(): string {

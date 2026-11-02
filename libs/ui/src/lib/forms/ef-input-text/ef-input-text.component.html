@@ -26,7 +26,7 @@
           [attr.aria-label]="effectiveAriaLabel"
           [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
-          [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+          [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
         />
         @if (canClear) {
           <ef-clear-button
@@ -60,7 +60,7 @@
           [attr.aria-label]="effectiveAriaLabel"
           [attr.aria-required]="required() ? 'true' : null"
           [attr.aria-invalid]="isInvalid ? 'true' : null"
-          [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+          [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
         />
         @if (canClear) {
           <ef-clear-button
@@ -92,9 +92,12 @@
       [attr.aria-label]="effectiveAriaLabel"
       [attr.aria-required]="required() ? 'true' : null"
       [attr.aria-invalid]="isInvalid ? 'true' : null"
-      [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+      [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
       fluid
     />
+  }
+  @if (effectiveHint) {
+    <small class="ef-field-hint" [id]="hintId">{{ effectiveHint }}</small>
   }
   @if (showRequired || serverErrors) {
     <div [id]="errorsId" role="alert" aria-live="polite">

@@ -3382,6 +3382,19 @@
   color: var(--st-cancelled-fg);
 }
 
+/* Help text under an ef-* control (`hint` / `hintKey`), linked to the
+   control by aria-describedby. Page text: it keeps the page direction
+   (see forms/_field-direction.scss) and aligns to the start edge, so it
+   reads right to left in Arabic. */
+.ef-field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-mute);
+  text-align: start;
+}
+
 /* Native select chevron — replaces the browser default. */
 .ef-select-native,
 .ef-field select {

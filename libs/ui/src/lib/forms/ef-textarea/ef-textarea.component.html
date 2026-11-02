@@ -19,7 +19,7 @@
         [attr.aria-label]="effectiveAriaLabel"
         [attr.aria-required]="required() ? 'true' : null"
         [attr.aria-invalid]="isInvalid ? 'true' : null"
-        [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+        [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
         (input)="handleInput($any($event.target).value)"
         (blur)="handleBlur()"
     ></textarea>
@@ -31,6 +31,9 @@
       />
     }
   </div>
+    @if (effectiveHint) {
+      <small class="ef-field-hint" [id]="hintId">{{ effectiveHint }}</small>
+    }
     @if (showRequired || serverErrors) {
         <div [id]="errorsId" role="alert" aria-live="polite">
             @if (showRequired) {

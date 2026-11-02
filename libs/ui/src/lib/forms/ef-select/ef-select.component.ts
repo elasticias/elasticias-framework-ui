@@ -254,6 +254,25 @@ export class EfSelectComponent
     return this.emptyFilterMessage ?? this.translateService.instant('ef_select_empty_filter');
   }
 
+  private _describedByPt?: { ids: string | null; pt: Record<string, Record<string, string | null>> };
+
+  /**
+   * PrimeNG pass-through that puts `aria-describedby` (hint, then errors)
+   * on the element the `<label for>` points at: `p-select`'s
+   * `span[role=combobox]` (`label`) and `p-multiselect`'s hidden focus
+   * input (`hiddenInput`). Neither component has an input for it. Cached
+   * per id list so change detection does not hand PrimeNG a new object
+   * every pass.
+   */
+  get describedByPt(): Record<string, Record<string, string | null>> {
+    const ids = this.describedBy(this.showRequired || !!this.serverErrors);
+    if (this._describedByPt?.ids !== ids) {
+      const attrs = { 'aria-describedby': ids };
+      this._describedByPt = { ids, pt: { label: attrs, hiddenInput: attrs } };
+    }
+    return this._describedByPt.pt;
+  }
+
   /** Always include `.es` so the global Comptoir skin in
    *  `_patterns.scss` always finds a hook, regardless of what the
    *  consumer passes via `styleClass`. */

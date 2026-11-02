@@ -15,7 +15,7 @@
       [attr.aria-label]="effectiveAriaLabel"
       [attr.aria-required]="required() ? 'true' : null"
       [attr.aria-invalid]="isInvalid ? 'true' : null"
-      [attr.aria-describedby]="(showRequired || serverErrors) ? errorsId : null"
+      [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
       (change)="handleNativeSelectChange($any($event.target).value)"
     >
       @if (effectivePlaceholder) {
@@ -60,6 +60,7 @@
       [disabled]="isDisabled()"
       [appendTo]="appendTo"
       [styleClass]="effectiveStyleClass"
+      [pt]="describedByPt"
       [panelStyleClass]="effectivePanelStyleClass"
       [scrollHeight]="scrollHeight"
       [virtualScroll]="virtualScroll"
@@ -163,6 +164,7 @@
       [disabled]="isDisabled()"
       [appendTo]="appendTo"
       [styleClass]="effectiveStyleClass"
+      [pt]="describedByPt"
       [panelStyleClass]="effectivePanelStyleClass"
       [scrollHeight]="scrollHeight"
       [virtualScroll]="virtualScroll"
@@ -232,6 +234,9 @@
         </svg>
       </ng-template>
     </p-select>
+  }
+  @if (effectiveHint) {
+    <small class="ef-field-hint" [id]="hintId">{{ effectiveHint }}</small>
   }
   @if (showRequired || serverErrors) {
     <div [id]="errorsId" role="alert" aria-live="polite">
