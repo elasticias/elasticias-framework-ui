@@ -112,7 +112,7 @@
         [class.dp__panel--sheet]="sheet()"
         role="dialog"
         [attr.aria-modal]="sheet() ? 'true' : null"
-        [attr.aria-label]="triggerLabelKey() | translate"
+        [attr.aria-label]="panelLabelKey() ? (panelLabelKey() | translate) : panelLabel()"
     >
         <!-- ── View 1 — preset list ── -->
         <div class="dp__view" [class.active]="view() === 'presets'">
@@ -146,6 +146,10 @@
 
         <!-- ── View 2 — custom range with calendar ── -->
         <div class="dp__view" [class.active]="view() === 'custom'">
+            <!-- A single-date field drops this title: the field's own label
+                 names the dialog (aria-label above), and the date input below
+                 carries the same words, so "Sélectionner une date" read twice. -->
+            @if (!(mode() === 'field' && selectionMode() === 'single')) {
             <div class="dp__custom-head">
                 @if (mode() !== 'field') {
                     <button
@@ -161,10 +165,11 @@
                 }
                 <div class="dp__custom-title">
                     <span class="pulse-dot"></span>
-                    {{ (mode() === 'field' && selectionMode() === 'single' ? 'date_select_date' : 'date_custom_range') | translate }}
+                    {{ 'date_custom_range' | translate }}
                 </div>
                 <span></span>
             </div>
+            }
 
             <div class="dp__cal">
                 <div class="dp__cal-head">

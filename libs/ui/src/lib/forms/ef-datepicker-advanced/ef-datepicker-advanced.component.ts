@@ -124,6 +124,16 @@ export class EfDatepickerAdvancedComponent
      *  full-width bottom sheet with 48px targets instead of a popover. */
     readonly sheet = computed(() => this.viewport.isMobile());
 
+    /** The dialog's accessible name: the field's own label in field mode
+     *  (the panel no longer repeats it as a visible title), else the
+     *  trigger label. */
+    readonly panelLabelKey = computed(() =>
+        this.mode() === 'field' && this.labelKey() ? this.labelKey() : this.triggerLabelKey(),
+    );
+    readonly panelLabel = computed(() =>
+        this.mode() === 'field' && !this.labelKey() && this.label() ? this.label() : this.triggerLabel(),
+    );
+
     constructor() {
         super();
         // Register as our own NgControl's value accessor (field mode only).

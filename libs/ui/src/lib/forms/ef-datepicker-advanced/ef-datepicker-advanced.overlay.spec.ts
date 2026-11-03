@@ -189,6 +189,14 @@ describe('EfDatepickerAdvancedComponent overlay', () => {
         expect(parseFloat(panel.style.left) + PANEL_W).toBe(at.right);
     });
 
+    it('names the dialog with the field label and drops the repeated title', () => {
+        const panel = open(make({ at: rect(500, 200) }));
+        expect(panel.getAttribute('aria-label')).toBe('promotion_starts_at');
+        expect(panel.querySelector('.dp__custom-title')).toBeNull();
+        // The date input keeps its own visible label.
+        expect(panel.querySelector('.dp__field label')?.textContent?.trim()).toBe('date_select_date');
+    });
+
     it('opening a second picker closes the first', () => {
         const a = make({ at: rect(100, 200) });
         const b = make({ at: rect(600, 200) });
