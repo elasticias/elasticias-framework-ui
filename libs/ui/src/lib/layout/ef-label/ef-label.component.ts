@@ -26,7 +26,7 @@ import { TranslateModule } from '@ngx-translate/core';
     <label
       [attr.for]="for || null"
       [class]="resolvedClass"
-    >{{ labelKey ? (labelKey | translate) : label }}</label>
+    >{{ labelKey ? (labelKey | translate: labelParams) : label }}</label>
   `,
   styles: [`:host { display: contents; }`],
   imports: [TranslateModule],
@@ -36,6 +36,8 @@ export class EfLabelComponent {
   @Input() label?: string;
   /** Translation key — preferred. */
   @Input() labelKey?: string;
+  /** Interpolation params for `labelKey`. */
+  @Input() labelParams?: Record<string, unknown>;
   /** DOM id of the labelled input. Empty / unset → no `for` attr. */
   @Input() for?: string;
   /** Caller-supplied extra class. The Comptoir `.ef-label` class is

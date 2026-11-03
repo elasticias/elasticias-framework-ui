@@ -1,5 +1,5 @@
 @if (!inline && hasLabel) {
-  <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" [required]="required()" />
+  <ef-label [labelKey]="labelKey()" [labelParams]="labelParams()" [label]="label()" [for]="effectiveId" [required]="required()" />
 }
 <div class="ef-checkbox-control">
   @if (variant === 'comptoir') {
@@ -40,7 +40,7 @@
       [ariaLabel]="effectiveAriaLabel || undefined"
     />
     @if (inline && hasLabel) {
-      <ef-label [labelKey]="labelKey()" [label]="label()" [for]="effectiveId" styleClass="form-label-left cursor-pointer" />
+      <ef-label [labelKey]="labelKey()" [labelParams]="labelParams()" [label]="label()" [for]="effectiveId" styleClass="form-label-left cursor-pointer" />
     }
   }
 </div>

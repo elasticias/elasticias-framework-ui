@@ -74,10 +74,16 @@ export abstract class AbstractEfFormControl {
      *  feedback_i18n_keys says always use `*Key`). */
     readonly labelKey = input<string>('');
 
+    /** Interpolation params for `labelKey` (`{{name}}` in the translation). */
+    readonly labelParams = input<Record<string, unknown> | undefined>(undefined);
+
     /* ── Placeholder (i18n) ───────────────────────────────────── */
 
     readonly placeholder = input<string>('');
     readonly placeholderKey = input<string>('');
+
+    /** Interpolation params for `placeholderKey` (`{{last4}}` and the like). */
+    readonly placeholderParams = input<Record<string, unknown> | undefined>(undefined);
 
     /* ── Hint (i18n) ──────────────────────────────────────────── */
 
@@ -90,6 +96,9 @@ export abstract class AbstractEfFormControl {
      *  Rendered by ef-input-text, ef-textarea, ef-inputnumber and ef-select;
      *  the other controls inherit the input but do not render it yet. */
     readonly hintKey = input<string>('');
+
+    /** Interpolation params for `hintKey`. */
+    readonly hintParams = input<Record<string, unknown> | undefined>(undefined);
 
     /* ── Screen-reader-only label (when no visible label) ─────── */
 
@@ -197,7 +206,7 @@ export abstract class AbstractEfFormControl {
     /** Translated placeholder (or empty string). */
     get effectivePlaceholder(): string {
         if (this.placeholderKey()) {
-            return this.translateService.instant(this.placeholderKey());
+            return this.translateService.instant(this.placeholderKey(), this.placeholderParams());
         }
         return this.placeholder() || '';
     }
@@ -223,7 +232,7 @@ export abstract class AbstractEfFormControl {
     /** Translated hint (or empty string). */
     get effectiveHint(): string {
         if (this.hintKey()) {
-            return this.translateService.instant(this.hintKey());
+            return this.translateService.instant(this.hintKey(), this.hintParams());
         }
         return this.hint() || '';
     }
