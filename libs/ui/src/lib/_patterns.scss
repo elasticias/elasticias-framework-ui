@@ -5200,3 +5200,69 @@ input.ef-input[type='number'] {
   text-overflow: ellipsis;
   vertical-align: bottom;
 }
+
+/* ──────────── EF-PASSWORD — COMPTOIR VARIANT ────────────────────────
+   `<ef-password variant="comptoir">` puts `.ef-password--comptoir` on the
+   p-password root. Same box as `.ef-input` (--hit-field: 40px, 48px on a
+   coarse pointer), and the show/hide toggle is a --hit-field square. */
+.ef-password--comptoir.p-password {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.ef-password--comptoir.p-password .p-password-input {
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--hit-field);
+  padding-block: 0;
+  padding-inline: 12px;
+  background: var(--paper-alt);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  color: var(--text);
+  box-shadow: none;
+  outline: 0;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    box-shadow var(--t-fast) var(--ease-out);
+}
+
+.ef-password--comptoir.p-password .p-password-input:focus {
+  border-color: var(--tenant-400);
+  box-shadow: 0 0 0 4px var(--tenant-100);
+}
+
+.ef-password--comptoir.p-password .p-password-input:disabled {
+  background: var(--paper);
+  color: var(--text-mute);
+  cursor: not-allowed;
+}
+
+.ef-password--comptoir.p-password.ng-invalid.ng-touched .p-password-input {
+  border-color: var(--st-cancelled-fg);
+  box-shadow: 0 0 0 3px var(--st-cancelled-bg);
+}
+
+/* Room for the toggle, on whichever side the text ends. */
+.ef-password--comptoir.p-password:has(.p-password-toggle-mask-icon) .p-password-input {
+  padding-inline-end: var(--hit-field);
+}
+
+/* The 16px glyph sits in a --hit-field square (padding grows the target,
+   not the glyph) pinned to the input's end edge. */
+.ef-password--comptoir.p-password .p-password-toggle-mask-icon {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  margin: 0;
+  box-sizing: border-box;
+  width: var(--hit-field);
+  height: var(--hit-field);
+  padding: calc((var(--hit-field) - 16px) / 2);
+  color: var(--text-mute);
+  cursor: pointer;
+}

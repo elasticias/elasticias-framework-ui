@@ -38,6 +38,19 @@ export class EfPasswordComponent
   @Input() autocomplete?: string;
 
   /**
+   * Rendering variant, as `ef-input-text`. `'comptoir'` skins the PrimeNG
+   * input to the native `.ef-input` look (--hit-field height, --r-md radius,
+   * 12px padding, --paper-alt fill) so it lines up with the comptoir inputs
+   * beside it; the show/hide toggle becomes a --hit-field square target.
+   * `'primeng'` (default) keeps the stock PrimeNG look.
+   */
+  @Input() variant: 'primeng' | 'comptoir' = 'primeng';
+
+  get fieldStyleClass(): string {
+    return this.variant === 'comptoir' ? 'ef-password-field ef-password--comptoir' : 'ef-password-field';
+  }
+
+  /**
    * Take focus on load. Bound explicitly rather than left unset: PrimeNG's
    * AutoFocus directive tests `autofocus === false`, and the control declares
    * it with no initialiser, so an unbound instance arrives as `undefined`,
