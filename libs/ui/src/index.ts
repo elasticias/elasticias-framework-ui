@@ -106,7 +106,7 @@ export type { EfStatsRow } from './lib/data/ef-stats/ef-stats.types';
 export { EfTimelineComponent } from './lib/data/ef-timeline/ef-timeline.component';
 export type { EfTimelineItem, EfTimelineState } from './lib/data/ef-timeline/ef-timeline.types';
 export { EfChangeHistoryComponent } from './lib/data/ef-change-history/ef-change-history.component';
-export type { EfChangeHistoryEntry, EfChangeHistoryFieldChange } from './lib/data/ef-change-history/ef-change-history.types';
+export type { EfChangeHistoryEntry, EfChangeHistoryFieldChange, EfChangeHistoryValueItem } from './lib/data/ef-change-history/ef-change-history.types';
 export { EfKpiCardComponent } from './lib/data/ef-kpi-card/ef-kpi-card.component';
 export type { EfKpiSparkline, EfKpiDeltaTone } from './lib/data/ef-kpi-card/ef-kpi-card.types';
 export { EfChartComponent } from './lib/data/ef-chart/ef-chart.component';

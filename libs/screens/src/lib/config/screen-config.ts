@@ -38,6 +38,17 @@ export abstract class ScreenConfig {
   AUDIT_ENTITY_TYPE?: string;
 
   /**
+   * Detail screens: translate raw values in the change-history box. Maps an
+   * audited field path to the static reference list holding its codes, e.g.
+   * `{ status: 'boutique_order_status' }` (key `status` also covers the
+   * from/to of status-change entries). The lists are loaded with the screen
+   * (no need to repeat them in DETAILS_STATIC_LISTS); bind
+   * `<ef-change-history [entries]="auditEntries()" [valueLists]="auditValueLists()" />`.
+   * Unset keeps raw values.
+   */
+  AUDIT_VALUE_LISTS?: Record<string, string>;
+
+  /**
    * Detail screens: business-rule codes (422 `ruleCode`) meaning "the record
    * changed since you loaded it", e.g. ERP `['BR_SO_0123']`. A failed update
    * with one of them offers a "reload" confirm; accepting

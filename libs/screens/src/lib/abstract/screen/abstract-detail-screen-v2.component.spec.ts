@@ -792,3 +792,64 @@ describe('AbstractDetailScreenV2 RELOAD_AFTER_SAVE', () => {
     expect(client.sent).toEqual([1, 1]);
   });
 });
+
+describe('AbstractDetailScreenV2 audit value lists', () => {
+  class ValueListsConfig extends ScreenConfig {
+    static SCREEN = 'TestDetailItem';
+    static SERVICE: any = FakeDetailClient;
+    static AUDIT_VALUE_LISTS: Record<string, string> = { status: 'order_status' };
+  }
+
+  @Component({ template: '', standalone: true })
+  class ValueListsScreen extends AbstractDetailScreenV2<{ id: string }> {
+    protected override getConfig() {
+      return ValueListsConfig;
+    }
+  }
+
+  @Component({ template: '', standalone: true })
+  class PlainScreen extends AbstractDetailScreenV2<{ id: string }> {
+    protected override getConfig() {
+      return TestConfig;
+    }
+  }
+
+  async function make(cmp: any) {
+    sessionStorage.clear();
+    localStorage.clear();
+    const requested: string[][] = [];
+    await TestBed.configureTestingModule({
+      imports: [cmp],
+      providers: [
+        provideRouter([]),
+        { provide: FakeDetailClient, useValue: new FakeDetailClient() },
+        { provide: ActivatedRoute, useValue: routeFor('new') },
+        { provide: CacheService, useValue: { configure() { /* no-op */ }, getCache: () => null, setCache() { /* no-op */ } } },
+        { provide: ToastService, useValue: { showSuccess() { /* no-op */ }, showError() { /* no-op */ } } },
+        { provide: ConfirmDialogService, useValue: { confirm() { /* no-op */ } } },
+        {
+          provide: SCREEN_REF_DATA_SERVICE,
+          useValue: {
+            ...fakeRefData,
+            getReference: (k: string) => signal(k === 'order_status' ? [{ code: 'x', label: 'X' }] : []),
+            loadStaticRefs: async (keys: string[]) => { requested.push(keys); },
+          },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(cmp);
+    fixture.detectChanges();
+    return { screen: fixture.componentInstance as any, requested };
+  }
+
+  it('resolves the declared lists from the loaded static lists and loads them', async () => {
+    const { screen, requested } = await make(ValueListsScreen);
+    expect(screen.auditValueLists()).toEqual({ status: [{ code: 'x', label: 'X' }] });
+    expect(requested.flat()).toContain('order_status');
+  });
+
+  it('is empty when the config declares none', async () => {
+    const { screen } = await make(PlainScreen);
+    expect(screen.auditValueLists()).toEqual({});
+  });
+});

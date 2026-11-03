@@ -11,7 +11,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EfCardComponent } from '../../layout/ef-card/ef-card.component';
 import { EfDialogComponent } from '../../layout/ef-dialog/ef-dialog.component';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
-import { EfChangeHistoryEntry } from './ef-change-history.types';
+import { EfChangeHistoryEntry, EfChangeHistoryValueItem } from './ef-change-history.types';
 
 interface OpMeta {
     cls: string;
@@ -38,6 +38,19 @@ const DEFAULT_META: OpMeta = { cls: 'op-default' };
  *
  * ```html
  * <ef-change-history [entries]="auditEntries()" />
+ * ```
+ *
+ * Values are shown raw by default (`Received → Confirmed`). To show a field's
+ * values translated, pass `valueLists`: a map of field path to the
+ * `{ code, label }` items of a reference list. Each old/new value that matches
+ * an item `code` (case-insensitive) is shown as its `label` (translated when
+ * the label is an i18n key); anything unmatched stays raw. The reserved key
+ * `status` maps the `fromStatus` / `toStatus` of status-change entries.
+ * On a V2 detail screen, `AbstractDetailScreenV2.auditValueLists()` builds this
+ * map from `ScreenConfig.AUDIT_VALUE_LISTS`.
+ *
+ * ```html
+ * <ef-change-history [entries]="auditEntries()" [valueLists]="auditValueLists()" />
  * ```
  */
 @Component({
@@ -69,6 +82,11 @@ export class EfChangeHistoryComponent {
     readonly collapsible = input(true);
     /** Initial collapsed state — expanded by default. */
     readonly startCollapsed = input(false);
+
+    /** Optional field path to reference items, used to show a field's raw
+     *  old/new values as translated labels. Unmapped fields and unmatched
+     *  values stay raw. Key `status` covers `fromStatus` / `toStatus`. */
+    readonly valueLists = input<Readonly<Record<string, ReadonlyArray<EfChangeHistoryValueItem>>> | null>(null);
 
     /** "Show more" dialog visibility. */
     readonly dialogVisible = signal(false);
@@ -111,6 +129,19 @@ export class EfChangeHistoryComponent {
         // since ngx-translate treats dots as nested lookups.
         const key = `audit_field_${field.replace(/\./g, '_')}`;
         return this.resolveLabel(key, field);
+    }
+
+    /** Display value for a field's raw value: the matching list item's label
+     *  (translated when it is an i18n key), else the raw value. */
+    valueLabel(field: string | undefined, value: string | null | undefined): string {
+        if (value == null || value === '') return '';
+        const items = field ? this.valueLists()?.[field] : undefined;
+        if (!items?.length) return value;
+        const needle = String(value).toLowerCase();
+        const hit = items.find((i) => String(i.code).toLowerCase() === needle);
+        if (!hit?.label) return value;
+        const translated = this.translate.instant(hit.label);
+        return translated || hit.label;
     }
 
     /** Returns the translation when present, otherwise a humanized fallback of

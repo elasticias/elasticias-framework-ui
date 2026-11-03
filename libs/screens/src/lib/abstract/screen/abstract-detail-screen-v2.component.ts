@@ -118,6 +118,22 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
      */
     readonly auditEntries = signal<any[]>([]);
 
+    /**
+     * Field path to reference items for `<ef-change-history [valueLists]>`,
+     * built from `ScreenConfig.AUDIT_VALUE_LISTS` and the already-loaded static
+     * lists. Empty (raw values) when the config does not declare any.
+     */
+    readonly auditValueLists = computed<Record<string, any[]>>(() => {
+        this.grantsVersion();
+        const map = this.getConfig()?.AUDIT_VALUE_LISTS;
+        const out: Record<string, any[]> = {};
+        if (!map || !this.context) return out;
+        for (const [field, list] of Object.entries(map) as [string, string][]) {
+            out[field] = this.context.ref.get(list)() ?? [];
+        }
+        return out;
+    });
+
     /** Loaded entity. Empty object when on `/details` (create mode). */
     readonly entity = signal<TItem>(<TItem>{});
 
@@ -221,9 +237,12 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         const cfg = this.getConfig();
         if (cfg) {
             const hasDynamicRefs = (cfg.DETAILS_REFERENTIALS_KEYS?.length ?? 0) > 0;
-            const hasStaticLists = (cfg.DETAILS_STATIC_LISTS?.length ?? 0) > 0;
+            const staticLists = Array.from(
+                new Set([...(cfg.DETAILS_STATIC_LISTS ?? []), ...Object.values(cfg.AUDIT_VALUE_LISTS ?? {})]),
+            );
+            const hasStaticLists = staticLists.length > 0;
             if (hasDynamicRefs) this.initializeReferenceKeys(cfg.DETAILS_REFERENTIALS_KEYS);
-            if (hasStaticLists) this.initializeStaticLists(cfg.DETAILS_STATIC_LISTS);
+            if (hasStaticLists) this.initializeStaticLists(staticLists);
             if (hasDynamicRefs || hasStaticLists) this.loadReferenceData(cfg.REF_DATA_OPTIONS);
         }
 

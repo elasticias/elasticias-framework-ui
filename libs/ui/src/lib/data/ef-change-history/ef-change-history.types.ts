@@ -25,3 +25,11 @@ export interface EfChangeHistoryEntry {
     toStatus?: string | null;
     note?: string | null;
 }
+
+/** A reference-list item used to translate a raw audit value: matched on
+ *  `code`, shown as `label`. Structurally compatible with the static reference
+ *  data items screens already load. */
+export interface EfChangeHistoryValueItem {
+    code: string;
+    label?: string | null;
+}
