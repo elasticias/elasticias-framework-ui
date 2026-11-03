@@ -104,7 +104,7 @@
 -->
 <ng-template #panelTpl>
     @if (sheet()) {
-        <div class="dp__backdrop" aria-hidden="true" (click)="close()"></div>
+        <div class="dp__backdrop" aria-hidden="true" (click)="close(true)"></div>
     }
     <div
         class="dp__panel open"

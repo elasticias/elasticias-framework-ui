@@ -671,6 +671,32 @@ export class EfDatepickerAdvancedComponent
         this.close();
     }
 
+    /** The phone sheet is aria-modal, so Tab wraps inside it instead of
+     *  reaching the page behind the backdrop. */
+    @HostListener('document:keydown', ['$event'])
+    onTab(event: KeyboardEvent): void {
+        if (event.key !== 'Tab') return;
+        const root = this.panelRoot;
+        if (!this.open() || !this.sheet() || !root) return;
+        const items = Array.from(
+            root.querySelectorAll<HTMLElement>('button, input, select, textarea, [href], [tabindex]'),
+        ).filter(el => !el.hasAttribute('disabled') && el.tabIndex >= 0 && !el.closest('.dp__view:not(.active)'));
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        if (!root.contains(active)) {
+            event.preventDefault();
+            (event.shiftKey ? last : first).focus();
+        } else if (event.shiftKey && active === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && active === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
     @HostListener('document:keydown.escape')
     onEscape(): void {
         if (!this.open()) return;

@@ -335,6 +335,26 @@ describe('EfDatepickerAdvancedComponent phone sheet', () => {
         expect(fixture.componentInstance.open()).toBe(false);
         expect(document.body.querySelector('.dp__backdrop')).toBeNull();
         expect(document.body.querySelector('.dp__panel')).toBeNull();
+        // Focus goes back to the field, not <body>.
+        expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.dp__field-trigger'));
+    });
+
+    it('wraps Tab and Shift+Tab inside the sheet', () => {
+        const panel = open();
+        const items = Array.from(panel.querySelectorAll<HTMLElement>('button, input')).filter(
+            el => el.tabIndex >= 0 && !el.closest('.dp__view:not(.active)'),
+        );
+        const first = items[0];
+        const last = items[items.length - 1];
+        last.focus();
+        const fwd = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+        document.dispatchEvent(fwd);
+        expect(fwd.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(first);
+        const back = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+        document.dispatchEvent(back);
+        expect(back.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(last);
     });
 
     it('closes rather than morph when the viewport leaves the phone tier', () => {
