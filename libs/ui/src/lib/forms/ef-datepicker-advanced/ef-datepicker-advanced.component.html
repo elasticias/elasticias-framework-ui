@@ -283,7 +283,7 @@
                             inputmode="numeric"
                             maxlength="10"
                             [value]="fromText()"
-                            placeholder="JJ/MM/AAAA"
+                            [placeholder]="datePlaceholder()"
                             (keydown)="onDateKeydown($event, singleInput)"
                             (change)="commitSingleInput(singleInput)"
                         />
@@ -316,7 +316,7 @@
                             inputmode="numeric"
                             maxlength="10"
                             [value]="fromText()"
-                            placeholder="JJ/MM/AAAA"
+                            [placeholder]="datePlaceholder()"
                             (keydown)="onDateKeydown($event, fromInput)"
                             (change)="commitDateInput('start', fromInput)"
                         />
@@ -343,7 +343,7 @@
                             inputmode="numeric"
                             maxlength="10"
                             [value]="toText()"
-                            placeholder="JJ/MM/AAAA"
+                            [placeholder]="datePlaceholder()"
                             (keydown)="onDateKeydown($event, toInput)"
                             (change)="commitDateInput('end', toInput)"
                         />

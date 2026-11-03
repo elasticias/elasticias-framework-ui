@@ -19,7 +19,8 @@ import {
     output,
     signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
 import { CommonModule, formatDate } from '@angular/common';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -365,6 +366,30 @@ export class EfDatepickerAdvancedComponent
     /* ── Field mode: committed value (ControlValueAccessor) ──────────
        The trigger in field mode renders THIS — the committed CVA value —
        not the drafts (mid-selection) nor `resolvedRange()` (filter-only). */
+
+    /** Bumps whenever the language or its translations change, so the
+     *  placeholder below re-reads the dictionary. */
+    private readonly i18nTick = toSignal(
+        merge(this.translate.onLangChange, this.translate.onTranslationChange),
+        { initialValue: null },
+    );
+
+    /**
+     * Placeholder of the typed-date inputs. The parser takes ASCII digits
+     * only, day first (`\d` and the keydown filter are [0-9/]), so the hint
+     * spells that order in the reader's terms, in Latin letters: `JJ/MM/AAAA`
+     * for French, `DD/MM/YYYY` otherwise, Arabic included. An Arabic-word
+     * pattern (يوم/شهر/سنة) would lay out right to left, the reverse of the
+     * digits the user then types. An app can override it per language with
+     * the `date_input_placeholder` key.
+     */
+    readonly datePlaceholder = computed(() => {
+        this.i18nTick();
+        const key = 'date_input_placeholder';
+        const translated = this.translate.instant(key);
+        if (typeof translated === 'string' && translated && translated !== key) return translated;
+        return String(this.locale).toLowerCase().startsWith('fr') ? 'JJ/MM/AAAA' : 'DD/MM/YYYY';
+    });
 
     /** Committed value pushed in via `writeValue` / day-pick / Apply. */
     private readonly fieldValue = signal<EfDateFieldValue>(null);

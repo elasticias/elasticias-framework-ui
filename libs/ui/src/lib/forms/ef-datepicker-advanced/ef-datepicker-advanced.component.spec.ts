@@ -568,7 +568,7 @@ describe('EfDatepickerAdvancedComponent', () => {
       comp.registerOnChange(onChange);
 
       openField();
-      const dates = qa<HTMLInputElement>('.dp__inputs input[placeholder="JJ/MM/AAAA"]');
+      const dates = qa<HTMLInputElement>('.dp__inputs input[maxlength="10"]');
       commit(dates[0], '05/06/2026');
       commit(dates[1], '12/06/2026');
       const times = qa<HTMLInputElement>('.dp__inputs input[placeholder="HH:mm"]');
