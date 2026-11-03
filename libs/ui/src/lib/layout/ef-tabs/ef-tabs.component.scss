@@ -230,3 +230,13 @@
 [data-theme='dark'] :host(.ef-tabs--underline) .ef-tabs__tab.is-active .ef-tabs__count {
   background: color-mix(in srgb, var(--module, var(--ink-active)) 28%, transparent);
 }
+
+/* Touch tier: a tab is a tap target, so on a coarse pointer it reaches
+   --hit-touch (48px). Last in the file and written at the variants'
+   specificity so the 32px / 42px desktop floors above do not win. */
+@media (pointer: coarse) {
+  :host(.ef-tabs--pill) .ef-tabs__tab,
+  :host(.ef-tabs--underline) .ef-tabs__tab {
+    min-height: var(--hit-touch);
+  }
+}
