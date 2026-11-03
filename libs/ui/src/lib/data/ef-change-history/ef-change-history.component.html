@@ -61,9 +61,9 @@
 
                         @if (row.entry.operation === 'status_changed' && (row.entry.fromStatus || row.entry.toStatus)) {
                             <div class="ch-status small">
-                                <span class="text-mute">{{ valueLabel('status', row.entry.fromStatus) || '—' }}</span>
+                                <span class="text-mute" dir="auto">{{ valueLabel('status', row.entry.fromStatus) || '—' }}</span>
                                 <i class="pi pi-arrow-right"></i>
-                                <span class="strong">{{ valueLabel('status', row.entry.toStatus) || '—' }}</span>
+                                <span class="strong" dir="auto">{{ valueLabel('status', row.entry.toStatus) || '—' }}</span>
                             </div>
                         }
 
@@ -72,9 +72,9 @@
                                 @for (c of row.entry.changes; track c.field) {
                                     <li>
                                         <span class="ch-field">{{ fieldLabel(c.field) }}</span>
-                                        <span class="text-mute">{{ valueLabel(c.field, c.oldValue) || '—' }}</span>
+                                        <span class="text-mute" dir="auto">{{ valueLabel(c.field, c.oldValue) || '—' }}</span>
                                         <i class="pi pi-arrow-right"></i>
-                                        <span class="strong">{{ valueLabel(c.field, c.newValue) || '—' }}</span>
+                                        <span class="strong" dir="auto">{{ valueLabel(c.field, c.newValue) || '—' }}</span>
                                     </li>
                                 }
                             </ul>

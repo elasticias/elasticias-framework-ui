@@ -128,6 +128,19 @@
     }
 }
 
+// Before/after values are data, not page text. Each value carries `dir="auto"`
+// in the template, which isolates it (an IBAN or a phone number inside an
+// Arabic row no longer reorders the arrow or the other value, and its "+" stays
+// first) and gives the box the value's own direction. `text-overflow` clips the
+// end of that direction, so a long Latin value on an Arabic screen keeps its
+// beginning and loses its tail instead of the reverse.
+.ch-changes .text-mute,
+.ch-changes .strong,
+.ch-status .text-mute,
+.ch-status .strong {
+  text-align: start;
+}
+
 // RTL: flip the directional arrows so before→after reads correctly in Arabic.
 :host-context([dir='rtl']) {
   .ch-changes .pi-arrow-right,

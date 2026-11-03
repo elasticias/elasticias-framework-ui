@@ -83,3 +83,22 @@ describe('ef-change-history note formatter', () => {
         expect(note(el)).toBe('<b>x</b>');
     });
 });
+
+describe('ef-change-history value direction', () => {
+    it('isolates each before/after value as its own direction', async () => {
+        TestBed.resetTestingModule();
+        await TestBed.configureTestingModule({
+            imports: [EfChangeHistoryComponent, TranslateModule.forRoot()],
+        }).compileComponents();
+        const fixture = TestBed.createComponent(EfChangeHistoryComponent);
+        fixture.componentRef.setInput('entries', [
+            { operation: 'updated', changes: [{ field: 'phone', oldValue: '+212600000000', newValue: '+212611111111' }] },
+            { operation: 'status_changed', fromStatus: 'A', toStatus: 'B' },
+        ]);
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        const values = el.querySelectorAll('.ch-changes li span:not(.ch-field), .ch-status span');
+        expect(values.length).toBe(4);
+        values.forEach((v) => expect(v.getAttribute('dir')).toBe('auto'));
+    });
+});
