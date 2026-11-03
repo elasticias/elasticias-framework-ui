@@ -38,6 +38,12 @@ export class EfInputTextComponent
   @Input({ transform: booleanAttribute }) inline = false;
   @Input() autocomplete?: string;
 
+  /** Direction of the typed value, applied to the native input. Use
+   *  `'ltr'` for IBAN / RIB / phone values on an Arabic screen, `'auto'` to
+   *  follow the value's first strong character. The label and messages keep
+   *  the page direction. Null or absent leaves the input unchanged. */
+  @Input() dir: 'ltr' | 'rtl' | 'auto' | null = null;
+
   /** Clearable (showClear / canClear) is inherited from AbstractEfFormControl;
    *  we only supply the value predicate + the reset. */
   protected override get hasValue(): boolean {

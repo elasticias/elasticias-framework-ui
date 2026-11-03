@@ -14,6 +14,7 @@
         <input
           [id]="effectiveId"
           [attr.name]="name() || null"
+          [attr.dir]="dir || null"
           [type]="type"
           [value]="value"
           (input)="handleInput($any($event.target).value)"
@@ -47,6 +48,7 @@
           [class.has-clear]="canClear"
           [id]="effectiveId"
           [attr.name]="name() || null"
+          [attr.dir]="dir || null"
           [type]="type"
           [value]="value"
           (input)="handleInput($any($event.target).value)"
@@ -76,6 +78,7 @@
     <input
       [id]="effectiveId"
       [attr.name]="name() || null"
+          [attr.dir]="dir || null"
       [type]="type"
       pInputText
       [pSize]="size"

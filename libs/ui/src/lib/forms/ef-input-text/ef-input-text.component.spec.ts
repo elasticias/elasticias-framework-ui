@@ -60,4 +60,17 @@ describe('EfInputTextComponent (default comptoir variant)', () => {
 
     expect(host.val).toBe('world');
   });
+
+  it('puts no dir on the native input by default', () => {
+    expect(inputEl().hasAttribute('dir')).toBe(false);
+  });
+
+  it('applies the dir input to the native input', () => {
+    host.cmp.dir = 'ltr';
+    fixture.componentRef.changeDetectorRef.detectChanges();
+    expect(inputEl().getAttribute('dir')).toBe('ltr');
+    host.cmp.dir = 'auto';
+    fixture.componentRef.changeDetectorRef.detectChanges();
+    expect(inputEl().getAttribute('dir')).toBe('auto');
+  });
 });
