@@ -5034,3 +5034,67 @@ input.ef-input[type='number'] {
     min-height: var(--hit-touch);
   }
 }
+
+/* ── Touch tier, wave 2 (QA D2, D4, D7) ──────────────────────────────
+   A thumb needs 48px; these four controls were left at their desktop
+   height. By pointer, like the rules above, so a mouse keeps the dense
+   layout. Last in the file so the base rules do not win. */
+@media (pointer: coarse) {
+  /* The ⋮ overflow menu and the shared row-actions menu: 36px items. */
+  .row-actions__item,
+  .ef-menu__item {
+    min-height: var(--hit-touch);
+  }
+
+  /* Confirm dialog actions ("Annuler" / "Recharger"): 40px. */
+  .es-confirm .p-confirmdialog-accept-button,
+  .es-confirm .p-confirmdialog-reject-button {
+    min-height: var(--hit-touch);
+  }
+
+  /* Dialog header close: a 32px ghost circle. */
+  .es-dialog .p-dialog-header-icon,
+  .es-dialog .p-dialog-close-button,
+  .es-dialog .es-dialog__close {
+    width: var(--hit-touch);
+    height: var(--hit-touch);
+  }
+}
+
+/* ef-pdf-preview footer on a phone: five actions in one row clipped every
+   label. Let them wrap to two rows of equal-width buttons; Close, which
+   pushed itself to the leading edge on a wide footer, joins the grid.
+   Breakpoint is the shell's 767px (EfViewportService). */
+@media (max-width: 767px) {
+  .es-dialog.ef-pdf-preview-dialog .p-dialog-footer {
+    flex-wrap: wrap;
+  }
+
+  .es-dialog.ef-pdf-preview-dialog .p-dialog-footer .btn {
+    flex: 1 1 calc(50% - var(--s-2));
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .es-dialog.ef-pdf-preview-dialog .p-dialog-footer .btn-dialog-leading {
+    margin-inline-end: 0;
+  }
+}
+
+/* A Latin code (order reference, SKU) inside RTL text keeps its own
+   left-to-right order and is not reordered by its neighbours. Without it
+   the card's reference clipped at the wrong end in Arabic. The isolate is
+   a no-op in LTR. */
+.tbl .ref,
+.mrow__primary .ref {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.mrow__primary .ref {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
