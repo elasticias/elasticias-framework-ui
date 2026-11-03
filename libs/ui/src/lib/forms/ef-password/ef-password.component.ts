@@ -1,5 +1,7 @@
 import {
+  afterEveryRender,
   booleanAttribute,
+  ElementRef,
   Component,
   HostBinding,
   inject,
@@ -57,8 +59,19 @@ export class EfPasswordComponent
 
   readonly ngControl = inject(NgControl, { self: true, optional: true });
 
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
   constructor() {
     super();
+    // p-password has no describedby input, so link the hint (and any extra ids)
+    // to the native input here, as the other controls do in their templates.
+    afterEveryRender(() => {
+      const input = this.host.nativeElement.querySelector('input');
+      const ids = this.describedBy(false);
+      if (!input) return;
+      if (ids) input.setAttribute('aria-describedby', ids);
+      else input.removeAttribute('aria-describedby');
+    });
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
