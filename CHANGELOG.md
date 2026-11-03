@@ -1,3 +1,42 @@
+## 1.0.51 (2026-11-03)
+
+Bump all five packages together: `@elasticias/ui` uses `EfViewportService` from `@elasticias/core` and the screens' `auditValueLists()`, and the peer ranges (`>=0.0.1`) will not stop npm installing older ones.
+
+### Added
+
+- **`ef-html-preview`**: shows a full HTML document (an email template) in a frame with an empty, fixed `sandbox`: no script, opaque origin, no forms, popups or top navigation. Inputs `html`, `titleKey`, `height` (480). Exports `EF_HTML_PREVIEW_DEFAULT_TITLE_KEY`; apps add `ef_html_preview_title` (fr "Aperçu", ar "معاينة", en "Preview").
+- **`insertAtCursor(text)` on `ef-input-text` and `ef-textarea`**: inserts at the caret (replacing a selection), or appends if the field was never focused; emits one change; refuses an insert that would pass `maxlength`; no-op when read-only or disabled.
+- **`placeholderParams`, `hintParams`, `labelParams`** on every `ef-*` control built on the shared base (and `labelParams` on `ef-label`): interpolation params for the `*Key` translations.
+- **`ef-input-text [dir]`** (`'ltr' | 'rtl' | 'auto'`): direction of the native input only, for IBAN, RIB and phone values on an Arabic screen.
+- **`ef-change-history [valueLists]`** (field path to `{ code, label }` items; `status` covers from/to) and **`[noteFormatter]`** (returns text or `null`); type `EfChangeHistoryValueItem`. **`ef-order-builder [auditValueLists]` / `[auditNoteFormatter]`** forward them.
+- **`ScreenConfig.AUDIT_VALUE_LISTS`** and **`AbstractDetailScreenV2.auditValueLists()`**: declare the reference list per audited field; the lists load with the screen. Bind `<ef-change-history [entries]="auditEntries()" [valueLists]="auditValueLists()" />`.
+- **`ef-password`**: `variant="comptoir"` (the `.ef-input` look, 48px on a coarse pointer, a 40/48px show-hide target); `hintKey` / `hint` / `hintParams` now render a hint linked by `aria-describedby`.
+- **`EfProblem.ruleArgs` (`@elasticias/core`)**: `extractProblem` reads the server's `ruleArgs` (string values only).
+- **`date_input_placeholder`** (optional key): overrides the datepicker's typed-date placeholder per language.
+
+### Changed
+
+- **`ef-datepicker-advanced` panel** (every picker, no opt-in):
+  - fixed to the viewport, flips above or clamps to stay on screen, mirrored in RTL, on PrimeNG's overlay z-layer (paints above an open dialog);
+  - opening one picker closes any other;
+  - on a phone (≤767px) it opens as a bottom sheet over a backdrop with 48px targets;
+  - the phone sheet keeps Tab and Shift+Tab inside itself, and a backdrop tap returns focus to the field;
+  - Escape and a commit return focus to the trigger; Escape no longer affects a closed picker;
+  - a single-date field no longer repeats "Sélectionner une date" as a panel title (the dialog is named by the field label);
+  - the typed-date placeholder follows the locale: `JJ/MM/AAAA` in French, `DD/MM/YYYY` otherwise (Arabic included, Latin digits as the parser expects).
+- **`ef-password autocomplete`** now lands on the native `<input>` (it was on the `p-password` host, where browsers ignored it).
+- **`ef-password`** writes `aria-describedby` only when the value changes, instead of on every render.
+- **`ef-change-history`**: before/after values are isolated (`dir="auto"`) and wrap on a phone instead of being cut; status and change values translate when `valueLists` is given.
+- **`ef-data-card`** mobile secondary line: empty parts are skipped, so no dangling "·".
+- **Touch targets on a coarse pointer (48px)**: row-actions and menu items, confirm-dialog buttons, the dialog close button, `ef-tabs`.
+- **`ef-pdf-preview`** footer wraps into two rows of equal buttons under 768px.
+- **RTL**: Latin codes in `.tbl .ref` and the mobile card reference are isolated LTR; the clear ✕ reserves its room by the wrapper's direction, so an LTR value on an Arabic screen no longer runs under it.
+
+### Compatibility
+
+- A property binding `[dir]="x"` on `<ef-input-text>` now feeds the new input instead of setting the host attribute; a static `dir="..."` attribute is unchanged.
+- The clear-button padding rule (`.ef-input-wrap:dir(...) .ef-input.has-clear`) outranks app rules that change a clearable comptoir input's leading padding.
+
 ## 1.0.50 (2026-11-02)
 
 Bump all five packages together: `@elasticias/ui` needs `@elasticias/utils` 1.0.50 (`PhoneUtils`) and `@elasticias/screens` 1.0.50 (`keepInView`), and the peer ranges (`>=0.0.1`) will not stop npm from installing older ones.
