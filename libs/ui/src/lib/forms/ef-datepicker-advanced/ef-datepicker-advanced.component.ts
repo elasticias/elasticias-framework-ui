@@ -23,6 +23,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, formatDate } from '@angular/common';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ZIndexUtils } from 'primeng/utils';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
@@ -31,6 +32,7 @@ import {
     EfDatePresetKey,
     EfDateRange,
 } from './ef-datepicker-advanced.types';
+import { placeDpPanel } from './ef-datepicker-advanced.placement';
 
 /** Value shape emitted / accepted by the field-mode ControlValueAccessor.
  *  Mirrors PrimeNG's `p-datepicker`: a lone `Date` for single selection,
@@ -105,7 +107,11 @@ export class EfDatepickerAdvancedComponent
     /** Active embedded view + its root node, while the panel is open. */
     private panelView: EmbeddedViewRef<unknown> | null = null;
     private panelRoot: HTMLElement | null = null;
-    private resizeHandler: (() => void) | null = null;
+    /** Every root node the panel template rendered. */
+    private portalNodes: HTMLElement[] = [];
+    private repositionListener: ((event: Event) => void) | null = null;
+    private resizeObserver: ResizeObserver | null = null;
+    private repositionFrame = 0;
 
     constructor() {
         super();
@@ -743,7 +749,14 @@ export class EfDatepickerAdvancedComponent
         el.value = which === 'start' ? this.fromText() : this.toText();
     }
 
-    /* ── Portal (panel rendered as a child of <body>) ───────────── */
+    /* ── Portal (panel rendered as a child of <body>) ─────────────
+       The panel is appended to <body>, so no ancestor's overflow (a card,
+       a table scroller, the shell's content area) can clip it, and it is
+       fixed to the viewport, so it can never extend the page. PrimeNG's
+       ZIndexUtils gives it the next overlay layer: a picker opened inside
+       a dialog (1101 and up) paints above that dialog. The CDK overlay
+       container sits at a flat 1000, below every PrimeNG dialog, and the
+       CDK is not a dependency of this library. */
 
     private attachPortal(): void {
         if (this.panelView || !this.panelTpl) return;
@@ -751,29 +764,54 @@ export class EfDatepickerAdvancedComponent
         this.panelView = this.vcr.createEmbeddedView(this.panelTpl);
         this.panelView.detectChanges();
 
-        const root = this.panelView.rootNodes.find(
+        this.portalNodes = this.panelView.rootNodes.filter(
             (n: Node): n is HTMLElement => n instanceof HTMLElement,
         );
+        const root = this.portalNodes.find(n => n.classList.contains('dp__panel'));
         if (!root) return;
 
         this.panelRoot = root;
-        document.body.appendChild(root);
-        this.positionPanel();
+        // The panel leaves the host's subtree, so it would lose a `dir` set
+        // on an ancestor below <html>; carry the direction across.
+        root.setAttribute('dir', this.isRtl() ? 'rtl' : 'ltr');
+        for (const node of this.portalNodes) {
+            document.body.appendChild(node);
+            ZIndexUtils.set('overlay', node, 1000);
+        }
 
-        // Reposition when the viewport changes; scroll already moves the
-        // panel with the trigger because we use absolute / page coords.
-        this.resizeHandler = () => this.positionPanel();
-        window.addEventListener('resize', this.resizeHandler);
+        this.positionPanel();
+        this.repositionListener = (event: Event) => {
+            // A scroll inside the panel itself does not move the trigger.
+            if (event.type === 'scroll' && event.target instanceof Node && root.contains(event.target)) return;
+            this.schedulePosition();
+        };
+        document.addEventListener('scroll', this.repositionListener, { capture: true, passive: true });
+        window.addEventListener('resize', this.repositionListener, { passive: true });
+        // The content changes height (day grid ↔ month grid, a time row):
+        // re-decide the side so the taller view still fits.
+        if (typeof ResizeObserver !== 'undefined') {
+            this.resizeObserver = new ResizeObserver(() => this.schedulePosition());
+            this.resizeObserver.observe(root);
+        }
     }
 
     private detachPortal(): void {
-        if (this.resizeHandler) {
-            window.removeEventListener('resize', this.resizeHandler);
-            this.resizeHandler = null;
+        if (this.repositionListener) {
+            document.removeEventListener('scroll', this.repositionListener, { capture: true });
+            window.removeEventListener('resize', this.repositionListener);
+            this.repositionListener = null;
         }
-        if (this.panelRoot && this.panelRoot.parentNode) {
-            this.panelRoot.parentNode.removeChild(this.panelRoot);
+        this.resizeObserver?.disconnect();
+        this.resizeObserver = null;
+        if (this.repositionFrame) {
+            cancelAnimationFrame(this.repositionFrame);
+            this.repositionFrame = 0;
         }
+        for (const node of this.portalNodes) {
+            ZIndexUtils.clear(node);
+            node.parentNode?.removeChild(node);
+        }
+        this.portalNodes = [];
         this.panelRoot = null;
         if (this.panelView) {
             this.panelView.destroy();
@@ -781,34 +819,57 @@ export class EfDatepickerAdvancedComponent
         }
     }
 
-    /** Anchor the panel's top-left to the trigger's bottom-left, using
-     *  page coords so the panel scrolls with the trigger naturally.
-     *  Flips to right-aligned (and clamps to the viewport) when the
-     *  default left-anchor would overflow the right edge — otherwise the
-     *  panel is clipped for triggers that sit near the right of the page. */
-    private positionPanel(): void {
-        if (!this.panelRoot || !this.anchorEl) return;
-        const rect = this.anchorEl.nativeElement.getBoundingClientRect();
-        const margin = 8;
-        const viewportWidth = document.documentElement.clientWidth;
-        const panelWidth = this.panelRoot.offsetWidth || 320;
-
-        // Default: align panel's left edge to the trigger's left edge.
-        let left = rect.left;
-        // Flip to right-aligned (panel right edge ↔ trigger right edge)
-        // if the panel would spill past the right viewport edge.
-        if (left + panelWidth > viewportWidth - margin) {
-            left = rect.right - panelWidth;
-        }
-        // Never let it spill past the left edge either.
-        left = Math.max(margin, left);
-
-        Object.assign(this.panelRoot.style, {
-            position: 'absolute',
-            top: `${window.scrollY + rect.bottom + 8}px`,
-            left: `${window.scrollX + left}px`,
-            insetInlineEnd: 'auto',
+    private schedulePosition(): void {
+        if (this.repositionFrame) return;
+        this.repositionFrame = requestAnimationFrame(() => {
+            this.repositionFrame = 0;
+            this.positionPanel();
         });
+    }
+
+    /** Place the popover against the trigger (see `placeDpPanel`). Sizes
+     *  come from offsetWidth / scrollHeight, not getBoundingClientRect:
+     *  the entry animation scales the panel, and scrollHeight still tells
+     *  the natural height once a previous placement capped it. */
+    private positionPanel(): void {
+        const panel = this.panelRoot;
+        if (!panel) return;
+        const anchor = this.triggerRect();
+        const vw = document.documentElement.clientWidth || window.innerWidth;
+        const vh = document.documentElement.clientHeight || window.innerHeight;
+        const place = placeDpPanel({
+            anchor,
+            panel: { width: panel.offsetWidth || 340, height: panel.scrollHeight || 0 },
+            viewport: { width: vw, height: vh },
+            rtl: this.isRtl(),
+        });
+        const px = (n: number | null) => (n == null ? 'auto' : `${n}px`);
+        // All four physical sides, so no logical inset from a stylesheet
+        // can pull the panel across in a right-to-left page.
+        Object.assign(panel.style, {
+            position: 'fixed',
+            top: px(place.top),
+            bottom: px(place.bottom),
+            left: px(place.left),
+            right: 'auto',
+            maxHeight: px(place.maxHeight),
+        });
+        panel.dataset['side'] = place.side;
+    }
+
+    /** The trigger button's box, not the wrapper's: the wrapper also holds
+     *  the label above and the error text below. */
+    private triggerRect(): DOMRect {
+        const trigger = this.host.nativeElement.querySelector<HTMLElement>('.dp__field-trigger, .dp__trigger');
+        return (trigger ?? this.anchorEl.nativeElement).getBoundingClientRect();
+    }
+
+    /** The nearest `dir` wins (the app sets it on <html>); computed style covers a page without one. */
+    private isRtl(): boolean {
+        const el = this.host.nativeElement;
+        const dir = el.closest('[dir]')?.getAttribute('dir');
+        if (dir) return dir.toLowerCase() === 'rtl';
+        return getComputedStyle(el).direction === 'rtl';
     }
 
     /** Click handling: 1st click sets start, 2nd click sets end (or swap).

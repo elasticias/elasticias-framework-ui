@@ -98,8 +98,9 @@
 
 <!--
     Popover panel — instantiated via ViewContainerRef + appended to
-    <body> when `open()` flips on. Anchored absolutely to the trigger
-    via positionPanel(); escapes ancestor overflow / stacking contexts.
+    <body> when `open()` flips on. Fixed to the viewport and placed
+    against the trigger by positionPanel() (flips above, keeps inside the
+    viewport).
 -->
 <ng-template #panelTpl>
     <div

@@ -2073,16 +2073,27 @@
 }
 
 .dp__panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  inset-inline-start: 0;
-  min-width: 320px;
+  /* Portaled to <body> and fixed to the viewport; the component writes all
+     four physical sides and max-height from the trigger's rect
+     (placeDpPanel). No logical inset here: in RTL it would fight the
+     computed left. The z-index is a fallback; PrimeNG's ZIndexUtils sets
+     the live layer. */
+  position: fixed;
+  box-sizing: border-box;
+  /* The preset list sizes to its rows; the calendar view (.wide) has a set
+     width. It used to take the date inputs' intrinsic width (about 450px),
+     which is what pushed it past the card and the viewport. */
+  inline-size: max-content;
+  min-inline-size: 320px;
+  max-inline-size: calc(100vw - 16px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--paper-alt);
   border: 1px solid var(--rule);
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-3);
   padding: 6px;
-  z-index: 40;
+  z-index: 1000;
   display: none;
   animation: row-actions-menu-in var(--t-base) var(--ease-spring);
 }
@@ -2092,7 +2103,7 @@
   gap: 2px;
 }
 .dp__panel.wide {
-  min-width: 340px;
+  inline-size: 340px;
 }
 
 .dp__view {
@@ -2367,7 +2378,7 @@
 
 .dp__cal-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px 0;
   padding: 0 2px;
 }
@@ -2462,20 +2473,24 @@
 
 .dp__inputs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* A label that wraps (the panel has a set width now) must not push its
+     input below its neighbour's. */
+  align-items: end;
   gap: var(--s-2);
   padding: var(--s-2) var(--s-3) 0;
 }
 
 /* Single-date field mode — one full-width input instead of Du / Au. */
 .dp__inputs--single {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   padding-bottom: var(--s-3);
 }
 
 .dp__field {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .dp__field label {
@@ -2488,6 +2503,9 @@
 }
 
 .dp__field input {
+  /* Border-box here, not left to an app's reset: with content-box the
+     100% width plus padding pushed the time input past its column. */
+  box-sizing: border-box;
   font: inherit;
   font-family: var(--font-mono);
   font-size: 12.5px;
