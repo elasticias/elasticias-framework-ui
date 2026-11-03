@@ -82,6 +82,8 @@ export class EfPasswordComponent
       const input = this.host.nativeElement.querySelector('input');
       const ids = this.describedBy(false);
       if (!input) return;
+      // Write only on change: this runs after every render in the app.
+      if ((input.getAttribute('aria-describedby') || null) === (ids || null)) return;
       if (ids) input.setAttribute('aria-describedby', ids);
       else input.removeAttribute('aria-describedby');
     });
