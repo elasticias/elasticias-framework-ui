@@ -34,7 +34,7 @@ import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfButtonComponent } from '../../layout/ef-button/ef-button.component';
 import { EfCardComponent } from '../../layout/ef-card/ef-card.component';
 import { EfChangeHistoryComponent } from '../../data/ef-change-history/ef-change-history.component';
-import { EfChangeHistoryEntry } from '../../data/ef-change-history/ef-change-history.types';
+import { EfChangeHistoryEntry, EfChangeHistoryValueItem } from '../../data/ef-change-history/ef-change-history.types';
 import { EfProductTypeaheadComponent } from '../ef-product-typeahead/ef-product-typeahead.component';
 import { EfDataCardComponent } from '../../data/ef-data-card/ef-data-card.component';
 import { EfColumnTemplateDirective } from '../../data/ef-data-card/ef-column-template.directive';
@@ -166,6 +166,11 @@ export class EfOrderBuilderComponent implements OnInit {
    * desktop width and inside the drawer below that or in focus mode.
    */
   auditEntries = input<EfChangeHistoryEntry[]>([]);
+  /** Passed to the history's `valueLists`: field path to reference items, so
+   *  raw statuses show as translated labels. */
+  auditValueLists = input<Readonly<Record<string, ReadonlyArray<EfChangeHistoryValueItem>>> | null>(null);
+  /** Passed to the history's `noteFormatter`: returns the text for a note, or null for the raw note. */
+  auditNoteFormatter = input<((note: string) => string | null) | null>(null);
 
   openCatalogue = output<void>();
   orderChanged = output<OrderChangeInfo>();

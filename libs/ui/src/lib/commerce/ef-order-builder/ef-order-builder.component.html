@@ -346,7 +346,11 @@
 
       <!-- Historique (optional, component-owned) -->
       @if (hasAudit()) {
-        <ef-change-history [entries]="auditEntries()" />
+        <ef-change-history
+          [entries]="auditEntries()"
+          [valueLists]="auditValueLists()"
+          [noteFormatter]="auditNoteFormatter()"
+        />
       }
     </aside>
   </div>

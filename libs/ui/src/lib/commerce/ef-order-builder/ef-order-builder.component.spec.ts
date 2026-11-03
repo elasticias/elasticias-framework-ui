@@ -131,6 +131,30 @@ describe('EfOrderBuilderComponent (render)', () => {
     expect(el.querySelector('.ob-fab')).toBeTruthy();
   });
 
+  it('passes the audit value lists and note formatter to the history', () => {
+    const fixture = build();
+    fixture.componentRef.setInput('auditEntries', [
+      {
+        operation: 'status_changed',
+        fromStatus: 'Received',
+        toStatus: 'Confirmed',
+        note: 'order_email_resent:order_confirmed',
+      },
+    ]);
+    fixture.componentRef.setInput('auditValueLists', {
+      status: [{ code: 'Received', label: 'Reçue' }],
+    });
+    fixture.componentRef.setInput('auditNoteFormatter', (n: string) =>
+      n.startsWith('order_email_resent:') ? 'Courriel renvoyé' : null,
+    );
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).querySelector('ef-change-history')?.textContent ?? '';
+
+    expect(text).toContain('Reçue');
+    expect(text).toContain('Courriel renvoyé');
+    expect(text).not.toContain('order_email_resent');
+  });
+
   it('hides Historique when no audit entries', () => {
     const fixture = build();
     const el = fixture.nativeElement as HTMLElement;
