@@ -222,9 +222,11 @@
               @if (effectiveMobileLayout() === 'row' && secondaryColumns().length) {
                 <span class="mrow__secondary">
                   @for (sc of secondaryColumns(); track sc.id) {
-                    <span class="mrow__sec-part">
-                      <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: sc, index: i }"></ng-container>
-                    </span>
+                    @if (hasCellContent(row, sc)) {
+                      <span class="mrow__sec-part">
+                        <ng-container *ngTemplateOutlet="cellTpl; context: { $implicit: row, col: sc, index: i }"></ng-container>
+                      </span>
+                    }
                   }
                 </span>
               }

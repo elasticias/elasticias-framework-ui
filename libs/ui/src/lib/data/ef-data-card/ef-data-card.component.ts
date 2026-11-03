@@ -681,6 +681,19 @@ export class EfDataCardComponent<TRow = any> implements AfterContentInit {
         return path.split('.').reduce<any>((obj, key) => (obj == null ? obj : obj[key]), row);
     }
 
+    /**
+     * Whether a cell has anything to show. The mobile secondary line joins its
+     * parts with a "·" drawn before every part but the first, so an empty part
+     * left a dangling separator; skipping it keeps separators between present
+     * values only. A column with a custom body template is always present (the
+     * template decides what to render); a boolean always renders a glyph.
+     */
+    hasCellContent(row: TRow, col: EfDataCardColumn): boolean {
+        if (this.bodyTemplate(col.id) || col.type === 'boolean') return true;
+        const v = this.cellValue(row, col);
+        return v !== null && v !== undefined && !(typeof v === 'string' && v.trim() === '');
+    }
+
     headerAlignClass(col: EfDataCardColumn): string {
         if (col.align === 'end') return 'num';
         return '';
