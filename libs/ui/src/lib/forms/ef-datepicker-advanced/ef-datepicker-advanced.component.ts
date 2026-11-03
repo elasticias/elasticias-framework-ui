@@ -86,6 +86,11 @@ export class EfDatepickerAdvancedComponent
     private readonly destroyRef = inject(DestroyRef);
     private readonly cdr = inject(ChangeDetectorRef);
 
+    /** The one picker whose panel is open on the page, if any. A click on
+     *  another picker's trigger never reaches the document (the trigger
+     *  stops it), so opening a picker closes this one explicitly. */
+    private static openPicker: EfDatepickerAdvancedComponent | null = null;
+
     /**
      * Self-injected form control (present only when the consumer binds
      * `[(ngModel)]` / `formControlName` in field mode). We register as its
@@ -500,7 +505,7 @@ export class EfDatepickerAdvancedComponent
     private commitField(value: Date | [Date, Date]): void {
         this.fieldValue.set(value);
         this.onChange(this.toOutput(value));
-        this.close();
+        this.close(true);
     }
 
     /** Merge a day with a draft time. Returns start-of-day when `showTime`
@@ -556,6 +561,9 @@ export class EfDatepickerAdvancedComponent
         if (this.isDisabled()) return;
         this.open.update(v => !v);
         if (this.open()) {
+            const previous = EfDatepickerAdvancedComponent.openPicker;
+            if (previous && previous !== this) previous.close();
+            EfDatepickerAdvancedComponent.openPicker = this;
             this.calMode.set('days');
             if (this.mode() === 'field') {
                 // No presets in field mode — open straight to the calendar.
@@ -579,11 +587,26 @@ export class EfDatepickerAdvancedComponent
         }
     }
 
-    close(): void {
+    /**
+     * Close the panel. `returnFocus` puts focus back on the trigger; Escape
+     * and a commit pass it, so a keyboard user is not dropped on <body>
+     * when the panel's DOM goes. An outside click or another picker opening
+     * does not, since the user has just put focus somewhere else.
+     */
+    close(returnFocus = false): void {
         if (!this.open()) return;
         this.open.set(false);
+        if (EfDatepickerAdvancedComponent.openPicker === this) EfDatepickerAdvancedComponent.openPicker = null;
         this.onTouched();
         this.closed.emit();
+        if (returnFocus) this.focusTrigger();
+    }
+
+    /** The trigger sits behind an `@if` (field box or pill), so find it now. */
+    private focusTrigger(): void {
+        this.host.nativeElement
+            .querySelector<HTMLButtonElement>('.dp__field-trigger, .dp__trigger')
+            ?.focus();
     }
 
     @HostListener('document:click', ['$event'])
@@ -600,6 +623,7 @@ export class EfDatepickerAdvancedComponent
 
     @HostListener('document:keydown.escape')
     onEscape(): void {
+        if (!this.open()) return;
         // Drill back out one level at a time: year/month picker → day grid
         // → presets → closed.
         if (this.view() === 'custom' && this.calMode() !== 'days') {
@@ -611,7 +635,7 @@ export class EfDatepickerAdvancedComponent
             this.backToPresets();
             return;
         }
-        this.close();
+        this.close(true);
     }
 
     /* ── Preset actions ─────────────────────────────────────────── */
@@ -623,7 +647,7 @@ export class EfDatepickerAdvancedComponent
         }
         const range = this.computePresetRange(preset.key);
         this.rangeChange.emit(range);
-        this.close();
+        this.close(true);
     }
 
     isActivePreset(key: EfDatePresetKey): boolean {
@@ -817,6 +841,7 @@ export class EfDatepickerAdvancedComponent
             this.panelView.destroy();
             this.panelView = null;
         }
+        if (EfDatepickerAdvancedComponent.openPicker === this) EfDatepickerAdvancedComponent.openPicker = null;
     }
 
     private schedulePosition(): void {
@@ -923,7 +948,7 @@ export class EfDatepickerAdvancedComponent
             return;
         }
         this.rangeChange.emit(this.buildRange('custom', s, e));
-        this.close();
+        this.close(true);
     }
 
     /** Field single-date mode: commit a typed `JJ/MM/AAAA` value & close.

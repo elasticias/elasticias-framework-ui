@@ -5,7 +5,8 @@ import { placeDpPanel } from './ef-datepicker-advanced.placement';
 
 /**
  * The panel as an overlay: where it goes (flip above, stay inside the
- * viewport, mirror in RTL), and that it lives outside the host.
+ * viewport, mirror in RTL), that it lives outside the host, one open
+ * picker at a time, and how it closes and hands focus back.
  */
 
 const VW = 1512;
@@ -186,12 +187,77 @@ describe('EfDatepickerAdvancedComponent overlay', () => {
         expect(parseFloat(panel.style.left) + PANEL_W).toBe(at.right);
     });
 
+    it('opening a second picker closes the first', () => {
+        const a = make({ at: rect(100, 200) });
+        const b = make({ at: rect(600, 200) });
+        open(a);
+        expect(panels().length).toBe(1);
+
+        trigger(b).click();
+        a.detectChanges();
+        b.detectChanges();
+
+        expect(a.componentInstance.open()).toBe(false);
+        expect(b.componentInstance.open()).toBe(true);
+        expect(panels().length).toBe(1);
+        // Focus is the user's, on B; closing A must not take it back.
+        expect(document.activeElement).not.toBe(trigger(a));
+    });
+
+    it('closes on an outside click without moving focus', () => {
+        const f = make({ at: rect(500, 200) });
+        open(f);
+        const elsewhere = document.createElement('button');
+        document.body.appendChild(elsewhere);
+        elsewhere.focus();
+
+        elsewhere.click();
+        f.detectChanges();
+
+        expect(f.componentInstance.open()).toBe(false);
+        expect(panels().length).toBe(0);
+        expect(document.activeElement).toBe(elsewhere);
+        elsewhere.remove();
+    });
+
     it('stays open on a click inside the panel', () => {
         const f = make({ at: rect(500, 200) });
         const panel = open(f);
         (panel.querySelector('.dp__cal-nav') as HTMLButtonElement).click();
         f.detectChanges();
         expect(f.componentInstance.open()).toBe(true);
+    });
+
+    it('closes on Escape and returns focus to the trigger', () => {
+        const f = make({ at: rect(500, 200) });
+        const panel = open(f);
+        (panel.querySelector('.dp__field input') as HTMLInputElement).focus();
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        f.detectChanges();
+
+        expect(panels().length).toBe(0);
+        expect(document.activeElement).toBe(trigger(f));
+    });
+
+    it('Escape on one picker leaves a closed picker untouched', () => {
+        const a = make({ at: rect(100, 200) });
+        const b = make({ at: rect(600, 200) });
+        const closed = vi.fn();
+        b.componentInstance.closed.subscribe(closed);
+        open(a);
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        a.detectChanges();
+        expect(closed).not.toHaveBeenCalled();
+    });
+
+    it('returns focus to the trigger after a day is picked', () => {
+        const f = make({ at: rect(500, 200) });
+        const panel = open(f);
+        (panel.querySelector('.dp__cal-day:not(.out)') as HTMLButtonElement).click();
+        f.detectChanges();
+        expect(panels().length).toBe(0);
+        expect(document.activeElement).toBe(trigger(f));
     });
 
     it('removes the panel when the host is destroyed while open', () => {
