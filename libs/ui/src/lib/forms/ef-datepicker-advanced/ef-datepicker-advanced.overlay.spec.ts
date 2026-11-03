@@ -1,12 +1,14 @@
+import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { EfViewportService } from '@elasticias/core';
 import { EfDatepickerAdvancedComponent } from './ef-datepicker-advanced.component';
 import { placeDpPanel } from './ef-datepicker-advanced.placement';
 
 /**
  * The panel as an overlay: where it goes (flip above, stay inside the
- * viewport, mirror in RTL), that it lives outside the host, one open
- * picker at a time, and how it closes and hands focus back.
+ * viewport, mirror in RTL), that it lives outside the host, the phone
+ * sheet, one open picker at a time, and how it closes and hands focus back.
  */
 
 const VW = 1512;
@@ -265,5 +267,72 @@ describe('EfDatepickerAdvancedComponent overlay', () => {
         open(f);
         f.destroy();
         expect(panels().length).toBe(0);
+    });
+});
+
+describe('EfDatepickerAdvancedComponent phone sheet', () => {
+    const mobile = signal(true);
+    let fixture: ComponentFixture<EfDatepickerAdvancedComponent>;
+
+    beforeEach(async () => {
+        mobile.set(true);
+        await TestBed.configureTestingModule({
+            imports: [EfDatepickerAdvancedComponent, TranslateModule.forRoot()],
+            providers: [
+                { provide: EfViewportService, useValue: { isMobile: computed(() => mobile()) } },
+            ],
+        }).compileComponents();
+        fixture = TestBed.createComponent(EfDatepickerAdvancedComponent);
+        fixture.componentRef.setInput('mode', 'field');
+        fixture.componentRef.setInput('selectionMode', 'single');
+        fixture.detectChanges();
+        document.body.appendChild(fixture.nativeElement);
+    });
+
+    afterEach(() => {
+        fixture.destroy();
+        fixture.nativeElement.remove();
+    });
+
+    function open(): HTMLElement {
+        (fixture.nativeElement.querySelector('.dp__field-trigger') as HTMLButtonElement).click();
+        fixture.detectChanges();
+        return document.body.querySelector('.dp__panel') as HTMLElement;
+    }
+
+    it('opens as a bottom sheet over a backdrop at <= 767px', () => {
+        const panel = open();
+        expect(panel.classList).toContain('dp__panel--sheet');
+        expect(panel.getAttribute('aria-modal')).toBe('true');
+        expect(document.body.querySelector('.dp__backdrop')).toBeTruthy();
+        // CSS pins the sheet; no trigger-relative offsets are written.
+        expect(panel.style.top).toBe('');
+        expect(panel.style.left).toBe('');
+    });
+
+    it('moves focus into the sheet, onto the picked day', () => {
+        fixture.componentInstance.writeValue(new Date(2026, 10, 4));
+        fixture.detectChanges();
+        const panel = open();
+        const active = document.activeElement as HTMLElement;
+        expect(panel.contains(active)).toBe(true);
+        expect(active.classList).toContain('range-start');
+        expect(active.textContent?.trim()).toBe('4');
+    });
+
+    it('closes when the backdrop is tapped', () => {
+        open();
+        (document.body.querySelector('.dp__backdrop') as HTMLElement).click();
+        fixture.detectChanges();
+        expect(fixture.componentInstance.open()).toBe(false);
+        expect(document.body.querySelector('.dp__backdrop')).toBeNull();
+        expect(document.body.querySelector('.dp__panel')).toBeNull();
+    });
+
+    it('closes rather than morph when the viewport leaves the phone tier', () => {
+        open();
+        mobile.set(false);
+        fixture.detectChanges();
+        expect(fixture.componentInstance.open()).toBe(false);
     });
 });

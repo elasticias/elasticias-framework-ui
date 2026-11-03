@@ -24,6 +24,7 @@ import { CommonModule, formatDate } from '@angular/common';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ZIndexUtils } from 'primeng/utils';
+import { EfViewportService } from '@elasticias/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfClearButtonComponent } from '../ef-clear-button/ef-clear-button.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
@@ -85,6 +86,7 @@ export class EfDatepickerAdvancedComponent
     private readonly vcr = inject(ViewContainerRef);
     private readonly destroyRef = inject(DestroyRef);
     private readonly cdr = inject(ChangeDetectorRef);
+    private readonly viewport = inject(EfViewportService);
 
     /** The one picker whose panel is open on the page, if any. A click on
      *  another picker's trigger never reaches the document (the trigger
@@ -112,11 +114,15 @@ export class EfDatepickerAdvancedComponent
     /** Active embedded view + its root node, while the panel is open. */
     private panelView: EmbeddedViewRef<unknown> | null = null;
     private panelRoot: HTMLElement | null = null;
-    /** Every root node the panel template rendered. */
+    /** Every root node the panel template rendered (the sheet backdrop too). */
     private portalNodes: HTMLElement[] = [];
     private repositionListener: ((event: Event) => void) | null = null;
     private resizeObserver: ResizeObserver | null = null;
     private repositionFrame = 0;
+
+    /** Phone width (EfViewportService, <= 767px): the panel opens as a
+     *  full-width bottom sheet with 48px targets instead of a popover. */
+    readonly sheet = computed(() => this.viewport.isMobile());
 
     constructor() {
         super();
@@ -127,6 +133,15 @@ export class EfDatepickerAdvancedComponent
         effect(() => {
             if (this.open()) this.attachPortal();
             else this.detachPortal();
+        });
+
+        // Crossing the phone breakpoint while open would leave a popover
+        // styled as a sheet, or the reverse. Close rather than morph.
+        let wasSheet = this.sheet();
+        effect(() => {
+            const isSheet = this.sheet();
+            if (isSheet !== wasSheet && this.open()) this.close();
+            wasSheet = isSheet;
         });
 
         // Last-line cleanup if the host is destroyed while the panel is open
@@ -803,6 +818,14 @@ export class EfDatepickerAdvancedComponent
             ZIndexUtils.set('overlay', node, 1000);
         }
 
+        // The sheet is pinned to the bottom edge by CSS; only the popover
+        // follows its trigger. On a phone the on-screen keyboard fires
+        // resize and scroll, which must not move or close the sheet.
+        if (this.sheet()) {
+            this.focusIntoSheet(root);
+            return;
+        }
+
         this.positionPanel();
         this.repositionListener = (event: Event) => {
             // A scroll inside the panel itself does not move the trigger.
@@ -844,6 +867,19 @@ export class EfDatepickerAdvancedComponent
         if (EfDatepickerAdvancedComponent.openPicker === this) EfDatepickerAdvancedComponent.openPicker = null;
     }
 
+    /** The sheet is modal and sits at the end of <body>, far from the
+     *  trigger in tab order, so focus moves into it: the picked day, else
+     *  today, else the first day of the month. A day, not the date input,
+     *  which would raise the on-screen keyboard over the calendar. */
+    private focusIntoSheet(root: HTMLElement): void {
+        const day =
+            root.querySelector<HTMLButtonElement>('.dp__view.active .dp__cal-day.range-start') ??
+            root.querySelector<HTMLButtonElement>('.dp__view.active .dp__cal-day.today') ??
+            root.querySelector<HTMLButtonElement>('.dp__view.active .dp__cal-day:not(.out)') ??
+            root.querySelector<HTMLButtonElement>('.dp__view.active button');
+        day?.focus();
+    }
+
     private schedulePosition(): void {
         if (this.repositionFrame) return;
         this.repositionFrame = requestAnimationFrame(() => {
@@ -858,7 +894,7 @@ export class EfDatepickerAdvancedComponent
      *  the natural height once a previous placement capped it. */
     private positionPanel(): void {
         const panel = this.panelRoot;
-        if (!panel) return;
+        if (!panel || this.sheet()) return;
         const anchor = this.triggerRect();
         const vw = document.documentElement.clientWidth || window.innerWidth;
         const vh = document.documentElement.clientHeight || window.innerHeight;

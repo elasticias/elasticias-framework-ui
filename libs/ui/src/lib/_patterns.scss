@@ -4744,6 +4744,74 @@ input.ef-input[type='number'] {
   }
 }
 
+/* The date picker's phone layout: a full-width bottom sheet over a backdrop.
+   EfViewportService's mobile (<= 767px) toggles the class, so there is no
+   media query here and no band where the two disagree. Every target is
+   --hit-touch (48px). Declared after the base .dp__* rules so it wins. */
+.dp__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: color-mix(in oklab, var(--ink-950) 35%, transparent);
+}
+
+.dp__panel.dp__panel--sheet {
+  inset: auto 0 0 0;
+  inline-size: 100%;
+  max-inline-size: none;
+  min-inline-size: 0;
+  max-height: 85vh;
+  max-height: 85dvh;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  border-bottom: 0;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  animation: dp-sheet-in var(--t-base) var(--ease-spring);
+}
+
+@keyframes dp-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.dp__panel--sheet .dp__cal-day {
+  height: var(--hit-touch);
+}
+
+.dp__panel--sheet .dp__cal-day .day-num {
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+}
+
+.dp__panel--sheet .dp__cal-nav,
+.dp__panel--sheet .dp__back {
+  width: var(--hit-touch);
+  height: var(--hit-touch);
+}
+
+.dp__panel--sheet .dp__cal-pick,
+.dp__panel--sheet .dp__cal-cell,
+.dp__panel--sheet .dp__preset,
+.dp__panel--sheet .dp__actions .btn {
+  min-height: var(--hit-touch);
+}
+
+/* 16px stops iOS Safari zooming the page when the input takes focus. */
+.dp__panel--sheet .dp__field input {
+  min-height: var(--hit-touch);
+  font-size: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dp__panel.dp__panel--sheet {
+    animation: none;
+  }
+}
+
 /* ── TOUCH TARGET TIER ──────────────────────────────────────────────
    The design system documents three tiers: --hit-base 40px for forms,
    --hit-touch 48px for touch, --hit-pos 64px for the till. Until now

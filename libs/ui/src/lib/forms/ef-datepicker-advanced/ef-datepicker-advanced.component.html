@@ -100,13 +100,18 @@
     Popover panel — instantiated via ViewContainerRef + appended to
     <body> when `open()` flips on. Fixed to the viewport and placed
     against the trigger by positionPanel() (flips above, keeps inside the
-    viewport).
+    viewport); on a phone it is a bottom sheet over a backdrop instead.
 -->
 <ng-template #panelTpl>
+    @if (sheet()) {
+        <div class="dp__backdrop" aria-hidden="true" (click)="close()"></div>
+    }
     <div
         class="dp__panel open"
         [class.wide]="view() === 'custom'"
+        [class.dp__panel--sheet]="sheet()"
         role="dialog"
+        [attr.aria-modal]="sheet() ? 'true' : null"
         [attr.aria-label]="triggerLabelKey() | translate"
     >
         <!-- ── View 1 — preset list ── -->
