@@ -176,8 +176,19 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         const ctx = this.context;
         if (!ctx) return false;
         const editingExisting = this.editionState() && !this.duplicateMode();
-        return editingExisting ? ctx.hasEditPermission : ctx.hasCreatePermission;
+        const granted = editingExisting ? ctx.hasEditPermission : ctx.hasCreatePermission;
+        return granted && this.recordWritable();
     });
+
+    /**
+     * A record-level veto beside the grants: return false when this record cannot be written from this screen
+     * whatever the user's grants (for example a record another screen owns). It is read inside `canWrite`, so any
+     * signal it reads is tracked and the screen re-evaluates when it changes. Save, `[efReadOnly]` and the toolbar
+     * all follow, since they read `canWrite`.
+     */
+    protected recordWritable(): boolean {
+        return true;
+    }
 
     /** `!canWrite()`, named for the `[efReadOnly]` binding it feeds. */
     readonly readOnlyMode = computed(() => !this.canWrite());

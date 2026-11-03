@@ -29,8 +29,12 @@ class TestConfig extends ScreenConfig {
 
 @Component({ template: '', standalone: true })
 class TestDetailScreen extends AbstractDetailScreenV2<{ id: string }> {
+  readonly vetoed = signal(false);
   protected override getConfig() {
     return TestConfig;
+  }
+  protected override recordWritable(): boolean {
+    return !this.vetoed();
   }
 }
 
@@ -218,6 +222,17 @@ describe('AbstractDetailScreenV2 write gating', () => {
     expect(screen.canWrite()).toBe(true);
     screen.duplicateMode.set(true);
     expect(screen.canWrite()).toBe(false);
+  });
+
+  it('lets a screen veto the write of a record whatever the grants, and follows the veto live', async () => {
+    const screen = (await create('edit', [Permissions.Read, Permissions.Edit, Permissions.Create])).componentInstance;
+    expect(screen.canWrite()).toBe(true);
+    screen.vetoed.set(true);
+    expect(screen.canWrite()).toBe(false);
+    expect(screen.readOnlyMode()).toBe(true);
+    expect(screen.context.canWrite?.()).toBe(false);
+    screen.vetoed.set(false);
+    expect(screen.canWrite()).toBe(true);
   });
 
   it('exposes canWrite on the ScreenContext for the toolbar', async () => {
