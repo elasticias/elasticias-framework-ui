@@ -3877,6 +3877,22 @@ input.ef-input[type='number'] {
   transform: translateY(-50%);
 }
 
+/* The clear sits at the wrapper's trailing edge, but the input can carry its
+   own direction (`dir` on ef-input-text: an LTR phone or IBAN on an Arabic
+   screen), and `padding-inline-end` follows the input, so the room it reserved
+   landed on the opposite side and the value ran under the ✕. Reserve the room
+   by the wrapper's direction instead. Physical sides on purpose: the two
+   directions are named so the side tracks the clear, not the input. */
+.ef-input-wrap:dir(ltr) .ef-input.has-clear {
+  padding-left: 12px;
+  padding-right: 36px;
+}
+
+.ef-input-wrap:dir(rtl) .ef-input.has-clear {
+  padding-left: 36px;
+  padding-right: 12px;
+}
+
 /* The same centring, for the clear that PrimeNG owns rather than we do.
    PrimeNG centres both password icons with `top: 50%; margin-top: -8px`, which
    is exact for the 16px mask toggle it draws itself and wrong for anything
