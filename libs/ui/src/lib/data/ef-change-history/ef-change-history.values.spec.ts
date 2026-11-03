@@ -50,3 +50,36 @@ describe('ef-change-history value labels', () => {
         expect(el.textContent).toContain('Received');
     });
 });
+
+describe('ef-change-history note formatter', () => {
+    async function make(noteFormatter: any, note: string) {
+        TestBed.resetTestingModule();
+        await TestBed.configureTestingModule({
+            imports: [EfChangeHistoryComponent, TranslateModule.forRoot()],
+        }).compileComponents();
+        const fixture = TestBed.createComponent(EfChangeHistoryComponent);
+        fixture.componentRef.setInput('entries', [{ operation: 'note', note }]);
+        if (noteFormatter) fixture.componentRef.setInput('noteFormatter', noteFormatter);
+        fixture.detectChanges();
+        return fixture.nativeElement as HTMLElement;
+    }
+    const note = (el: HTMLElement) => el.querySelector('.ch-note')?.textContent?.trim();
+
+    it('shows the raw note without a formatter', async () => {
+        expect(note(await make(null, 'a:b'))).toBe('a:b');
+    });
+
+    it('shows the formatted note', async () => {
+        expect(note(await make((n: string) => n.toUpperCase(), 'a:b'))).toBe('A:B');
+    });
+
+    it('falls back to the raw note when the formatter returns null', async () => {
+        expect(note(await make(() => null, 'a:b'))).toBe('a:b');
+    });
+
+    it('renders markup as text, never as HTML', async () => {
+        const el = await make(() => '<b>x</b>', 'a:b');
+        expect(el.querySelector('.ch-note b')).toBeNull();
+        expect(note(el)).toBe('<b>x</b>');
+    });
+});

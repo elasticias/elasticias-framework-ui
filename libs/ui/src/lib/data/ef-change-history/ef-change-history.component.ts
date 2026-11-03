@@ -88,6 +88,11 @@ export class EfChangeHistoryComponent {
      *  values stay raw. Key `status` covers `fromStatus` / `toStatus`. */
     readonly valueLists = input<Readonly<Record<string, ReadonlyArray<EfChangeHistoryValueItem>>> | null>(null);
 
+    /** Optional formatter for an entry's free-text note. Return the text to show,
+     *  or null to keep the raw note. Rendered as plain text (never HTML). A
+     *  screen uses it to translate coded notes such as `order_email_resent:order_confirmed`. */
+    readonly noteFormatter = input<((note: string) => string | null) | null>(null);
+
     /** "Show more" dialog visibility. */
     readonly dialogVisible = signal(false);
 
@@ -129,6 +134,14 @@ export class EfChangeHistoryComponent {
         // since ngx-translate treats dots as nested lookups.
         const key = `audit_field_${field.replace(/\./g, '_')}`;
         return this.resolveLabel(key, field);
+    }
+
+    /** The note as shown: the formatter's text, else the raw note. */
+    noteText(note: string | null | undefined): string {
+        if (!note) return '';
+        const fn = this.noteFormatter();
+        if (!fn) return note;
+        return fn(note) ?? note;
     }
 
     /** Display value for a field's raw value: the matching list item's label
