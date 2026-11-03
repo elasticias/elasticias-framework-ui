@@ -148,3 +148,24 @@
     transform: scaleX(-1);
   }
 }
+
+// Phone: the compact preview has no room for a value on one line (an IBAN
+// was cut to its first 8 characters), so a value wraps inside its own
+// isolate instead of being ellipsised, and the row wraps under the field.
+// Last in the file so the base compact rule does not win.
+@media (max-width: 767px) {
+  .timeline--compact .ch-changes {
+    li {
+      flex-wrap: wrap;
+    }
+
+    .text-mute,
+    .strong {
+      flex: 1 1 auto;
+      overflow: visible;
+      white-space: normal;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+    }
+  }
+}
