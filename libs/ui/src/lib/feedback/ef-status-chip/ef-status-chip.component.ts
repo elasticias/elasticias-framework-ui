@@ -46,6 +46,7 @@ import {
  * - `[color]` forces a specific Comptoir tone, ignoring metadata.
  * - `[label]` / `[labelKey]` force the text, ignoring reference data.
  * - `[hideDot]` removes the leading ● glyph.
+ * - `metadata.icon` (or `[icon]`) swaps the ● for a PrimeIcons glyph, e.g. `pi-check`.
  * - `[showCode]` displays the raw code (useful for admin screens).
  */
 @Component({
@@ -76,6 +77,9 @@ export class EfStatusChipComponent {
     /** Translation key — preferred when forcing a label. */
     readonly labelKey = input<string>('');
 
+    /** PrimeIcons class (e.g. `pi-check`) shown instead of the ● dot. Overrides `metadata.icon`. */
+    readonly icon = input<string>('');
+
     /** Hide the leading ● dot. */
     readonly hideDot = input(false, { transform: booleanAttribute });
 
@@ -105,6 +109,14 @@ export class EfStatusChipComponent {
             resolveEfStatusColor(this.code()) ??
             'neutral'
         );
+    });
+
+    /** Leading icon: the `icon` input, else the entry's `metadata.icon`, else none (the ● dot shows). */
+    readonly resolvedIcon = computed<string>(() => {
+        const raw = this.icon() || (this.entry()?.metadata?.icon as string | undefined) || '';
+        const trimmed = raw.trim();
+        if (!trimmed) return '';
+        return trimmed.startsWith('pi ') || trimmed.startsWith('pi-') ? trimmed : `pi-${trimmed}`;
     });
 
     /** Resolved label — labelKey input → label input → reference label → code. */
