@@ -17,6 +17,11 @@
 
 .ef-app-main__content {
   flex: 1 1 auto;
+  /* The scroller is the containing block for every absolutely positioned
+     descendant (sr-only text, hidden file inputs, switch inputs). Without it
+     they resolve against the initial containing block and stretch the
+     document, so the shell's sidebar scrolls away. */
+  position: relative;
   overflow: auto;
   padding: var(--s-5) var(--s-6) var(--s-7); /* 20/24/32 — more breathing room */
   display: grid;

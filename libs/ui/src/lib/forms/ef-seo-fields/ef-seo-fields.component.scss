@@ -1,4 +1,6 @@
 :host {
+    /* Contains the absolutely positioned .seo-counter__sr text. */
+    position: relative;
     display: block;
     min-width: 0;
 }
