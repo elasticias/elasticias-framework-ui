@@ -3750,10 +3750,30 @@ input.ef-input[type='number'] {
   outline: 0;
 }
 
-.es.p-disabled {
-  opacity: 0.55;
+/* Disabled reads like every other disabled comptoir field (`.ef-input[disabled]`
+   above): flat --paper fill, the usual --rule border, --text-mute text, no
+   fading. The root selector doubles `.p-select` / `.p-multiselect` because
+   PrimeNG injects `.p-select.p-disabled { opacity: 1; background: <its grey> }`
+   at runtime, after this sheet, and at a tie that later rule won, so the
+   disabled select came out a heavier grey than its neighbours. */
+.es.p-select.p-disabled,
+.es.p-multiselect.p-disabled {
+  opacity: 1;
   cursor: not-allowed;
   background: var(--paper);
+  border-color: var(--rule);
+  color: var(--text-mute);
+}
+
+.es.p-select.p-disabled .p-select-label,
+.es.p-multiselect.p-disabled .p-multiselect-label {
+  color: var(--text-mute);
+}
+
+/* The caret stays as a quiet hint of what the field is, not an affordance. */
+.es.p-select.p-disabled .p-select-dropdown,
+.es.p-multiselect.p-disabled .p-multiselect-dropdown {
+  color: var(--text-soft);
 }
 
 /* Comptoir variant: the dense-row select. It replaced a native <select>,
