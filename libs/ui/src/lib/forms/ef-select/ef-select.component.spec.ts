@@ -1,7 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormControl, FormsModule, NgForm, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { Select } from 'primeng/select';
 import { EF_SELECT_FILTER_THRESHOLD, EfSelectComponent } from './ef-select.component';
@@ -407,5 +407,116 @@ describe('EfSelectComponent selected value versus placeholder', () => {
     const { label, text } = await render([{ id: 'p1', name: 'Promo' }], 'p1');
     expect(text).toBe('Promo');
     expect(label.classList).not.toContain('p-placeholder');
+  });
+});
+
+describe('EfSelectComponent clear button', () => {
+  const OPTIONS = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
+
+  @Component({
+    standalone: true,
+    imports: [FormsModule, EfSelectComponent],
+    template: `
+      @switch (mode) {
+        @case ('optional') {
+          <ef-select name="s" [(ngModel)]="value" [options]="options" optionLabel="name" optionValue="id" />
+        }
+        @case ('required-input') {
+          <ef-select name="s" [(ngModel)]="value" required [options]="options" optionLabel="name" optionValue="id" />
+        }
+        @case ('required-override') {
+          <ef-select name="s" [(ngModel)]="value" required [showClear]="true" [options]="options" optionLabel="name" optionValue="id" />
+        }
+        @case ('optional-off') {
+          <ef-select name="s" [(ngModel)]="value" [showClear]="false" [options]="options" optionLabel="name" optionValue="id" />
+        }
+      }
+    `,
+  })
+  class ClearHostComponent {
+    @ViewChild(EfSelectComponent) select!: EfSelectComponent;
+    mode = 'optional';
+    value: number | null = 1;
+    options = OPTIONS;
+  }
+
+  @Component({
+    standalone: true,
+    imports: [ReactiveFormsModule, EfSelectComponent],
+    template: `<ef-select name="s" [formControl]="control" [options]="options" optionLabel="name" optionValue="id" />`,
+  })
+  class ReactiveHostComponent {
+    @ViewChild(EfSelectComponent) select!: EfSelectComponent;
+    control = new FormControl<number | null>(1);
+    options = OPTIONS;
+  }
+
+  async function render(mode: string) {
+    TestBed.configureTestingModule({ imports: [ClearHostComponent, TranslateModule.forRoot()] });
+    const f = TestBed.createComponent(ClearHostComponent);
+    f.componentInstance.mode = mode;
+    f.detectChanges();
+    await f.whenStable();
+    f.detectChanges();
+    await f.whenStable();
+    f.detectChanges();
+    const prime = f.debugElement.query(By.directive(Select)).componentInstance as Select;
+    return { f, ef: f.componentInstance.select, prime };
+  }
+
+  async function renderReactive(validators: ValidatorFn[]) {
+    TestBed.configureTestingModule({ imports: [ReactiveHostComponent, TranslateModule.forRoot()] });
+    const f = TestBed.createComponent(ReactiveHostComponent);
+    f.componentInstance.control.setValidators(validators);
+    f.detectChanges();
+    await f.whenStable();
+    f.detectChanges();
+    const prime = f.debugElement.query(By.directive(Select)).componentInstance as Select;
+    return { f, ef: f.componentInstance.select, prime };
+  }
+
+  const clearIcon = (f: ComponentFixture<unknown>) => f.nativeElement.querySelector('.p-select-clear-icon');
+
+  it('offers the ✕ on an optional select that holds a value', async () => {
+    const { f, ef, prime } = await render('optional');
+    expect(ef.effectiveShowClear).toBe(true);
+    expect(prime.showClear).toBe(true);
+    expect(clearIcon(f)).toBeTruthy();
+  });
+
+  it('hides the ✕ on a template-driven required select', async () => {
+    const { f, ef, prime } = await render('required-input');
+    expect(ef.effectiveShowClear).toBe(false);
+    expect(prime.showClear).toBe(false);
+    expect(clearIcon(f)).toBeNull();
+  });
+
+  it('hides the ✕ when the reactive control has Validators.required', async () => {
+    const { f, ef } = await renderReactive([Validators.required]);
+    expect(ef.isRequiredField).toBe(true);
+    expect(ef.effectiveShowClear).toBe(false);
+    expect(clearIcon(f)).toBeNull();
+  });
+
+  it('hides the ✕ when required sits inside a composed validator', async () => {
+    const { ef } = await renderReactive([Validators.compose([Validators.required, Validators.min(1)])!]);
+    expect(ef.effectiveShowClear).toBe(false);
+  });
+
+  it('keeps the ✕ on a reactive control with no required validator', async () => {
+    const { ef } = await renderReactive([Validators.min(1)]);
+    expect(ef.effectiveShowClear).toBe(true);
+  });
+
+  it('lets an explicit [showClear]="true" override the required rule', async () => {
+    const { f, ef } = await render('required-override');
+    expect(ef.effectiveShowClear).toBe(true);
+    expect(clearIcon(f)).toBeTruthy();
+  });
+
+  it('lets an explicit [showClear]="false" hide the ✕ on an optional select', async () => {
+    const { f, ef } = await render('optional-off');
+    expect(ef.effectiveShowClear).toBe(false);
+    expect(clearIcon(f)).toBeNull();
   });
 });

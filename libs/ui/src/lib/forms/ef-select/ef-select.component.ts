@@ -14,7 +14,14 @@ import {
   SimpleChanges,
   TemplateRef,
 } from '@angular/core';
-import { ControlValueAccessor, NgControl, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormControl,
+  FormsModule,
+  NG_VALUE_ACCESSOR,
+  NgControl,
+  Validators,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -160,8 +167,9 @@ export class EfSelectComponent
    */
   @Input({ transform: booleanAttribute }) autofocus = false;
 
-  /* showClear is inherited from AbstractEfFormControl (default true →
-     clearable by default; PrimeNG only renders the ✕ when a value is set). */
+  /* showClear is inherited from AbstractEfFormControl. Here it is an
+     override only: left unbound, the ✕ follows whether the field is
+     optional (see `effectiveShowClear`). */
   @Input({ transform: booleanAttribute }) editable = false;
   @Input({ transform: booleanAttribute }) loading = false;
 
@@ -245,6 +253,11 @@ export class EfSelectComponent
   private onChange: (value: any) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
 
+  /** Set once the host binds `[showClear]`, so its value wins over the
+   *  required rule. The inherited signal input cannot tell "bound" from its
+   *  default, but a bound signal input does show up in `ngOnChanges`. */
+  private showClearBound = false;
+
   /** Resolved lazily in ngOnInit to avoid circular DI with NG_VALUE_ACCESSOR */
   ngControl: NgControl | null = null;
   private readonly injector = inject(Injector);
@@ -258,6 +271,34 @@ export class EfSelectComponent
    *  the threshold when the caller left it unset. */
   get effectiveFilter(): boolean {
     return this.filter ?? (this.filteredOptions?.length ?? 0) > EF_SELECT_FILTER_THRESHOLD;
+  }
+
+  /**
+   * Whether the clear ✕ is offered. A bound `[showClear]` decides. Otherwise
+   * only an optional select gets one: on a required select the ✕ would just
+   * lead the user into the "required" error, since clearing is never a valid
+   * answer there.
+   */
+  get effectiveShowClear(): boolean {
+    return this.showClearBound ? this.showClear() : !this.isRequiredField;
+  }
+
+  /**
+   * Required by the `[required]` input or by the bound control: a reactive
+   * `Validators.required`, or any validator (template-driven `required`,
+   * a composed list) that rejects an empty value as required.
+   */
+  get isRequiredField(): boolean {
+    if (this.required()) return true;
+    const ctrl = this.ngControl?.control;
+    if (!ctrl) return false;
+    if (ctrl.hasValidator(Validators.required)) return true;
+    if (!ctrl.validator) return false;
+    try {
+      return !!ctrl.validator(new FormControl(this.multiple ? [] : null))?.['required'];
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -376,6 +417,9 @@ export class EfSelectComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['showClear']) {
+      this.showClearBound = true;
+    }
     if (changes['options'] || changes['filterByKeys']) {
       this.applyFilters();
     }
