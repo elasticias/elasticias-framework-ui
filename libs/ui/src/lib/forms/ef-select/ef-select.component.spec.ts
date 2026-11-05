@@ -351,3 +351,61 @@ describe('EfSelectComponent filter threshold', () => {
     expect(render(EF_SELECT_FILTER_THRESHOLD + 1, null as unknown as boolean).ef.effectiveFilter).toBe(true);
   });
 });
+
+describe('EfSelectComponent selected value versus placeholder', () => {
+  @Component({
+    standalone: true,
+    imports: [EfSelectComponent],
+    template: `<ef-select name="s" variant="comptoir" [placeholder]="placeholder" [options]="options" optionLabel="name" optionValue="id" [value]="value" />`,
+  })
+  class ValueHostComponent {
+    @ViewChild(EfSelectComponent) select!: EfSelectComponent;
+    placeholder = 'Aucune';
+    options: { id: string | null; name: string }[] = [];
+    value: string | null | undefined = null;
+  }
+
+  async function render(options: ValueHostComponent['options'], value: ValueHostComponent['value']) {
+    TestBed.configureTestingModule({ imports: [ValueHostComponent, TranslateModule.forRoot()] });
+    const f = TestBed.createComponent(ValueHostComponent);
+    f.componentInstance.options = options;
+    f.componentInstance.value = value;
+    f.detectChanges();
+    await f.whenStable();
+    f.detectChanges();
+    const label = f.nativeElement.querySelector('.p-select-label') as HTMLElement;
+    return { f, label, text: (label.textContent ?? '').replace(/\u00a0/g, ' ').trim() };
+  }
+
+  it('renders a selected null option as a value, even when its label equals the placeholder', async () => {
+    const { label, text, f } = await render([{ id: null, name: 'Aucune' }, { id: 'p1', name: 'Promo' }], null);
+    expect(text).toBe('Aucune');
+    expect(label.classList).not.toContain('p-placeholder');
+    expect(f.componentInstance.select.hasSelectedOption).toBe(true);
+  });
+
+  it('treats an unbound (undefined) value as null, so the null option still matches', async () => {
+    const { label, text } = await render([{ id: null, name: 'Aucune' }], undefined);
+    expect(text).toBe('Aucune');
+    expect(label.classList).not.toContain('p-placeholder');
+  });
+
+  it("renders a selected '' option as a value", async () => {
+    const { label, text } = await render([{ id: '', name: 'Aucune' }, { id: 'p1', name: 'Promo' }], '');
+    expect(text).toBe('Aucune');
+    expect(label.classList).not.toContain('p-placeholder');
+  });
+
+  it('keeps the placeholder style when no option matches', async () => {
+    const { label, text, f } = await render([{ id: 'p1', name: 'Promo' }], null);
+    expect(text).toBe('Aucune');
+    expect(label.classList).toContain('p-placeholder');
+    expect(f.componentInstance.select.hasSelectedOption).toBe(false);
+  });
+
+  it('renders a real option as a value', async () => {
+    const { label, text } = await render([{ id: 'p1', name: 'Promo' }], 'p1');
+    expect(text).toBe('Promo');
+    expect(label.classList).not.toContain('p-placeholder');
+  });
+});

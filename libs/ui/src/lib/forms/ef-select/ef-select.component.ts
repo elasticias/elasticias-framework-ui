@@ -18,6 +18,7 @@ import { ControlValueAccessor, NgControl, FormsModule, NG_VALUE_ACCESSOR } from 
 import { CommonModule } from '@angular/common';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { ObjectUtils } from 'primeng/utils';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
@@ -259,6 +260,31 @@ export class EfSelectComponent
     return this.filter ?? (this.filteredOptions?.length ?? 0) > EF_SELECT_FILTER_THRESHOLD;
   }
 
+  /**
+   * Whether the current value is one of the options, compared the way
+   * PrimeNG compares (`optionValue`, else the whole option or its
+   * `dataKey`). An option whose value is null or '' counts: "Aucune" with a
+   * null id is a real choice and must read as a value, not as the
+   * placeholder.
+   */
+  get hasSelectedOption(): boolean {
+    if (this.multiple) return false;
+    const value = this.value ?? null;
+    const key = this.optionValue ? undefined : this.dataKey;
+    return this.flatOptions().some((option) =>
+      option != null && ObjectUtils.equals(value, this.optionValueOf(option), key),
+    );
+  }
+
+  /**
+   * The placeholder handed to PrimeNG. Empty while an option is selected:
+   * PrimeNG greys the trigger whenever its label equals the placeholder, so
+   * a selected "Aucune" beside a placeholder "Aucune" rendered as unset.
+   */
+  get triggerPlaceholder(): string {
+    return this.hasSelectedOption ? '' : this.placeholderText;
+  }
+
   /** The overlay target. A comptoir select lives in cards and table rows
    *  that scroll, which would clip a panel attached in place. */
   get effectiveAppendTo(): string | undefined {
@@ -397,6 +423,16 @@ export class EfSelectComponent
   handlePanelHide(): void {
     this.panelHideEvent.emit();
     this.onTouched();
+  }
+
+  private optionValueOf(option: any): any {
+    return this.optionValue ? ObjectUtils.resolveFieldData(option, this.optionValue) : option;
+  }
+
+  private flatOptions(): any[] {
+    const options = this.filteredOptions ?? [];
+    if (!this.group) return options;
+    return options.flatMap((g) => ObjectUtils.resolveFieldData(g, this.optionGroupChildren) ?? []);
   }
 
   private applyFilters(): void {

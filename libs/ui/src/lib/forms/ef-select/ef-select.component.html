@@ -109,7 +109,7 @@
     <p-select
       [inputId]="effectiveId"
       [name]="name()"
-      [ngModel]="value"
+      [ngModel]="value ?? null"
       [ngModelOptions]="{standalone: true}"
       (onChange)="handleSelectionChange($event)"
       (onClear)="handleClear()"
@@ -124,7 +124,7 @@
       [group]="group"
       [optionGroupLabel]="optionGroupLabel"
       [optionGroupChildren]="optionGroupChildren"
-      [placeholder]="placeholderText"
+      [placeholder]="triggerPlaceholder"
       [size]="size"
       [filter]="effectiveFilter"
       [filterPlaceholder]="effectiveFilterPlaceholder"
