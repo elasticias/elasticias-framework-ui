@@ -58,6 +58,15 @@ describe('touch tier for form fields', () => {
     expect(decl(patterns, selector, prop)).toBe('var(--hit-field)');
   });
 
+  it.each([
+    '.es__panel:not(:has(.p-virtualscroller)) .p-select-option',
+    '.es__panel:not(:has(.p-virtualscroller)) .p-multiselect-option',
+    '.es__panel .p-select-filter',
+    '.es__panel .p-multiselect-filter',
+  ])('%s reaches --hit-touch on a coarse pointer', (selector) => {
+    expect(decl(patterns, selector, 'min-block-size', coarse)).toBe('var(--hit-touch)');
+  });
+
   it('counts the grouped field border inside the field height, like a bare input', () => {
     expect(decl(patterns, '.ef-input-group', 'box-sizing')).toBe('border-box');
   });
