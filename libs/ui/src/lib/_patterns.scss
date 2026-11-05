@@ -3756,6 +3756,15 @@ input.ef-input[type='number'] {
   background: var(--paper);
 }
 
+/* Comptoir variant: the dense-row select. It replaced a native <select>,
+   which had no minimum width, so it keeps none and shrinks with its cell
+   or grid column instead of widening it (the 200px floor above would push
+   a 390px row sideways). Height stays on --hit-field like the default. */
+.es--comptoir.p-select,
+.es--comptoir.p-multiselect {
+  min-width: 0;
+}
+
 /* Small variant — match `.btn-sm` height */
 .es--sm.p-select,
 .es--sm.p-multiselect {

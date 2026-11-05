@@ -23,6 +23,19 @@ import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
 
 /**
+ * Past this many options an `ef-select` whose `filter` is left unset shows
+ * a search box. Eight is about what the panel shows without scrolling;
+ * beyond that, finding a name by scrolling is slower than typing it.
+ */
+export const EF_SELECT_FILTER_THRESHOLD = 8;
+
+/** `filter` keeps "not bound" apart from `false`, which `booleanAttribute`
+ *  folds together, so the threshold applies only when the caller is silent. */
+function optionalBoolean(value: unknown): boolean | undefined {
+  return value === undefined || value === null ? undefined : booleanAttribute(value);
+}
+
+/**
  * Comptoir select — wraps PrimeNG `p-select` (single) or `p-multiselect`
  * (multi) and skins it against the `.es` / `.es__panel` patterns lifted
  * from the static prototype (`docs/ux-ui/erp/screens/components.html`,
@@ -32,10 +45,14 @@ import { AbstractEfFormControl } from '../abstract-ef-form-control.component';
  * Elasticias API surface (i18n `*Key` inputs, `selectionChangeEvent`,
  * `filterByKeys`, content-projected templates).
  *
- * The `'comptoir'` variant remains as a lite, no-deps escape hatch
- * (native `<select>` styled via `.ef-select-native`); use the default
- * `'primeng'` variant for any screen that needs filter / multi /
- * group / templating.
+ * Both variants render PrimeNG. `'comptoir'` used to be a native
+ * `<select>`, which opened the operating system's own list (a blank,
+ * checked first row on macOS, no search); it now gets the same `.es`
+ * dropdown, sized for dense rows and appended to `body` so a scrolling
+ * card or table cannot clip its panel.
+ *
+ * The search box turns itself on past `EF_SELECT_FILTER_THRESHOLD`
+ * options unless the caller binds `[filter]` either way.
  *
  * ```html
  * <ef-select
@@ -116,7 +133,10 @@ export class EfSelectComponent
   /** Multi-selection — internally swaps `<p-select>` for `<p-multiselect>`. */
   @Input({ transform: booleanAttribute }) multiple = false;
 
-  @Input({ transform: booleanAttribute }) filter = false;
+  /** Show the search box in the panel. Unset (the default) turns it on
+   *  when there are more than `EF_SELECT_FILTER_THRESHOLD` options; bind
+   *  `true` or `false` to decide for the screen. */
+  @Input({ transform: optionalBoolean }) filter: boolean | undefined = undefined;
   /** Filter the list against these option fields (string or csv).
    *  PrimeNG default: `optionLabel`. */
   @Input() filterBy?: string;
@@ -184,12 +204,13 @@ export class EfSelectComponent
    *                           to the canonical `--hit-field` (40px, 48px on touch) trigger
    *                           height (`.es.p-select { min-height: --hit-field }`),
    *                           so it aligns with inputs/buttons in a row.
-   * - `'comptoir'`           — lite native `<select class="ef-select-native">`.
-   *                           No filter / panel / multi / templates; use it for
-   *                           inline / dense contexts that want the plain native
-   *                           control (e.g. table-row editors).
-   * The `.es` dropdown is the default per the design system; opt into
-   * `comptoir` only when a native control is specifically wanted. See ADR-009.
+   * - `'comptoir'`:          the same `p-select` / `p-multiselect`, for dense
+   *                           rows and table-row editors: no 200px minimum width,
+   *                           so it shrinks with its cell, and the panel goes to
+   *                           `body` unless `appendTo` says otherwise. It no
+   *                           longer renders a native `<select>`.
+   * Both share the `--hit-field` height (40px, 48px on a coarse pointer), so a
+   * select lines up with comptoir inputs and buttons in a row. See ADR-009.
    */
   @Input() variant: 'primeng' | 'comptoir' = 'primeng';
 
@@ -230,6 +251,18 @@ export class EfSelectComponent
   ngOnInit(): void {
     this.ngControl = this.injector.get(NgControl, null);
     this.applyFilters();
+  }
+
+  /** Whether the panel shows its search box: the bound `filter`, or past
+   *  the threshold when the caller left it unset. */
+  get effectiveFilter(): boolean {
+    return this.filter ?? (this.filteredOptions?.length ?? 0) > EF_SELECT_FILTER_THRESHOLD;
+  }
+
+  /** The overlay target. A comptoir select lives in cards and table rows
+   *  that scroll, which would clip a panel attached in place. */
+  get effectiveAppendTo(): string | undefined {
+    return this.appendTo ?? (this.variant === 'comptoir' ? 'body' : undefined);
   }
 
   /* effectiveId / effectivePlaceholder / effectiveAriaLabel /
@@ -288,7 +321,12 @@ export class EfSelectComponent
    *  `_patterns.scss` always finds a hook, regardless of what the
    *  consumer passes via `styleClass`. */
   get effectiveStyleClass(): string {
-    return ['es', this.size === 'small' ? 'es--sm' : null, this.styleClass]
+    return [
+      'es',
+      this.size === 'small' ? 'es--sm' : null,
+      this.variant === 'comptoir' ? 'es--comptoir' : null,
+      this.styleClass,
+    ]
       .filter(Boolean).join(' ');
   }
 
@@ -359,29 +397,6 @@ export class EfSelectComponent
   handlePanelHide(): void {
     this.panelHideEvent.emit();
     this.onTouched();
-  }
-
-  /** Comptoir variant — native `<select>` change handler. The empty
-   *  string from the placeholder option becomes `null`; otherwise we
-   *  resolve the value through `optionValue` if provided. */
-  handleNativeSelectChange(rawValue: string): void {
-    if (rawValue === '' || rawValue == null) {
-      this.handleClear();
-      return;
-    }
-    let resolved: any = rawValue;
-    if (this.optionValue) {
-      // Map the string back to its option's value (which may be a
-      // number, object key, etc. — preserves the original type).
-      const match = this.filteredOptions.find(
-        (opt) => String(opt[this.optionValue!]) === rawValue,
-      );
-      if (match) resolved = match[this.optionValue];
-    }
-    this.value = resolved;
-    this.onChange(resolved);
-    this.onTouched();
-    this.selectionChangeEvent.emit(resolved);
   }
 
   private applyFilters(): void {

@@ -2,33 +2,7 @@
   <ef-label [labelKey]="labelKey()" [labelParams]="labelParams()" [label]="label()" [for]="effectiveId" [required]="required()" />
 }
 <div class="ef-field-control">
-  @if (variant === 'comptoir') {
-    <!-- Comptoir variant — native <select> against the
-         .ef-select-native pattern. No filter / virtualization /
-         multi / templates; use the PrimeNG variant for those. -->
-    <select
-      class="ef-select-native"
-      [id]="effectiveId"
-      [attr.name]="name() || null"
-      [disabled]="isDisabled()"
-      [class.is-invalid]="isInvalid"
-      [attr.aria-label]="effectiveAriaLabel"
-      [attr.aria-required]="required() ? 'true' : null"
-      [attr.aria-invalid]="isInvalid ? 'true' : null"
-      [attr.aria-describedby]="describedBy(showRequired || !!serverErrors)"
-      (change)="handleNativeSelectChange($any($event.target).value)"
-    >
-      <option value="" [selected]="value === null || value === undefined">{{ placeholderText }}</option>
-      @for (opt of filteredOptions; track $index) {
-        <option
-          [value]="optionValue ? opt[optionValue] : opt"
-          [selected]="(optionValue ? opt[optionValue] : opt) === value"
-        >
-          {{ opt[optionLabel] }}
-        </option>
-      }
-    </select>
-  } @else if (multiple) {
+  @if (multiple) {
     <!-- ───── PrimeNG multi-select branch ───── -->
     <p-multiselect
       [inputId]="effectiveId"
@@ -49,14 +23,14 @@
       [optionGroupLabel]="optionGroupLabel"
       [optionGroupChildren]="optionGroupChildren"
       [placeholder]="placeholderText"
-      [filter]="filter"
+      [filter]="effectiveFilter"
       [filterPlaceHolder]="effectiveFilterPlaceholder"
       [autofocusFilter]="autofocusFilter"
       [autofocus]="autofocus"
       [filterBy]="filterBy ?? optionLabel"
       [showClear]="showClear()"
       [disabled]="isDisabled()"
-      [appendTo]="appendTo"
+      [appendTo]="effectiveAppendTo"
       [styleClass]="effectiveStyleClass"
       [pt]="describedByPt"
       [panelStyleClass]="effectivePanelStyleClass"
@@ -152,7 +126,7 @@
       [optionGroupChildren]="optionGroupChildren"
       [placeholder]="placeholderText"
       [size]="size"
-      [filter]="filter"
+      [filter]="effectiveFilter"
       [filterPlaceholder]="effectiveFilterPlaceholder"
       [filterBy]="filterBy ?? optionLabel"
       [autofocusFilter]="autofocusFilter"
@@ -160,7 +134,7 @@
       [showClear]="showClear()"
       [editable]="editable"
       [disabled]="isDisabled()"
-      [appendTo]="appendTo"
+      [appendTo]="effectiveAppendTo"
       [styleClass]="effectiveStyleClass"
       [pt]="describedByPt"
       [panelStyleClass]="effectivePanelStyleClass"

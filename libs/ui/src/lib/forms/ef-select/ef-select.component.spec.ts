@@ -1,8 +1,10 @@
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { FormsModule, NgForm } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { EfSelectComponent } from './ef-select.component';
+import { Select } from 'primeng/select';
+import { EF_SELECT_FILTER_THRESHOLD, EfSelectComponent } from './ef-select.component';
 
 @Component({
   standalone: true,
@@ -238,36 +240,114 @@ describe('EfSelectComponent', () => {
   });
 });
 
-describe('EfSelectComponent placeholder text', () => {
+describe('EfSelectComponent comptoir variant', () => {
   @Component({
     standalone: true,
     imports: [EfSelectComponent],
     template: `<ef-select name="s" variant="comptoir" [placeholder]="placeholder" [options]="options" optionLabel="name" optionValue="id" />`,
   })
-  class NativeHostComponent {
+  class ComptoirHostComponent {
+    @ViewChild(EfSelectComponent) select!: EfSelectComponent;
     placeholder = '';
     options = [{ id: 1, name: 'A' }];
   }
 
-  function render(placeholder: string) {
-    TestBed.configureTestingModule({ imports: [NativeHostComponent, TranslateModule.forRoot()] });
-    const f = TestBed.createComponent(NativeHostComponent);
+  function render(placeholder = '') {
+    TestBed.configureTestingModule({ imports: [ComptoirHostComponent, TranslateModule.forRoot()] });
+    const f = TestBed.createComponent(ComptoirHostComponent);
     f.componentInstance.placeholder = placeholder;
     f.detectChanges();
-    return f.nativeElement.querySelector('select') as HTMLSelectElement;
+    return f;
   }
 
+  const triggerText = (f: ComponentFixture<ComptoirHostComponent>) =>
+    (f.nativeElement.querySelector('.p-select-label')?.textContent ?? '').replace(/\u00a0/g, ' ').trim();
+
+  it('renders the PrimeNG select, never a native <select>', () => {
+    const f = render();
+    expect(f.nativeElement.querySelector('select')).toBeNull();
+    expect(f.debugElement.query(By.directive(Select))).toBeTruthy();
+  });
+
+  it('keeps the comptoir modifier and sends its panel to body', () => {
+    const f = render();
+    const select = f.debugElement.query(By.directive(Select)).componentInstance as Select;
+    expect(f.componentInstance.select.effectiveStyleClass.split(' ')).toEqual(['es', 'es--comptoir']);
+    expect(select.appendTo()).toBe('body');
+  });
+
+  it('hands PrimeNG only the real options, so the unset state has no blank row', () => {
+    const f = render('Aucune');
+    const select = f.debugElement.query(By.directive(Select)).componentInstance as Select;
+    expect(select.options).toEqual([{ id: 1, name: 'A' }]);
+  });
+
   it('shows the placeholder text as is, with no dashes added', () => {
-    const option = render('Aucune').options[0];
-    expect(option.value).toBe('');
-    expect(option.textContent?.trim()).toBe('Aucune');
+    expect(triggerText(render('Aucune'))).toBe('Aucune');
   });
 
   it.each(['', ' ', '—', '— —', '-'])('shows nothing for the unset state when the placeholder is %j', (ph) => {
-    const select = render(ph);
-    expect(select.options[0].value).toBe('');
-    expect(select.options[0].textContent?.trim()).toBe('');
-    expect(select.options[0].selected).toBe(true);
+    const f = render(ph);
+    expect(f.componentInstance.select.placeholderText).toBe('');
+    expect(triggerText(f)).not.toMatch(/[\u2014\u2013-]/);
   });
 });
 
+describe('EfSelectComponent filter threshold', () => {
+  @Component({
+    standalone: true,
+    imports: [EfSelectComponent],
+    template: `
+      @if (bound) {
+        <ef-select name="s" [filter]="filter" [options]="options" optionLabel="name" optionValue="id" />
+      } @else {
+        <ef-select name="s" [options]="options" optionLabel="name" optionValue="id" />
+      }
+    `,
+  })
+  class FilterHostComponent {
+    @ViewChild(EfSelectComponent) select!: EfSelectComponent;
+    bound = false;
+    filter: boolean | undefined = undefined;
+    options: { id: number; name: string }[] = [];
+  }
+
+  const opts = (n: number) => Array.from({ length: n }, (_, i) => ({ id: i, name: `O${i}` }));
+
+  function render(count: number, filter?: boolean) {
+    TestBed.configureTestingModule({ imports: [FilterHostComponent, TranslateModule.forRoot()] });
+    const f = TestBed.createComponent(FilterHostComponent);
+    f.componentInstance.options = opts(count);
+    if (filter !== undefined) {
+      f.componentInstance.bound = true;
+      f.componentInstance.filter = filter;
+    }
+    f.detectChanges();
+    const prime = f.debugElement.query(By.directive(Select)).componentInstance as Select;
+    return { ef: f.componentInstance.select, prime };
+  }
+
+  it(`stays off at ${EF_SELECT_FILTER_THRESHOLD} options when unset`, () => {
+    const { ef, prime } = render(EF_SELECT_FILTER_THRESHOLD);
+    expect(ef.effectiveFilter).toBe(false);
+    expect(prime.filter).toBe(false);
+  });
+
+  it(`turns on past ${EF_SELECT_FILTER_THRESHOLD} options when unset`, () => {
+    const { ef, prime } = render(EF_SELECT_FILTER_THRESHOLD + 1);
+    expect(ef.effectiveFilter).toBe(true);
+    expect(prime.filter).toBe(true);
+  });
+
+  it('respects an explicit false on a long list', () => {
+    expect(render(EF_SELECT_FILTER_THRESHOLD + 1, false).ef.effectiveFilter).toBe(false);
+  });
+
+  it('respects an explicit true on a short list', () => {
+    expect(render(2, true).ef.effectiveFilter).toBe(true);
+  });
+
+  it('treats a bound null as unset', () => {
+    expect(render(EF_SELECT_FILTER_THRESHOLD + 1, null as unknown as boolean).ef.effectiveFilter).toBe(true);
+  });
+});
