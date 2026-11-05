@@ -1,5 +1,7 @@
 <span class="chip" [class]="'chip chip-' + resolvedColor()">
-  @if (!hideDot()) {
+  @if (resolvedIcon(); as ico) {
+    <i class="pi" [ngClass]="ico" aria-hidden="true"></i>
+  } @else if (!hideDot()) {
     <span aria-hidden="true">●</span>
   }
   @if (resolvedLabelKey()) {
