@@ -5275,3 +5275,23 @@ input.ef-input[type='number'] {
   color: var(--text-mute);
   cursor: pointer;
 }
+
+/* -- Touch tier for the ef-select panel --------------------------------
+   The trigger already grows to --hit-touch on a coarse pointer through
+   --hit-field; the rows it opens were still ~36px and the filter 32px,
+   too small for a thumb now that every comptoir select opens this panel
+   instead of the OS list. A virtual-scrolled list is left alone: its rows
+   must match `virtualScrollItemSize`, so a caller that turns it on sets
+   that to the touch height itself. Last in the file so the base rules
+   above do not win. */
+@media (pointer: coarse) {
+  .es__panel:not(:has(.p-virtualscroller)) .p-select-option,
+  .es__panel:not(:has(.p-virtualscroller)) .p-multiselect-option {
+    min-block-size: var(--hit-touch);
+  }
+
+  .es__panel .p-select-filter,
+  .es__panel .p-multiselect-filter {
+    min-block-size: var(--hit-touch);
+  }
+}
