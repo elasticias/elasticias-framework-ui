@@ -7,6 +7,9 @@
       role="tab"
       [class.is-active]="item.value === value"
       [class.is-disabled]="!!item.disabled"
+      [class.is-danger]="item.tone === 'danger'"
+      [attr.id]="item.id || null"
+      [attr.aria-controls]="item.panelId || null"
       [attr.aria-selected]="item.value === value"
       [attr.aria-disabled]="item.disabled ? 'true' : null"
       [disabled]="item.disabled"
@@ -26,6 +29,9 @@
       </span>
       @if (!hideCounts && item.count !== undefined && item.count !== null) {
         <span class="ef-tabs__count">{{ item.count }}</span>
+      }
+      @if (item.noteKey) {
+        <span class="ef-tabs__note">{{ item.noteKey | translate }}</span>
       }
       @if (item.dirty) {
         <span class="ef-tabs__dot" [attr.aria-label]="dirtyLabelKey | translate"></span>
