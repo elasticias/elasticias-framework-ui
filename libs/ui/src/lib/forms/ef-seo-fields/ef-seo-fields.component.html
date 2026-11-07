@@ -1,67 +1,35 @@
 <div class="seo-body">
     <p class="seo-note text-mute">{{ 'ef_seo_fields_fallback_hint' | translate }}</p>
 
-    @for (locale of locales(); track locale.code) {
-        <ef-fieldset variant="plain" [legendKey]="locale.labelKey" [attr.lang]="locale.code">
-            <ef-form-grid>
-                <ef-input-text
-                    class="col-12"
-                    variant="comptoir"
-                    [dir]="locale.dir"
-                    [name]="name(locale.code, 'title')"
-                    [describedByExtra]="counterId(locale.code, 'title')"
-                    labelKey="ef_seo_fields_title_label"
-                    [maxlength]="titleMax()"
-                    [value]="text(locale.code, 'title')"
-                    (valueChangeEvent)="setText(locale.code, 'title', $event)"
-                />
-                <span
-                    class="col-12 seo-counter"
-                    [id]="counterId(locale.code, 'title')"
-                    [attr.data-counter]="locale.code + '-title'"
-                    [class.is-over]="text(locale.code, 'title').length > titleAdvised()"
-                >
-                    <bdi dir="ltr">{{ text(locale.code, 'title').length }} / {{ titleAdvised() }}</bdi>
-                    <span class="seo-counter__sr">
-                        {{ 'ef_seo_fields_counter_hint' | translate: { max: titleAdvised() } }}
-                        @if (text(locale.code, 'title').length > titleAdvised()) {
-                            {{ 'ef_seo_fields_over_hint' | translate: { max: titleAdvised() } }}
-                        }
-                    </span>
-                </span>
+    <ef-localized-input
+        name="seoTitle"
+        labelKey="ef_seo_fields_title_label"
+        [value]="seoTitle()"
+        [cultures]="cultures()"
+        [maxLength]="titleMax()"
+        [advisedLength]="titleAdvised()"
+        counterHintKey="ef_seo_fields_counter_hint"
+        counterOverKey="ef_seo_fields_over_hint"
+        (valueChangeEvent)="seoChange.emit({ seoTitle: $event })"
+    />
 
-                <ef-textarea
-                    class="col-12"
-                    [dir]="locale.dir"
-                    [name]="name(locale.code, 'description')"
-                    [describedByExtra]="counterId(locale.code, 'description')"
-                    labelKey="ef_seo_fields_description_label"
-                    [rows]="3"
-                    [maxlength]="descriptionMax()"
-                    [value]="text(locale.code, 'description')"
-                    (valueChangeEvent)="setText(locale.code, 'description', $event)"
-                />
-                <span
-                    class="col-12 seo-counter"
-                    [id]="counterId(locale.code, 'description')"
-                    [attr.data-counter]="locale.code + '-description'"
-                    [class.is-over]="text(locale.code, 'description').length > descriptionAdvised()"
-                >
-                    <bdi dir="ltr">{{ text(locale.code, 'description').length }} / {{ descriptionAdvised() }}</bdi>
-                    <span class="seo-counter__sr">
-                        {{ 'ef_seo_fields_counter_hint' | translate: { max: descriptionAdvised() } }}
-                        @if (text(locale.code, 'description').length > descriptionAdvised()) {
-                            {{ 'ef_seo_fields_over_hint' | translate: { max: descriptionAdvised() } }}
-                        }
-                    </span>
-                </span>
-            </ef-form-grid>
-        </ef-fieldset>
-    }
+    <ef-localized-input
+        name="seoDescription"
+        mode="textarea"
+        [rows]="3"
+        labelKey="ef_seo_fields_description_label"
+        [value]="seoDescription()"
+        [cultures]="cultures()"
+        [maxLength]="descriptionMax()"
+        [advisedLength]="descriptionAdvised()"
+        counterHintKey="ef_seo_fields_counter_hint"
+        counterOverKey="ef_seo_fields_over_hint"
+        (valueChangeEvent)="seoChange.emit({ seoDescription: $event })"
+    />
 
     <ef-seo-preview
         labelKey="ef_seo_fields_preview"
-        contentLang="fr"
+        [contentLang]="previewCode()"
         [pageTitle]="previewTitle()"
         [url]="previewUrl()"
         [description]="previewDescription()"

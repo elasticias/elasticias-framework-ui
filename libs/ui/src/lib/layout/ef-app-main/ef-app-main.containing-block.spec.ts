@@ -22,7 +22,7 @@ describe('scroll leak containing blocks', () => {
   it('the app main scroller is position: relative', () => {
     expect(position('layout/ef-app-main/ef-app-main.component.scss', '.ef-app-main__content')).toBe('relative');
   });
-  it('ef-seo-fields host contains its sr-only counters', () => {
-    expect(position('forms/ef-seo-fields/ef-seo-fields.component.scss', ':host')).toBe('relative');
+  it('ef-localized-input host contains its sr-only counter text', () => {
+    expect(position('forms/ef-localized-input/ef-localized-input.component.scss', ':host')).toBe('relative');
   });
 });

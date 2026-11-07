@@ -1,109 +1,95 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { EfFieldsetComponent } from '../../layout/ef-fieldset/ef-fieldset.component';
-import { EfFormGridComponent } from '../../layout/ef-form-grid/ef-form-grid.component';
+import { EF_CONTENT_CULTURES, EF_DEFAULT_CONTENT_CULTURES, type EfCulture } from '@elasticias/core';
+import type { LocalizedText } from '@elasticias/types';
 import { EfSeoPreviewComponent } from '../../data/ef-seo-preview/ef-seo-preview.component';
-import { EfInputTextComponent } from '../ef-input-text/ef-input-text.component';
-import { EfTextareaComponent } from '../ef-textarea/ef-textarea.component';
+import { EfLocalizedInputComponent } from '../ef-localized-input/ef-localized-input.component';
 
-/** A language the SEO texts are written in. */
-export interface EfSeoLocale {
-    code: string;
-    labelKey: string;
-    dir: 'auto' | 'rtl' | 'ltr';
-}
-
-/** What the fields write back: French is the scalar, every other language a dictionary entry. */
-export interface EfSeoPatch {
-    seoTitle?: string;
-    seoDescription?: string;
-    seoTitleTranslations?: Record<string, string>;
-    seoDescriptionTranslations?: Record<string, string>;
-}
-
-let nextId = 0;
-
-type Field = 'title' | 'description';
-
-export const EF_SEO_DEFAULT_LOCALES: ReadonlyArray<EfSeoLocale> = [
-    { code: 'fr', labelKey: 'ef_seo_fields_locale_fr', dir: 'auto' },
-    { code: 'ar', labelKey: 'ef_seo_fields_locale_ar', dir: 'rtl' },
-    { code: 'en', labelKey: 'ef_seo_fields_locale_en', dir: 'ltr' },
-];
+/** A language the SEO texts are written in: the same shape as every content culture. */
+export type EfSeoLocale = EfCulture;
 
 /**
- * SEO title and description per language, each with a counter against what a
- * search engine shows (60 / 160), capped at the server's limits (256 / 512),
- * and the shared `ef-seo-preview` of the French result with the entity's own
- * title and description as the fallback the shop uses. Card-less: each screen
- * wraps it in its own `ef-card`.
+ * What the fields write back: the whole object of the field that changed,
+ * blank languages removed. Only the field that changed is present.
+ */
+export interface EfSeoPatch {
+    seoTitle?: LocalizedText;
+    seoDescription?: LocalizedText;
+}
+
+/** The content cultures the SEO fields start from, shared with `ef-localized-input`. */
+export const EF_SEO_DEFAULT_LOCALES: ReadonlyArray<EfSeoLocale> = EF_DEFAULT_CONTENT_CULTURES;
+
+/**
+ * SEO title and description in every content language, each an
+ * `ef-localized-input` with a counter against what a search engine shows
+ * (60 / 160, read out to screen readers), capped at the server's limits
+ * (256 / 512), and the shared `ef-seo-preview` of the default language's
+ * result with the entity's own title and description as the fallback the shop
+ * uses. Card-less: each screen wraps it in its own `ef-card`.
  *
- * The French controls carry the backend names (`seoTitle`, `seoDescription`)
- * so `[efServerErrors]` links their errors; the others (`seoTitleAr`, ...) are
- * dictionary entries whose errors are toasted (ADR-010).
+ * The controls are named `seoTitle` and `seoDescription`, so under
+ * `[efServerErrors]` a `seoTitle.ar` error lands on the Arabic tab and shows
+ * under its field. Languages come from `EF_CONTENT_CULTURES` unless `cultures`
+ * is set.
+ *
+ * i18n keys the app's bundles must define, besides those of
+ * `ef-localized-input`:
+ *
+ * | key | fr | ar | en |
+ * |---|---|---|---|
+ * | `ef_seo_fields_title_label` | Titre SEO | عنوان SEO | SEO title |
+ * | `ef_seo_fields_description_label` | Description SEO | وصف SEO | SEO description |
+ * | `ef_seo_fields_counter_hint` | Au-delà de {{max}} caractères, Google coupe le texte. | بعد {{max}} حرفا، يقتطع Google النص. | Past {{max}} characters, Google cuts the text. |
+ * | `ef_seo_fields_over_hint` | Le texte dépasse {{max}} caractères. | النص يتجاوز {{max}} حرفا. | The text is over {{max}} characters. |
+ * | `ef_seo_fields_preview` | Aperçu dans Google | المعاينة في Google | Google preview |
+ * | `ef_seo_fields_fallback_hint` | Vide : la boutique reprend le titre et la description. | فارغ: يستخدم المتجر العنوان والوصف. | Empty: the shop uses the title and description. |
  *
  * ```html
- * <ef-seo-fields [seoTitle]="p.seoTitle" ... [previewUrl]="url()" (seoChange)="patch($event)" />
+ * <ef-seo-fields [seoTitle]="p.seoTitle" [seoDescription]="p.seoDescription"
+ *     [fallbackTitle]="p.title" [fallbackDescription]="p.description"
+ *     [previewUrl]="url()" (seoChange)="patch($event)" />
  * ```
  */
 @Component({
     selector: 'ef-seo-fields',
     standalone: true,
-    imports: [TranslateModule, EfFieldsetComponent, EfFormGridComponent, EfInputTextComponent, EfTextareaComponent, EfSeoPreviewComponent],
+    imports: [TranslateModule, EfLocalizedInputComponent, EfSeoPreviewComponent],
     templateUrl: './ef-seo-fields.component.html',
     styleUrl: './ef-seo-fields.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EfSeoFieldsComponent {
-    readonly seoTitle = input<string | null | undefined>('');
-    readonly seoDescription = input<string | null | undefined>('');
-    readonly seoTitleTranslations = input<Record<string, string> | null | undefined>({});
-    readonly seoDescriptionTranslations = input<Record<string, string> | null | undefined>({});
+    readonly seoTitle = input<LocalizedText | null | undefined>(null);
+    readonly seoDescription = input<LocalizedText | null | undefined>(null);
     /** The entity's own texts, which the shop uses when SEO is empty. */
-    readonly fallbackTitle = input<string | null | undefined>('');
-    readonly fallbackDescription = input<string | null | undefined>('');
+    readonly fallbackTitle = input<LocalizedText | null | undefined>(null);
+    readonly fallbackDescription = input<LocalizedText | null | undefined>(null);
     /** The page address shown in the preview, computed by the app. */
     readonly previewUrl = input<string>('');
     readonly titleMax = input(256);
     readonly descriptionMax = input(512);
     readonly titleAdvised = input(60);
     readonly descriptionAdvised = input(160);
-    readonly locales = input<ReadonlyArray<EfSeoLocale>>(EF_SEO_DEFAULT_LOCALES);
+    /** Overrides the `EF_CONTENT_CULTURES` list for both fields. */
+    readonly cultures = input<ReadonlyArray<EfSeoLocale> | undefined>(undefined);
 
     readonly seoChange = output<EfSeoPatch>();
 
-    text(locale: string, field: Field): string {
-        if (locale === 'fr') return (field === 'title' ? this.seoTitle() : this.seoDescription()) ?? '';
-        const dict = field === 'title' ? this.seoTitleTranslations() : this.seoDescriptionTranslations();
-        return dict?.[locale] ?? '';
+    private readonly contentCultures = inject(EF_CONTENT_CULTURES);
+
+    /** The language the preview shows: the tenant's default if listed, else the first listed. */
+    protected readonly previewCode = computed(() => {
+        const list = this.cultures() ?? this.contentCultures().cultures;
+        const preferred = this.contentCultures().defaultCulture;
+        return list.some(c => c.code === preferred) ? preferred : (list[0]?.code ?? preferred);
+    });
+
+    protected readonly previewTitle = computed(() => this.shown(this.seoTitle(), this.fallbackTitle()));
+    protected readonly previewDescription = computed(() => this.shown(this.seoDescription(), this.fallbackDescription()));
+
+    private shown(seo: LocalizedText | null | undefined, fallback: LocalizedText | null | undefined): string {
+        const code = this.previewCode();
+        return (seo?.[code]?.trim() || fallback?.[code]?.trim() || '');
     }
-
-    /** Id of a counter, which the field it counts points at with `aria-describedby`. */
-    counterId(locale: string, field: Field): string {
-        return `${this.uid}-${this.name(locale, field)}-counter`;
-    }
-
-    private readonly uid = `ef-seo-fields-${nextId++}`;
-
-    /** French matches the backend property; the others are unique for the label link. */
-    name(locale: string, field: Field): string {
-        const base = field === 'title' ? 'seoTitle' : 'seoDescription';
-        return locale === 'fr' ? base : `${base}${locale.charAt(0).toUpperCase()}${locale.slice(1)}`;
-    }
-
-    setText(locale: string, field: Field, value: string): void {
-        if (locale === 'fr') {
-            this.seoChange.emit(field === 'title' ? { seoTitle: value } : { seoDescription: value });
-            return;
-        }
-        const key = field === 'title' ? 'seoTitleTranslations' : 'seoDescriptionTranslations';
-        const next = { ...((field === 'title' ? this.seoTitleTranslations() : this.seoDescriptionTranslations()) ?? {}) };
-        // A cleared field removes the entry, so the shop falls back instead of showing nothing.
-        if (value) next[locale] = value;
-        else delete next[locale];
-        this.seoChange.emit({ [key]: next });
-    }
-
-    protected readonly previewTitle = computed(() => (this.seoTitle() || this.fallbackTitle() || '').trim());
-    protected readonly previewDescription = computed(() => (this.seoDescription() || this.fallbackDescription() || '').trim());
 }
