@@ -1,0 +1,97 @@
+<div class="eli-head">
+    @if (labelKey()) {
+        <span class="eli-label">
+            <ef-label [labelKey]="labelKey()" [for]="controlId(active()?.code ?? '')" [required]="required()" />
+        </span>
+    }
+    <div class="eli-tabs">
+        <ef-tabs
+            variant="pill"
+            [items]="tabItems()"
+            [value]="active()?.code ?? null"
+            [ariaLabelKey]="labelKey() || undefined"
+            (valueChange)="select($event)"
+        />
+    </div>
+</div>
+
+<div class="eli-panel" role="tabpanel" [id]="panelId" [attr.aria-labelledby]="tabId(active()?.code ?? '')">
+    @for (c of active() ? [active()!] : []; track c.code) {
+        @switch (mode()) {
+            @case ('text') {
+                <ef-input-text
+                    [variant]="variant() === 'default' ? 'primeng' : 'comptoir'"
+                    [inputId]="controlId(c.code)"
+                    [name]="name() + '.' + c.code"
+                    [dir]="c.dir"
+                    [lang]="c.code"
+                    [value]="activeText()"
+                    [maxlength]="maxLength()"
+                    [required]="required() && c.code === defaultCode()"
+                    [disabled]="isDisabled() || activeReadOnly()"
+                    [placeholderKey]="placeholderKey()"
+                    [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
+                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    (valueChangeEvent)="setText(c.code, $event)"
+                />
+            }
+            @case ('textarea') {
+                <ef-textarea
+                    [inputId]="controlId(c.code)"
+                    [name]="name() + '.' + c.code"
+                    [dir]="c.dir"
+                    [lang]="c.code"
+                    [rows]="rows()"
+                    [value]="activeText()"
+                    [maxlength]="maxLength()"
+                    [required]="required() && c.code === defaultCode()"
+                    [disabled]="isDisabled() || activeReadOnly()"
+                    [placeholderKey]="placeholderKey()"
+                    [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
+                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    (valueChangeEvent)="setText(c.code, $event)"
+                />
+            }
+            @case ('html') {
+                <!-- The source stays ltr for every culture: raw HTML in an rtl
+                     textarea reads reversed (ADR-036). The preview takes the
+                     culture's direction. -->
+                <ef-textarea
+                    mono
+                    dir="ltr"
+                    [inputId]="controlId(c.code)"
+                    [name]="name() + '.' + c.code"
+                    [lang]="c.code"
+                    [rows]="rows()"
+                    [value]="activeText()"
+                    [maxlength]="maxLength()"
+                    [required]="required() && c.code === defaultCode()"
+                    [disabled]="isDisabled() || activeReadOnly()"
+                    [placeholderKey]="placeholderKey()"
+                    [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
+                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    (valueChangeEvent)="setText(c.code, $event)"
+                />
+            }
+        }
+    }
+
+    @if (counterLimit(); as limit) {
+        <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeText().length > limit">
+            <bdi dir="ltr">{{ activeText().length }} / {{ limit }}</bdi>
+        </span>
+    }
+
+    @if (mode() === 'html' && activeText().trim()) {
+        @if (active(); as c) {
+            <!-- Angular's default [innerHTML] sanitising strips scripts and handlers. -->
+            <div class="eli-preview" data-preview [attr.dir]="c.dir" [attr.lang]="c.code" [innerHTML]="activeText()"></div>
+        }
+    }
+
+    @if (activeReadOnly()) {
+        <div class="eli-link">
+            <ng-content select="[read-only-link]" />
+        </div>
+    }
+</div>

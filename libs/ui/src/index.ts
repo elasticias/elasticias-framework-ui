@@ -164,6 +164,7 @@ export { EfRadioComponent } from './lib/forms/ef-radio/ef-radio.component';
 export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.component';
 export { EfSeoFieldsComponent, EF_SEO_DEFAULT_LOCALES } from './lib/forms/ef-seo-fields/ef-seo-fields.component';
 export type { EfSeoLocale, EfSeoPatch } from './lib/forms/ef-seo-fields/ef-seo-fields.component';
+export { EfLocalizedInputComponent } from './lib/forms/ef-localized-input/ef-localized-input.component';
 export { EfFileUploadComponent } from './lib/forms/ef-file-upload/ef-file-upload.component';
 export type { EfFileRejection, EfFileRejectReason } from './lib/forms/ef-file-upload/ef-file-upload.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';
