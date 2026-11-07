@@ -16,6 +16,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { merge } from 'rxjs';
 import { Editor, EditorInitEvent } from 'primeng/editor';
 import { AbstractEfFormControl, EfLabelComponent } from '@elasticias/ui';
 import { sanitizeRichHtml } from './sanitize-rich-html';
@@ -149,7 +150,9 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
             const q = this.quill();
             if (q) this.decorateFromInputs(q.root);
         });
-        this.translateService.onLangChange.pipe(takeUntilDestroyed()).subscribe(() => {
+        // Translations can load after the editor is up (a lazy bundle, a slow
+        // fetch), which changes the texts without changing the language.
+        merge(this.translateService.onLangChange, this.translateService.onTranslationChange).pipe(takeUntilDestroyed()).subscribe(() => {
             const q = this.quill();
             if (!q) return;
             this.translateBubble();

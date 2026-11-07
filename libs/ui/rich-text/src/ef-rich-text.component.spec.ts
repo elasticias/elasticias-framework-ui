@@ -192,6 +192,20 @@ describe('EfRichTextComponent', () => {
         expect(host.querySelector<HTMLElement>('.ql-tooltip')!.dataset['efEnter']).toBe('عنوان الرابط:');
     });
 
+    it('re-translates the link bubble when the translations load after the editor', async () => {
+        TestBed.configureTestingModule({ imports: [TranslateModule.forRoot()] });
+        const translate = TestBed.inject(TranslateService);
+        translate.use('fr');
+        const fixture = TestBed.createComponent(EfRichTextComponent);
+        fixture.componentRef.setInput('name', 'description');
+        fixture.componentRef.setInput('labelKey', 'description');
+        await ready(fixture);
+        const tooltip = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.ql-tooltip')!;
+        expect(tooltip.dataset['efEnter']).toBe('ef_rich_text_link_enter');
+        translate.setTranslation('fr', KEYS);
+        expect(tooltip.dataset['efEnter']).toBe('Adresse du lien :');
+    });
+
     it('updates the editing area attributes when its inputs change', async () => {
         const { fixture, quill } = await render({ dir: 'ltr', lang: 'fr' });
         fixture.componentRef.setInput('dir', 'rtl');
