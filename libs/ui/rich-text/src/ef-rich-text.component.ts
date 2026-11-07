@@ -210,7 +210,9 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
     private apply(q: QuillLike, html: string): void {
         if (html === this.lastEmitted) return;
         if (sanitizeRichHtml(html) === sanitizeRichHtml(q.getSemanticHTML())) return;
-        q.setContents(q.clipboard.convert({ html }), 'silent');
+        // Our own allowlist first, so the guarantee does not rest on Quill's
+        // clipboard and link sanitiser alone.
+        q.setContents(q.clipboard.convert({ html: sanitizeRichHtml(html) }), 'silent');
     }
 
     /** ARIA, direction and language on the editing area; translated link bubble. */

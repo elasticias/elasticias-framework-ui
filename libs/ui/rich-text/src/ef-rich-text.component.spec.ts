@@ -103,6 +103,17 @@ describe('EfRichTextComponent', () => {
         expect(spy).not.toHaveBeenCalled();
     });
 
+    it('passes a stored value through its own allowlist before Quill sees it', async () => {
+        const { quill } = await render({
+            value: '<p onclick="x()">a<a href="javascript:alert(1)">l</a><img src="x" onerror="x()"></p>',
+        });
+        const html = quill.root.innerHTML;
+        expect(html).not.toMatch(/\son\w+=/);
+        expect(html).not.toContain('javascript:');
+        expect(quill.root.querySelector('img')).toBeNull();
+        expect(quill.root.textContent).toBe('al');
+    });
+
     it('replaces the content when a different value arrives', async () => {
         const { fixture, quill } = await render({ value: '<p>Eau</p>' });
         fixture.componentRef.setInput('value', '<p>Parfum</p>');
