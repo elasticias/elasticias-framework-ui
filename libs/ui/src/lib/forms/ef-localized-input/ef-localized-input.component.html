@@ -96,6 +96,25 @@
         }
     }
 
+    @if (fieldErrors(); as messages) {
+        <div class="eli-errors" data-field-errors role="alert" aria-live="polite">
+            @for (message of messages; track message) {
+                <small class="text-danger block">{{ message | translate }}</small>
+            }
+        </div>
+    }
+
+    @if (errorsElsewhere(); as others) {
+        @if (others.length) {
+            <small class="eli-elsewhere text-danger block" data-errors-elsewhere role="status">
+                {{ 'ef_localized_input_errors_in_other' | translate }}
+                @for (c of others; track c.code; let last = $last) {
+                    {{ c.labelKey | translate }}{{ last ? '' : ',' }}
+                }
+            </small>
+        }
+    }
+
     @if (activeReadOnly()) {
         <div class="eli-link">
             <ng-content select="[read-only-link]" />

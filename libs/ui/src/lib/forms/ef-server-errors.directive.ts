@@ -40,6 +40,24 @@ export class EfServerErrorsDirective {
     if (!name || !map) return null;
     return map[name] ?? null;
   }
+
+  /**
+   * Messages for every key that starts with `prefix`, keyed by what follows
+   * it: `errorsWithPrefix('title.')` turns `title.ar` into `ar`. For a control
+   * that owns several backend keys, such as a text per language. Empty lists
+   * are left out.
+   */
+  errorsWithPrefix(prefix: string): { [suffix: string]: string[] } {
+    const out: { [suffix: string]: string[] } = {};
+    const map = this.errors();
+    if (!prefix || !map) return out;
+    for (const [key, messages] of Object.entries(map)) {
+      if (key.length > prefix.length && key.startsWith(prefix) && messages?.length) {
+        out[key.slice(prefix.length)] = messages;
+      }
+    }
+    return out;
+  }
 }
 
 /**

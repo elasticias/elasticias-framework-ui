@@ -28,6 +28,7 @@ import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfTabItem, EfTabsComponent } from '../../layout/ef-tabs/ef-tabs.component';
 import { EfInputTextComponent } from '../ef-input-text/ef-input-text.component';
 import { EfReadOnlyDirective } from '../ef-read-only.directive';
+import { EfServerErrorsDirective, resolveExternalErrors } from '../ef-server-errors.directive';
 import { EfTextareaComponent } from '../ef-textarea/ef-textarea.component';
 import { EF_RICH_TEXT, plainTextLength } from '../ef-rich-text.token';
 
@@ -77,6 +78,12 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   `[(ngModel)]`) as well as `[value]` + `(valueChangeEvent)`. With
  *   `required`, the form control reports `required` while the default culture
  *   is empty.
+ * - **Server errors** (ADR-010) come from the enclosing `[efServerErrors]`
+ *   scope. `<name>.<culture>` errors tint that culture's tab, show under its
+ *   field while it is active (the field links itself by name) and, from another
+ *   tab, show as a hint naming the languages in error; a new set of errors
+ *   moves to the first of them. `<name>` errors, or an explicit `[errors]`,
+ *   show under the field on every tab. Keys: `ef_localized_input_errors_in_other`.
  * - **Names.** Each culture's field is named `<name>.<culture>` (`title.ar`),
  *   the key the backend reports a per-culture error under.
  *
@@ -89,6 +96,7 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * | `ef_localized_input_culture_en` | Anglais | الإنجليزية | English |
  * | `ef_localized_input_missing` | manquant | غير مكتوب | missing |
  * | `ef_localized_input_cultures` | Langues du texte | لغات النص | Text languages |
+ * | `ef_localized_input_errors_in_other` | Erreur dans : | خطأ في: | Error in: |
  * | `ef_localized_input_read_only_hint` | Ce texte se modifie ailleurs. | يُعدَّل هذا النص في مكان آخر. | This text is edited elsewhere. |
  *
  * ```html
@@ -147,6 +155,12 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
      *  variant); the textarea, html and rich modes have one style. */
     readonly variant = input<'comptoir' | 'default'>('comptoir');
     readonly disabled = input(false, { transform: booleanAttribute });
+    /**
+     * Messages for the whole field. Without it they come from the enclosing
+     * `[efServerErrors]` scope under `name`; an explicit list wins. The
+     * per-language messages (`<name>.<culture>`) always come from the scope.
+     */
+    readonly errors = input<string[] | null | undefined>(undefined);
     /** Overrides the `EF_CONTENT_CULTURES` list for this field. */
     readonly cultures = input<ReadonlyArray<EfCulture> | undefined>(undefined);
 
@@ -156,6 +170,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     private readonly contentCultures = inject(EF_CONTENT_CULTURES);
     private readonly readOnlyScope = inject(EfReadOnlyDirective, { optional: true });
     readonly ngControl = inject(NgControl, { self: true, optional: true });
+    private readonly serverErrorsScope = inject(EfServerErrorsDirective, { optional: true });
     private readonly richLoader = inject(EF_RICH_TEXT, { optional: true });
     private readonly richType = signal<Type<unknown> | null>(null);
     /** The editor's chunk failed to load (offline, a stale deploy). */
@@ -220,6 +235,29 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /** The active culture's code: unlike active(), equal when an equal culture list arrives. */
     private readonly activeCode = computed(() => this.active()?.code);
 
+    /** Server messages for the whole field (`title`). */
+    protected readonly fieldErrors = computed(() => {
+        const messages = resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name());
+        return messages?.length ? messages : null;
+    });
+
+    /** Server messages per language (`title.ar` gives `ar`), only for listed cultures. */
+    private readonly cultureErrors = computed(() => {
+        const all = this.serverErrorsScope?.errorsWithPrefix(`${this.name()}.`) ?? {};
+        const out: Record<string, string[]> = {};
+        for (const c of this.list()) if (all[c.code]) out[c.code] = all[c.code];
+        return out;
+    });
+
+    /** Cultures with a server error, in tab order. */
+    private readonly culturesInError = computed(() => this.list().filter(c => this.cultureErrors()[c.code]));
+
+    /** Cultures in error other than the one on show, for the hint under the tabs. */
+    protected readonly errorsElsewhere = computed(() => this.culturesInError().filter(c => c.code !== this.active()?.code));
+
+    /** Changes only when the set of errors does, so a tab the user picked stays picked. */
+    private readonly errorSignature = computed(() => JSON.stringify(this.cultureErrors()));
+
     protected readonly tabItems = computed<EfTabItem[]>(() => {
         const text = this.cleaned();
         const base = this.baseline();
@@ -229,7 +267,11 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
                 value: c.code,
                 labelKey: c.labelKey,
                 noteKey: missing ? 'ef_localized_input_missing' : undefined,
-                tone: missing && this.required() && c.code === this.defaultCode() && this.showErrors() ? 'danger' : undefined,
+                tone:
+                    this.cultureErrors()[c.code] ||
+                    (missing && this.required() && c.code === this.defaultCode() && this.showErrors())
+                        ? 'danger'
+                        : undefined,
                 dirty: (text[c.code] ?? '') !== (base[c.code] ?? ''),
                 id: this.tabId(c.code),
                 panelId: this.panelId,
@@ -278,6 +320,14 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
             this.required();
             this.defaultCode();
             untracked(() => this.ngControl?.control?.updateValueAndValidity({ emitEvent: false }));
+        });
+        // A new set of server errors brings the first language in error into view.
+        effect(() => {
+            this.errorSignature();
+            untracked(() => {
+                const first = this.culturesInError()[0];
+                if (first) this.selected.set(first.code);
+            });
         });
         effect(() => {
             if (this.mode() !== 'rich') return;
