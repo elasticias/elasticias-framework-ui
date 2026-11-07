@@ -169,6 +169,16 @@ describe('EfLocalizedInputComponent', () => {
         expect(emitted.at(-1)).toEqual({ fr: 'Eau', en: 'Fresh water' });
     });
 
+    it('keeps a culture that is not listed unchanged in every emitted object', () => {
+        const { select, type, emitted } = render({ value: { fr: 'Eau', de: 'Wasser' } });
+        select('ar');
+        type('ماء');
+        expect(emitted.at(-1)).toEqual({ fr: 'Eau', de: 'Wasser', ar: 'ماء' });
+        select('fr');
+        type('');
+        expect(emitted.at(-1)).toEqual({ de: 'Wasser', ar: 'ماء' });
+    });
+
     it('keeps a typed trailing space when the parent echoes the cleaned value back', () => {
         const { type, field, fixture, detect, emitted } = render({ value: { fr: '' } });
         type('Eau ');

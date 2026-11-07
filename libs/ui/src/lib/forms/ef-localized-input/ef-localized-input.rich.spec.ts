@@ -83,6 +83,15 @@ describe('EfLocalizedInputComponent rich mode', () => {
         expect(emitted.at(-1)).toEqual({ en: '<p>Water</p>' });
     });
 
+    it('keeps a culture that is not listed unchanged in every emitted object', async () => {
+        const { fixture, emitted } = await render({ value: { fr: '<p>Eau</p>', de: '<p>Wasser</p>' } });
+        const quill = await quillOf(fixture);
+        quill.insertText(3, ' douce', 'user');
+        expect(emitted.at(-1)).toEqual({ fr: '<p>Eau douce</p>', de: '<p>Wasser</p>' });
+        quill.deleteText(0, quill.getLength(), 'user');
+        expect(emitted.at(-1)).toEqual({ de: '<p>Wasser</p>' });
+    });
+
     it('keeps the same editor when the culture list is replaced by an equal one', async () => {
         const list = () => [
             { code: 'fr', labelKey: 'ef_localized_input_culture_fr', dir: 'auto' as const },
