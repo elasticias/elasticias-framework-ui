@@ -145,4 +145,21 @@ describe('EfLocalizedInputComponent server errors', () => {
         expect(messages()).toEqual([]);
         expect(host.querySelector('[data-field-errors]')).toBeNull();
     });
+
+    it('shows an error for a culture that is not in the list as a whole-field message', () => {
+        const { host, tab, messages, setErrors } = render();
+        setErrors({ 'title.xx': ['Langue non prise en charge'] });
+        expect(host.querySelector('[data-field-errors]')?.textContent).toContain('Langue non prise en charge');
+        expect(tab('fr').getAttribute('aria-selected')).toBe('true');
+        tab('ar').click();
+        expect(messages()).toEqual(['Langue non prise en charge']);
+    });
+
+    it('translates the message under the culture field like the whole-field ones', () => {
+        const { fixture, messages, setErrors } = render();
+        TestBed.inject(TranslateService).setTranslation('fr', { ...KEYS, localized_text_too_long: 'Texte trop long' });
+        fixture.detectChanges();
+        setErrors({ 'title.ar': ['localized_text_too_long'] });
+        expect(messages()).toEqual(['Texte trop long']);
+    });
 });

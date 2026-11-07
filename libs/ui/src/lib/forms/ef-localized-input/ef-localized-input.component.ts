@@ -21,7 +21,9 @@ import {
     ViewContainerRef,
 } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, FormGroupDirective, NG_VALIDATORS, NgControl, NgForm, ValidationErrors } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { merge } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cleanLocalizedText, EF_CONTENT_CULTURES, type EfCulture } from '@elasticias/core';
 import type { LocalizedText } from '@elasticias/types';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
@@ -83,7 +85,8 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   field while it is active (the field links itself by name) and, from another
  *   tab, show as a hint naming the languages in error; a new set of errors
  *   moves to the first of them. `<name>` errors, or an explicit `[errors]`,
- *   show under the field on every tab. Keys: `ef_localized_input_errors_in_other`.
+ *   show under the field on every tab, as do errors for a language the field
+ *   does not list (`title.xx`). Messages are translated as keys. Keys: `ef_localized_input_errors_in_other`.
  * - **Names.** Each culture's field is named `<name>.<culture>` (`title.ar`),
  *   the key the backend reports a per-culture error under.
  *
@@ -183,6 +186,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     );
     private readonly parentForm = inject(FormGroupDirective, { optional: true }) ?? inject(NgForm, { optional: true });
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+    private readonly translateService = inject(TranslateService);
 
     /** The user typed in, or left, the field. */
     private readonly interacted = signal(false);
@@ -237,16 +241,35 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     /** Server messages for the whole field (`title`). */
     protected readonly fieldErrors = computed(() => {
-        const messages = resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name());
-        return messages?.length ? messages : null;
+        const messages = [...(resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()) ?? []), ...this.unlistedErrors()];
+        return messages.length ? messages : null;
     });
+
+    /** Every `<name>.<culture>` message the scope holds. */
+    private readonly allCultureErrors = computed(() => this.serverErrorsScope?.errorsWithPrefix(`${this.name()}.`) ?? {});
 
     /** Server messages per language (`title.ar` gives `ar`), only for listed cultures. */
     private readonly cultureErrors = computed(() => {
-        const all = this.serverErrorsScope?.errorsWithPrefix(`${this.name()}.`) ?? {};
+        const all = this.allCultureErrors();
         const out: Record<string, string[]> = {};
         for (const c of this.list()) if (all[c.code]) out[c.code] = all[c.code];
         return out;
+    });
+
+    /** Messages for a language this field does not list (`title.xx`): shown with the whole field, never dropped. */
+    private readonly unlistedErrors = computed(() => {
+        const listed = new Set(this.list().map(c => c.code));
+        return Object.entries(this.allCultureErrors()).flatMap(([code, messages]) => (listed.has(code) ? [] : messages));
+    });
+
+    /** Bumps when texts change, so translated messages follow the language. */
+    private readonly textsVersion = signal(0);
+
+    /** The active language's messages, translated once here for the field below. */
+    protected readonly activeErrors = computed<string[] | null>(() => {
+        this.textsVersion();
+        const messages = this.cultureErrors()[this.active()?.code ?? ''];
+        return messages?.length ? messages.map(m => this.translateService.instant(m)) : null;
     });
 
     /** Cultures with a server error, in tab order. */
@@ -314,6 +337,9 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     constructor() {
         if (this.ngControl) this.ngControl.valueAccessor = this;
+        merge(this.translateService.onLangChange, this.translateService.onTranslationChange)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => this.textsVersion.update(v => v + 1));
         // The validator reads required and the default culture, which can
         // change without the value changing (tenant cultures arrive late).
         effect(() => {
@@ -372,6 +398,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
                 inputBinding('rows', () => this.rows()),
                 inputBinding('labelledBy', () => (this.labelKey() ? this.labelId : null)),
                 inputBinding('required', () => this.required() && code === this.defaultCode()),
+                inputBinding('errors', () => this.activeErrors()),
                 inputBinding('disabled', () => this.isDisabled()),
                 inputBinding('readonly', readOnly),
                 inputBinding('placeholderKey', () => this.placeholderKey()),

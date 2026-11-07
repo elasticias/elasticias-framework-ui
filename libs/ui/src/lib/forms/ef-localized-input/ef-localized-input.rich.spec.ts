@@ -1,9 +1,11 @@
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Editor } from 'primeng/editor';
 import type { LocalizedText } from '@elasticias/types';
 import { provideEfRichText } from '@elasticias/ui/rich-text';
+import { EfServerErrorsDirective } from '../ef-server-errors.directive';
 import { EF_RICH_TEXT } from '../ef-rich-text.token';
 import { EfLocalizedInputComponent } from './ef-localized-input.component';
 
@@ -127,5 +129,30 @@ describe('EfLocalizedInputComponent rich mode', () => {
         });
         expect(error).toHaveBeenCalledWith(expect.stringContaining('could not load'), expect.any(Error));
         error.mockRestore();
+    });
+
+    it('shows a description.ar server error under the ar editor, inside [efServerErrors]', async () => {
+        @Component({
+            standalone: true,
+            imports: [EfLocalizedInputComponent, EfServerErrorsDirective],
+            template: `<div [efServerErrors]="map()"><ef-localized-input name="description" labelKey="description" mode="rich" [value]="{ fr: '<p>Eau</p>', ar: '<p>ماء</p>' }" /></div>`,
+        })
+        class Host { map = signal<{ [k: string]: string[] } | null>(null); }
+        setup();
+        const fixture = TestBed.createComponent(Host);
+        fixture.detectChanges();
+        await quillOf(fixture);
+        fixture.componentInstance.map.set({ 'description.ar': ['Trop long'] });
+        fixture.detectChanges();
+        const host = fixture.nativeElement as HTMLElement;
+        // The first culture in error is brought into view, and its editor is recreated.
+        await vi.waitFor(() => {
+            fixture.detectChanges();
+            expect(host.querySelector('[role="tab"][id$="-tab-ar"]')!.getAttribute('aria-selected')).toBe('true');
+            const q = fixture.debugElement.query(By.directive(Editor))?.componentInstance as (Editor & { quill?: Quill }) | undefined;
+            expect(q?.quill?.root.textContent).toBe('ماء');
+        });
+        const messages = Array.from(host.querySelectorAll('ef-rich-text small.text-danger')).map(e => e.textContent!.trim());
+        expect(messages).toEqual(['Trop long']);
     });
 });
