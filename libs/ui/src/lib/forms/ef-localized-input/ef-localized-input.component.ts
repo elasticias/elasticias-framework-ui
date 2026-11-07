@@ -4,6 +4,7 @@ import {
     Component,
     computed,
     DoCheck,
+    effect,
     ElementRef,
     inject,
     Injector,
@@ -11,6 +12,7 @@ import {
     linkedSignal,
     output,
     signal,
+    untracked,
 } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, FormGroupDirective, NG_VALIDATORS, NgControl, NgForm, ValidationErrors } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -223,6 +225,13 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     constructor() {
         if (this.ngControl) this.ngControl.valueAccessor = this;
+        // The validator reads required and the default culture, which can
+        // change without the value changing (tenant cultures arrive late).
+        effect(() => {
+            this.required();
+            this.defaultCode();
+            untracked(() => this.ngControl?.control?.updateValueAndValidity({ emitEvent: false }));
+        });
     }
 
     protected tabId(code: string): string {

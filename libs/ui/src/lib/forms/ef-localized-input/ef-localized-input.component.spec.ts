@@ -337,6 +337,24 @@ describe('EfLocalizedInputComponent', () => {
         expect(ctrl.valid).toBe(true);
     });
 
+    it('revalidates the form control when the default culture changes', () => {
+        const AR = { code: 'ar', labelKey: 'ef_localized_input_culture_ar', dir: 'rtl' as const };
+        const FR = { code: 'fr', labelKey: 'ef_localized_input_culture_fr', dir: 'auto' as const };
+        @Component({
+            standalone: true,
+            imports: [EfLocalizedInputComponent, ReactiveFormsModule],
+            template: `<ef-localized-input name="title" required [cultures]="list()" [formControl]="ctrl" />`,
+        })
+        class Host { list = signal([AR]); ctrl = new FormControl<LocalizedText>({ ar: 'ماء' }, { nonNullable: true }); }
+        setup();
+        const fixture = TestBed.createComponent(Host);
+        fixture.detectChanges();
+        expect(fixture.componentInstance.ctrl.valid).toBe(true);
+        fixture.componentInstance.list.set([FR, AR]);
+        fixture.detectChanges();
+        expect(fixture.componentInstance.ctrl.hasError('required')).toBe(true);
+    });
+
     it('does not validate a field that is not required', () => {
         @Component({
             standalone: true,
