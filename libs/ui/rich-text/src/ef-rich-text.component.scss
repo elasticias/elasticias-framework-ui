@@ -11,6 +11,13 @@ ef-rich-text {
   min-width: 0;
 }
 
+/* A static dir on the element also sets the host attribute, which would
+   flip the label and the toolbar. They keep the page's direction; the
+   editing area carries the text's own dir. */
+ef-rich-text[dir] {
+  direction: inherit;
+}
+
 ef-rich-text .ef-rich-text__label {
   display: block;
 }

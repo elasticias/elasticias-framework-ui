@@ -55,6 +55,12 @@ describe('ef-rich-text styles', () => {
         expect(value('ef-rich-text .ql-editor', 'text-align')).toBe('start');
     });
 
+    it('keeps the page direction on the host when an app sets dir on it', () => {
+        // A static dir="rtl" also lands on the host and would flip the label
+        // and the toolbar; only the editing area follows the text's dir.
+        expect(value('ef-rich-text[dir]', 'direction')).toBe('inherit');
+    });
+
     it('places list markers with logical properties, so they follow dir', () => {
         expect(value('ef-rich-text .ql-editor li[data-list]', 'padding-inline-start')).toBe('1.5em');
         expect(value('ef-rich-text .ql-editor li[data-list] > .ql-ui::before', 'margin-inline-start')).toBe('-1.5em');
