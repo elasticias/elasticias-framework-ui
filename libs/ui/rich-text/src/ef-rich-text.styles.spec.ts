@@ -50,6 +50,11 @@ describe('ef-rich-text styles', () => {
         expect(value('ef-rich-text .ql-editor li[data-list=bullet]', 'counter-increment')).toBe('none');
     });
 
+    it('aligns the text to its start, so Arabic sits on the right', () => {
+        // PrimeNG and Quill set a physical text-align: left on .ql-editor.
+        expect(value('ef-rich-text .ql-editor', 'text-align')).toBe('start');
+    });
+
     it('places list markers with logical properties, so they follow dir', () => {
         expect(value('ef-rich-text .ql-editor li[data-list]', 'padding-inline-start')).toBe('1.5em');
         expect(value('ef-rich-text .ql-editor li[data-list] > .ql-ui::before', 'margin-inline-start')).toBe('-1.5em');

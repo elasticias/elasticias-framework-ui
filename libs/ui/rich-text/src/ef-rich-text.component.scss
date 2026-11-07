@@ -110,6 +110,8 @@ ef-rich-text .ql-container.ql-snow {
 ef-rich-text .ql-editor {
   min-height: calc(var(--ef-rich-text-rows, 4) * 1.55em + 24px);
   line-height: 1.55;
+  /* PrimeNG and Quill set a physical left, which kept Arabic flush left. */
+  text-align: start;
 }
 
 ef-rich-text .ql-editor.ql-blank::before {
