@@ -13,6 +13,7 @@ import {
     signal,
     untracked,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { Editor, EditorInitEvent } from 'primeng/editor';
@@ -142,6 +143,18 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
             const q = this.quill();
             if (q) untracked(() => this.apply(q, html));
         });
+        // Attributes that follow signals are written when those change, not
+        // on every check of the parent.
+        effect(() => {
+            const q = this.quill();
+            if (q) this.decorateFromInputs(q.root);
+        });
+        this.translateService.onLangChange.pipe(takeUntilDestroyed()).subscribe(() => {
+            const q = this.quill();
+            if (!q) return;
+            this.translateBubble();
+            this.decorateFromInputs(q.root);
+        });
     }
 
     get isInvalid(): boolean {
@@ -166,7 +179,8 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
 
     protected onInit(event: EditorInitEvent): void {
         const q = event.editor as QuillLike;
-        this.decorate(q);
+        this.decorateFromForm(q.root);
+        this.translateBubble();
         this.quill.set(q);
     }
 
@@ -186,8 +200,10 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
     }
 
     ngDoCheck(): void {
+        // The form control's state is not a signal, so it is read per check;
+        // these are two attributes, written only when they change.
         const q = this.quill();
-        if (q) this.decorate(q);
+        if (q) this.decorateFromForm(q.root);
     }
 
     writeValue(v: string | null): void {
@@ -215,21 +231,15 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
         q.setContents(q.clipboard.convert({ html: sanitizeRichHtml(html) }), 'silent');
     }
 
-    /** ARIA, direction and language on the editing area; translated link bubble. */
-    private decorate(q: QuillLike): void {
-        const root = q.root;
-        const set = (name: string, value: string | null) => {
-            if (value === null) root.removeAttribute(name);
-            else if (root.getAttribute(name) !== value) root.setAttribute(name, value);
-        };
+    /** Role, name, state, direction and language: everything that follows signals. */
+    private decorateFromInputs(root: HTMLElement): void {
+        const set = setter(root);
         set('role', 'textbox');
         set('aria-multiline', 'true');
         set('id', this.effectiveId);
         set('aria-labelledby', this.labelKey() || this.label() ? this.labelId : this.labelledBy());
         set('aria-label', this.effectiveAriaLabel);
-        set('aria-describedby', this.describedBy(this.showRequired || !!this.serverErrors));
         set('aria-required', this.required() ? 'true' : null);
-        set('aria-invalid', this.isInvalid ? 'true' : null);
         // A read-only editor stays focusable, so its hint is announced and its
         // text can be selected; a disabled one leaves the tab order.
         const readOnlyOnly = this.readonly() && !this.isDisabled();
@@ -238,20 +248,37 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
         set('tabindex', readOnlyOnly ? '0' : null);
         set('dir', this.dir());
         set('lang', this.lang());
-
-        const t = (key: string) => this.translateService.instant(key);
-        const tooltip = this.host.nativeElement.querySelector<HTMLElement>('.ql-tooltip');
-        if (tooltip) {
-            tooltip.dataset['efEnter'] = t('ef_rich_text_link_enter');
-            tooltip.dataset['efVisit'] = t('ef_rich_text_link_visit');
-            const action = tooltip.querySelector<HTMLElement>('a.ql-action');
-            if (action) {
-                action.dataset['efEdit'] = t('ef_rich_text_link_edit');
-                action.dataset['efSave'] = t('ef_rich_text_link_save');
-            }
-            const remove = tooltip.querySelector<HTMLElement>('a.ql-remove');
-            if (remove) remove.dataset['efRemove'] = t('ef_rich_text_link_remove');
-            tooltip.querySelector('input')?.setAttribute('data-link', 'https://');
-        }
     }
+
+    /** Validity and what describes the field, which follow the form control. */
+    private decorateFromForm(root: HTMLElement): void {
+        const set = setter(root);
+        set('aria-describedby', this.describedBy(this.showRequired || !!this.serverErrors));
+        set('aria-invalid', this.isInvalid ? 'true' : null);
+    }
+
+    /** Quill's link bubble texts are hardcoded English in its CSS; ours come from attributes. */
+    private translateBubble(): void {
+        const tooltip = this.host.nativeElement.querySelector<HTMLElement>('.ql-tooltip');
+        if (!tooltip) return;
+        const t = (key: string) => this.translateService.instant(key);
+        tooltip.dataset['efEnter'] = t('ef_rich_text_link_enter');
+        tooltip.dataset['efVisit'] = t('ef_rich_text_link_visit');
+        const action = tooltip.querySelector<HTMLElement>('a.ql-action');
+        if (action) {
+            action.dataset['efEdit'] = t('ef_rich_text_link_edit');
+            action.dataset['efSave'] = t('ef_rich_text_link_save');
+        }
+        const remove = tooltip.querySelector<HTMLElement>('a.ql-remove');
+        if (remove) remove.dataset['efRemove'] = t('ef_rich_text_link_remove');
+        tooltip.querySelector('input')?.setAttribute('data-link', 'https://');
+    }
+}
+
+/** Writes an attribute only when it changes; null removes it. */
+function setter(el: HTMLElement) {
+    return (name: string, value: string | null) => {
+        if (value === null) el.removeAttribute(name);
+        else if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+    };
 }

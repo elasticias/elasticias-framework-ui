@@ -168,6 +168,39 @@ describe('EfRichTextComponent', () => {
         expect(tooltip.querySelector<HTMLElement>('a.ql-action')!.dataset['efSave']).toBe('Enregistrer');
     });
 
+    it('translates the link bubble once, and again only when the language changes', async () => {
+        // In a host, so the parent's checks run the editor's ngDoCheck as in an app.
+        @Component({
+            standalone: true,
+            imports: [EfRichTextComponent],
+            template: `<ef-rich-text name="description" [value]="v()" />`,
+        })
+        class Host { v = signal('<p>Eau</p>'); }
+        setup();
+        const fixture = TestBed.createComponent(Host);
+        await ready(fixture);
+        const host = fixture.nativeElement as HTMLElement;
+        const translate = TestBed.inject(TranslateService);
+        const spy = vi.spyOn(translate, 'instant');
+        fixture.componentInstance.v.set('<p>Eau douce</p>');
+        fixture.detectChanges();
+        fixture.detectChanges();
+        expect(spy.mock.calls.filter(c => String(c[0]).startsWith('ef_rich_text_link'))).toEqual([]);
+        translate.setTranslation('ar', { ef_rich_text_link_enter: 'عنوان الرابط:' });
+        translate.use('ar');
+        fixture.detectChanges();
+        expect(host.querySelector<HTMLElement>('.ql-tooltip')!.dataset['efEnter']).toBe('عنوان الرابط:');
+    });
+
+    it('updates the editing area attributes when its inputs change', async () => {
+        const { fixture, quill } = await render({ dir: 'ltr', lang: 'fr' });
+        fixture.componentRef.setInput('dir', 'rtl');
+        fixture.componentRef.setInput('lang', 'ar');
+        fixture.detectChanges();
+        expect(quill.root.getAttribute('dir')).toBe('rtl');
+        expect(quill.root.getAttribute('lang')).toBe('ar');
+    });
+
     it('stops editing under efReadOnly, toolbar included', async () => {
         @Component({
             standalone: true,
