@@ -1,3 +1,5 @@
+@use 'sass:string';
+
 /* ef-rich-text. Unencapsulated (Quill renders its own DOM), so every
    selector starts with ef-rich-text. Colours are Comptoir tokens, which flip
    with the theme; Quill's snow theme hardcodes #444 icons and #ccc borders.
@@ -117,6 +119,65 @@ ef-rich-text .ql-editor.ql-blank::before {
 
 ef-rich-text .ql-snow .ql-editor a {
   color: inherit;
+}
+
+/* Lists. Quill 2 renders every list as <ol><li data-list="bullet|ordered">
+   with a .ql-ui marker span, but PrimeNG's editor style is written for
+   Quill 1 and numbers every ol li, so a bulleted list showed numbers. Its
+   markers are switched off and Quill 2's are drawn here, with logical
+   properties so they sit on the right in Arabic. The bullet is written
+   through string.unquote so Sass keeps the escape and the compiled CSS
+   stays ASCII (a literal bullet makes Sass emit @charset). */
+ef-rich-text .ql-editor {
+  counter-reset: list-0;
+}
+
+ef-rich-text .ql-editor p {
+  counter-set: list-0;
+}
+
+ef-rich-text .ql-editor ol {
+  margin: 0;
+  padding-inline-start: 0;
+}
+
+ef-rich-text .ql-editor li[data-list] {
+  position: relative;
+  list-style-type: none;
+  padding-inline-start: 1.5em;
+}
+
+ef-rich-text .ql-editor li[data-list]::before {
+  content: none;
+}
+
+ef-rich-text .ql-editor li[data-list] > .ql-ui {
+  position: absolute;
+}
+
+ef-rich-text .ql-editor li[data-list] > .ql-ui::before {
+  display: inline-block;
+  width: 1.2em;
+  margin-inline-start: -1.5em;
+  margin-inline-end: 0.3em;
+  text-align: end;
+  white-space: nowrap;
+}
+
+ef-rich-text .ql-editor li[data-list=bullet] {
+  counter-increment: none;
+}
+
+ef-rich-text .ql-editor li[data-list=bullet] > .ql-ui::before {
+  content: string.unquote('"\\2022"');
+}
+
+ef-rich-text .ql-editor li[data-list=ordered] {
+  counter-increment: list-0;
+}
+
+ef-rich-text .ql-editor li[data-list=ordered] > .ql-ui::before {
+  content: counter(list-0, decimal) '. ';
 }
 
 /* Link bubble: themed, and its texts come from translated data attributes

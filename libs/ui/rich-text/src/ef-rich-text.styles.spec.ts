@@ -40,6 +40,30 @@ describe('ef-rich-text styles', () => {
         expect(value('ef-rich-text .ql-snow .ql-tooltip.ql-editing a.ql-action::after', 'content')).toBe('attr(data-ef-save)');
     });
 
+    it('draws Quill 2 list markers: a bullet for a bulleted item, a number for an ordered one', () => {
+        // Quill 2 renders every list as <ol><li data-list>, while PrimeNG's
+        // editor style numbers every ol li (Quill 1 markup).
+        expect(value('ef-rich-text .ql-editor li[data-list]::before', 'content')).toBe('none');
+        expect(value('ef-rich-text .ql-editor li[data-list=bullet] > .ql-ui::before', 'content')).toBe('"\\2022"');
+        expect(value('ef-rich-text .ql-editor li[data-list=ordered] > .ql-ui::before', 'content')).toBe("counter(list-0, decimal) \". \"");
+        expect(value('ef-rich-text .ql-editor li[data-list=ordered]', 'counter-increment')).toBe('list-0');
+        expect(value('ef-rich-text .ql-editor li[data-list=bullet]', 'counter-increment')).toBe('none');
+    });
+
+    it('places list markers with logical properties, so they follow dir', () => {
+        expect(value('ef-rich-text .ql-editor li[data-list]', 'padding-inline-start')).toBe('1.5em');
+        expect(value('ef-rich-text .ql-editor li[data-list] > .ql-ui::before', 'margin-inline-start')).toBe('-1.5em');
+        const physical: string[] = [];
+        root.walkDecls(d => {
+            if (/(padding|margin)-(left|right)|^(left|right)$/.test(d.prop) && (d.parent as Rule).selectors?.some(x => x.includes('data-list'))) physical.push(d.prop);
+        });
+        expect(physical).toEqual([]);
+    });
+
+    it('emits no @charset, so the stylesheet stays ASCII once compiled', () => {
+        expect(compile(resolve(__dirname, 'ef-rich-text.component.scss')).css.startsWith('@charset')).toBe(false);
+    });
+
     it('sizes toolbar buttons to --hit-touch on touch, last in the file', () => {
         const media = '(max-width: 767px), (pointer: coarse)';
         expect(value('ef-rich-text .ql-snow.ql-toolbar button', 'height', media)).toBe('var(--hit-touch)');
