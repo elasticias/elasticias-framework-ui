@@ -15,6 +15,7 @@ const KEYS = {
     ef_localized_input_culture_ar: 'Arabe',
     ef_localized_input_culture_en: 'Anglais',
     ef_localized_input_missing: 'manquant',
+    ef_localized_input_cultures: 'Langues du texte',
     ef_localized_input_read_only_hint: 'Géré par le catalogue',
     title: 'Titre',
 };
@@ -265,6 +266,11 @@ describe('EfLocalizedInputComponent', () => {
         expect(panel.getAttribute('aria-labelledby')).toBe(tab('en').id);
         const label = host.querySelector('label')!;
         expect(label.getAttribute('for')).toBe(host.querySelector('[role="tabpanel"] input')!.id);
+    });
+
+    it('names the tablist with a translated fallback when there is no label', () => {
+        const { host } = render({ labelKey: '' });
+        expect(host.querySelector('[role="tablist"]')!.getAttribute('aria-label')).toBe('Langues du texte');
     });
 
     it('uses the given cultures and their default', () => {

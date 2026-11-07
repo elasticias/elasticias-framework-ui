@@ -9,7 +9,7 @@
             variant="pill"
             [items]="tabItems()"
             [value]="active()?.code ?? null"
-            [ariaLabelKey]="labelKey() || undefined"
+            [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
             (valueChange)="select($event)"
         />
     </div>

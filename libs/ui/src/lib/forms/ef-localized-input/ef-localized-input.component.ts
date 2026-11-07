@@ -67,6 +67,7 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * | `ef_localized_input_culture_ar` | Arabe | العربية | Arabic |
  * | `ef_localized_input_culture_en` | Anglais | الإنجليزية | English |
  * | `ef_localized_input_missing` | manquant | غير مكتوب | missing |
+ * | `ef_localized_input_cultures` | Langues du texte | لغات النص | Text languages |
  * | `ef_localized_input_read_only_hint` | Ce texte se modifie ailleurs. | يُعدَّل هذا النص في مكان آخر. | This text is edited elsewhere. |
  *
  * ```html
@@ -116,6 +117,8 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly required = input(false, { transform: booleanAttribute });
     /** Cultures shown but not editable here, with the `[read-only-link]` slot. */
     readonly readOnlyCultures = input<ReadonlyArray<string>>([]);
+    /** Labels the field and names its tablist; without it the tablist is
+     *  named `ef_localized_input_cultures`. */
     readonly labelKey = input('');
     readonly placeholderKey = input('');
     readonly hintKey = input('');
