@@ -3,6 +3,7 @@
    emit @charset and jsdom then drops the rule after it. */
 
 :host {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--s-2);
@@ -48,6 +49,21 @@
     color: var(--st-pending-fg);
     font-weight: 600;
   }
+}
+
+/* Read by assistive tech, not drawn. The counter is positioned so the box
+   this clips to is the counter, not the page. */
+.eli-counter {
+  position: relative;
+}
+
+.eli-counter__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* The rendered HTML, in the culture's direction. Wide content (a table, a

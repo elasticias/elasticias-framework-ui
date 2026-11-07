@@ -89,7 +89,18 @@
     @if (counterLimit(); as limit) {
         <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeLength() > limit">
             <bdi dir="ltr">{{ activeLength() }} / {{ limit }}</bdi>
+            @if (counterHintKey()) {
+                <span class="eli-counter__sr">{{ counterHintKey() | translate: { max: limit } }}</span>
+            }
         </span>
+        @if (counterOverKey()) {
+            <!-- Always present, so a screen reader hears the text appear. -->
+            <span class="eli-counter__sr" data-over-message aria-live="polite">
+                @if (activeLength() > limit) {
+                    {{ counterOverKey() | translate: { max: limit } }}
+                }
+            </span>
+        }
     }
 
     @if (effectiveMode() === 'html' && activeText().trim()) {

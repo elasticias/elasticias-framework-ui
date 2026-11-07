@@ -251,6 +251,31 @@ describe('EfLocalizedInputComponent', () => {
         expect(host.querySelector('[data-counter]')!.classList).toContain('is-over');
     });
 
+    it('says the limit as text, and announces when it is passed, with the keys it is given', () => {
+        const { host, fixture, field, type } = render({
+            value: { fr: 'abc' },
+            advisedLength: 5,
+            counterHintKey: 'hint_key',
+            counterOverKey: 'over_key',
+        });
+        const counter = host.querySelector<HTMLElement>('[data-counter]')!;
+        expect(counter.querySelector('.eli-counter__sr')?.textContent).toContain('hint_key');
+        expect(field().getAttribute('aria-describedby')).toContain(counter.id);
+        const live = host.querySelector<HTMLElement>('[data-over-message]')!;
+        expect(live.getAttribute('aria-live')).toBe('polite');
+        expect(live.textContent?.trim()).toBe('');
+        type('abcdef');
+        expect(host.querySelector<HTMLElement>('[data-over-message]')).toBe(live);
+        expect(live.textContent).toContain('over_key');
+        expect(fixture).toBeTruthy();
+    });
+
+    it('adds no spoken text without the keys', () => {
+        const { host } = render({ value: { fr: 'abcdef' }, advisedLength: 5 });
+        expect(host.querySelector('.eli-counter__sr')).toBeNull();
+        expect(host.querySelector('[data-over-message]')).toBeNull();
+    });
+
     it('renders no counter without a length', () => {
         const { host } = render();
         expect(host.querySelector('[data-counter]')).toBeNull();

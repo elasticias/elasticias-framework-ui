@@ -87,6 +87,9 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   moves to the first of them. `<name>` errors, or an explicit `[errors]`,
  *   show under the field on every tab, as do errors for a language the field
  *   does not list (`title.xx`). Messages are translated as keys. Keys: `ef_localized_input_errors_in_other`.
+ * - **Spoken limit.** `counterHintKey` is read with the counter (through
+ *   `aria-describedby`) and `counterOverKey` is announced politely when the
+ *   text passes the limit; both take `{{max}}`.
  * - **Names.** Each culture's field is named `<name>.<culture>` (`title.ar`),
  *   the key the backend reports a per-culture error under.
  *
@@ -154,6 +157,10 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly labelKey = input('');
     readonly placeholderKey = input('');
     readonly hintKey = input('');
+    /** i18n key (with `{{max}}`) read out with the counter, for a limit that is advice rather than a cap. */
+    readonly counterHintKey = input('');
+    /** i18n key (with `{{max}}`) announced politely when the text goes past the limit. */
+    readonly counterOverKey = input('');
     /** Field style in `text` mode only (`default` is ef-input-text's PrimeNG
      *  variant); the textarea, html and rich modes have one style. */
     readonly variant = input<'comptoir' | 'default'>('comptoir');
