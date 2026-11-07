@@ -3,6 +3,8 @@ import {
     ChangeDetectionStrategy,
     Component,
     computed,
+    DoCheck,
+    ElementRef,
     inject,
     Injector,
     input,
@@ -10,7 +12,7 @@ import {
     output,
     signal,
 } from '@angular/core';
-import { AbstractControl, ControlValueAccessor, NG_VALIDATORS, NgControl, ValidationErrors } from '@angular/forms';
+import { AbstractControl, ControlValueAccessor, FormGroupDirective, NG_VALIDATORS, NgControl, NgForm, ValidationErrors } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { cleanLocalizedText, EF_CONTENT_CULTURES, type EfCulture } from '@elasticias/core';
 import type { LocalizedText } from '@elasticias/types';
@@ -83,7 +85,7 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
     templateUrl: './ef-localized-input.component.html',
     styleUrl: './ef-localized-input.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    host: { '(focusout)': 'onTouched()' },
+    host: { '(focusout)': 'onFocusOut($event)' },
     providers: [
         {
             // A form's required validator reads an empty object as filled (it
@@ -99,7 +101,7 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
         },
     ],
 })
-export class EfLocalizedInputComponent implements ControlValueAccessor {
+export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck {
     /** The camelCase backend property (`title`); each field is `<name>.<culture>`. */
     readonly name = input.required<string>();
     readonly value = input<LocalizedText | null | undefined>(null);
@@ -127,6 +129,16 @@ export class EfLocalizedInputComponent implements ControlValueAccessor {
     private readonly contentCultures = inject(EF_CONTENT_CULTURES);
     private readonly readOnlyScope = inject(EfReadOnlyDirective, { optional: true });
     readonly ngControl = inject(NgControl, { self: true, optional: true });
+    private readonly parentForm = inject(FormGroupDirective, { optional: true }) ?? inject(NgForm, { optional: true });
+    private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+    /** The user typed in, or left, the field. */
+    private readonly interacted = signal(false);
+    /** The form control is touched or dirty, or its form was submitted; read on every check. */
+    private readonly formTouched = signal(false);
+
+    /** Errors wait for touch, a change or a submit, like every ef-* control. */
+    private readonly showErrors = computed(() => this.interacted() || this.formTouched());
 
     protected readonly uid = `ef-localized-input-${nextId++}`;
 
@@ -177,7 +189,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor {
                 value: c.code,
                 labelKey: c.labelKey,
                 noteKey: missing ? 'ef_localized_input_missing' : undefined,
-                tone: missing && this.required() && c.code === this.defaultCode() ? 'danger' : undefined,
+                tone: missing && this.required() && c.code === this.defaultCode() && this.showErrors() ? 'danger' : undefined,
                 dirty: (text[c.code] ?? '') !== (base[c.code] ?? ''),
                 id: this.tabId(c.code),
                 panelId: this.panelId,
@@ -225,12 +237,24 @@ export class EfLocalizedInputComponent implements ControlValueAccessor {
         this.raw.update(r => ({ ...r, [code]: text }));
         const out = this.cleaned();
         this.lastEmitted = out;
+        this.interacted.set(true);
         this.onChange(out);
         this.valueChangeEvent.emit(out);
     }
 
-    protected onTouched(): void {
+    /** Touched when focus leaves the whole field, not when it moves from a tab to the text. */
+    protected onFocusOut(event: FocusEvent): void {
+        const next = event.relatedTarget;
+        if (next instanceof Node && this.host.nativeElement.contains(next)) return;
+        this.interacted.set(true);
         this.touched();
+    }
+
+    ngDoCheck(): void {
+        // A form's markAllAsTouched() or submit does not reach the accessor,
+        // so the control's state is read each time the parent is checked.
+        const c = this.ngControl;
+        this.formTouched.set(!!(c?.touched || c?.dirty || this.parentForm?.submitted));
     }
 
     /** `{ required: true }` while a required field's default culture has no text. */

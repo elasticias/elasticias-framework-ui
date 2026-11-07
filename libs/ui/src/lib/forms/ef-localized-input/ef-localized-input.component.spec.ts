@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import type { LocalizedText } from '@elasticias/types';
 import { EfReadOnlyDirective } from '../ef-read-only.directive';
@@ -69,10 +69,60 @@ describe('EfLocalizedInputComponent', () => {
     });
 
     it('puts error tone on the default tab of a required empty field', () => {
-        const { tab, host } = render({ value: { ar: 'نص' }, required: true });
+        const { tab, host, field, detect } = render({ value: { ar: 'نص' }, required: true });
+        field().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }));
+        detect();
         expect(tab('fr').classList).toContain('is-danger');
         expect(tab('en').classList).not.toContain('is-danger');
         expect(host.querySelector('label')?.textContent).toContain('Titre');
+    });
+
+    it('shows no error tone before the field is touched, but always shows the missing note', () => {
+        const { tab } = render({ value: { ar: 'نص' }, required: true });
+        expect(tab('fr').classList).not.toContain('is-danger');
+        expect(tab('fr').textContent).toContain('manquant');
+    });
+
+    it('shows the error tone once the user clears the default culture', () => {
+        const { tab, type } = render({ value: { fr: 'Eau' }, required: true });
+        type('');
+        expect(tab('fr').classList).toContain('is-danger');
+    });
+
+    it('shows the error tone after markAllAsTouched() on the form', () => {
+        @Component({
+            standalone: true,
+            imports: [EfLocalizedInputComponent, ReactiveFormsModule],
+            template: `<form [formGroup]="form"><ef-localized-input name="title" required formControlName="title" /></form>`,
+        })
+        class Host { form = new FormGroup({ title: new FormControl<LocalizedText>({}, { nonNullable: true }) }); }
+        setup();
+        const fixture = TestBed.createComponent(Host);
+        fixture.detectChanges();
+        const h = helpers(fixture.nativeElement, () => fixture.detectChanges());
+        expect(h.tab('fr').classList).not.toContain('is-danger');
+        fixture.componentInstance.form.markAllAsTouched();
+        fixture.detectChanges();
+        expect(h.tab('fr').classList).toContain('is-danger');
+    });
+
+    it('marks the form control touched only when focus leaves the whole field', () => {
+        @Component({
+            standalone: true,
+            imports: [EfLocalizedInputComponent, ReactiveFormsModule],
+            template: `<ef-localized-input name="title" [formControl]="ctrl" /><button id="outside">x</button>`,
+        })
+        class Host { ctrl = new FormControl<LocalizedText>({}, { nonNullable: true }); }
+        setup();
+        const fixture = TestBed.createComponent(Host);
+        fixture.detectChanges();
+        const h = helpers(fixture.nativeElement, () => fixture.detectChanges());
+        const ctrl = fixture.componentInstance.ctrl;
+        h.tab('fr').dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: h.field() }));
+        expect(ctrl.touched).toBe(false);
+        const outside = (fixture.nativeElement as HTMLElement).querySelector('#outside');
+        h.field().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: outside }));
+        expect(ctrl.touched).toBe(true);
     });
 
     it('drops the error tone once the default culture has text', () => {
