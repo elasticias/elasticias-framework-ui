@@ -209,6 +209,14 @@
   border-bottom-color: var(--st-cancelled-fg);
 }
 
+/* The danger ring replaces the pill's focus shadow, and the active tab is
+   the one keyboard focus lands on, so both rings are composed here. */
+:host(.ef-tabs--pill) .ef-tabs__tab.is-danger.is-active:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--st-cancelled-fg),
+    0 0 0 2px color-mix(in srgb, var(--ink-active, #0f1115) 40%, transparent);
+}
+
 /* Module accent overrides — applied when the host carries
    `data-module="..."`, mirroring the prototype's `[data-module]`
    selector so the underline picks up the matching accent. */
