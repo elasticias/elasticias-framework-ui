@@ -230,7 +230,12 @@ export class EfRichTextComponent extends AbstractEfFormControl implements Contro
         set('aria-describedby', this.describedBy(this.showRequired || !!this.serverErrors));
         set('aria-required', this.required() ? 'true' : null);
         set('aria-invalid', this.isInvalid ? 'true' : null);
-        set('aria-readonly', this.locked() ? 'true' : null);
+        // A read-only editor stays focusable, so its hint is announced and its
+        // text can be selected; a disabled one leaves the tab order.
+        const readOnlyOnly = this.readonly() && !this.isDisabled();
+        set('aria-readonly', readOnlyOnly ? 'true' : null);
+        set('aria-disabled', this.isDisabled() ? 'true' : null);
+        set('tabindex', readOnlyOnly ? '0' : null);
         set('dir', this.dir());
         set('lang', this.lang());
 

@@ -140,6 +140,17 @@ describe('EfRichTextComponent', () => {
         expect(quill.root.getAttribute('aria-labelledby')).toBe('outer-label');
     });
 
+    it('keeps a read-only editor in the tab order, but not a disabled one', async () => {
+        const { quill, fixture } = await render({ value: '<p>Eau</p>', readonly: true, hintKey: 'description' });
+        expect(quill.isEnabled()).toBe(false);
+        expect(quill.root.getAttribute('tabindex')).toBe('0');
+        expect(quill.root.getAttribute('aria-readonly')).toBe('true');
+        fixture.componentRef.setInput('disabled', true);
+        fixture.detectChanges();
+        expect(quill.root.hasAttribute('tabindex')).toBe(false);
+        expect(quill.root.getAttribute('aria-disabled')).toBe('true');
+    });
+
     it('lets Tab leave the editor', async () => {
         const { quill } = await render({ value: '<ul><li>un</li></ul>' });
         quill.focus();
