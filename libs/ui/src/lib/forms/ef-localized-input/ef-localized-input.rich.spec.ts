@@ -100,6 +100,15 @@ describe('EfLocalizedInputComponent rich mode', () => {
         expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('3 / 10');
     });
 
+    it('counts the stored HTML against maxLength when no advisedLength is set, as the server does', async () => {
+        const html = '<p><strong>Eau</strong></p>';
+        const { fixture, host } = await render({ value: { fr: html }, maxLength: 20 });
+        await quillOf(fixture);
+        const counter = host.querySelector('[data-counter]')!;
+        expect(counter.textContent?.trim()).toBe(`${html.length} / 20`);
+        expect(counter.classList).toContain('is-over');
+    });
+
     it('falls back to the html source, and says why, when the app has not provided the editor', async () => {
         const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
         const { host } = await render({ value: { fr: '<p>Eau</p>' } }, false);

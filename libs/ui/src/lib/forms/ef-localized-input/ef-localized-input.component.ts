@@ -63,9 +63,10 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   shared editor in `@elasticias/ui/rich-text`. The app turns it on once with
  *   `provideEfRichText()` (and installs `quill`); without it the field falls
  *   back to the `html` source and logs why in development, as it does when
- *   the editor's chunk fails to load. The counter counts
- *   the text a reader sees, but the server's length limit measures the stored
- *   HTML, so `maxLength` is not enforced while typing in this mode.
+ *   the editor's chunk fails to load. With `advisedLength` the counter
+ *   counts the text a reader sees; with only `maxLength` it counts the
+ *   stored HTML, which is what the server measures. Neither caps typing in
+ *   this mode.
  * - **Read-only cultures** are shown read-only (still focusable, so the hint
  *   is read and the text can be copied) with
  *   `ef_localized_input_read_only_hint` and the projected `[read-only-link]`;
@@ -248,9 +249,15 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     protected readonly activeText = computed(() => this.raw()[this.active()?.code ?? ''] ?? '');
 
-    /** What the counter shows: characters, or for rich text the characters a reader sees. */
+    /**
+     * What the counter counts. Rich text against `advisedLength` counts the
+     * characters a reader sees; against `maxLength` alone it counts the stored
+     * HTML, because that is what the server's limit measures.
+     */
     protected readonly activeLength = computed(() =>
-        this.effectiveMode() === 'rich' ? plainTextLength(this.activeText()) : this.activeText().length,
+        this.effectiveMode() === 'rich' && this.advisedLength() != null
+            ? plainTextLength(this.activeText())
+            : this.activeText().length,
     );
 
     protected readonly labelId = `${this.uid}-label`;
