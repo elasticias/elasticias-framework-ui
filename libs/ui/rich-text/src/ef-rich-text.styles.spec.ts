@@ -29,6 +29,12 @@ describe('ef-rich-text styles', () => {
         expect(value('ef-rich-text .ql-snow.ql-toolbar button', 'color')).toBe('var(--text-mute)');
     });
 
+    it('writes the text in the theme text colour, not PrimeNG\'s', () => {
+        // At PrimeNG's own specificity plus the element, so it wins.
+        expect(value('ef-rich-text .p-editor .p-editor-content .ql-editor', 'color')).toBe('var(--text)');
+        expect(value('ef-rich-text .p-editor .p-editor-content .ql-editor', 'background')).toBe('transparent');
+    });
+
     it('uses no hardcoded colour', () => {
         const hex: string[] = [];
         root.walkDecls(d => { if (/#[0-9a-f]{3,8}\b/i.test(d.value) && !d.value.includes('var(')) hex.push(`${d.prop}: ${d.value}`); });

@@ -119,6 +119,15 @@ ef-rich-text .ql-editor {
   line-height: 1.55;
   /* PrimeNG and Quill set a physical left, which kept Arabic flush left. */
   text-align: start;
+
+}
+
+/* PrimeNG paints the area in its own colours through
+   .p-editor .p-editor-content .ql-editor; the page's text and ground flip
+   with the theme like every other ef-* field. */
+ef-rich-text .p-editor .p-editor-content .ql-editor {
+  color: var(--text);
+  background: transparent;
 }
 
 ef-rich-text .ql-editor.ql-blank::before {
