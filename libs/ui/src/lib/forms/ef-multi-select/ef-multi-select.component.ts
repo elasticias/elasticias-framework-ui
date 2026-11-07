@@ -36,6 +36,21 @@ export class EfMultiSelectComponent
   @Input() filters: any;
   @Input({ transform: booleanAttribute }) inline = false;
 
+  /**
+   * Rendering variant, as on `ef-select`.
+   * - `'primeng'` (default): PrimeNG's own multiselect skin, unchanged.
+   * - `'comptoir'`: the shared `.es` skin with `.es--comptoir`, the same hook
+   *                 `ef-select variant="comptoir"` uses: a trigger on
+   *                 `--hit-field` (`--hit-base` 40px, `--hit-touch` 48px on a
+   *                 coarse pointer) and no minimum width, so a select and a
+   *                 multi-select in one row align and both shrink with it.
+   */
+  @Input() variant: 'primeng' | 'comptoir' = 'primeng';
+
+  get effectiveStyleClass(): string | undefined {
+    return this.variant === 'comptoir' ? 'es es--comptoir' : undefined;
+  }
+
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
   @HostBinding('class.ef-required') get isRequired() { return this.required(); }
 
