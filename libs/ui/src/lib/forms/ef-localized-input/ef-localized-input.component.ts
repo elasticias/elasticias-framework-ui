@@ -46,7 +46,8 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   mode the source stays `ltr` for every culture (raw HTML in an `rtl`
  *   textarea reads reversed) and the sanitised preview takes the culture's
  *   direction.
- * - **Read-only cultures** are shown disabled with
+ * - **Read-only cultures** are shown read-only (still focusable, so the hint
+ *   is read and the text can be copied) with
  *   `ef_localized_input_read_only_hint` and the projected `[read-only-link]`;
  *   their text still travels in the emitted object. `[efReadOnly]`, `[disabled]`
  *   and a form's `disable()` disable every culture; the tabs stay usable so the

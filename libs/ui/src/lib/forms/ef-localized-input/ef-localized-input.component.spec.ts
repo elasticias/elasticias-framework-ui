@@ -202,12 +202,16 @@ describe('EfLocalizedInputComponent', () => {
         expect(tab('ar').querySelector('.ef-tabs__dot')).toBeNull();
     });
 
-    it('shows a read-only culture disabled with the hint', () => {
+    it('shows a read-only culture read-only with the hint', () => {
         const { field, host, select, type, emitted } = render({ value: { fr: 'Eau' }, readOnlyCultures: ['fr'] });
-        expect(field().disabled).toBe(true);
+        // readonly, not disabled: it stays in the tab order, so its hint is
+        // read and its text can be selected and copied.
+        expect(field().readOnly).toBe(true);
+        expect(field().disabled).toBe(false);
+        expect(field().getAttribute('aria-describedby')).toContain(host.querySelector('.ef-field-hint')!.id);
         expect(host.querySelector('.ef-field-hint')?.textContent).toContain('Géré par le catalogue');
         select('ar');
-        expect(field().disabled).toBe(false);
+        expect(field().readOnly).toBe(false);
         expect(host.querySelector('.ef-field-hint')).toBeNull();
         type('ماء');
         // The read-only culture's text still travels in the whole object.
