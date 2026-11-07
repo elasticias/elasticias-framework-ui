@@ -259,4 +259,34 @@ describe('EfLocalizedInputComponent', () => {
         h.type('Eau douce');
         expect(fixture.componentInstance.model).toEqual({ fr: 'Eau douce' });
     });
+
+    it('fails required form validation while the default culture is empty', () => {
+        @Component({
+            standalone: true,
+            imports: [EfLocalizedInputComponent, ReactiveFormsModule],
+            template: `<ef-localized-input name="title" required [formControl]="ctrl" />`,
+        })
+        class Host { ctrl = new FormControl<LocalizedText>({ ar: 'ماء' }, { nonNullable: true }); }
+        setup();
+        const fixture = TestBed.createComponent(Host);
+        fixture.detectChanges();
+        const ctrl = fixture.componentInstance.ctrl;
+        expect(ctrl.hasError('required')).toBe(true);
+        const h = helpers(fixture.nativeElement, () => fixture.detectChanges());
+        h.type('Eau');
+        expect(ctrl.valid).toBe(true);
+    });
+
+    it('does not validate a field that is not required', () => {
+        @Component({
+            standalone: true,
+            imports: [EfLocalizedInputComponent, ReactiveFormsModule],
+            template: `<ef-localized-input name="title" [formControl]="ctrl" />`,
+        })
+        class Host { ctrl = new FormControl<LocalizedText>({}, { nonNullable: true }); }
+        setup();
+        const fixture = TestBed.createComponent(Host);
+        fixture.detectChanges();
+        expect(fixture.componentInstance.ctrl.valid).toBe(true);
+    });
 });

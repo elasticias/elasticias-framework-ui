@@ -4,12 +4,13 @@ import {
     Component,
     computed,
     inject,
+    Injector,
     input,
     linkedSignal,
     output,
     signal,
 } from '@angular/core';
-import { ControlValueAccessor, NgControl } from '@angular/forms';
+import { AbstractControl, ControlValueAccessor, NG_VALIDATORS, NgControl, ValidationErrors } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { cleanLocalizedText, EF_CONTENT_CULTURES, type EfCulture } from '@elasticias/core';
 import type { LocalizedText } from '@elasticias/types';
@@ -49,7 +50,9 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   and a form's `disable()` disable every culture; the tabs stay usable so the
  *   other languages can still be read.
  * - **Forms.** A ControlValueAccessor (`[formControl]`, `formControlName`,
- *   `[(ngModel)]`) as well as `[value]` + `(valueChangeEvent)`.
+ *   `[(ngModel)]`) as well as `[value]` + `(valueChangeEvent)`. With
+ *   `required`, the form control reports `required` while the default culture
+ *   is empty.
  * - **Names.** Each culture's field is named `<name>.<culture>` (`title.ar`),
  *   the key the backend reports a per-culture error under.
  *
@@ -81,6 +84,20 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
     styleUrl: './ef-localized-input.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: { '(focusout)': 'onTouched()' },
+    providers: [
+        {
+            // A form's required validator reads an empty object as filled (it
+            // checks length), so the field validates its default culture
+            // itself. The component is looked up when the form validates, not
+            // here: it injects NgControl, which injects these validators.
+            provide: NG_VALIDATORS,
+            multi: true,
+            useFactory: () => {
+                const injector = inject(Injector);
+                return (control: AbstractControl) => injector.get(EfLocalizedInputComponent).validateRequired(control);
+            },
+        },
+    ],
 })
 export class EfLocalizedInputComponent implements ControlValueAccessor {
     /** The camelCase backend property (`title`); each field is `<name>.<culture>`. */
@@ -214,6 +231,12 @@ export class EfLocalizedInputComponent implements ControlValueAccessor {
 
     protected onTouched(): void {
         this.touched();
+    }
+
+    /** `{ required: true }` while a required field's default culture has no text. */
+    validateRequired(control: AbstractControl): ValidationErrors | null {
+        if (!this.required()) return null;
+        return cleanLocalizedText(control.value as LocalizedText | null)[this.defaultCode()] ? null : { required: true };
     }
 
     writeValue(v: LocalizedText | null): void {
