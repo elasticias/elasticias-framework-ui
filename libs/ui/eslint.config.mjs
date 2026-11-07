@@ -9,6 +9,9 @@ export default [
       '@nx/dependency-checks': [
         'error',
         {
+          // PrimeNG's Editor imports quill at runtime; the rich-text entry
+          // declares it as an optional peer without importing it itself.
+          ignoredDependencies: ['quill'],
           ignoredFiles: [
             '{projectRoot}/eslint.config.{js,cjs,mjs,ts,cts,mts}',
             '{projectRoot}/vite.config.{js,cjs,mjs,ts,cts,mts}',

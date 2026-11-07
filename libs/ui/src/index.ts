@@ -165,6 +165,8 @@ export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.compone
 export { EfSeoFieldsComponent, EF_SEO_DEFAULT_LOCALES } from './lib/forms/ef-seo-fields/ef-seo-fields.component';
 export type { EfSeoLocale, EfSeoPatch } from './lib/forms/ef-seo-fields/ef-seo-fields.component';
 export { EfLocalizedInputComponent } from './lib/forms/ef-localized-input/ef-localized-input.component';
+export { EF_RICH_TEXT, plainTextLength } from './lib/forms/ef-rich-text.token';
+export { AbstractEfFormControl } from './lib/forms/abstract-ef-form-control.component';
 export { EfFileUploadComponent } from './lib/forms/ef-file-upload/ef-file-upload.component';
 export type { EfFileRejection, EfFileRejectReason } from './lib/forms/ef-file-upload/ef-file-upload.component';
 export { EfSelectComponent } from './lib/forms/ef-select/ef-select.component';

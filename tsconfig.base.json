@@ -19,6 +19,7 @@
       "@elasticias/utils": ["libs/utils/src/index.ts"],
       "@elasticias/core": ["libs/core/src/index.ts"],
       "@elasticias/ui": ["libs/ui/src/index.ts"],
+      "@elasticias/ui/rich-text": ["libs/ui/rich-text/src/index.ts"],
       "@elasticias/screens": ["libs/screens/src/index.ts"]
     }
   },

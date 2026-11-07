@@ -23,7 +23,7 @@ export default defineConfig(() => ({
     globals: true,
     passWithNoTests: true,
     environment: 'jsdom',
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: ['{src,tests,rich-text}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     // Compile component stylesheets (Vitest stubs CSS to an empty string by
     // default), so specs can assert the rules a component ships, such as

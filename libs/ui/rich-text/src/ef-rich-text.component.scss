@@ -1,0 +1,169 @@
+/* ef-rich-text. Unencapsulated (Quill renders its own DOM), so every
+   selector starts with ef-rich-text. Colours are Comptoir tokens, which flip
+   with the theme; Quill's snow theme hardcodes #444 icons and #ccc borders.
+   Keep this file ASCII: a non-ASCII character makes Sass emit @charset and
+   jsdom then drops the rule after it. */
+
+ef-rich-text {
+  display: block;
+  min-width: 0;
+}
+
+ef-rich-text .ef-rich-text__label {
+  display: block;
+}
+
+ef-rich-text .ef-rich-text__box {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+ef-rich-text .ef-rich-text__box:focus-within {
+  border-color: var(--ink-active);
+}
+
+ef-rich-text .ef-rich-text__box.is-invalid {
+  border-color: var(--st-cancelled-fg);
+}
+
+ef-rich-text .ef-rich-text__box.is-locked {
+  background: var(--paper-alt);
+}
+
+ef-rich-text .p-editor,
+ef-rich-text .p-editor .p-editor-toolbar,
+ef-rich-text .p-editor .p-editor-content {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Toolbar: wraps on a narrow screen instead of widening the page. */
+ef-rich-text .ql-toolbar.ql-snow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--s-2);
+  padding: 4px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-alt);
+  font-family: inherit;
+}
+
+ef-rich-text .ql-snow .ql-formats {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+}
+
+ef-rich-text .ql-snow.ql-toolbar button {
+  float: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--hit, 32px);
+  height: var(--hit, 32px);
+  padding: 7px;
+  border-radius: var(--r-sm);
+  color: var(--text-mute);
+}
+
+ef-rich-text .ql-snow .ql-stroke {
+  stroke: currentColor;
+}
+
+ef-rich-text .ql-snow .ql-fill,
+ef-rich-text .ql-snow .ql-stroke.ql-fill {
+  fill: currentColor;
+}
+
+ef-rich-text .ql-snow.ql-toolbar button:hover:not([disabled]),
+ef-rich-text .ql-snow.ql-toolbar button:focus-visible,
+ef-rich-text .ql-snow.ql-toolbar button.ql-active {
+  color: var(--text);
+  background: var(--paper);
+}
+
+ef-rich-text .ql-snow.ql-toolbar button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink-active, #0f1115) 40%, transparent);
+}
+
+ef-rich-text .ql-snow.ql-toolbar button[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Editing area */
+ef-rich-text .ql-container.ql-snow {
+  border: 0;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+ef-rich-text .ql-editor {
+  min-height: calc(var(--ef-rich-text-rows, 4) * 1.55em + 24px);
+  line-height: 1.55;
+}
+
+ef-rich-text .ql-editor.ql-blank::before {
+  color: var(--text-mute);
+  font-style: normal;
+}
+
+ef-rich-text .ql-snow .ql-editor a {
+  color: inherit;
+}
+
+/* Link bubble: themed, and its texts come from translated data attributes
+   instead of Quill's hardcoded English. */
+ef-rich-text .ql-snow .ql-tooltip {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--ink-active, #0f1115) 14%, transparent);
+  color: var(--text);
+  max-width: calc(100% - 16px);
+}
+
+ef-rich-text .ql-snow .ql-tooltip input[type='text'] {
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  color: var(--text);
+}
+
+ef-rich-text .ql-snow .ql-tooltip::before {
+  content: attr(data-ef-visit);
+}
+
+ef-rich-text .ql-snow .ql-tooltip[data-mode='link']::before {
+  content: attr(data-ef-enter);
+}
+
+ef-rich-text .ql-snow .ql-tooltip a.ql-action::after {
+  content: attr(data-ef-edit);
+  border-color: var(--rule);
+}
+
+ef-rich-text .ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+  content: attr(data-ef-save);
+}
+
+ef-rich-text .ql-snow .ql-tooltip a.ql-remove::before {
+  content: attr(data-ef-remove);
+}
+
+/* Touch tier: toolbar buttons are tap targets on a phone or a coarse
+   pointer. Last in the file, because a media query adds no specificity. */
+@media (max-width: 767px), (pointer: coarse) {
+  ef-rich-text .ql-snow.ql-toolbar button {
+    width: var(--hit-touch);
+    height: var(--hit-touch);
+    padding: 12px;
+  }
+}
