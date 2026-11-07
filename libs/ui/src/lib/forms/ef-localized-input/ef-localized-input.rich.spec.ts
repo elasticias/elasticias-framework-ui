@@ -79,6 +79,19 @@ describe('EfLocalizedInputComponent rich mode', () => {
         expect(emitted.at(-1)).toEqual({ en: '<p>Water</p>' });
     });
 
+    it('keeps the same editor when the culture list is replaced by an equal one', async () => {
+        const list = () => [
+            { code: 'fr', labelKey: 'ef_localized_input_culture_fr', dir: 'auto' as const },
+            { code: 'ar', labelKey: 'ef_localized_input_culture_ar', dir: 'rtl' as const },
+        ];
+        const { fixture } = await render({ value: { fr: '<p>Eau</p>' }, cultures: list() });
+        const before = await quillOf(fixture);
+        fixture.componentRef.setInput('cultures', list());
+        fixture.detectChanges();
+        const after = await quillOf(fixture);
+        expect(after).toBe(before);
+    });
+
     it('counts the text a reader sees, not the tags', async () => {
         const { fixture, host } = await render({ value: { fr: '<p><strong>Eau</strong></p>' }, advisedLength: 10 });
         await quillOf(fixture);

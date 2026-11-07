@@ -211,6 +211,9 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         return list.find(c => c.code === code) ?? list.find(c => c.code === this.defaultCode()) ?? list[0];
     });
 
+    /** The active culture's code: unlike active(), equal when an equal culture list arrives. */
+    private readonly activeCode = computed(() => this.active()?.code);
+
     protected readonly tabItems = computed<EfTabItem[]>(() => {
         const text = this.cleaned();
         const base = this.baseline();
@@ -279,7 +282,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         effect(() => {
             const vcr = this.richHost();
             const type = this.richType();
-            const code = this.active()?.code;
+            const code = this.activeCode();
             if (!vcr || !type || !code || this.effectiveMode() !== 'rich') return;
             untracked(() => this.createRich(vcr, type, code));
         });
