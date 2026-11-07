@@ -44,6 +44,11 @@ export class EfInputTextComponent
    *  the page direction. Null or absent leaves the input unchanged. */
   @Input() dir: 'ltr' | 'rtl' | 'auto' | null = null;
 
+  /** Language of the typed value (`'ar'` for an Arabic title on a French
+   *  screen), applied to the native input only: the label and hint are page
+   *  text and keep the page language. Null or absent renders no attribute. */
+  @Input() lang: string | null = null;
+
   /** Clearable (showClear / canClear) is inherited from AbstractEfFormControl;
    *  we only supply the value predicate + the reset. */
   protected override get hasValue(): boolean {

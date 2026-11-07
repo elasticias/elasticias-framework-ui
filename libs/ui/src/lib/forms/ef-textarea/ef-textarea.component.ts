@@ -48,6 +48,9 @@ export class EfTextareaComponent
 {
     @Input() rows = 4;
     @Input() maxlength?: number;
+    /** Language of the typed value, applied to the native textarea only (the
+     *  label and hint keep the page language). Null or absent renders none. */
+    @Input() lang: string | null = null;
     @Input({ transform: booleanAttribute }) autofocus = false;
     /** Monospace face for source text (an HTML body, a JSON snippet), where
      *  tags and indentation must stay readable. */
