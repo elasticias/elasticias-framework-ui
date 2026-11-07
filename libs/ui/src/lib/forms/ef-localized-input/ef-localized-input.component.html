@@ -1,6 +1,6 @@
 <div class="eli-head">
     @if (labelKey()) {
-        <span class="eli-label">
+        <span class="eli-label" [id]="labelId">
             <ef-label [labelKey]="labelKey()" [for]="controlId(active()?.code ?? '')" [required]="required()" />
         </span>
     }
@@ -17,7 +17,7 @@
 
 <div class="eli-panel" role="tabpanel" [id]="panelId" [attr.aria-labelledby]="tabId(active()?.code ?? '')">
     @for (c of active() ? [active()!] : []; track c.code) {
-        @switch (mode()) {
+        @switch (effectiveMode()) {
             @case ('text') {
                 <ef-input-text
                     [variant]="variant() === 'default' ? 'primeng' : 'comptoir'"
@@ -54,6 +54,10 @@
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }
+            @case ('rich') {
+                <!-- ef-rich-text, created from EF_RICH_TEXT (see createRich). -->
+                <ng-container #richHost />
+            }
             @case ('html') {
                 <!-- The source stays ltr for every culture: raw HTML in an rtl
                      textarea reads reversed (ADR-036). The preview takes the
@@ -80,12 +84,12 @@
     }
 
     @if (counterLimit(); as limit) {
-        <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeText().length > limit">
-            <bdi dir="ltr">{{ activeText().length }} / {{ limit }}</bdi>
+        <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeLength() > limit">
+            <bdi dir="ltr">{{ activeLength() }} / {{ limit }}</bdi>
         </span>
     }
 
-    @if (mode() === 'html' && activeText().trim()) {
+    @if (effectiveMode() === 'html' && activeText().trim()) {
         @if (active(); as c) {
             <!-- Angular's default [innerHTML] sanitising strips scripts and handlers. -->
             <div class="eli-preview" data-preview [attr.dir]="c.dir" [attr.lang]="c.code" [innerHTML]="activeText()"></div>

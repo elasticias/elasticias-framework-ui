@@ -9,10 +9,16 @@ import {
     inject,
     Injector,
     input,
+    inputBinding,
+    isDevMode,
     linkedSignal,
     output,
+    outputBinding,
     signal,
+    Type,
     untracked,
+    viewChild,
+    ViewContainerRef,
 } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, FormGroupDirective, NG_VALIDATORS, NgControl, NgForm, ValidationErrors } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -23,6 +29,7 @@ import { EfTabItem, EfTabsComponent } from '../../layout/ef-tabs/ef-tabs.compone
 import { EfInputTextComponent } from '../ef-input-text/ef-input-text.component';
 import { EfReadOnlyDirective } from '../ef-read-only.directive';
 import { EfTextareaComponent } from '../ef-textarea/ef-textarea.component';
+import { EF_RICH_TEXT, plainTextLength } from '../ef-rich-text.token';
 
 let nextId = 0;
 
@@ -52,6 +59,12 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   mode the source stays `ltr` for every culture (raw HTML in an `rtl`
  *   textarea reads reversed) and the sanitised preview takes the culture's
  *   direction.
+ * - **Rich mode** (`mode="rich"`) edits each culture with `ef-rich-text`, the
+ *   shared editor in `@elasticias/ui/rich-text`. The app turns it on once with
+ *   `provideEfRichText()` (and installs `quill`); without it the field falls
+ *   back to the `html` source and logs why in development. The counter counts
+ *   the text a reader sees, but the server's length limit measures the stored
+ *   HTML, so `maxLength` is not enforced while typing in this mode.
  * - **Read-only cultures** are shown read-only (still focusable, so the hint
  *   is read and the text can be copied) with
  *   `ef_localized_input_read_only_hint` and the projected `[read-only-link]`;
@@ -113,7 +126,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /** The camelCase backend property (`title`); each field is `<name>.<culture>`. */
     readonly name = input.required<string>();
     readonly value = input<LocalizedText | null | undefined>(null);
-    readonly mode = input<'text' | 'textarea' | 'html'>('text');
+    readonly mode = input<'text' | 'textarea' | 'html' | 'rich'>('text');
     readonly rows = input(4);
     /** Hard cap, the server's limit. */
     readonly maxLength = input<number | undefined>(undefined);
@@ -129,7 +142,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly placeholderKey = input('');
     readonly hintKey = input('');
     /** Field style in `text` mode only (`default` is ef-input-text's PrimeNG
-     *  variant); the textarea and html modes have one style. */
+     *  variant); the textarea, html and rich modes have one style. */
     readonly variant = input<'comptoir' | 'default'>('comptoir');
     readonly disabled = input(false, { transform: booleanAttribute });
     /** Overrides the `EF_CONTENT_CULTURES` list for this field. */
@@ -141,6 +154,12 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     private readonly contentCultures = inject(EF_CONTENT_CULTURES);
     private readonly readOnlyScope = inject(EfReadOnlyDirective, { optional: true });
     readonly ngControl = inject(NgControl, { self: true, optional: true });
+    private readonly richLoader = inject(EF_RICH_TEXT, { optional: true });
+    private readonly richType = signal<Type<unknown> | null>(null);
+    private readonly richHost = viewChild('richHost', { read: ViewContainerRef });
+
+    /** `rich` without a provided editor renders the html source instead. */
+    protected readonly effectiveMode = computed(() => (this.mode() === 'rich' && !this.richLoader ? 'html' : this.mode()));
     private readonly parentForm = inject(FormGroupDirective, { optional: true }) ?? inject(NgForm, { optional: true });
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -221,6 +240,13 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     protected readonly activeText = computed(() => this.raw()[this.active()?.code ?? ''] ?? '');
 
+    /** What the counter shows: characters, or for rich text the characters a reader sees. */
+    protected readonly activeLength = computed(() =>
+        this.effectiveMode() === 'rich' ? plainTextLength(this.activeText()) : this.activeText().length,
+    );
+
+    protected readonly labelId = `${this.uid}-label`;
+
     protected readonly counterLimit = computed(() => this.advisedLength() ?? this.maxLength());
 
     protected readonly panelId = `${this.uid}-panel`;
@@ -237,6 +263,49 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
             this.required();
             this.defaultCode();
             untracked(() => this.ngControl?.control?.updateValueAndValidity({ emitEvent: false }));
+        });
+        effect(() => {
+            if (this.mode() !== 'rich') return;
+            if (!this.richLoader) {
+                if (isDevMode()) {
+                    console.error(`ef-localized-input "${untracked(this.name)}": mode="rich" needs provideEfRichText() from @elasticias/ui/rich-text; showing the html source instead.`);
+                }
+                return;
+            }
+            if (!untracked(this.richType)) this.richLoader().then(t => this.richType.set(t));
+        });
+        // One editor per active culture: the @for recreates the host on a
+        // culture switch, and the editor is created in it with live bindings.
+        effect(() => {
+            const vcr = this.richHost();
+            const type = this.richType();
+            const code = this.active()?.code;
+            if (!vcr || !type || !code || this.effectiveMode() !== 'rich') return;
+            untracked(() => this.createRich(vcr, type, code));
+        });
+    }
+
+    private createRich(vcr: ViewContainerRef, type: Type<unknown>, code: string): void {
+        vcr.clear();
+        const culture = () => this.list().find(c => c.code === code);
+        const readOnly = () => this.readOnlyCultures().includes(code);
+        vcr.createComponent(type, {
+            bindings: [
+                inputBinding('value', () => this.raw()[code] ?? ''),
+                inputBinding('name', () => `${this.name()}.${code}`),
+                inputBinding('inputId', () => this.controlId(code)),
+                inputBinding('dir', () => culture()?.dir ?? null),
+                inputBinding('lang', () => code),
+                inputBinding('rows', () => this.rows()),
+                inputBinding('labelledBy', () => (this.labelKey() ? this.labelId : null)),
+                inputBinding('required', () => this.required() && code === this.defaultCode()),
+                inputBinding('disabled', () => this.isDisabled()),
+                inputBinding('readonly', readOnly),
+                inputBinding('placeholderKey', () => this.placeholderKey()),
+                inputBinding('hintKey', () => (readOnly() ? 'ef_localized_input_read_only_hint' : this.hintKey())),
+                inputBinding('describedByExtra', () => (this.counterLimit() ? this.counterId : '')),
+                outputBinding<string>('valueChangeEvent', v => this.setText(code, v)),
+            ],
         });
     }
 
