@@ -43,7 +43,11 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   starts on the default culture.
  * - **Tabs** carry the `ef_localized_input_missing` note on every culture with
  *   no text, the error tone on the default culture of a `required` field left
- *   empty, and the dirty dot on cultures edited since the value arrived.
+ *   empty once the field is touched, changed or its form submitted, and the
+ *   dirty dot on cultures edited since the value arrived. Dirty detection
+ *   relies on the parent storing the emitted object by reference (the V2
+ *   signal pattern): a parent that clones the value resets the dots on every
+ *   edit, though it never loses text.
  * - **Direction.** Each field gets its culture's `dir` and `lang`. In `html`
  *   mode the source stays `ltr` for every culture (raw HTML in an `rtl`
  *   textarea reads reversed) and the sanitised preview takes the culture's
@@ -124,6 +128,8 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly labelKey = input('');
     readonly placeholderKey = input('');
     readonly hintKey = input('');
+    /** Field style in `text` mode only (`default` is ef-input-text's PrimeNG
+     *  variant); the textarea and html modes have one style. */
     readonly variant = input<'comptoir' | 'default'>('comptoir');
     readonly disabled = input(false, { transform: booleanAttribute });
     /** Overrides the `EF_CONTENT_CULTURES` list for this field. */
