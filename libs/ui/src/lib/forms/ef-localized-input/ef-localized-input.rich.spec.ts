@@ -4,6 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Editor } from 'primeng/editor';
 import type { LocalizedText } from '@elasticias/types';
 import { provideEfRichText } from '@elasticias/ui/rich-text';
+import { EF_RICH_TEXT } from '../ef-rich-text.token';
 import { EfLocalizedInputComponent } from './ef-localized-input.component';
 
 /**
@@ -17,11 +18,12 @@ interface Quill {
     getLength(): number;
 }
 
-function setup(withEditor = true) {
-    TestBed.configureTestingModule({
-        imports: [EfLocalizedInputComponent, TranslateModule.forRoot()],
-        providers: withEditor ? [provideEfRichText()] : [],
-    });
+function setup(withEditor: boolean | 'failing' = true) {
+    const providers =
+        withEditor === 'failing'
+            ? [{ provide: EF_RICH_TEXT, useValue: () => Promise.reject(new Error('chunk failed')) }]
+            : withEditor ? [provideEfRichText()] : [];
+    TestBed.configureTestingModule({ imports: [EfLocalizedInputComponent, TranslateModule.forRoot()], providers });
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('fr', { description: 'Description', ef_localized_input_culture_ar: 'Arabe' });
     translate.use('fr');
@@ -38,7 +40,7 @@ async function quillOf(fixture: ComponentFixture<unknown>): Promise<Quill> {
     return editor!.quill;
 }
 
-async function render(inputs: Record<string, unknown> = {}, withEditor = true) {
+async function render(inputs: Record<string, unknown> = {}, withEditor: boolean | 'failing' = true) {
     setup(withEditor);
     const fixture = TestBed.createComponent(EfLocalizedInputComponent);
     for (const [k, v] of Object.entries({ name: 'description', labelKey: 'description', mode: 'rich', ...inputs })) {
@@ -104,6 +106,17 @@ describe('EfLocalizedInputComponent rich mode', () => {
         expect(host.querySelector('ef-rich-text')).toBeNull();
         expect(host.querySelector<HTMLTextAreaElement>('[role="tabpanel"] textarea')!.value).toBe('<p>Eau</p>');
         expect(error).toHaveBeenCalledWith(expect.stringContaining('provideEfRichText'));
+        error.mockRestore();
+    });
+
+    it('falls back to the html source when the editor fails to load', async () => {
+        const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const { fixture, host } = await render({ value: { fr: '<p>Eau</p>' } }, 'failing');
+        await vi.waitFor(() => {
+            fixture.detectChanges();
+            expect(host.querySelector<HTMLTextAreaElement>('[role="tabpanel"] textarea')?.value).toBe('<p>Eau</p>');
+        });
+        expect(error).toHaveBeenCalledWith(expect.stringContaining('could not load'), expect.any(Error));
         error.mockRestore();
     });
 });

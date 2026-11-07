@@ -62,7 +62,8 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * - **Rich mode** (`mode="rich"`) edits each culture with `ef-rich-text`, the
  *   shared editor in `@elasticias/ui/rich-text`. The app turns it on once with
  *   `provideEfRichText()` (and installs `quill`); without it the field falls
- *   back to the `html` source and logs why in development. The counter counts
+ *   back to the `html` source and logs why in development, as it does when
+ *   the editor's chunk fails to load. The counter counts
  *   the text a reader sees, but the server's length limit measures the stored
  *   HTML, so `maxLength` is not enforced while typing in this mode.
  * - **Read-only cultures** are shown read-only (still focusable, so the hint
@@ -156,10 +157,14 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly ngControl = inject(NgControl, { self: true, optional: true });
     private readonly richLoader = inject(EF_RICH_TEXT, { optional: true });
     private readonly richType = signal<Type<unknown> | null>(null);
+    /** The editor's chunk failed to load (offline, a stale deploy). */
+    private readonly richFailed = signal(false);
     private readonly richHost = viewChild('richHost', { read: ViewContainerRef });
 
     /** `rich` without a provided editor renders the html source instead. */
-    protected readonly effectiveMode = computed(() => (this.mode() === 'rich' && !this.richLoader ? 'html' : this.mode()));
+    protected readonly effectiveMode = computed(() =>
+        this.mode() === 'rich' && (!this.richLoader || this.richFailed()) ? 'html' : this.mode(),
+    );
     private readonly parentForm = inject(FormGroupDirective, { optional: true }) ?? inject(NgForm, { optional: true });
     private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -275,7 +280,15 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
                 }
                 return;
             }
-            if (!untracked(this.richType)) this.richLoader().then(t => this.richType.set(t));
+            if (untracked(this.richType) || untracked(this.richFailed)) return;
+            this.richLoader()
+                .then(t => this.richType.set(t))
+                .catch((err: unknown) => {
+                    if (isDevMode()) {
+                        console.error(`ef-localized-input "${untracked(this.name)}": could not load the rich text editor; showing the html source instead.`, err);
+                    }
+                    this.richFailed.set(true);
+                });
         });
         // One editor per active culture: the @for recreates the host on a
         // culture switch, and the editor is created in it with live bindings.
