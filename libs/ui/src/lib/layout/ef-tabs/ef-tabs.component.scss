@@ -102,12 +102,13 @@
   flex-shrink: 0;
 }
 
-/* A short note after the label ("missing"): quieter than the label, and
-   still read with it because it sits inside the button. */
+/* A short note after the label ("missing"): quieter than the label through
+   size and weight only, since the idle tab is already --text-mute and any
+   fade would take it below 4.5:1. Read with the label because it sits
+   inside the button. */
 .ef-tabs__note {
   font-size: 11px;
   font-weight: 500;
-  opacity: 0.8;
 }
 
 /* ──────────── Pill variant (default) ──────────── */

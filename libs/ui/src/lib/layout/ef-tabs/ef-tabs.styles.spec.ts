@@ -6,7 +6,8 @@ import { resolve } from 'node:path';
 /**
  * Read from the compiled stylesheet: jsdom evaluates no :focus-visible and
  * computes no contrast. The keyboard focus ring must survive the danger
- * tone (WCAG 2.4.7).
+ * tone (WCAG 2.4.7), and the tab note must not be faded below the muted
+ * text colour (WCAG 1.4.3).
  */
 const root = postcss.parse(compile(resolve(__dirname, 'ef-tabs.component.scss')).css);
 
@@ -35,4 +36,8 @@ describe('ef-tabs styles', () => {
         expect(focus).toBeGreaterThan(danger);
     });
 
+    it('does not fade the tab note', () => {
+        expect(decl('.ef-tabs__note', 'font-size')).toBe('11px');
+        expect(decl('.ef-tabs__note', 'opacity')).toBeUndefined();
+    });
 });
