@@ -91,7 +91,10 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   tab, show as a hint naming the languages in error; a new set of errors
  *   moves to the first of them. `<name>` errors, or an explicit `[errors]`,
  *   show under the field on every tab, as do errors for a language the field
- *   does not list (`title.xx`). Messages are translated as keys. Keys: `ef_localized_input_errors_in_other`.
+ *   does not list (`title.xx`), prefixed with that language's name (or its
+ *   code) through `ef_localized_input_error_in_culture`. Messages are
+ *   translated as keys. Keys: `ef_localized_input_errors_in_other`,
+ *   `ef_localized_input_error_in_culture`.
  * - **Counter.** With `advisedLength` it reads as advice through
  *   `ef_localized_input_counter_advised` (`{{count}}`, `{{max}}`), so 5123 of
  *   5000 does not look like a cap; with `maxLength` alone it stays `n / max`.
@@ -287,9 +290,15 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /** The active culture's code: unlike active(), equal when an equal culture list arrives. */
     private readonly activeCode = computed(() => this.active()?.code);
 
-    /** Server messages for the whole field (`title`). */
+    /** Server messages for the whole field (`title`), and those of unlisted
+     *  cultures, translated here (never through the pipe a second time). */
     protected readonly fieldErrors = computed(() => {
-        const messages = [...(resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()) ?? []), ...this.unlistedErrors()];
+        this.textsVersion();
+        const t = (key: string) => this.translateService.instant(key);
+        const messages = [
+            ...(resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()) ?? []).map(t),
+            ...this.unlistedErrors(),
+        ];
         return messages.length ? messages : null;
     });
 
@@ -304,10 +313,21 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         return out;
     });
 
-    /** Messages for a language this field does not list (`title.xx`): shown with the whole field, never dropped. */
+    /** Messages for a language this field does not list (`title.xx`): shown
+     *  with the whole field, never dropped, prefixed with the culture
+     *  (`xx : message`) since no tab says which language they concern. */
     private readonly unlistedErrors = computed(() => {
+        this.textsVersion();
+        const t = this.translateService;
         const listed = new Set(this.list().map(c => c.code));
-        return Object.entries(this.allCultureErrors()).flatMap(([code, messages]) => (listed.has(code) ? [] : messages));
+        return Object.entries(this.allCultureErrors()).flatMap(([code, messages]) => {
+            if (listed.has(code)) return [];
+            // The culture's name when the bundle has one, else its code.
+            const nameKey = `ef_localized_input_culture_${code}`;
+            const name = t.instant(nameKey);
+            const culture = name && name !== nameKey ? name : code;
+            return messages.map(m => t.instant('ef_localized_input_error_in_culture', { culture, message: t.instant(m) }));
+        });
     });
 
     /** Bumps when texts change, so translated messages follow the language. */

@@ -130,7 +130,7 @@
     @if (fieldErrors(); as messages) {
         <div class="eli-errors" data-field-errors role="alert" aria-live="polite">
             @for (message of messages; track message) {
-                <small class="text-danger block">{{ message | translate }}</small>
+                <small class="text-danger block">{{ message }}</small>
             }
         </div>
     }
