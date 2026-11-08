@@ -606,7 +606,13 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
      * or was just recreated by a culture switch; then emits the whole object
      * once, as typing would. Returns false, and changes nothing, when the
      * field is disabled, the culture is read-only, the result would pass
-     * `maxLength`, or the field is the rich editor (which has no insert yet).
+     * `maxLength`, there is no active field (no culture listed), or the
+     * field is the rich editor (which has no insert yet). The field says
+     * nothing itself on a refusal, so the caller should tell the user (a
+     * toast such as "the variable would pass the length limit"); otherwise
+     * a click on a variable silently does nothing.
+     *
+     * On a phone, the focus that follows the insert opens the keyboard.
      *
      * A caller tracking "the field last focused" should ignore focus on the
      * culture tabs (`[role="tab"]`): picking a language is not choosing where
