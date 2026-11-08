@@ -117,7 +117,7 @@
         }
     }
 
-    @if (effectiveMode() === 'html' && activeText().trim()) {
+    @if (effectiveMode() === 'html' && preview() && activeText().trim()) {
         @if (active(); as c) {
             <!-- Angular's default [innerHTML] sanitising strips scripts and handlers. -->
             <div class="eli-preview" data-preview [attr.dir]="c.dir" [attr.lang]="c.code" [innerHTML]="activeText()"></div>

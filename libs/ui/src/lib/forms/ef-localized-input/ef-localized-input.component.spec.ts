@@ -168,6 +168,12 @@ describe('EfLocalizedInputComponent', () => {
         expect(preview.textContent).toContain('ok');
     });
 
+    it('shows no html preview with preview off', () => {
+        const { host } = render({ mode: 'html', preview: false, value: { fr: '<p>ok</p>' } });
+        expect(host.querySelector('[data-preview]')).toBeNull();
+        expect(host.querySelector('textarea')).not.toBeNull();
+    });
+
     it('emits the whole cleaned object on edit', () => {
         const { select, type, emitted } = render({ value: { fr: 'Eau', ar: 'ماء', en: 'Water' } });
         select('ar');

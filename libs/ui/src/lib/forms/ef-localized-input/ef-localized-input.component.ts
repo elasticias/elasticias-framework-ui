@@ -197,6 +197,10 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
      * in error. Its tones, dots and badges are not drawn anywhere.
      */
     readonly showTabs = input(true, { transform: booleanAttribute });
+    /** `html` mode only: the sanitised preview under the source. Off when
+     *  the screen renders its own preview (an email rendered by the server,
+     *  with its tokens filled in). */
+    readonly preview = input(true, { transform: booleanAttribute });
 
     /** The whole new object, trimmed, with blank cultures removed. */
     readonly valueChangeEvent = output<LocalizedText>();
