@@ -15,6 +15,7 @@
           [id]="effectiveId"
           [attr.name]="name() || null"
           [attr.dir]="dir || null"
+          [attr.lang]="lang || null"
           [type]="type"
           [value]="value"
           (input)="handleInput($any($event.target).value)"
@@ -49,6 +50,7 @@
           [id]="effectiveId"
           [attr.name]="name() || null"
           [attr.dir]="dir || null"
+          [attr.lang]="lang || null"
           [type]="type"
           [value]="value"
           (input)="handleInput($any($event.target).value)"
@@ -78,7 +80,8 @@
     <input
       [id]="effectiveId"
       [attr.name]="name() || null"
-          [attr.dir]="dir || null"
+      [attr.dir]="dir || null"
+      [attr.lang]="lang || null"
       [type]="type"
       pInputText
       [pSize]="size"

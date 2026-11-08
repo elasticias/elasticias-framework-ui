@@ -1,0 +1,52 @@
+@if (labelKey() || label()) {
+    <!-- A contenteditable area cannot be the target of label[for], so the
+         editing area points at this wrapper with aria-labelledby. -->
+    <span class="ef-rich-text__label" [id]="labelId">
+        <ef-label [labelKey]="labelKey()" [labelParams]="labelParams()" [label]="label()" [required]="required()" />
+    </span>
+}
+<div class="ef-field-control">
+    <div #box class="ef-rich-text__box" [class.is-invalid]="isInvalid" [class.is-locked]="locked()">
+        <p-editor
+            [bounds]="box"
+            [formats]="formats"
+            [modules]="modules"
+            [readonly]="locked()"
+            [placeholder]="effectivePlaceholder"
+            (onInit)="onInit($event)"
+            (onTextChange)="onTextChange()"
+            (onBlur)="handleBlur()"
+        >
+            <ng-template #header>
+                <span class="ql-formats" role="group" [attr.aria-label]="'ef_rich_text_toolbar' | translate">
+                    <button type="button" class="ql-bold" [disabled]="locked()" [attr.aria-label]="'ef_rich_text_bold' | translate" [title]="'ef_rich_text_bold' | translate"></button>
+                    <button type="button" class="ql-italic" [disabled]="locked()" [attr.aria-label]="'ef_rich_text_italic' | translate" [title]="'ef_rich_text_italic' | translate"></button>
+                    <button type="button" class="ql-underline" [disabled]="locked()" [attr.aria-label]="'ef_rich_text_underline' | translate" [title]="'ef_rich_text_underline' | translate"></button>
+                </span>
+                <span class="ql-formats">
+                    <button type="button" class="ql-list" value="bullet" [disabled]="locked()" [attr.aria-label]="'ef_rich_text_bullet_list' | translate" [title]="'ef_rich_text_bullet_list' | translate"></button>
+                    <button type="button" class="ql-list" value="ordered" [disabled]="locked()" [attr.aria-label]="'ef_rich_text_ordered_list' | translate" [title]="'ef_rich_text_ordered_list' | translate"></button>
+                </span>
+                <span class="ql-formats">
+                    <button type="button" class="ql-link" [disabled]="locked()" [attr.aria-label]="'ef_rich_text_link' | translate" [title]="'ef_rich_text_link' | translate"></button>
+                    <button type="button" class="ql-clean" [disabled]="locked()" [attr.aria-label]="'ef_rich_text_clean' | translate" [title]="'ef_rich_text_clean' | translate"></button>
+                </span>
+            </ng-template>
+        </p-editor>
+    </div>
+    @if (effectiveHint) {
+        <small class="ef-field-hint" [id]="hintId">{{ effectiveHint }}</small>
+    }
+    @if (showRequired || serverErrors) {
+        <div [id]="errorsId" role="alert" aria-live="polite">
+            @if (showRequired) {
+                <small class="text-danger">{{ 'validation.required' | translate }}</small>
+            }
+            @if (serverErrors; as errors) {
+                @for (error of errors; track error) {
+                    <small class="text-danger block">{{ error }}</small>
+                }
+            }
+        </div>
+    }
+</div>

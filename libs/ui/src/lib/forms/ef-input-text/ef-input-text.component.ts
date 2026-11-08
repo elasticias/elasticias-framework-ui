@@ -23,6 +23,8 @@ import { insertAtSelection, placeCaret } from '../insert-at-cursor';
   templateUrl: './ef-input-text.component.html',
   styleUrls: ['./ef-input-text.component.scss'],
   imports: [InputTextModule, FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
+  // A static lang="ar" belongs to the field only, not to the label and hint around it.
+  host: { '[attr.lang]': 'null' },
 })
 export class EfInputTextComponent
   extends AbstractEfFormControl
@@ -43,6 +45,11 @@ export class EfInputTextComponent
    *  follow the value's first strong character. The label and messages keep
    *  the page direction. Null or absent leaves the input unchanged. */
   @Input() dir: 'ltr' | 'rtl' | 'auto' | null = null;
+
+  /** Language of the typed value (`'ar'` for an Arabic title on a French
+   *  screen), applied to the native input only: the label and hint are page
+   *  text and keep the page language. Null or absent renders no attribute. */
+  @Input() lang: string | null = null;
 
   /** Clearable (showClear / canClear) is inherited from AbstractEfFormControl;
    *  we only supply the value predicate + the reset. */

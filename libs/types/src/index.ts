@@ -4,3 +4,4 @@ export * from './lib/store';
 export * from './lib/identity';
 export * from './lib/common';
 export * from './lib/email-tracking';
+export * from './lib/localized-text';

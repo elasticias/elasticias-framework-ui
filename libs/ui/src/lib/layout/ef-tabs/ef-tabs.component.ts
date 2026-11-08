@@ -11,6 +11,7 @@ import {
     QueryList,
     TemplateRef,
     ViewChildren,
+    inject,
     signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -45,6 +46,16 @@ export interface EfTabItem<T = string> {
     count?: number;
     /** Show a dirty/unread dot after the label/count. */
     dirty?: boolean;
+    /** Translation key of a short note after the label (`'missing'`). It is
+     *  part of the tab's accessible name, so it says what the dot cannot. */
+    noteKey?: string;
+    /** `'danger'` draws the tab in the error status colour: a required panel
+     *  left empty, or a panel holding server errors. */
+    tone?: 'danger';
+    /** DOM id of the tab, for a panel's `aria-labelledby`. */
+    id?: string;
+    /** DOM id of the panel the consumer renders for this tab (`aria-controls`). */
+    panelId?: string;
     disabled?: boolean;
 }
 
@@ -136,6 +147,8 @@ export class EfTabsComponent<T = string> implements AfterContentInit {
 
     @Output() readonly valueChange = new EventEmitter<T>();
 
+    private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
     @ViewChildren('tabEl') private tabEls?: QueryList<ElementRef<HTMLButtonElement>>;
 
     /* ── Content children (optional projected panels) ────────────── */
@@ -205,6 +218,14 @@ export class EfTabsComponent<T = string> implements AfterContentInit {
                 return;
         }
 
+        // In a right-to-left tablist the next tab sits to the left, so the
+        // arrows swap (WAI-ARIA tabs pattern); Home and End keep their meaning.
+        if ((event.key === 'ArrowRight' || event.key === 'ArrowLeft') && this.isRtl(event.currentTarget)) {
+            nextPos = event.key === 'ArrowRight'
+                ? enabledPositions[(here - 1 + enabledPositions.length) % enabledPositions.length]
+                : enabledPositions[(here + 1) % enabledPositions.length];
+        }
+
         event.preventDefault();
         const target = all[nextPos];
         this.select(target);
@@ -212,6 +233,14 @@ export class EfTabsComponent<T = string> implements AfterContentInit {
         // activation" pattern, mirrored from the prototype.
         const el = this.tabEls?.toArray()[nextPos]?.nativeElement;
         el?.focus();
+    }
+
+    private isRtl(target: EventTarget | null): boolean {
+        const el = target instanceof HTMLElement ? target : this.host.nativeElement;
+        if (getComputedStyle(el).direction === 'rtl') return true;
+        // Only reached in jsdom, which does not inherit `direction`; a browser
+        // answers above.
+        return el.closest('[dir]')?.getAttribute('dir') === 'rtl';
     }
 
     trackValue(_: number, item: EfTabItem<T>): T {

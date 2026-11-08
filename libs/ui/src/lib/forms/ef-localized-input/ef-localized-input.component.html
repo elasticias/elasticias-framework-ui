@@ -1,0 +1,137 @@
+<div class="eli-head">
+    @if (labelKey()) {
+        <span class="eli-label" [id]="labelId">
+            <ef-label [labelKey]="labelKey()" [for]="controlId(active()?.code ?? '')" [required]="required()" />
+        </span>
+    }
+    <div class="eli-tabs">
+        <ef-tabs
+            variant="pill"
+            [items]="tabItems()"
+            [value]="active()?.code ?? null"
+            [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
+            (valueChange)="select($event)"
+        />
+    </div>
+</div>
+
+<div class="eli-panel" role="tabpanel" [id]="panelId" [attr.aria-labelledby]="tabId(active()?.code ?? '')">
+    @for (c of active() ? [active()!] : []; track c.code) {
+        @switch (effectiveMode()) {
+            @case ('text') {
+                <ef-input-text
+                    [variant]="variant() === 'comptoir' ? 'comptoir' : 'primeng'"
+                    [inputId]="controlId(c.code)"
+                    [name]="name() + '.' + c.code"
+                    [dir]="c.dir"
+                    [lang]="c.code"
+                    [value]="activeText()"
+                    [maxlength]="maxLength()"
+                    [required]="required() && c.code === defaultCode()"
+                    [errors]="activeErrors()"
+                    [disabled]="isDisabled()"
+                    [readonly]="activeReadOnly()"
+                    [placeholderKey]="placeholderKey()"
+                    [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
+                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    (valueChangeEvent)="setText(c.code, $event)"
+                />
+            }
+            @case ('textarea') {
+                <ef-textarea
+                    [inputId]="controlId(c.code)"
+                    [name]="name() + '.' + c.code"
+                    [dir]="c.dir"
+                    [lang]="c.code"
+                    [rows]="rows()"
+                    [value]="activeText()"
+                    [maxlength]="maxLength()"
+                    [required]="required() && c.code === defaultCode()"
+                    [errors]="activeErrors()"
+                    [disabled]="isDisabled()"
+                    [readonly]="activeReadOnly()"
+                    [placeholderKey]="placeholderKey()"
+                    [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
+                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    (valueChangeEvent)="setText(c.code, $event)"
+                />
+            }
+            @case ('rich') {
+                <!-- ef-rich-text, created from EF_RICH_TEXT (see createRich). -->
+                <ng-container #richHost />
+            }
+            @case ('html') {
+                <!-- The source stays ltr for every culture: raw HTML in an rtl
+                     textarea reads reversed (ADR-036). The preview takes the
+                     culture's direction. -->
+                <ef-textarea
+                    mono
+                    dir="ltr"
+                    [inputId]="controlId(c.code)"
+                    [name]="name() + '.' + c.code"
+                    [lang]="c.code"
+                    [rows]="rows()"
+                    [value]="activeText()"
+                    [maxlength]="maxLength()"
+                    [required]="required() && c.code === defaultCode()"
+                    [errors]="activeErrors()"
+                    [disabled]="isDisabled()"
+                    [readonly]="activeReadOnly()"
+                    [placeholderKey]="placeholderKey()"
+                    [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
+                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    (valueChangeEvent)="setText(c.code, $event)"
+                />
+            }
+        }
+    }
+
+    @if (counterLimit(); as limit) {
+        <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeLength() > limit">
+            <bdi dir="ltr">{{ activeLength() }} / {{ limit }}</bdi>
+            @if (counterHintKey()) {
+                <span class="eli-counter__sr">{{ counterHintKey() | translate: { max: limit } }}</span>
+            }
+        </span>
+        @if (counterOverKey()) {
+            <!-- Always present, so a screen reader hears the text appear. -->
+            <span class="eli-counter__sr" data-over-message aria-live="polite">
+                @if (activeLength() > limit) {
+                    {{ counterOverKey() | translate: { max: limit } }}
+                }
+            </span>
+        }
+    }
+
+    @if (effectiveMode() === 'html' && activeText().trim()) {
+        @if (active(); as c) {
+            <!-- Angular's default [innerHTML] sanitising strips scripts and handlers. -->
+            <div class="eli-preview" data-preview [attr.dir]="c.dir" [attr.lang]="c.code" [innerHTML]="activeText()"></div>
+        }
+    }
+
+    @if (fieldErrors(); as messages) {
+        <div class="eli-errors" data-field-errors role="alert" aria-live="polite">
+            @for (message of messages; track message) {
+                <small class="text-danger block">{{ message | translate }}</small>
+            }
+        </div>
+    }
+
+    @if (errorsElsewhere(); as others) {
+        @if (others.length) {
+            <small class="eli-elsewhere text-danger block" data-errors-elsewhere role="status">
+                {{ 'ef_localized_input_errors_in_other' | translate }}
+                @for (c of others; track c.code; let last = $last) {
+                    {{ c.labelKey | translate }}{{ last ? '' : ',' }}
+                }
+            </small>
+        }
+    }
+
+    @if (activeReadOnly()) {
+        <div class="eli-link">
+            <ng-content select="[read-only-link]" />
+        </div>
+    }
+</div>

@@ -1,0 +1,253 @@
+@use 'sass:string';
+
+/* ef-rich-text. Unencapsulated (Quill renders its own DOM), so every
+   selector starts with ef-rich-text. Colours are Comptoir tokens, which flip
+   with the theme; Quill's snow theme hardcodes #444 icons and #ccc borders.
+   Keep this file ASCII: a non-ASCII character makes Sass emit @charset and
+   jsdom then drops the rule after it. */
+
+ef-rich-text {
+  display: block;
+  min-width: 0;
+}
+
+/* A static dir on the element also sets the host attribute, which would
+   flip the label and the toolbar. They keep the page's direction; the
+   editing area carries the text's own dir. */
+ef-rich-text[dir] {
+  direction: inherit;
+}
+
+ef-rich-text .ef-rich-text__label {
+  display: block;
+}
+
+ef-rich-text .ef-rich-text__box {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  /* No overflow here: Quill draws the link bubble inside the editing area,
+     and a clipping box cut it off. The corners are rounded on the children,
+     and [bounds] keeps the bubble inside the box (also in RTL). */
+}
+
+ef-rich-text .ef-rich-text__box:focus-within {
+  border-color: var(--ink-active);
+}
+
+ef-rich-text .ef-rich-text__box.is-invalid {
+  border-color: var(--st-cancelled-fg);
+}
+
+ef-rich-text .ef-rich-text__box.is-locked {
+  background: var(--paper-alt);
+}
+
+ef-rich-text .p-editor,
+ef-rich-text .p-editor .p-editor-toolbar,
+ef-rich-text .p-editor .p-editor-content {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Toolbar: wraps on a narrow screen instead of widening the page. */
+ef-rich-text .ql-toolbar.ql-snow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--s-2);
+  padding: 4px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-alt);
+  font-family: inherit;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+}
+
+ef-rich-text .ql-snow .ql-formats {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+}
+
+ef-rich-text .ql-snow.ql-toolbar button {
+  float: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--hit, 32px);
+  height: var(--hit, 32px);
+  padding: 7px;
+  border-radius: var(--r-sm);
+  color: var(--text-mute);
+}
+
+ef-rich-text .ql-snow .ql-stroke {
+  stroke: currentColor;
+}
+
+ef-rich-text .ql-snow .ql-fill,
+ef-rich-text .ql-snow .ql-stroke.ql-fill {
+  fill: currentColor;
+}
+
+ef-rich-text .ql-snow.ql-toolbar button:hover:not([disabled]),
+ef-rich-text .ql-snow.ql-toolbar button:focus-visible,
+ef-rich-text .ql-snow.ql-toolbar button.ql-active {
+  color: var(--text);
+  background: var(--paper);
+}
+
+ef-rich-text .ql-snow.ql-toolbar button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink-active, #0f1115) 40%, transparent);
+}
+
+ef-rich-text .ql-snow.ql-toolbar button[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Editing area */
+ef-rich-text .ql-container.ql-snow {
+  border: 0;
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+ef-rich-text .ql-editor {
+  min-height: calc(var(--ef-rich-text-rows, 4) * 1.55em + 24px);
+  line-height: 1.55;
+  /* PrimeNG and Quill set a physical left, which kept Arabic flush left. */
+  text-align: start;
+}
+
+/* PrimeNG paints the area in its own colours through
+   .p-editor .p-editor-content .ql-editor; the page's text and ground flip
+   with the theme like every other ef-* field. */
+ef-rich-text .p-editor .p-editor-content .ql-editor {
+  color: var(--text);
+  background: transparent;
+}
+
+ef-rich-text .ql-editor.ql-blank::before {
+  color: var(--text-mute);
+  font-style: normal;
+}
+
+ef-rich-text .ql-snow .ql-editor a {
+  color: inherit;
+}
+
+/* Lists. Quill 2 renders every list as <ol><li data-list="bullet|ordered">
+   with a .ql-ui marker span, but PrimeNG's editor style is written for
+   Quill 1 and numbers every ol li, so a bulleted list showed numbers. Its
+   markers are switched off and Quill 2's are drawn here, with logical
+   properties so they sit on the right in Arabic. The bullet is written
+   through string.unquote so Sass keeps the escape and the compiled CSS
+   stays ASCII (a literal bullet makes Sass emit @charset). */
+ef-rich-text .ql-editor {
+  counter-reset: list-0;
+}
+
+ef-rich-text .ql-editor p {
+  counter-set: list-0;
+}
+
+ef-rich-text .ql-editor ol {
+  margin: 0;
+  padding-inline-start: 0;
+}
+
+ef-rich-text .ql-editor li[data-list] {
+  position: relative;
+  list-style-type: none;
+  padding-inline-start: 1.5em;
+  /* Quill's physical padding-left would add a second 1.5em on the end side in RTL. */
+  padding-inline-end: 0;
+}
+
+ef-rich-text .ql-editor li[data-list]::before {
+  content: none;
+}
+
+ef-rich-text .ql-editor li[data-list] > .ql-ui {
+  position: absolute;
+}
+
+ef-rich-text .ql-editor li[data-list] > .ql-ui::before {
+  display: inline-block;
+  width: 1.2em;
+  margin-inline-start: -1.5em;
+  margin-inline-end: 0.3em;
+  text-align: end;
+  white-space: nowrap;
+}
+
+ef-rich-text .ql-editor li[data-list=bullet] {
+  counter-increment: none;
+}
+
+ef-rich-text .ql-editor li[data-list=bullet] > .ql-ui::before {
+  content: string.unquote('"\\2022"');
+}
+
+ef-rich-text .ql-editor li[data-list=ordered] {
+  counter-increment: list-0;
+}
+
+ef-rich-text .ql-editor li[data-list=ordered] > .ql-ui::before {
+  content: counter(list-0, decimal) '. ';
+}
+
+/* Link bubble: themed, and its texts come from translated data attributes
+   instead of Quill's hardcoded English. */
+ef-rich-text .ql-snow .ql-tooltip {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--ink-active, #0f1115) 14%, transparent);
+  color: var(--text);
+  max-width: calc(100% - 16px);
+}
+
+ef-rich-text .ql-snow .ql-tooltip input[type='text'] {
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  color: var(--text);
+}
+
+ef-rich-text .ql-snow .ql-tooltip::before {
+  content: attr(data-ef-visit);
+}
+
+ef-rich-text .ql-snow .ql-tooltip[data-mode='link']::before {
+  content: attr(data-ef-enter);
+}
+
+ef-rich-text .ql-snow .ql-tooltip a.ql-action::after {
+  content: attr(data-ef-edit);
+  border-color: var(--rule);
+}
+
+ef-rich-text .ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+  content: attr(data-ef-save);
+}
+
+ef-rich-text .ql-snow .ql-tooltip a.ql-remove::before {
+  content: attr(data-ef-remove);
+}
+
+/* Touch tier: toolbar buttons are tap targets on a phone or a coarse
+   pointer. Last in the file, because a media query adds no specificity. */
+@media (max-width: 767px), (pointer: coarse) {
+  ef-rich-text .ql-snow.ql-toolbar button {
+    width: var(--hit-touch);
+    height: var(--hit-touch);
+    padding: 12px;
+  }
+}

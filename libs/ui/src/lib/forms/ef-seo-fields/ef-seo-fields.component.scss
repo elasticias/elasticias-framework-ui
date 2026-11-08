@@ -1,6 +1,4 @@
 :host {
-    /* Contains the absolutely positioned .seo-counter__sr text. */
-    position: relative;
     display: block;
     min-width: 0;
 }
@@ -15,28 +13,4 @@
 .seo-note {
     margin: 0;
     font-size: 12px;
-}
-
-.seo-counter {
-    margin-top: calc(-1 * var(--s-2));
-    font-size: 12px;
-    color: var(--text-mute);
-    text-align: end;
-    font-variant-numeric: tabular-nums;
-    overflow-wrap: anywhere;
-
-    &.is-over {
-        color: var(--st-pending-fg);
-        font-weight: 600;
-    }
-}
-
-/* Read by assistive tech through aria-describedby, not drawn. */
-.seo-counter__sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
 }

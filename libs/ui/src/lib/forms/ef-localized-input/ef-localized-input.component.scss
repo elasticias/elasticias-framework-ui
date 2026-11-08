@@ -1,0 +1,94 @@
+/* ef-localized-input: a label and a row of culture tabs, then the active
+   culture's field. Keep this file ASCII: a non-ASCII character makes Sass
+   emit @charset and jsdom then drops the rule after it. */
+
+:host {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+/* Label at the start, tabs at the end; they wrap onto two lines when the
+   row is too narrow for both. */
+.eli-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.eli-label {
+  min-width: 0;
+}
+
+/* The tab row scrolls inside itself rather than widening the page. */
+.eli-tabs {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.eli-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.eli-counter {
+  /* Positioned so the clipped screen-reader text below sizes to the counter,
+     not the page. */
+  position: relative;
+  font-size: 12px;
+  color: var(--text-mute);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+
+  &.is-over {
+    color: var(--st-pending-fg);
+    font-weight: 600;
+  }
+}
+
+/* Read by assistive tech, not drawn. */
+.eli-counter__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The rendered HTML, in the culture's direction. Wide content (a table, a
+   long URL) scrolls inside the box. */
+.eli-preview {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  padding: var(--s-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: var(--paper-alt);
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.eli-link {
+  font-size: 12px;
+}
+
+/* Phone: the tabs become touch targets and take the full row. Last in the
+   file, because a media query adds no specificity. ef-tabs sizes its pills
+   from --hit, which crosses the component boundary. */
+@media (max-width: 767px) {
+  .eli-tabs {
+    --hit: var(--hit-touch);
+    flex: 1 1 100%;
+  }
+}

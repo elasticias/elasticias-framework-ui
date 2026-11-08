@@ -4,6 +4,9 @@ import { EfReadOnlyDirective } from './ef-read-only.directive';
 import { EfServerErrorsDirective, resolveExternalErrors } from './ef-server-errors.directive';
 
 /**
+ * Exported for `@elasticias/ui/rich-text` only, not a supported extension
+ * point: it may change without a major version.
+ *
  * Shared base for every Comptoir form control (`ef-input-text`,
  * `ef-textarea`, `ef-select`, `ef-input-number`, `ef-checkbox`, …).
  *

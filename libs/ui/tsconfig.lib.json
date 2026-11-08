@@ -7,9 +7,10 @@
     "inlineSources": true,
     "types": []
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "rich-text/**/*.ts"],
   "exclude": [
     "src/**/*.spec.ts",
+    "rich-text/**/*.spec.ts",
     "src/**/*.test.ts",
     "vite.config.ts",
     "vite.config.mts",

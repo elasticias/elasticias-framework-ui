@@ -102,6 +102,15 @@
   flex-shrink: 0;
 }
 
+/* A short note after the label ("missing"): quieter than the label through
+   size and weight only, since the idle tab is already --text-mute and any
+   fade would take it below 4.5:1. Read with the label because it sits
+   inside the button. */
+.ef-tabs__note {
+  font-size: 11px;
+  font-weight: 500;
+}
+
 /* ──────────── Pill variant (default) ──────────── */
 :host(.ef-tabs--pill) .ef-tabs__list {
   background: var(--paper-alt);
@@ -180,6 +189,33 @@
 
 :host(.ef-tabs--underline) .ef-tabs__tab.is-active .ef-tabs__dot {
   background: var(--module, var(--tenant-500));
+}
+
+/* Danger tone: a required panel left empty or a panel in error. The status
+   token flips with the theme. On the active pill the ink background stays
+   (selection), and an inset ring in the same token keeps the error visible. */
+.ef-tabs__tab.is-danger,
+:host(.ef-tabs--pill) .ef-tabs__tab.is-danger:hover:not(.is-active):not(.is-disabled),
+:host(.ef-tabs--underline) .ef-tabs__tab.is-danger:hover:not(.is-active):not(.is-disabled) {
+  color: var(--st-cancelled-fg);
+}
+
+:host(.ef-tabs--pill) .ef-tabs__tab.is-danger.is-active {
+  color: var(--paper);
+  box-shadow: inset 0 0 0 2px var(--st-cancelled-fg);
+}
+
+:host(.ef-tabs--underline) .ef-tabs__tab.is-danger.is-active {
+  color: var(--st-cancelled-fg);
+  border-bottom-color: var(--st-cancelled-fg);
+}
+
+/* The danger ring replaces the pill's focus shadow, and the active tab is
+   the one keyboard focus lands on, so both rings are composed here. */
+:host(.ef-tabs--pill) .ef-tabs__tab.is-danger.is-active:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--st-cancelled-fg),
+    0 0 0 2px color-mix(in srgb, var(--ink-active, #0f1115) 40%, transparent);
 }
 
 /* Module accent overrides — applied when the host carries

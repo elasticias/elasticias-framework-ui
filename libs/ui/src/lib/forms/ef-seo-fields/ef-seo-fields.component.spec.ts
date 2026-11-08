@@ -1,10 +1,11 @@
-import { TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { EF_DEFAULT_CONTENT_CULTURES } from '@elasticias/core';
 import { EfServerErrorsDirective } from '../ef-server-errors.directive';
-import { EfSeoFieldsComponent, EfSeoPatch } from './ef-seo-fields.component';
+import { EF_SEO_DEFAULT_LOCALES, EfSeoFieldsComponent, EfSeoPatch } from './ef-seo-fields.component';
 
-/** The SEO texts per language, shared by every entity the shop shows. */
+/** The SEO texts in every content language, each edited as one whole object. */
 describe('EfSeoFieldsComponent', () => {
     function render(inputs: Record<string, unknown> = {}) {
         TestBed.configureTestingModule({ imports: [EfSeoFieldsComponent, TranslateModule.forRoot()] });
@@ -21,100 +22,128 @@ describe('EfSeoFieldsComponent', () => {
             el.dispatchEvent(new Event('input', { bubbles: true }));
             fixture.detectChanges();
         };
-        return { fixture, host, field, type, patches };
+        const select = (name: string, code: string) => {
+            host.querySelector<HTMLElement>(`ef-localized-input[name="${name}"] [role="tab"][id$="-tab-${code}"]`)!.click();
+            fixture.detectChanges();
+        };
+        const counter = (name: string) => host.querySelector<HTMLElement>(`ef-localized-input[name="${name}"] [data-counter]`)!;
+        return { fixture, host, field, type, select, counter, patches };
     }
 
-    it('emits a French title as the scalar', () => {
-        const { type, patches } = render();
-        type('seoTitle', 'Escada');
-        expect(patches.at(-1)).toEqual({ seoTitle: 'Escada' });
+    it('emits seoTitle as a whole object', () => {
+        const { type, patches } = render({ seoTitle: { fr: 'Escada', en: 'Escada EN' } });
+        type('seoTitle.fr', 'Escada Sport');
+        expect(patches.at(-1)).toEqual({ seoTitle: { fr: 'Escada Sport', en: 'Escada EN' } });
     });
 
-    it('removes a cleared Arabic translation', () => {
-        const { type, patches } = render({ seoTitleTranslations: { ar: 'عطور', en: 'Perfumes' } });
-        type('seoTitleAr', '');
-        expect(patches.at(-1)).toEqual({ seoTitleTranslations: { en: 'Perfumes' } });
+    it('emits seoDescription as a whole object and removes a cleared language', () => {
+        const { type, select, patches } = render({ seoDescription: { fr: 'Parfums', ar: 'عطور' } });
+        select('seoDescription', 'ar');
+        type('seoDescription.ar', '');
+        expect(patches.at(-1)).toEqual({ seoDescription: { fr: 'Parfums' } });
+        expect(Object.keys(patches.at(-1)!)).toEqual(['seoDescription']);
     });
 
-    it('adds an English description to the dictionary', () => {
-        const { type, patches } = render({ seoDescriptionTranslations: { ar: 'وصف' } });
-        type('seoDescriptionEn', 'Fine perfumes');
-        expect(patches.at(-1)).toEqual({ seoDescriptionTranslations: { ar: 'وصف', en: 'Fine perfumes' } });
-    });
-
-    it('counter warns past the advised length', () => {
-        const { host } = render({ seoTitle: 'a'.repeat(61), seoDescription: 'b'.repeat(160) });
-        const title = host.querySelector('[data-counter="fr-title"]')!;
-        const description = host.querySelector('[data-counter="fr-description"]')!;
-        expect(title.querySelector('bdi')?.textContent?.trim()).toBe('61 / 60');
-        expect(title.classList).toContain('is-over');
-        expect(description.classList).not.toContain('is-over');
-    });
-
-    it('colours an over-limit counter with the warning token, not the default', () => {
-        const { host } = render({ seoTitle: 'a'.repeat(61), seoDescription: 'b' });
-        const over = host.querySelector<HTMLElement>('[data-counter="fr-title"]')!;
-        const ok = host.querySelector<HTMLElement>('[data-counter="fr-description"]')!;
-        expect(getComputedStyle(over).color).toBe('var(--st-pending-fg)');
-        expect(getComputedStyle(ok).color).not.toBe('var(--st-pending-fg)');
-    });
-
-    it('links each counter to its field and says the limit as text', () => {
-        const { host, field } = render({ seoTitle: 'a'.repeat(61) });
-        const counter = host.querySelector<HTMLElement>('[data-counter="fr-title"]')!;
-        expect(counter.id).toBeTruthy();
-        expect(field('seoTitle').getAttribute('aria-describedby')).toContain(counter.id);
-        expect(counter.querySelector('.seo-counter__sr')?.textContent).toContain('ef_seo_fields_counter_hint');
-        expect(counter.querySelector('.seo-counter__sr')?.textContent).toContain('ef_seo_fields_over_hint');
-        const ok = host.querySelector<HTMLElement>('[data-counter="fr-description"]')!;
-        expect(ok.querySelector('.seo-counter__sr')?.textContent).not.toContain('ef_seo_fields_over_hint');
-    });
-
-    it('keeps the counter digits left to right in an RTL page', () => {
-        const { host } = render({ seoTitle: 'a'.repeat(74) });
-        const bdi = host.querySelector('[data-counter="fr-title"] bdi')!;
-        expect(bdi.getAttribute('dir')).toBe('ltr');
-        expect(bdi.textContent?.trim()).toBe('74 / 60');
-    });
-
-    it('names the French controls for server errors', () => {
-        const { field } = render();
-        expect(field('seoTitle')).toBeTruthy();
-        expect(field('seoDescription')).toBeTruthy();
-        expect(field('seoTitleAr')).toBeTruthy();
-        expect(field('seoDescriptionEn')).toBeTruthy();
-    });
-
-    it('renders rtl for Arabic', () => {
-        const { host } = render();
-        expect(host.querySelector('[name="seoTitleAr"]')!.closest('[dir]')?.getAttribute('dir')).toBe('rtl');
-        expect(host.querySelector('[name="seoTitleEn"]')!.closest('[dir]')?.getAttribute('dir')).toBe('ltr');
-    });
-
-    it('caps the fields at the server limits', () => {
-        const { field } = render();
-        expect(field('seoTitle').getAttribute('maxlength')).toBe('256');
-        expect(field('seoDescription').getAttribute('maxlength')).toBe('512');
-    });
-
-    it('previews the fallback when the French texts are empty', () => {
-        const { host } = render({ fallbackTitle: 'Escada', fallbackDescription: 'Parfums', previewUrl: 'shop.test/c/escada' });
-        expect(host.querySelector('[data-role="preview-title"]')?.textContent?.trim()).toBe('Escada');
-        expect(host.querySelector('[data-role="preview-url"]')?.textContent?.trim()).toBe('shop.test/c/escada');
-    });
-
-    it('links server errors on the French control by name', () => {
+    it('links seoDescription.en server error inline', () => {
         @Component({
             standalone: true,
             imports: [EfSeoFieldsComponent, EfServerErrorsDirective],
             template: `<div [efServerErrors]="errors"><ef-seo-fields /></div>`,
         })
         class Host {
-            errors = { seoTitle: ['too long'] };
+            errors = { 'seoDescription.en': ['too long'] };
         }
         TestBed.configureTestingModule({ imports: [Host, TranslateModule.forRoot()] });
         const fixture = TestBed.createComponent(Host);
         fixture.detectChanges();
-        expect((fixture.nativeElement as HTMLElement).textContent).toContain('too long');
+        const host = fixture.nativeElement as HTMLElement;
+        const inline = host.querySelector('ef-localized-input[name="seoDescription"] textarea[name="seoDescription.en"]');
+        expect(inline).toBeTruthy();
+        expect(host.querySelector('ef-localized-input[name="seoDescription"]')!.textContent).toContain('too long');
+        expect(host.querySelector('ef-localized-input[name="seoTitle"] [data-field-errors]')).toBeNull();
+    });
+
+    it('links a seoTitle.ar server error to the Arabic tab', () => {
+        @Component({
+            standalone: true,
+            imports: [EfSeoFieldsComponent, EfServerErrorsDirective],
+            template: `<div [efServerErrors]="errors"><ef-seo-fields /></div>`,
+        })
+        class Host {
+            errors = { 'seoTitle.ar': ['bad'] };
+        }
+        TestBed.configureTestingModule({ imports: [Host, TranslateModule.forRoot()] });
+        const fixture = TestBed.createComponent(Host);
+        fixture.detectChanges();
+        const host = fixture.nativeElement as HTMLElement;
+        expect(host.querySelector('ef-localized-input[name="seoTitle"] input[name="seoTitle.ar"]')).toBeTruthy();
+    });
+
+    it('preview falls back to fallbackTitle default culture', () => {
+        const { host } = render({
+            fallbackTitle: { fr: 'Escada', ar: 'إسكادا' },
+            fallbackDescription: { fr: 'Parfums', ar: 'عطور' },
+            previewUrl: 'shop.test/c/escada',
+        });
+        expect(host.querySelector('[data-role="preview-title"]')?.textContent?.trim()).toBe('Escada');
+        expect(host.querySelector('[data-role="preview-description"]')?.textContent?.trim()).toBe('Parfums');
+        expect(host.querySelector('[data-role="preview-url"]')?.textContent?.trim()).toBe('shop.test/c/escada');
+    });
+
+    it('previews the default culture of the SEO text before the fallback', () => {
+        const { host } = render({
+            seoTitle: { fr: 'Titre SEO', ar: 'عنوان' },
+            fallbackTitle: { fr: 'Escada' },
+        });
+        expect(host.querySelector('[data-role="preview-title"]')?.textContent?.trim()).toBe('Titre SEO');
+    });
+
+    it('previews the default of the cultures it is given', () => {
+        const { host } = render({
+            cultures: [
+                { code: 'ar', labelKey: 'ef_localized_input_culture_ar', dir: 'rtl' },
+                { code: 'en', labelKey: 'ef_localized_input_culture_en', dir: 'ltr' },
+            ],
+            fallbackTitle: { fr: 'Escada', ar: 'إسكادا' },
+        });
+        // The shared default is fr, which this list lacks, so its first culture leads.
+        expect(host.querySelector('[data-role="preview-title"]')?.textContent?.trim()).toBe('إسكادا');
+    });
+
+    it('counter warns past the advised length', () => {
+        const { counter } = render({ seoTitle: { fr: 'a'.repeat(61) }, seoDescription: { fr: 'b'.repeat(160) } });
+        expect(counter('seoTitle').querySelector('bdi')?.textContent?.trim()).toBe('61 / 60');
+        expect(counter('seoTitle').classList).toContain('is-over');
+        expect(counter('seoDescription').classList).not.toContain('is-over');
+    });
+
+    it('says the limit as text and announces the moment it is passed', () => {
+        const { host, counter, field, type } = render({ seoTitle: { fr: 'a'.repeat(60) } });
+        const c = counter('seoTitle');
+        expect(c.querySelector('.eli-counter__sr')?.textContent).toContain('ef_seo_fields_counter_hint');
+        expect(field('seoTitle.fr').getAttribute('aria-describedby')).toContain(c.id);
+        const live = host.querySelector<HTMLElement>('ef-localized-input[name="seoTitle"] [data-over-message]')!;
+        expect(live.textContent).not.toContain('ef_seo_fields_over_hint');
+        type('seoTitle.fr', 'a'.repeat(61));
+        expect(live.textContent).toContain('ef_seo_fields_over_hint');
+        expect(live.getAttribute('aria-live')).toBe('polite');
+    });
+
+    it('caps the fields at the server limits', () => {
+        const { field } = render();
+        expect(field('seoTitle.fr').getAttribute('maxlength')).toBe('256');
+        expect(field('seoDescription.fr').getAttribute('maxlength')).toBe('512');
+    });
+
+    it('takes the length inputs', () => {
+        const { field, counter } = render({ titleMax: 100, descriptionMax: 200, titleAdvised: 30, descriptionAdvised: 80 });
+        expect(field('seoTitle.fr').getAttribute('maxlength')).toBe('100');
+        expect(field('seoDescription.fr').getAttribute('maxlength')).toBe('200');
+        expect(counter('seoTitle').textContent).toContain('0 / 30');
+        expect(counter('seoDescription').textContent).toContain('0 / 80');
+    });
+
+    it('shares the content cultures with the localized input', () => {
+        expect(EF_SEO_DEFAULT_LOCALES).toBe(EF_DEFAULT_CONTENT_CULTURES);
     });
 });

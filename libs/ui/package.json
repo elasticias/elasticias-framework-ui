@@ -15,7 +15,13 @@
     "chart.js": "^4.5.0",
     "primeng": "^21.0.0",
     "rxjs": "~7.8.0",
-    "@angular/platform-browser": "21.2"
+    "@angular/platform-browser": "21.2",
+    "quill": "^2.0.3"
+  },
+  "peerDependenciesMeta": {
+    "quill": {
+      "optional": true
+    }
   },
   "sideEffects": false,
   "repository": {
