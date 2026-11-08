@@ -102,7 +102,14 @@
 
     @if (counterLimit(); as limit) {
         <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeLength() > limit">
-            <bdi dir="ltr">{{ activeLength() }} / {{ limit }}</bdi>
+            @if (advisedLength() != null) {
+                <!-- Advice, worded so ("5123 / 5000 conseillés"), so it does not
+                     read as a cap. Words around the numbers: the text takes the
+                     page's direction, and an rtl reader meets the count first. -->
+                <span data-counter-text>{{ 'ef_localized_input_counter_advised' | translate: { count: activeLength(), max: limit } }}</span>
+            } @else {
+                <bdi dir="ltr">{{ activeLength() }} / {{ limit }}</bdi>
+            }
             @if (counterHintKey()) {
                 <span class="eli-counter__sr">{{ counterHintKey() | translate: { max: limit } }}</span>
             }

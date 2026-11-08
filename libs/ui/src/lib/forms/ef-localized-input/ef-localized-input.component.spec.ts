@@ -19,6 +19,7 @@ const KEYS = {
     ef_localized_input_read_only_hint: 'Géré par le catalogue',
     title: 'Titre',
     customized: 'personnalisé',
+    ef_localized_input_counter_advised: '{{count}} / {{max}} conseillés',
 };
 
 function setup() {
@@ -273,15 +274,27 @@ describe('EfLocalizedInputComponent', () => {
         expect(h.field().disabled).toBe(false);
     });
 
-    it('shows the counter against advisedLength and caps at maxLength', () => {
+    it('shows the counter against advisedLength, worded as advice, and caps at maxLength', () => {
         const { host, field, type } = render({ value: { fr: 'abc' }, advisedLength: 5, maxLength: 10 });
         const counter = host.querySelector<HTMLElement>('[data-counter]')!;
-        expect(counter.textContent?.trim()).toBe('3 / 5');
+        expect(counter.textContent?.trim()).toBe('3 / 5 conseillés');
         expect(field().getAttribute('maxlength')).toBe('10');
         expect(field().getAttribute('aria-describedby')).toContain(counter.id);
         type('abcdef');
-        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('6 / 5');
+        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('6 / 5 conseillés');
         expect(host.querySelector('[data-counter]')!.classList).toContain('is-over');
+    });
+
+    it('keeps the bare "n / max" counter, isolated ltr, with maxLength alone', () => {
+        const { host } = render({ value: { fr: 'abc' }, maxLength: 10 });
+        const counter = host.querySelector<HTMLElement>('[data-counter]')!;
+        expect(counter.textContent?.trim()).toBe('3 / 10');
+        expect(counter.querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
+    });
+
+    it('lets the advised counter take the reading direction of its words', () => {
+        const { host } = render({ value: { fr: 'abc' }, advisedLength: 5 });
+        expect(host.querySelector('[data-counter] bdi')).toBeNull();
     });
 
     it('says the limit as text, and announces when it is passed, with the keys it is given', () => {

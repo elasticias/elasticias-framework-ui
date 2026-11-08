@@ -27,7 +27,11 @@ function setup(withEditor: boolean | 'failing' = true) {
             : withEditor ? [provideEfRichText()] : [];
     TestBed.configureTestingModule({ imports: [EfLocalizedInputComponent, TranslateModule.forRoot()], providers });
     const translate = TestBed.inject(TranslateService);
-    translate.setTranslation('fr', { description: 'Description', ef_localized_input_culture_ar: 'Arabe' });
+    translate.setTranslation('fr', {
+        description: 'Description',
+        ef_localized_input_culture_ar: 'Arabe',
+        ef_localized_input_counter_advised: '{{count}} / {{max}} conseillés',
+    });
     translate.use('fr');
 }
 
@@ -121,7 +125,7 @@ describe('EfLocalizedInputComponent rich mode', () => {
     it('counts the text a reader sees, not the tags', async () => {
         const { fixture, host } = await render({ value: { fr: '<p><strong>Eau</strong></p>' }, advisedLength: 10 });
         await quillOf(fixture);
-        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('3 / 10');
+        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('3 / 10 conseillés');
     });
 
     it('counts the stored HTML against maxLength when no advisedLength is set, as the server does', async () => {

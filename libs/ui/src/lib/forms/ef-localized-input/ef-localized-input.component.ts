@@ -92,6 +92,9 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   moves to the first of them. `<name>` errors, or an explicit `[errors]`,
  *   show under the field on every tab, as do errors for a language the field
  *   does not list (`title.xx`). Messages are translated as keys. Keys: `ef_localized_input_errors_in_other`.
+ * - **Counter.** With `advisedLength` it reads as advice through
+ *   `ef_localized_input_counter_advised` (`{{count}}`, `{{max}}`), so 5123 of
+ *   5000 does not look like a cap; with `maxLength` alone it stays `n / max`.
  * - **Spoken limit.** `counterHintKey` is read with the counter (through
  *   `aria-describedby`) and `counterOverKey` is announced politely when the
  *   text passes the limit; both take `{{max}}`.
@@ -108,6 +111,7 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * | `ef_localized_input_missing` | manquant | غير مكتوب | missing |
  * | `ef_localized_input_cultures` | Langues du texte | لغات النص | Text languages |
  * | `ef_localized_input_errors_in_other` | Erreur dans : | خطأ في: | Error in: |
+ * | `ef_localized_input_counter_advised` | {{count}} / {{max}} conseillés | {{count}} / {{max}} موصى بها | {{count}} / {{max}} advised |
  * | `ef_localized_input_read_only_hint` | Ce texte se modifie ailleurs. | يُعدَّل هذا النص في مكان آخر. | This text is edited elsewhere. |
  *
  * ```html
