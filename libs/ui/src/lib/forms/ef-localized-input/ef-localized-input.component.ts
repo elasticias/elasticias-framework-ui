@@ -2,6 +2,7 @@ import {
     booleanAttribute,
     ChangeDetectionStrategy,
     Component,
+    ComponentRef,
     computed,
     DoCheck,
     effect,
@@ -12,6 +13,7 @@ import {
     inputBinding,
     isDevMode,
     linkedSignal,
+    model,
     output,
     outputBinding,
     signal,
@@ -36,6 +38,16 @@ import { EF_RICH_TEXT, plainTextLength } from '../ef-rich-text.token';
 
 let nextId = 0;
 
+/** What one input's tab for a culture would show; read by the input that draws a shared row. */
+export interface EfLocalizedCultureFlags {
+    /** Danger tone: a server error, or the required default culture left empty once touched. */
+    readonly error: boolean;
+    /** A server error under `<name>.<culture>` (what moves the shared culture). */
+    readonly serverError: boolean;
+    /** Edited since the value arrived. */
+    readonly dirty: boolean;
+}
+
 /** Same texts once blanks are dropped. */
 function sameText(a: LocalizedText, b: LocalizedText): boolean {
     const ka = Object.keys(a);
@@ -49,10 +61,16 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * (ADR-050 section 7).
  *
  * - **Cultures** come from `EF_CONTENT_CULTURES` (the ERP provides them from
- *   the tenant profile) unless `cultures` is set. The active tab is local and
- *   starts on the default culture.
- * - **Tabs** carry the `ef_localized_input_missing` note on every culture with
- *   no text, the error tone on the default culture of a `required` field left
+ *   the tenant profile) unless `cultures` is set. The active culture starts
+ *   on the default and is two-way through `[(activeCulture)]`.
+ * - **One tab row for several texts** (an email's subject and body): bind the
+ *   same signal to `[(activeCulture)]` on each and set `[showTabs]="false"`
+ *   on all but one, and list those in the row owner's `[linkedInputs]` so
+ *   the row also shows their error tone, required tone and dirty dot. A new
+ *   set of server errors moves the shared culture to the first culture in
+ *   error in the row's order.
+ * - **Tabs** show the language name only (no "missing" note: an empty culture
+ *   is visible from its empty field), the error tone on the default culture of a `required` field left
  *   empty once the field is touched, changed or its form submitted, and the
  *   dirty dot on cultures edited since the value arrived. Dirty detection
  *   relies on the parent storing the emitted object by reference (the V2
@@ -79,17 +97,27 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * - **Forms.** A ControlValueAccessor (`[formControl]`, `formControlName`,
  *   `[(ngModel)]`) as well as `[value]` + `(valueChangeEvent)`. With
  *   `required`, the form control reports `required` while the default culture
- *   is empty.
+ *   is empty, and once the field is touched, changed or submitted the default
+ *   culture's field shows `validation.required` and is `aria-invalid`.
  * - **Server errors** (ADR-010) come from the enclosing `[efServerErrors]`
  *   scope. `<name>.<culture>` errors tint that culture's tab, show under its
  *   field while it is active (the field links itself by name) and, from another
  *   tab, show as a hint naming the languages in error; a new set of errors
  *   moves to the first of them. `<name>` errors, or an explicit `[errors]`,
  *   show under the field on every tab, as do errors for a language the field
- *   does not list (`title.xx`). Messages are translated as keys. Keys: `ef_localized_input_errors_in_other`.
+ *   does not list (`title.xx`), prefixed with that language's name (or its
+ *   code) through `ef_localized_input_error_in_culture`. Messages are
+ *   translated as keys. Keys: `ef_localized_input_errors_in_other`,
+ *   `ef_localized_input_error_in_culture`.
+ * - **Counter.** With `advisedLength` it reads as advice through
+ *   `ef_localized_input_counter_advised` (`{{count}}`, `{{max}}`), so 5123 of
+ *   5000 does not look like a cap; with `maxLength` alone it stays `n / max`.
  * - **Spoken limit.** `counterHintKey` is read with the counter (through
  *   `aria-describedby`) and `counterOverKey` is announced politely when the
- *   text passes the limit; both take `{{max}}`.
+ *   text passes the limit; both take `{{max}}`. On a field with several
+ *   cultures the announcement is prefixed with the culture's name through
+ *   `ef_localized_input_error_in_culture`, so `counterOverKey` should not
+ *   name it.
  * - **Names.** Each culture's field is named `<name>.<culture>` (`title.ar`),
  *   the key the backend reports a per-culture error under.
  *
@@ -100,15 +128,19 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * | `ef_localized_input_culture_fr` | Français | الفرنسية | French |
  * | `ef_localized_input_culture_ar` | Arabe | العربية | Arabic |
  * | `ef_localized_input_culture_en` | Anglais | الإنجليزية | English |
- * | `ef_localized_input_missing` | manquant | غير مكتوب | missing |
  * | `ef_localized_input_cultures` | Langues du texte | لغات النص | Text languages |
  * | `ef_localized_input_errors_in_other` | Erreur dans : | خطأ في: | Error in: |
+ * | `ef_localized_input_counter_advised` | {{count}} / {{max}} conseillés | {{count}} / {{max}} موصى بها | {{count}} / {{max}} advised |
+ * | `ef_localized_input_error_in_culture` | {{culture}} : {{message}} | {{culture}}: {{message}} | {{culture}}: {{message}} |
  * | `ef_localized_input_read_only_hint` | Ce texte se modifie ailleurs. | يُعدَّل هذا النص في مكان آخر. | This text is edited elsewhere. |
  *
  * ```html
  * <ef-localized-input name="title" labelKey="product_title" required
  *     [value]="product().title" (valueChangeEvent)="patch({ title: $event })"
  *     [advisedLength]="60" [maxLength]="256" />
+ *
+ * <ef-localized-input name="subject" labelKey="email_subject" [maxLength]="200" [linkedInputs]="[body]" [(activeCulture)]="culture" ... />
+ * <ef-localized-input #body name="htmlBody" labelKey="email_body" mode="html" [showTabs]="false" [(activeCulture)]="culture" ... />
  *
  * <ef-localized-input name="title" [readOnlyCultures]="['fr']" ...>
  *     <a read-only-link [routerLink]="catalogLink()">{{ 'store_open_catalog' | translate }}</a>
@@ -174,6 +206,42 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly errors = input<string[] | null | undefined>(undefined);
     /** Overrides the `EF_CONTENT_CULTURES` list for this field. */
     readonly cultures = input<ReadonlyArray<EfCulture> | undefined>(undefined);
+    /**
+     * The culture on show, two-way (`[(activeCulture)]`). `null` or a culture
+     * the field does not list means the default; the field then writes back
+     * the culture it settled on, so the parent always reads a listed code.
+     * Bind one signal to several inputs to give them one tab row.
+     */
+    readonly activeCulture = model<string | null>(null);
+    /**
+     * Draws the culture tab row. Off for a field that follows another
+     * field's row through a shared `activeCulture`: its culture is then
+     * named to assistive tech through `aria-describedby` and the hint still
+     * names the cultures in error. List it in the row owner's
+     * `linkedInputs` so the row draws its error tone, required tone and
+     * dirty dot too. Without tabs it never rewrites `activeCulture` to fit
+     * its own culture list (it shows its own fallback instead), and it moves
+     * the shared culture to its first culture in error only when no row
+     * owner links it.
+     */
+    readonly showTabs = input(true, { transform: booleanAttribute });
+    /**
+     * On the input that draws the shared tab row: the inputs that follow it
+     * (`[showTabs]="false"`), whose `cultureFlags` the row merges into its
+     * tones and dots. A new set of server errors on any of them moves the
+     * shared culture to the first culture in error in this row's order.
+     * Badges stay this input's own. A template reference works forward:
+     * `<ef-localized-input [linkedInputs]="[body]" ... /> <ef-localized-input #body [showTabs]="false" ... />`.
+     */
+    readonly linkedInputs = input<ReadonlyArray<EfLocalizedInputComponent>>([]);
+    /** `html` mode only: the sanitised preview under the source. Off when
+     *  the screen renders its own preview (an email rendered by the server,
+     *  with its tokens filled in). */
+    readonly preview = input(true, { transform: booleanAttribute });
+    /** A badge per culture tab, culture code to i18n key (`{ ar:
+     *  'email_templates_customized' }`): a state of that language worth
+     *  seeing from the tab row. Drawn by the input that shows the tabs. */
+    readonly tabBadges = input<Readonly<Record<string, string>>>({});
 
     /** The whole new object, trimmed, with blank cultures removed. */
     readonly valueChangeEvent = output<LocalizedText>();
@@ -187,6 +255,9 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /** The editor's chunk failed to load (offline, a stale deploy). */
     private readonly richFailed = signal(false);
     private readonly richHost = viewChild('richHost', { read: ViewContainerRef });
+    private richRef: ComponentRef<unknown> | null = null;
+    private readonly textField = viewChild(EfInputTextComponent);
+    private readonly areaField = viewChild(EfTextareaComponent);
 
     /** `rich` without a provided editor renders the html source instead. */
     protected readonly effectiveMode = computed(() =>
@@ -236,20 +307,24 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         return list.some(c => c.code === preferred) ? preferred : (list[0]?.code ?? preferred);
     });
 
-    private readonly selected = signal<string | null>(null);
-
     protected readonly active = computed<EfCulture | undefined>(() => {
         const list = this.list();
-        const code = this.selected();
+        const code = this.activeCulture();
         return list.find(c => c.code === code) ?? list.find(c => c.code === this.defaultCode()) ?? list[0];
     });
 
     /** The active culture's code: unlike active(), equal when an equal culture list arrives. */
     private readonly activeCode = computed(() => this.active()?.code);
 
-    /** Server messages for the whole field (`title`). */
+    /** Server messages for the whole field (`title`), and those of unlisted
+     *  cultures, translated here (never through the pipe a second time). */
     protected readonly fieldErrors = computed(() => {
-        const messages = [...(resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()) ?? []), ...this.unlistedErrors()];
+        this.textsVersion();
+        const t = (key: string) => this.translateService.instant(key);
+        const messages = [
+            ...(resolveExternalErrors(this.errors(), this.serverErrorsScope, this.name()) ?? []).map(t),
+            ...this.unlistedErrors(),
+        ];
         return messages.length ? messages : null;
     });
 
@@ -264,20 +339,41 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         return out;
     });
 
-    /** Messages for a language this field does not list (`title.xx`): shown with the whole field, never dropped. */
+    /** Messages for a language this field does not list (`title.xx`): shown
+     *  with the whole field, never dropped, prefixed with the culture
+     *  (`xx : message`) since no tab says which language they concern. */
     private readonly unlistedErrors = computed(() => {
+        this.textsVersion();
+        const t = this.translateService;
         const listed = new Set(this.list().map(c => c.code));
-        return Object.entries(this.allCultureErrors()).flatMap(([code, messages]) => (listed.has(code) ? [] : messages));
+        return Object.entries(this.allCultureErrors()).flatMap(([code, messages]) => {
+            if (listed.has(code)) return [];
+            // The culture's name when the bundle has one, else its code.
+            const nameKey = `ef_localized_input_culture_${code}`;
+            const name = t.instant(nameKey);
+            const culture = name && name !== nameKey ? name : code;
+            return messages.map(m => t.instant('ef_localized_input_error_in_culture', { culture, message: t.instant(m) }));
+        });
     });
 
     /** Bumps when texts change, so translated messages follow the language. */
     private readonly textsVersion = signal(0);
 
-    /** The active language's messages, translated once here for the field below. */
+    /**
+     * The active language's messages, translated once here for the field
+     * below. Without one, a required default culture left empty says so
+     * once the field is touched, changed or submitted (`validation.required`,
+     * the family's message), which also sets `aria-invalid` on it.
+     */
     protected readonly activeErrors = computed<string[] | null>(() => {
         this.textsVersion();
-        const messages = this.cultureErrors()[this.active()?.code ?? ''];
-        return messages?.length ? messages.map(m => this.translateService.instant(m)) : null;
+        const code = this.active()?.code ?? '';
+        const messages = this.cultureErrors()[code];
+        if (messages?.length) return messages.map(m => this.translateService.instant(m));
+        if (this.requiredTone(code)) {
+            return [this.translateService.instant('validation.required')];
+        }
+        return null;
     });
 
     /** Cultures with a server error, in tab order. */
@@ -287,23 +383,53 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     protected readonly errorsElsewhere = computed(() => this.culturesInError().filter(c => c.code !== this.active()?.code));
 
     /** Changes only when the set of errors does, so a tab the user picked stays picked. */
-    private readonly errorSignature = computed(() => JSON.stringify(this.cultureErrors()));
+    private readonly errorSignature = computed(() => {
+        const own = JSON.stringify(this.cultureErrors());
+        if (!this.showTabs()) return own;
+        const linked = this.linkedInputs().map(l =>
+            Object.entries(l.cultureFlags()).filter(([, f]) => f.serverError).map(([code]) => code),
+        );
+        return JSON.stringify([own, linked]);
+    });
 
-    protected readonly tabItems = computed<EfTabItem[]>(() => {
+    /** How many row owners list this input in their `linkedInputs`. */
+    private readonly linkedBy = signal(0);
+
+    /** Danger tone on the default culture: required, empty, and touched, changed or submitted. */
+    private requiredTone(code: string): boolean {
+        return this.required() && code === this.defaultCode() && !this.cleaned()[code] && this.showErrors();
+    }
+
+    /**
+     * What this input's tab would show for each culture it lists, read by
+     * the input that draws a shared row (`linkedInputs`). Read-only.
+     */
+    readonly cultureFlags = computed<Readonly<Record<string, EfLocalizedCultureFlags>>>(() => {
         const text = this.cleaned();
         const base = this.baseline();
+        const errors = this.cultureErrors();
+        const out: Record<string, EfLocalizedCultureFlags> = {};
+        for (const c of this.list()) {
+            const serverError = !!errors[c.code];
+            out[c.code] = {
+                error: serverError || this.requiredTone(c.code),
+                serverError,
+                dirty: (text[c.code] ?? '') !== (base[c.code] ?? ''),
+            };
+        }
+        return out;
+    });
+
+    protected readonly tabItems = computed<EfTabItem[]>(() => {
+        const badges = this.tabBadges() ?? {};
+        const flags = [this.cultureFlags(), ...this.linkedInputs().map(l => l.cultureFlags())];
         return this.list().map(c => {
-            const missing = !text[c.code];
             return {
                 value: c.code,
                 labelKey: c.labelKey,
-                noteKey: missing ? 'ef_localized_input_missing' : undefined,
-                tone:
-                    this.cultureErrors()[c.code] ||
-                    (missing && this.required() && c.code === this.defaultCode() && this.showErrors())
-                        ? 'danger'
-                        : undefined,
-                dirty: (text[c.code] ?? '') !== (base[c.code] ?? ''),
+                badgeKey: badges[c.code] || undefined,
+                tone: flags.some(f => f[c.code]?.error) ? 'danger' : undefined,
+                dirty: flags.some(f => f[c.code]?.dirty),
                 id: this.tabId(c.code),
                 panelId: this.panelId,
             };
@@ -337,8 +463,37 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     protected readonly counterLimit = computed(() => this.advisedLength() ?? this.maxLength());
 
+    /**
+     * The polite over-limit announcement: empty under the limit, else the
+     * `counterOverKey` text, prefixed with the culture's name when the field
+     * has more than one. Its text changes only with the (culture, over)
+     * pair, so typing past the limit is announced once, and a switch to
+     * another language that is also over is announced and names it.
+     */
+    protected readonly overMessage = computed(() => {
+        this.textsVersion();
+        const key = this.counterOverKey();
+        const limit = this.counterLimit();
+        const culture = this.active();
+        if (!key || limit == null || !culture || this.activeLength() <= limit) return '';
+        const message = this.translateService.instant(key, { max: limit });
+        if (this.list().length < 2) return message;
+        return this.translateService.instant('ef_localized_input_error_in_culture', {
+            culture: this.translateService.instant(culture.labelKey),
+            message,
+        });
+    });
+
     protected readonly panelId = `${this.uid}-panel`;
     protected readonly counterId = `${this.uid}-counter`;
+    /** The culture's name, read with a field that has no tab row. */
+    protected readonly cultureNameId = `${this.uid}-culture`;
+
+    /** Extra `aria-describedby` ids for the active field: the counter, and
+     *  the culture's name when no tab says it. */
+    protected readonly describedByExtra = computed(() =>
+        [this.counterLimit() ? this.counterId : null, this.showTabs() ? null : this.cultureNameId].filter(Boolean).join(' '),
+    );
 
     private onChange: (v: LocalizedText) => void = () => { /* noop */ };
     private touched: () => void = () => { /* noop */ };
@@ -355,12 +510,35 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
             this.defaultCode();
             untracked(() => this.ngControl?.control?.updateValueAndValidity({ emitEvent: false }));
         });
-        // A new set of server errors brings the first language in error into view.
+        // The parent always reads the culture on show, never null or one the
+        // row does not list. Only the input that draws tabs writes it back:
+        // two inputs with different lists would otherwise keep overwriting
+        // each other.
+        effect(() => {
+            const code = this.activeCode();
+            if (this.showTabs() && code && this.activeCulture() !== code) this.activeCulture.set(code);
+        });
+        // A row owner tells the inputs it links, so they leave the error jump to it.
+        effect(onCleanup => {
+            const linked = this.showTabs() ? this.linkedInputs() : [];
+            for (const l of linked) l.linkedBy.update(n => n + 1);
+            onCleanup(() => {
+                for (const l of linked) l.linkedBy.update(n => n - 1);
+            });
+        });
+        // A new set of server errors brings the first language in error into
+        // view, through activeCulture. The row owner picks it in its own tab
+        // order across itself and its linked inputs; an input without tabs
+        // that no owner links moves it itself.
         effect(() => {
             this.errorSignature();
             untracked(() => {
-                const first = this.culturesInError()[0];
-                if (first) this.selected.set(first.code);
+                if (!this.showTabs() && this.linkedBy() > 0) return;
+                const linked = this.showTabs() ? this.linkedInputs() : [];
+                const first = this.list().find(
+                    c => this.cultureErrors()[c.code] || linked.some(l => l.cultureFlags()[c.code]?.serverError),
+                );
+                if (first) this.activeCulture.set(first.code);
             });
         });
         effect(() => {
@@ -394,9 +572,10 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     private createRich(vcr: ViewContainerRef, type: Type<unknown>, code: string): void {
         vcr.clear();
+        this.richRef = null;
         const culture = () => this.list().find(c => c.code === code);
         const readOnly = () => this.readOnlyCultures().includes(code);
-        vcr.createComponent(type, {
+        this.richRef = vcr.createComponent(type, {
             bindings: [
                 inputBinding('value', () => this.raw()[code] ?? ''),
                 inputBinding('name', () => `${this.name()}.${code}`),
@@ -411,10 +590,40 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
                 inputBinding('readonly', readOnly),
                 inputBinding('placeholderKey', () => this.placeholderKey()),
                 inputBinding('hintKey', () => (readOnly() ? 'ef_localized_input_read_only_hint' : this.hintKey())),
-                inputBinding('describedByExtra', () => (this.counterLimit() ? this.counterId : '')),
+                inputBinding('describedByExtra', () => this.describedByExtra()),
                 outputBinding<string>('valueChangeEvent', v => this.setText(code, v)),
             ],
         });
+    }
+
+    /**
+     * Inserts `text` (a `{{token}}`) into the culture on show, at the caret,
+     * replacing a selection, or at the end when its field was never entered
+     * or was just recreated by a culture switch; then emits the whole object
+     * once, as typing would. Returns false, and changes nothing, when the
+     * field is disabled, the culture is read-only, the result would pass
+     * `maxLength`, there is no active field (no culture listed), or the
+     * field is the rich editor (which has no insert yet). The field says
+     * nothing itself on a refusal, so the caller should tell the user (a
+     * toast such as "the variable would pass the length limit"); otherwise
+     * a click on a variable silently does nothing.
+     *
+     * On a phone, the focus that follows the insert opens the keyboard.
+     *
+     * A caller tracking "the field last focused" should ignore focus on the
+     * culture tabs (`[role="tab"]`): picking a language is not choosing where
+     * the token goes.
+     */
+    insertAtCaret(text: string): boolean {
+        const code = this.activeCode();
+        if (!code || this.isDisabled() || this.activeReadOnly()) return false;
+        const target = (this.effectiveMode() === 'rich' ? this.richRef?.instance : (this.textField() ?? this.areaField())) as
+            | { insertAtCursor?: (t: string) => void }
+            | undefined;
+        if (typeof target?.insertAtCursor !== 'function') return false;
+        const before = this.raw()[code] ?? '';
+        target.insertAtCursor(text);
+        return (this.raw()[code] ?? '') !== before;
     }
 
     protected tabId(code: string): string {
@@ -426,7 +635,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     }
 
     protected select(code: string): void {
-        this.selected.set(code);
+        this.activeCulture.set(code);
     }
 
     protected setText(code: string, text: string): void {

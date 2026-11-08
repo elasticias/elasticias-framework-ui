@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { EF_DEFAULT_CONTENT_CULTURES } from '@elasticias/core';
 import { EfServerErrorsDirective } from '../ef-server-errors.directive';
 import { EF_SEO_DEFAULT_LOCALES, EfSeoFieldsComponent, EfSeoPatch } from './ef-seo-fields.component';
@@ -9,6 +9,13 @@ import { EF_SEO_DEFAULT_LOCALES, EfSeoFieldsComponent, EfSeoPatch } from './ef-s
 describe('EfSeoFieldsComponent', () => {
     function render(inputs: Record<string, unknown> = {}) {
         TestBed.configureTestingModule({ imports: [EfSeoFieldsComponent, TranslateModule.forRoot()] });
+        const translate = TestBed.inject(TranslateService);
+        translate.setTranslation('fr', {
+            ef_localized_input_culture_fr: 'Français',
+            ef_localized_input_counter_advised: '{{count}} / {{max}} conseillés',
+            ef_localized_input_error_in_culture: '{{culture}} : {{message}}',
+        });
+        translate.use('fr');
         const fixture = TestBed.createComponent(EfSeoFieldsComponent);
         for (const [k, v] of Object.entries(inputs)) fixture.componentRef.setInput(k, v);
         const patches: EfSeoPatch[] = [];
@@ -112,7 +119,7 @@ describe('EfSeoFieldsComponent', () => {
 
     it('counter warns past the advised length', () => {
         const { counter } = render({ seoTitle: { fr: 'a'.repeat(61) }, seoDescription: { fr: 'b'.repeat(160) } });
-        expect(counter('seoTitle').querySelector('bdi')?.textContent?.trim()).toBe('61 / 60');
+        expect(counter('seoTitle').querySelector('[data-counter-text]')?.textContent?.trim()).toBe('61 / 60 conseillés');
         expect(counter('seoTitle').classList).toContain('is-over');
         expect(counter('seoDescription').classList).not.toContain('is-over');
     });
@@ -125,7 +132,7 @@ describe('EfSeoFieldsComponent', () => {
         const live = host.querySelector<HTMLElement>('ef-localized-input[name="seoTitle"] [data-over-message]')!;
         expect(live.textContent).not.toContain('ef_seo_fields_over_hint');
         type('seoTitle.fr', 'a'.repeat(61));
-        expect(live.textContent).toContain('ef_seo_fields_over_hint');
+        expect(live.textContent?.trim()).toBe('Français : ef_seo_fields_over_hint');
         expect(live.getAttribute('aria-live')).toBe('polite');
     });
 

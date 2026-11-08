@@ -134,6 +134,13 @@ export abstract class AbstractDetailScreenV2<TItem extends object = any>
         return out;
     });
 
+    /**
+     * The config's `AUDIT_ENTITY_TYPE` (null when unset), for the entity's own
+     * change-history labels:
+     * `<ef-change-history [entries]="auditEntries()" [entityType]="auditEntityType()" />`.
+     */
+    readonly auditEntityType = computed<string | null>(() => this.getConfig()?.AUDIT_ENTITY_TYPE ?? null);
+
     /** Loaded entity. Empty object when on `/details` (create mode). */
     readonly entity = signal<TItem>(<TItem>{});
 

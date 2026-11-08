@@ -27,7 +27,11 @@ function setup(withEditor: boolean | 'failing' = true) {
             : withEditor ? [provideEfRichText()] : [];
     TestBed.configureTestingModule({ imports: [EfLocalizedInputComponent, TranslateModule.forRoot()], providers });
     const translate = TestBed.inject(TranslateService);
-    translate.setTranslation('fr', { description: 'Description', ef_localized_input_culture_ar: 'Arabe' });
+    translate.setTranslation('fr', {
+        description: 'Description',
+        ef_localized_input_culture_ar: 'Arabe',
+        ef_localized_input_counter_advised: '{{count}} / {{max}} conseillés',
+    });
     translate.use('fr');
 }
 
@@ -74,6 +78,19 @@ describe('EfLocalizedInputComponent rich mode', () => {
         expect(host.querySelector('[role="tabpanel"]')!.contains(quill.root)).toBe(true);
     });
 
+    it('refuses insertAtCaret in the rich editor, which has no insert', async () => {
+        const { fixture, emitted } = await render({ value: { fr: '<p>Eau</p>' } });
+        await quillOf(fixture);
+        expect(fixture.componentInstance.insertAtCaret('{{x}}')).toBe(false);
+        expect(emitted).toEqual([]);
+    });
+
+    it('inserts at the caret when rich falls back to the html source', async () => {
+        const { fixture, emitted } = await render({ value: { fr: '<p>Eau</p>' } }, false);
+        expect(fixture.componentInstance.insertAtCaret('{{x}}')).toBe(true);
+        expect(emitted.at(-1)).toEqual({ fr: '<p>Eau</p>{{x}}' });
+    });
+
     it('emits sanitised HTML in the whole object, and no key for an emptied culture', async () => {
         const { fixture, emitted } = await render({ value: { fr: '<p>Eau</p>', en: '<p>Water</p>' } });
         const quill = await quillOf(fixture);
@@ -108,7 +125,7 @@ describe('EfLocalizedInputComponent rich mode', () => {
     it('counts the text a reader sees, not the tags', async () => {
         const { fixture, host } = await render({ value: { fr: '<p><strong>Eau</strong></p>' }, advisedLength: 10 });
         await quillOf(fixture);
-        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('3 / 10');
+        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('3 / 10 conseillés');
     });
 
     it('counts the stored HTML against maxLength when no advisedLength is set, as the server does', async () => {

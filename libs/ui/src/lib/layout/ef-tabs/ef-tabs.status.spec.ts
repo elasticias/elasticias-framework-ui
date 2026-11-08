@@ -11,7 +11,7 @@ import { EfTabItem, EfTabsComponent } from './ef-tabs.component';
 function render(items: EfTabItem[], inputs: Record<string, unknown> = {}) {
     TestBed.configureTestingModule({ imports: [EfTabsComponent, TranslateModule.forRoot()] });
     const translate = TestBed.inject(TranslateService);
-    translate.setTranslation('fr', { missing: 'manquant', ar: 'Arabe' });
+    translate.setTranslation('fr', { missing: 'manquant', ar: 'Arabe', custom: 'personnalisé' });
     translate.use('fr');
     const fixture = TestBed.createComponent(EfTabsComponent);
     fixture.componentRef.setInput('items', items);
@@ -33,6 +33,18 @@ describe('ef-tabs: note, tone and panel link', () => {
     it('renders no note by default', () => {
         const { tabs } = render([{ value: 'ar', labelKey: 'ar' }]);
         expect(tabs()[0].querySelector('.ef-tabs__note')).toBeNull();
+    });
+
+    it('renders a translated badge inside the tab, after the note, so it joins the accessible name', () => {
+        const { tabs } = render([{ value: 'ar', labelKey: 'ar', noteKey: 'missing', badgeKey: 'custom' }]);
+        const badge = tabs()[0].querySelector('.ef-tabs__badge')!;
+        expect(badge.textContent?.trim()).toBe('personnalisé');
+        expect(tabs()[0].textContent?.replace(/\s+/g, ' ').trim()).toBe('Arabe manquant personnalisé');
+    });
+
+    it('renders no badge by default', () => {
+        const { tabs } = render([{ value: 'ar', labelKey: 'ar' }]);
+        expect(tabs()[0].querySelector('.ef-tabs__badge')).toBeNull();
     });
 
     it('marks a danger tab with a class', () => {

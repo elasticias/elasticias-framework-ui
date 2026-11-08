@@ -16,6 +16,9 @@ const KEYS = {
     ef_localized_input_missing: 'manquant',
     ef_localized_input_cultures: 'Langues du texte',
     ef_localized_input_errors_in_other: 'Erreur dans :',
+    ef_localized_input_error_in_culture: '{{culture}} : {{message}}',
+    ef_localized_input_culture_de: 'Allemand',
+    unsupported: 'Langue non prise en charge',
     title: 'Titre',
 };
 
@@ -146,12 +149,32 @@ describe('EfLocalizedInputComponent server errors', () => {
         expect(host.querySelector('[data-field-errors]')).toBeNull();
     });
 
-    it('shows an error for a culture that is not in the list as a whole-field message', () => {
+    it('shows an error for a culture that is not in the list as a whole-field message, prefixed with its code', () => {
         const { host, tab, messages, setErrors } = render();
         setErrors({ 'title.xx': ['Langue non prise en charge'] });
-        expect(host.querySelector('[data-field-errors]')?.textContent).toContain('Langue non prise en charge');
+        expect(host.querySelector('[data-field-errors]')?.textContent).toContain('xx : Langue non prise en charge');
         expect(tab('fr').getAttribute('aria-selected')).toBe('true');
         tab('ar').click();
+        expect(messages()).toEqual(['xx : Langue non prise en charge']);
+    });
+
+    it('names an unlisted culture the bundle knows, and translates its message', () => {
+        const { messages, setErrors } = render();
+        setErrors({ 'title.de': ['unsupported'] });
+        expect(messages()).toEqual(['Allemand : Langue non prise en charge']);
+    });
+
+    it('shows the server message, not a second required one, on a required culture in error', () => {
+        const { fixture, messages, setErrors } = render();
+        TestBed.inject(TranslateService).setTranslation('fr', { ...KEYS, 'validation.required': 'Ce champ est requis.' });
+        setErrors({ 'title.fr': ['Titre requis'] });
+        fixture.detectChanges();
+        expect(messages()).toEqual(['Titre requis']);
+    });
+
+    it('does not prefix whole-field messages', () => {
+        const { messages, setErrors } = render();
+        setErrors({ title: ['unsupported'] });
         expect(messages()).toEqual(['Langue non prise en charge']);
     });
 

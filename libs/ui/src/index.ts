@@ -105,7 +105,7 @@ export { EfStatsComponent } from './lib/data/ef-stats/ef-stats.component';
 export type { EfStatsRow } from './lib/data/ef-stats/ef-stats.types';
 export { EfTimelineComponent } from './lib/data/ef-timeline/ef-timeline.component';
 export type { EfTimelineItem, EfTimelineState } from './lib/data/ef-timeline/ef-timeline.types';
-export { EfChangeHistoryComponent } from './lib/data/ef-change-history/ef-change-history.component';
+export { auditEntityKeySegment, EfChangeHistoryComponent } from './lib/data/ef-change-history/ef-change-history.component';
 export type { EfChangeHistoryEntry, EfChangeHistoryFieldChange, EfChangeHistoryValueItem } from './lib/data/ef-change-history/ef-change-history.types';
 export { EfKpiCardComponent } from './lib/data/ef-kpi-card/ef-kpi-card.component';
 export type { EfKpiSparkline, EfKpiDeltaTone } from './lib/data/ef-kpi-card/ef-kpi-card.types';
@@ -165,6 +165,7 @@ export { EfTextareaComponent } from './lib/forms/ef-textarea/ef-textarea.compone
 export { EfSeoFieldsComponent, EF_SEO_DEFAULT_LOCALES } from './lib/forms/ef-seo-fields/ef-seo-fields.component';
 export type { EfSeoLocale, EfSeoPatch } from './lib/forms/ef-seo-fields/ef-seo-fields.component';
 export { EfLocalizedInputComponent } from './lib/forms/ef-localized-input/ef-localized-input.component';
+export type { EfLocalizedCultureFlags } from './lib/forms/ef-localized-input/ef-localized-input.component';
 export { EF_RICH_TEXT, plainTextLength } from './lib/forms/ef-rich-text.token';
 export { AbstractEfFormControl } from './lib/forms/abstract-ef-form-control.component';
 export { EfFileUploadComponent } from './lib/forms/ef-file-upload/ef-file-upload.component';

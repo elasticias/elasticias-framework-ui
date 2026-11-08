@@ -4,18 +4,32 @@
             <ef-label [labelKey]="labelKey()" [for]="controlId(active()?.code ?? '')" [required]="required()" />
         </span>
     }
-    <div class="eli-tabs">
-        <ef-tabs
-            variant="pill"
-            [items]="tabItems()"
-            [value]="active()?.code ?? null"
-            [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
-            (valueChange)="select($event)"
-        />
-    </div>
+    @if (showTabs()) {
+        <div class="eli-tabs">
+            <ef-tabs
+                variant="pill"
+                [items]="tabItems()"
+                [value]="active()?.code ?? null"
+                [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
+                (valueChange)="select($event)"
+            />
+        </div>
+    }
 </div>
 
-<div class="eli-panel" role="tabpanel" [id]="panelId" [attr.aria-labelledby]="tabId(active()?.code ?? '')">
+<!-- Without a tab row the panel is a plain group: a tabpanel would point
+     at a tab that does not exist. -->
+<div
+    class="eli-panel"
+    [id]="panelId"
+    [attr.role]="showTabs() ? 'tabpanel' : null"
+    [attr.aria-labelledby]="showTabs() ? tabId(active()?.code ?? '') : null"
+>
+    @if (!showTabs()) {
+        @if (active(); as c) {
+            <span class="eli-sr" [id]="cultureNameId">{{ c.labelKey | translate }}</span>
+        }
+    }
     @for (c of active() ? [active()!] : []; track c.code) {
         @switch (effectiveMode()) {
             @case ('text') {
@@ -33,7 +47,7 @@
                     [readonly]="activeReadOnly()"
                     [placeholderKey]="placeholderKey()"
                     [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
-                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    [describedByExtra]="describedByExtra()"
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }
@@ -52,7 +66,7 @@
                     [readonly]="activeReadOnly()"
                     [placeholderKey]="placeholderKey()"
                     [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
-                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    [describedByExtra]="describedByExtra()"
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }
@@ -79,7 +93,7 @@
                     [readonly]="activeReadOnly()"
                     [placeholderKey]="placeholderKey()"
                     [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
-                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    [describedByExtra]="describedByExtra()"
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }
@@ -88,22 +102,25 @@
 
     @if (counterLimit(); as limit) {
         <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeLength() > limit">
-            <bdi dir="ltr">{{ activeLength() }} / {{ limit }}</bdi>
+            @if (advisedLength() !== null && advisedLength() !== undefined) {
+                <!-- Advice, worded so ("5123 / 5000 conseillés"), so it does not
+                     read as a cap. Words around the numbers: the text takes the
+                     page's direction, and an rtl reader meets the count first. -->
+                <span data-counter-text>{{ 'ef_localized_input_counter_advised' | translate: { count: activeLength(), max: limit } }}</span>
+            } @else {
+                <bdi dir="ltr">{{ activeLength() }} / {{ limit }}</bdi>
+            }
             @if (counterHintKey()) {
                 <span class="eli-counter__sr">{{ counterHintKey() | translate: { max: limit } }}</span>
             }
         </span>
         @if (counterOverKey()) {
             <!-- Always present, so a screen reader hears the text appear. -->
-            <span class="eli-counter__sr" data-over-message aria-live="polite">
-                @if (activeLength() > limit) {
-                    {{ counterOverKey() | translate: { max: limit } }}
-                }
-            </span>
+            <span class="eli-counter__sr" data-over-message aria-live="polite">{{ overMessage() }}</span>
         }
     }
 
-    @if (effectiveMode() === 'html' && activeText().trim()) {
+    @if (effectiveMode() === 'html' && preview() && activeText().trim()) {
         @if (active(); as c) {
             <!-- Angular's default [innerHTML] sanitising strips scripts and handlers. -->
             <div class="eli-preview" data-preview [attr.dir]="c.dir" [attr.lang]="c.code" [innerHTML]="activeText()"></div>
@@ -113,7 +130,7 @@
     @if (fieldErrors(); as messages) {
         <div class="eli-errors" data-field-errors role="alert" aria-live="polite">
             @for (message of messages; track message) {
-                <small class="text-danger block">{{ message | translate }}</small>
+                <small class="text-danger block">{{ message }}</small>
             }
         </div>
     }

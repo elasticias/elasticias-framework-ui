@@ -813,6 +813,7 @@ describe('AbstractDetailScreenV2 audit value lists', () => {
     static SCREEN = 'TestDetailItem';
     static SERVICE: any = FakeDetailClient;
     static AUDIT_VALUE_LISTS: Record<string, string> = { status: 'order_status' };
+    static AUDIT_ENTITY_TYPE = 'EmailTemplate';
   }
 
   @Component({ template: '', standalone: true })
@@ -866,5 +867,15 @@ describe('AbstractDetailScreenV2 audit value lists', () => {
   it('is empty when the config declares none', async () => {
     const { screen } = await make(PlainScreen);
     expect(screen.auditValueLists()).toEqual({});
+  });
+
+  it('exposes the config AUDIT_ENTITY_TYPE for ef-change-history [entityType]', async () => {
+    const { screen } = await make(ValueListsScreen);
+    expect(screen.auditEntityType()).toBe('EmailTemplate');
+  });
+
+  it('exposes null when the config sets no AUDIT_ENTITY_TYPE', async () => {
+    const { screen } = await make(PlainScreen);
+    expect(screen.auditEntityType()).toBeNull();
   });
 });

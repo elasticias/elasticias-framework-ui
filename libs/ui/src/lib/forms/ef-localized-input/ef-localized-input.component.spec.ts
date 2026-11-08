@@ -18,6 +18,11 @@ const KEYS = {
     ef_localized_input_cultures: 'Langues du texte',
     ef_localized_input_read_only_hint: 'Géré par le catalogue',
     title: 'Titre',
+    customized: 'personnalisé',
+    ef_localized_input_counter_advised: '{{count}} / {{max}} conseillés',
+    ef_localized_input_error_in_culture: '{{culture}} : {{message}}',
+    over_limit: 'Plus de {{max}} caractères conseillés.',
+    'validation.required': 'Ce champ est requis.',
 };
 
 function setup() {
@@ -71,11 +76,11 @@ describe('EfLocalizedInputComponent', () => {
         expect(render().host.querySelector('ef-input-text input')?.classList.contains('p-inputtext')).toBe(false);
     });
 
-    it('marks every culture without text as missing', () => {
+    it('labels every tab with the language name only, filled or not', () => {
         const { tab } = render({ value: { fr: 'A' } });
         expect(tab('fr').textContent).not.toContain('manquant');
-        expect(tab('ar').textContent).toContain('manquant');
-        expect(tab('en').textContent).toContain('manquant');
+        expect(tab('ar').textContent).not.toContain('manquant');
+        expect(tab('en').textContent).not.toContain('manquant');
     });
 
     it('puts error tone on the default tab of a required empty field', () => {
@@ -87,10 +92,32 @@ describe('EfLocalizedInputComponent', () => {
         expect(host.querySelector('label')?.textContent).toContain('Titre');
     });
 
-    it('shows no error tone before the field is touched, but always shows the missing note', () => {
+    it('says the empty default culture is required, on the field, once touched', () => {
+        const { field, host, detect } = render({ value: { ar: 'نص' }, required: true });
+        expect(field().getAttribute('aria-invalid')).toBeNull();
+        expect(host.textContent).not.toContain('Ce champ est requis.');
+        field().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }));
+        detect();
+        expect(field().getAttribute('aria-invalid')).toBe('true');
+        expect(host.querySelector('[role="tabpanel"]')!.textContent).toContain('Ce champ est requis.');
+    });
+
+    it('does not say required on another culture, or once the default has text', () => {
+        const { field, host, detect, select, type } = render({ value: { ar: 'نص' }, required: true });
+        field().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }));
+        detect();
+        select('ar');
+        expect(field().getAttribute('aria-invalid')).toBeNull();
+        select('fr');
+        type('Eau');
+        expect(field().getAttribute('aria-invalid')).toBeNull();
+        expect(host.textContent).not.toContain('Ce champ est requis.');
+    });
+
+    it('shows no error tone before the field is touched, and no missing note', () => {
         const { tab } = render({ value: { ar: 'نص' }, required: true });
         expect(tab('fr').classList).not.toContain('is-danger');
-        expect(tab('fr').textContent).toContain('manquant');
+        expect(tab('fr').textContent).not.toContain('manquant');
     });
 
     it('shows the error tone once the user clears the default culture', () => {
@@ -166,6 +193,19 @@ describe('EfLocalizedInputComponent', () => {
         const preview = host.querySelector<HTMLElement>('[data-preview]')!;
         expect(preview.querySelector('script')).toBeNull();
         expect(preview.textContent).toContain('ok');
+    });
+
+    it('shows no html preview with preview off', () => {
+        const { host } = render({ mode: 'html', preview: false, value: { fr: '<p>ok</p>' } });
+        expect(host.querySelector('[data-preview]')).toBeNull();
+        expect(host.querySelector('textarea')).not.toBeNull();
+    });
+
+    it('puts a translated badge on the tabs tabBadges names', () => {
+        const { tab } = render({ value: { fr: 'A', ar: 'B' }, tabBadges: { ar: 'customized' } });
+        expect(tab('ar').querySelector('.ef-tabs__badge')?.textContent?.trim()).toBe('personnalisé');
+        expect(tab('fr').querySelector('.ef-tabs__badge')).toBeNull();
+        expect(tab('en').querySelector('.ef-tabs__badge')).toBeNull();
     });
 
     it('emits the whole cleaned object on edit', () => {
@@ -259,15 +299,27 @@ describe('EfLocalizedInputComponent', () => {
         expect(h.field().disabled).toBe(false);
     });
 
-    it('shows the counter against advisedLength and caps at maxLength', () => {
+    it('shows the counter against advisedLength, worded as advice, and caps at maxLength', () => {
         const { host, field, type } = render({ value: { fr: 'abc' }, advisedLength: 5, maxLength: 10 });
         const counter = host.querySelector<HTMLElement>('[data-counter]')!;
-        expect(counter.textContent?.trim()).toBe('3 / 5');
+        expect(counter.textContent?.trim()).toBe('3 / 5 conseillés');
         expect(field().getAttribute('maxlength')).toBe('10');
         expect(field().getAttribute('aria-describedby')).toContain(counter.id);
         type('abcdef');
-        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('6 / 5');
+        expect(host.querySelector('[data-counter]')!.textContent?.trim()).toBe('6 / 5 conseillés');
         expect(host.querySelector('[data-counter]')!.classList).toContain('is-over');
+    });
+
+    it('keeps the bare "n / max" counter, isolated ltr, with maxLength alone', () => {
+        const { host } = render({ value: { fr: 'abc' }, maxLength: 10 });
+        const counter = host.querySelector<HTMLElement>('[data-counter]')!;
+        expect(counter.textContent?.trim()).toBe('3 / 10');
+        expect(counter.querySelector('bdi')?.getAttribute('dir')).toBe('ltr');
+    });
+
+    it('lets the advised counter take the reading direction of its words', () => {
+        const { host } = render({ value: { fr: 'abc' }, advisedLength: 5 });
+        expect(host.querySelector('[data-counter] bdi')).toBeNull();
     });
 
     it('says the limit as text, and announces when it is passed, with the keys it is given', () => {
@@ -287,6 +339,34 @@ describe('EfLocalizedInputComponent', () => {
         expect(host.querySelector<HTMLElement>('[data-over-message]')).toBe(live);
         expect(live.textContent).toContain('over_key');
         expect(fixture).toBeTruthy();
+    });
+
+    it('names the culture in the over-limit announcement, and changes it only with the (culture, over) pair', () => {
+        const { host, type, select } = render({
+            value: { fr: 'abcdef', ar: 'abcdefg', en: 'a' },
+            advisedLength: 5,
+            counterOverKey: 'over_limit',
+        });
+        const live = () => host.querySelector<HTMLElement>('[data-over-message]')!.textContent!.trim();
+        expect(live()).toBe('Français : Plus de 5 caractères conseillés.');
+        const region = host.querySelector('[data-over-message]');
+        type('abcdefgh');
+        expect(live()).toBe('Français : Plus de 5 caractères conseillés.');
+        select('ar');
+        expect(host.querySelector('[data-over-message]')).toBe(region);
+        expect(live()).toBe('Arabe : Plus de 5 caractères conseillés.');
+        select('en');
+        expect(live()).toBe('');
+    });
+
+    it('does not name the culture of a single-culture field', () => {
+        const { host } = render({
+            value: { fr: 'abcdef' },
+            cultures: [{ code: 'fr', labelKey: 'ef_localized_input_culture_fr', dir: 'ltr' }],
+            advisedLength: 5,
+            counterOverKey: 'over_limit',
+        });
+        expect(host.querySelector('[data-over-message]')!.textContent!.trim()).toBe('Plus de 5 caractères conseillés.');
     });
 
     it('adds no spoken text without the keys', () => {
