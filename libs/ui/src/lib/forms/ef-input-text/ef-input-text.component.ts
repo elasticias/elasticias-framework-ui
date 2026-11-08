@@ -23,6 +23,8 @@ import { insertAtSelection, placeCaret } from '../insert-at-cursor';
   templateUrl: './ef-input-text.component.html',
   styleUrls: ['./ef-input-text.component.scss'],
   imports: [InputTextModule, FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
+  // A static lang="ar" belongs to the field only, not to the label and hint around it.
+  host: { '[attr.lang]': 'null' },
 })
 export class EfInputTextComponent
   extends AbstractEfFormControl

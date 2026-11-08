@@ -105,7 +105,8 @@ let nextId = 0;
     // so the rules are global and every selector starts with ef-rich-text.
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    host: { '[style.--ef-rich-text-rows]': 'rows()' },
+    // A static lang="ar" belongs to the editing area only, not to the label around it.
+    host: { '[style.--ef-rich-text-rows]': 'rows()', '[attr.lang]': 'null' },
 })
 export class EfRichTextComponent extends AbstractEfFormControl implements ControlValueAccessor, DoCheck {
     readonly value = input<string | null | undefined>('');

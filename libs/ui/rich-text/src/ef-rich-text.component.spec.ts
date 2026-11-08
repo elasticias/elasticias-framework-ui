@@ -69,6 +69,13 @@ async function render(inputs: Record<string, unknown> = {}) {
     return { fixture, quill, emitted, host: fixture.nativeElement as HTMLElement };
 }
 
+@Component({
+    standalone: true,
+    imports: [EfRichTextComponent],
+    template: `<ef-rich-text name="d" lang="ar" />`,
+})
+class StaticLangHost {}
+
 describe('EfRichTextComponent', () => {
     it('renders the small toolbar, every button named in the reader language', async () => {
         const { host } = await render();
@@ -81,6 +88,15 @@ describe('EfRichTextComponent', () => {
         const { fixture, host } = await render();
         const editor = fixture.debugElement.query(By.directive(Editor)).componentInstance as Editor;
         expect(editor.bounds).toBe(host.querySelector('.ef-rich-text__box'));
+    });
+
+    it('does not tag the host with a static lang, so the label keeps the page language', async () => {
+        setup();
+        const fixture = TestBed.createComponent(StaticLangHost);
+        const quill = await ready(fixture);
+        const host = fixture.nativeElement.querySelector('ef-rich-text') as HTMLElement;
+        expect(host.hasAttribute('lang')).toBe(false);
+        expect(quill.root.getAttribute('lang')).toBe('ar');
     });
 
     it('emits sanitised HTML when the user types', async () => {
