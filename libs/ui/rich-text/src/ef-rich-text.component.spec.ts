@@ -77,6 +77,12 @@ describe('EfRichTextComponent', () => {
         expect(host.querySelector('.ql-image, .ql-code-block, .ql-header, .ql-color')).toBeNull();
     });
 
+    it('gives Quill the box as its bounds, so the link bubble stays inside the field', async () => {
+        const { fixture, host } = await render();
+        const editor = fixture.debugElement.query(By.directive(Editor)).componentInstance as Editor;
+        expect(editor.bounds).toBe(host.querySelector('.ef-rich-text__box'));
+    });
+
     it('emits sanitised HTML when the user types', async () => {
         const { quill, emitted } = await render();
         quill.insertText(0, 'Eau de parfum', 'user');

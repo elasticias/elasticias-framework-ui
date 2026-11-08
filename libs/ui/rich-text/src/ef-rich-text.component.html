@@ -6,8 +6,9 @@
     </span>
 }
 <div class="ef-field-control">
-    <div class="ef-rich-text__box" [class.is-invalid]="isInvalid" [class.is-locked]="locked()">
+    <div #box class="ef-rich-text__box" [class.is-invalid]="isInvalid" [class.is-locked]="locked()">
         <p-editor
+            [bounds]="box"
             [formats]="formats"
             [modules]="modules"
             [readonly]="locked()"

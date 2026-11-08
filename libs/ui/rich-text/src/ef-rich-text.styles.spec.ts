@@ -24,6 +24,15 @@ const value = (selector: string, prop: string, media = '') => {
 };
 
 describe('ef-rich-text styles', () => {
+    it('never clips the box, so the link bubble can leave the field', () => {
+        // Quill positions the bubble inside .ql-container; overflow on the box cut it off.
+        expect(value('ef-rich-text .ef-rich-text__box', 'overflow')).toBeUndefined();
+        expect(value('ef-rich-text .ef-rich-text__box', 'overflow-x')).toBeUndefined();
+        // The rounded look comes from the children instead.
+        expect(value('ef-rich-text .ql-toolbar.ql-snow', 'border-radius')).toBe('var(--r-md) var(--r-md) 0 0');
+        expect(value('ef-rich-text .ql-container.ql-snow', 'border-radius')).toBe('0 0 var(--r-md) var(--r-md)');
+    });
+
     it('paints the icons with the text colour', () => {
         expect(value('ef-rich-text .ql-snow .ql-stroke', 'stroke')).toBe('currentColor');
         expect(value('ef-rich-text .ql-snow.ql-toolbar button', 'color')).toBe('var(--text-mute)');

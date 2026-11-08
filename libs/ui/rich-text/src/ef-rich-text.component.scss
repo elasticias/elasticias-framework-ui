@@ -27,7 +27,9 @@ ef-rich-text .ef-rich-text__box {
   border: 1px solid var(--rule);
   border-radius: var(--r-md);
   background: var(--paper);
-  overflow: hidden;
+  /* No overflow here: Quill draws the link bubble inside the editing area,
+     and a clipping box cut it off. The corners are rounded on the children,
+     and [bounds] keeps the bubble inside the box (also in RTL). */
 }
 
 ef-rich-text .ef-rich-text__box:focus-within {
@@ -61,6 +63,7 @@ ef-rich-text .ql-toolbar.ql-snow {
   border-bottom: 1px solid var(--rule);
   background: var(--paper-alt);
   font-family: inherit;
+  border-radius: var(--r-md) var(--r-md) 0 0;
 }
 
 ef-rich-text .ql-snow .ql-formats {
@@ -109,6 +112,7 @@ ef-rich-text .ql-snow.ql-toolbar button[disabled] {
 /* Editing area */
 ef-rich-text .ql-container.ql-snow {
   border: 0;
+  border-radius: 0 0 var(--r-md) var(--r-md);
   font-family: inherit;
   font-size: 13.5px;
   color: var(--text);
