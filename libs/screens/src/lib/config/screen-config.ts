@@ -34,6 +34,8 @@ export abstract class ScreenConfig {
    * AUDIT_HISTORY_SERVICE token) into its `auditEntries` signal — the screen
    * only needs `<ef-change-history [entries]="auditEntries()" />`. Leave unset
    * to opt out. Must match the backend IAuditable.AuditEntityType (e.g. 'Client').
+   * Bind `[entityType]="auditEntityType()"` too for the entity's own
+   * `audit_field_<entity>_<field>` labels (`EmailTemplate` gives `email_template`).
    */
   AUDIT_ENTITY_TYPE?: string;
 
