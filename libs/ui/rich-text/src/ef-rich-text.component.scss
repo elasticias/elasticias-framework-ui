@@ -166,6 +166,8 @@ ef-rich-text .ql-editor li[data-list] {
   position: relative;
   list-style-type: none;
   padding-inline-start: 1.5em;
+  /* Quill's physical padding-left would add a second 1.5em on the end side in RTL. */
+  padding-inline-end: 0;
 }
 
 ef-rich-text .ql-editor li[data-list]::before {

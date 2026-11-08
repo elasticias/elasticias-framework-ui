@@ -65,6 +65,10 @@ describe('ef-rich-text styles', () => {
         expect(value('ef-rich-text .ql-editor li[data-list=bullet]', 'counter-increment')).toBe('none');
     });
 
+    it('drops Quill\'s end-side list padding, so Arabic lists keep the full line', () => {
+        expect(value('ef-rich-text .ql-editor li[data-list]', 'padding-inline-end')).toBe('0');
+    });
+
     it('aligns the text to its start, so Arabic sits on the right', () => {
         // PrimeNG and Quill set a physical text-align: left on .ql-editor.
         expect(value('ef-rich-text .ql-editor', 'text-align')).toBe('start');
