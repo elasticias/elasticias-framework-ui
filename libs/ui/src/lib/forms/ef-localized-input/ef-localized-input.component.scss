@@ -40,6 +40,9 @@
 }
 
 .eli-counter {
+  /* Positioned so the clipped screen-reader text below sizes to the counter,
+     not the page. */
+  position: relative;
   font-size: 12px;
   color: var(--text-mute);
   text-align: end;
@@ -51,12 +54,7 @@
   }
 }
 
-/* Read by assistive tech, not drawn. The counter is positioned so the box
-   this clips to is the counter, not the page. */
-.eli-counter {
-  position: relative;
-}
-
+/* Read by assistive tech, not drawn. */
 .eli-counter__sr {
   position: absolute;
   width: 1px;

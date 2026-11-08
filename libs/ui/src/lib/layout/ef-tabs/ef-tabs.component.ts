@@ -238,6 +238,8 @@ export class EfTabsComponent<T = string> implements AfterContentInit {
     private isRtl(target: EventTarget | null): boolean {
         const el = target instanceof HTMLElement ? target : this.host.nativeElement;
         if (getComputedStyle(el).direction === 'rtl') return true;
+        // Only reached in jsdom, which does not inherit `direction`; a browser
+        // answers above.
         return el.closest('[dir]')?.getAttribute('dir') === 'rtl';
     }
 
