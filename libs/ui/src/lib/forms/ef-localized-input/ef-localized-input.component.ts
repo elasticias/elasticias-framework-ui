@@ -38,6 +38,16 @@ import { EF_RICH_TEXT, plainTextLength } from '../ef-rich-text.token';
 
 let nextId = 0;
 
+/** What one input's tab for a culture would show; read by the input that draws a shared row. */
+export interface EfLocalizedCultureFlags {
+    /** Danger tone: a server error, or the required default culture left empty once touched. */
+    readonly error: boolean;
+    /** A server error under `<name>.<culture>` (what moves the shared culture). */
+    readonly serverError: boolean;
+    /** Edited since the value arrived. */
+    readonly dirty: boolean;
+}
+
 /** Same texts once blanks are dropped. */
 function sameText(a: LocalizedText, b: LocalizedText): boolean {
     const ka = Object.keys(a);
@@ -55,7 +65,10 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   on the default and is two-way through `[(activeCulture)]`.
  * - **One tab row for several texts** (an email's subject and body): bind the
  *   same signal to `[(activeCulture)]` on each and set `[showTabs]="false"`
- *   on all but one. A server error on any of them moves the shared culture.
+ *   on all but one, and list those in the row owner's `[linkedInputs]` so
+ *   the row also shows their error tone, required tone and dirty dot. A new
+ *   set of server errors moves the shared culture to the first culture in
+ *   error in the row's order.
  * - **Tabs** carry the `ef_localized_input_missing` note on every culture with
  *   no text, the error tone on the default culture of a `required` field left
  *   empty once the field is touched, changed or its form submitted, and the
@@ -127,8 +140,8 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *     [value]="product().title" (valueChangeEvent)="patch({ title: $event })"
  *     [advisedLength]="60" [maxLength]="256" />
  *
- * <ef-localized-input name="subject" labelKey="email_subject" [maxLength]="200" [(activeCulture)]="culture" ... />
- * <ef-localized-input name="htmlBody" labelKey="email_body" mode="html" [showTabs]="false" [(activeCulture)]="culture" ... />
+ * <ef-localized-input name="subject" labelKey="email_subject" [maxLength]="200" [linkedInputs]="[body]" [(activeCulture)]="culture" ... />
+ * <ef-localized-input #body name="htmlBody" labelKey="email_body" mode="html" [showTabs]="false" [(activeCulture)]="culture" ... />
  *
  * <ef-localized-input name="title" [readOnlyCultures]="['fr']" ...>
  *     <a read-only-link [routerLink]="catalogLink()">{{ 'store_open_catalog' | translate }}</a>
@@ -204,11 +217,24 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /**
      * Draws the culture tab row. Off for a field that follows another
      * field's row through a shared `activeCulture`: its culture is then
-     * named to assistive tech through `aria-describedby`, its server errors
-     * still move the shared culture, and the hint still names the cultures
-     * in error. Its tones, dots and badges are not drawn anywhere.
+     * named to assistive tech through `aria-describedby` and the hint still
+     * names the cultures in error. List it in the row owner's
+     * `linkedInputs` so the row draws its error tone, required tone and
+     * dirty dot too. Without tabs it never rewrites `activeCulture` to fit
+     * its own culture list (it shows its own fallback instead), and it moves
+     * the shared culture to its first culture in error only when no row
+     * owner links it.
      */
     readonly showTabs = input(true, { transform: booleanAttribute });
+    /**
+     * On the input that draws the shared tab row: the inputs that follow it
+     * (`[showTabs]="false"`), whose `cultureFlags` the row merges into its
+     * tones and dots. A new set of server errors on any of them moves the
+     * shared culture to the first culture in error in this row's order.
+     * Badges stay this input's own. A template reference works forward:
+     * `<ef-localized-input [linkedInputs]="[body]" ... /> <ef-localized-input #body [showTabs]="false" ... />`.
+     */
+    readonly linkedInputs = input<ReadonlyArray<EfLocalizedInputComponent>>([]);
     /** `html` mode only: the sanitised preview under the source. Off when
      *  the screen renders its own preview (an email rendered by the server,
      *  with its tokens filled in). */
@@ -345,7 +371,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         const code = this.active()?.code ?? '';
         const messages = this.cultureErrors()[code];
         if (messages?.length) return messages.map(m => this.translateService.instant(m));
-        if (this.required() && code === this.defaultCode() && !this.cleaned()[code] && this.showErrors()) {
+        if (this.requiredTone(code)) {
             return [this.translateService.instant('validation.required')];
         }
         return null;
@@ -358,12 +384,47 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     protected readonly errorsElsewhere = computed(() => this.culturesInError().filter(c => c.code !== this.active()?.code));
 
     /** Changes only when the set of errors does, so a tab the user picked stays picked. */
-    private readonly errorSignature = computed(() => JSON.stringify(this.cultureErrors()));
+    private readonly errorSignature = computed(() => {
+        const own = JSON.stringify(this.cultureErrors());
+        if (!this.showTabs()) return own;
+        const linked = this.linkedInputs().map(l =>
+            Object.entries(l.cultureFlags()).filter(([, f]) => f.serverError).map(([code]) => code),
+        );
+        return JSON.stringify([own, linked]);
+    });
+
+    /** How many row owners list this input in their `linkedInputs`. */
+    private readonly linkedBy = signal(0);
+
+    /** Danger tone on the default culture: required, empty, and touched, changed or submitted. */
+    private requiredTone(code: string): boolean {
+        return this.required() && code === this.defaultCode() && !this.cleaned()[code] && this.showErrors();
+    }
+
+    /**
+     * What this input's tab would show for each culture it lists, read by
+     * the input that draws a shared row (`linkedInputs`). Read-only.
+     */
+    readonly cultureFlags = computed<Readonly<Record<string, EfLocalizedCultureFlags>>>(() => {
+        const text = this.cleaned();
+        const base = this.baseline();
+        const errors = this.cultureErrors();
+        const out: Record<string, EfLocalizedCultureFlags> = {};
+        for (const c of this.list()) {
+            const serverError = !!errors[c.code];
+            out[c.code] = {
+                error: serverError || this.requiredTone(c.code),
+                serverError,
+                dirty: (text[c.code] ?? '') !== (base[c.code] ?? ''),
+            };
+        }
+        return out;
+    });
 
     protected readonly tabItems = computed<EfTabItem[]>(() => {
         const text = this.cleaned();
-        const base = this.baseline();
         const badges = this.tabBadges() ?? {};
+        const flags = [this.cultureFlags(), ...this.linkedInputs().map(l => l.cultureFlags())];
         return this.list().map(c => {
             const missing = !text[c.code];
             return {
@@ -371,12 +432,8 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
                 labelKey: c.labelKey,
                 noteKey: missing ? 'ef_localized_input_missing' : undefined,
                 badgeKey: badges[c.code] || undefined,
-                tone:
-                    this.cultureErrors()[c.code] ||
-                    (missing && this.required() && c.code === this.defaultCode() && this.showErrors())
-                        ? 'danger'
-                        : undefined,
-                dirty: (text[c.code] ?? '') !== (base[c.code] ?? ''),
+                tone: flags.some(f => f[c.code]?.error) ? 'danger' : undefined,
+                dirty: flags.some(f => f[c.code]?.dirty),
                 id: this.tabId(c.code),
                 panelId: this.panelId,
             };
@@ -457,19 +514,34 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
             this.defaultCode();
             untracked(() => this.ngControl?.control?.updateValueAndValidity({ emitEvent: false }));
         });
-        // The parent always reads the culture on show, never null or one
-        // the field does not list.
+        // The parent always reads the culture on show, never null or one the
+        // row does not list. Only the input that draws tabs writes it back:
+        // two inputs with different lists would otherwise keep overwriting
+        // each other.
         effect(() => {
             const code = this.activeCode();
-            if (code && this.activeCulture() !== code) this.activeCulture.set(code);
+            if (this.showTabs() && code && this.activeCulture() !== code) this.activeCulture.set(code);
+        });
+        // A row owner tells the inputs it links, so they leave the error jump to it.
+        effect(onCleanup => {
+            const linked = this.showTabs() ? this.linkedInputs() : [];
+            for (const l of linked) l.linkedBy.update(n => n + 1);
+            onCleanup(() => {
+                for (const l of linked) l.linkedBy.update(n => n - 1);
+            });
         });
         // A new set of server errors brings the first language in error into
-        // view, through activeCulture, so a shared tab row follows a field
-        // that draws none.
+        // view, through activeCulture. The row owner picks it in its own tab
+        // order across itself and its linked inputs; an input without tabs
+        // that no owner links moves it itself.
         effect(() => {
             this.errorSignature();
             untracked(() => {
-                const first = this.culturesInError()[0];
+                if (!this.showTabs() && this.linkedBy() > 0) return;
+                const linked = this.showTabs() ? this.linkedInputs() : [];
+                const first = this.list().find(
+                    c => this.cultureErrors()[c.code] || linked.some(l => l.cultureFlags()[c.code]?.serverError),
+                );
                 if (first) this.activeCulture.set(first.code);
             });
         });
