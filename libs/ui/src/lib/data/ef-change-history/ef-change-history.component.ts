@@ -29,12 +29,50 @@ const OP_META: Record<string, OpMeta> = {
 };
 const DEFAULT_META: OpMeta = { cls: 'op-default' };
 
+/** A last path segment of two lower-case letters is a culture (`notes.ar`). */
+const CULTURE_SEGMENT = /^(.+)\.([a-z]{2})$/;
+
+/**
+ * The i18n key segment of a backend entity type: PascalCase to snake_case,
+ * an acronym kept as one word. `Product` gives `product`, `EmailTemplate`
+ * gives `email_template`, `POSSession` gives `pos_session`; a segment
+ * already in snake_case is kept.
+ */
+export function auditEntityKeySegment(entityType: string): string {
+    return entityType
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+        .replace(/[\s.-]+/g, '_')
+        .toLowerCase();
+}
+
 /**
  * Standardized change-history box. Drop it on any detail screen and feed it the
  * record's audit entries (from `GET /api/audit/{entityType}/{id}` via the NSwag
  * `AuditClient`). Renders a vertical timeline inside an {@link EfCardComponent},
  * resolving operation labels through `audit_op_*` i18n keys and field labels
- * through `audit_field_*` (falling back to the raw field key when unmapped).
+ * through `audit_field_*` (falling back to the humanized field path when
+ * unmapped).
+ *
+ * **Field labels.** For a field path (dots become `_` in the key) the box
+ * tries, in order:
+ *
+ * 1. `audit_field_<entity>_<field>`, when `entityType` is set, with the type
+ *    converted by {@link auditEntityKeySegment} (`EmailTemplate` gives
+ *    `email_template`); the field keeps its camelCase (`htmlBody`), as
+ *    `ChangeDiff` records it;
+ * 2. `audit_field_<field>`;
+ * 3. when the last segment is two lower-case letters, a culture written by a
+ *    LocalizedText (`notes.ar`): the label of the path before it, found by
+ *    steps 1 and 2 or humanized, then the culture's name in brackets, from
+ *    `ef_localized_input_culture_<xx>` or else the code: "Notes olfactives
+ *    (Arabe)";
+ * 4. the humanized path (`clientCode` gives "Client code").
+ *
+ * So one `audit_field_product_notes` key labels every language of
+ * `Product.Notes`, and an entity can name a field differently from the
+ * global key used by others. On a V2 detail screen bind
+ * `[entityType]="auditEntityType()"`.
  *
  * ```html
  * <ef-change-history [entries]="auditEntries()" />
@@ -93,6 +131,11 @@ export class EfChangeHistoryComponent {
      *  screen uses it to translate coded notes such as `order_email_resent:order_confirmed`. */
     readonly noteFormatter = input<((note: string) => string | null) | null>(null);
 
+    /** The backend entity type (`ScreenConfig.AUDIT_ENTITY_TYPE`, e.g.
+     *  `EmailTemplate`), for the entity's own `audit_field_<entity>_<field>`
+     *  labels. Unset uses the global keys only. */
+    readonly entityType = input<string | null | undefined>(undefined);
+
     /** "Show more" dialog visibility. */
     readonly dialogVisible = signal(false);
 
@@ -124,16 +167,37 @@ export class EfChangeHistoryComponent {
         });
     });
 
-    /** Resolve a field key to its label. Adding an `audit_field_<field>` key is
-     *  OPTIONAL — when it's missing the raw field name is humanized
-     *  (`clientCode` → "Client code"), so new entities/fields work with zero
-     *  i18n maintenance. Add a key only for a properly localized (fr/ar) term. */
+    /** Resolve a field path to its label (order in the class docs). Keys are
+     *  OPTIONAL: without one the path is humanized (`clientCode` gives
+     *  "Client code"), so new fields work with zero i18n maintenance. Add a
+     *  key only for a properly localized (fr/ar) term. */
     fieldLabel(field: string | undefined): string {
         if (!field) return '';
-        // Dotted paths (address.city, contacts.added) → underscore i18n key,
-        // since ngx-translate treats dots as nested lookups.
-        const key = `audit_field_${field.replace(/\./g, '_')}`;
-        return this.resolveLabel(key, field);
+        const exact = this.lookupField(field);
+        if (exact !== null) return exact;
+        const culture = CULTURE_SEGMENT.exec(field);
+        if (culture) {
+            const [, base, code] = culture;
+            const label = this.lookupField(base) ?? this.humanize(base);
+            const nameKey = `ef_localized_input_culture_${code}`;
+            const name = this.translate.instant(nameKey);
+            return `${label} (${name && name !== nameKey ? name : code})`;
+        }
+        return this.humanize(field);
+    }
+
+    /** The entity key, then the global key, for a path; null when neither exists. */
+    private lookupField(path: string): string | null {
+        // Dotted paths (address.city, contacts.added) become an underscore
+        // key, since ngx-translate treats dots as nested lookups.
+        const field = path.replace(/\./g, '_');
+        const type = this.entityType();
+        const entity = type ? auditEntityKeySegment(type) : '';
+        for (const key of entity ? [`audit_field_${entity}_${field}`, `audit_field_${field}`] : [`audit_field_${field}`]) {
+            const translated = this.translate.instant(key);
+            if (translated && translated !== key) return translated;
+        }
+        return null;
     }
 
     /** The note as shown: the formatter's text, else the raw note. */
