@@ -97,7 +97,10 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   5000 does not look like a cap; with `maxLength` alone it stays `n / max`.
  * - **Spoken limit.** `counterHintKey` is read with the counter (through
  *   `aria-describedby`) and `counterOverKey` is announced politely when the
- *   text passes the limit; both take `{{max}}`.
+ *   text passes the limit; both take `{{max}}`. On a field with several
+ *   cultures the announcement is prefixed with the culture's name through
+ *   `ef_localized_input_error_in_culture`, so `counterOverKey` should not
+ *   name it.
  * - **Names.** Each culture's field is named `<name>.<culture>` (`title.ar`),
  *   the key the backend reports a per-culture error under.
  *
@@ -112,6 +115,7 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * | `ef_localized_input_cultures` | Langues du texte | لغات النص | Text languages |
  * | `ef_localized_input_errors_in_other` | Erreur dans : | خطأ في: | Error in: |
  * | `ef_localized_input_counter_advised` | {{count}} / {{max}} conseillés | {{count}} / {{max}} موصى بها | {{count}} / {{max}} advised |
+ * | `ef_localized_input_error_in_culture` | {{culture}} : {{message}} | {{culture}}: {{message}} | {{culture}}: {{message}} |
  * | `ef_localized_input_read_only_hint` | Ce texte se modifie ailleurs. | يُعدَّل هذا النص في مكان آخر. | This text is edited elsewhere. |
  *
  * ```html
@@ -374,6 +378,27 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     protected readonly labelId = `${this.uid}-label`;
 
     protected readonly counterLimit = computed(() => this.advisedLength() ?? this.maxLength());
+
+    /**
+     * The polite over-limit announcement: empty under the limit, else the
+     * `counterOverKey` text, prefixed with the culture's name when the field
+     * has more than one. Its text changes only with the (culture, over)
+     * pair, so typing past the limit is announced once, and a switch to
+     * another language that is also over is announced and names it.
+     */
+    protected readonly overMessage = computed(() => {
+        this.textsVersion();
+        const key = this.counterOverKey();
+        const limit = this.counterLimit();
+        const culture = this.active();
+        if (!key || limit == null || !culture || this.activeLength() <= limit) return '';
+        const message = this.translateService.instant(key, { max: limit });
+        if (this.list().length < 2) return message;
+        return this.translateService.instant('ef_localized_input_error_in_culture', {
+            culture: this.translateService.instant(culture.labelKey),
+            message,
+        });
+    });
 
     protected readonly panelId = `${this.uid}-panel`;
     protected readonly counterId = `${this.uid}-counter`;

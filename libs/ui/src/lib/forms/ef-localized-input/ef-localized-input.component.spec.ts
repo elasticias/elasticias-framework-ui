@@ -20,6 +20,8 @@ const KEYS = {
     title: 'Titre',
     customized: 'personnalisé',
     ef_localized_input_counter_advised: '{{count}} / {{max}} conseillés',
+    ef_localized_input_error_in_culture: '{{culture}} : {{message}}',
+    over_limit: 'Plus de {{max}} caractères conseillés.',
 };
 
 function setup() {
@@ -314,6 +316,34 @@ describe('EfLocalizedInputComponent', () => {
         expect(host.querySelector<HTMLElement>('[data-over-message]')).toBe(live);
         expect(live.textContent).toContain('over_key');
         expect(fixture).toBeTruthy();
+    });
+
+    it('names the culture in the over-limit announcement, and changes it only with the (culture, over) pair', () => {
+        const { host, type, select } = render({
+            value: { fr: 'abcdef', ar: 'abcdefg', en: 'a' },
+            advisedLength: 5,
+            counterOverKey: 'over_limit',
+        });
+        const live = () => host.querySelector<HTMLElement>('[data-over-message]')!.textContent!.trim();
+        expect(live()).toBe('Français : Plus de 5 caractères conseillés.');
+        const region = host.querySelector('[data-over-message]');
+        type('abcdefgh');
+        expect(live()).toBe('Français : Plus de 5 caractères conseillés.');
+        select('ar');
+        expect(host.querySelector('[data-over-message]')).toBe(region);
+        expect(live()).toBe('Arabe : Plus de 5 caractères conseillés.');
+        select('en');
+        expect(live()).toBe('');
+    });
+
+    it('does not name the culture of a single-culture field', () => {
+        const { host } = render({
+            value: { fr: 'abcdef' },
+            cultures: [{ code: 'fr', labelKey: 'ef_localized_input_culture_fr', dir: 'ltr' }],
+            advisedLength: 5,
+            counterOverKey: 'over_limit',
+        });
+        expect(host.querySelector('[data-over-message]')!.textContent!.trim()).toBe('Plus de 5 caractères conseillés.');
     });
 
     it('adds no spoken text without the keys', () => {

@@ -116,11 +116,7 @@
         </span>
         @if (counterOverKey()) {
             <!-- Always present, so a screen reader hears the text appear. -->
-            <span class="eli-counter__sr" data-over-message aria-live="polite">
-                @if (activeLength() > limit) {
-                    {{ counterOverKey() | translate: { max: limit } }}
-                }
-            </span>
+            <span class="eli-counter__sr" data-over-message aria-live="polite">{{ overMessage() }}</span>
         }
     }
 
