@@ -74,6 +74,19 @@ describe('EfLocalizedInputComponent rich mode', () => {
         expect(host.querySelector('[role="tabpanel"]')!.contains(quill.root)).toBe(true);
     });
 
+    it('refuses insertAtCaret in the rich editor, which has no insert', async () => {
+        const { fixture, emitted } = await render({ value: { fr: '<p>Eau</p>' } });
+        await quillOf(fixture);
+        expect(fixture.componentInstance.insertAtCaret('{{x}}')).toBe(false);
+        expect(emitted).toEqual([]);
+    });
+
+    it('inserts at the caret when rich falls back to the html source', async () => {
+        const { fixture, emitted } = await render({ value: { fr: '<p>Eau</p>' } }, false);
+        expect(fixture.componentInstance.insertAtCaret('{{x}}')).toBe(true);
+        expect(emitted.at(-1)).toEqual({ fr: '<p>Eau</p>{{x}}' });
+    });
+
     it('emits sanitised HTML in the whole object, and no key for an emptied culture', async () => {
         const { fixture, emitted } = await render({ value: { fr: '<p>Eau</p>', en: '<p>Water</p>' } });
         const quill = await quillOf(fixture);

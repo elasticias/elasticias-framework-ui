@@ -2,6 +2,7 @@ import {
     booleanAttribute,
     ChangeDetectionStrategy,
     Component,
+    ComponentRef,
     computed,
     DoCheck,
     effect,
@@ -209,6 +210,9 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /** The editor's chunk failed to load (offline, a stale deploy). */
     private readonly richFailed = signal(false);
     private readonly richHost = viewChild('richHost', { read: ViewContainerRef });
+    private richRef: ComponentRef<unknown> | null = null;
+    private readonly textField = viewChild(EfInputTextComponent);
+    private readonly areaField = viewChild(EfTextareaComponent);
 
     /** `rich` without a provided editor renders the html source instead. */
     protected readonly effectiveMode = computed(() =>
@@ -430,9 +434,10 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     private createRich(vcr: ViewContainerRef, type: Type<unknown>, code: string): void {
         vcr.clear();
+        this.richRef = null;
         const culture = () => this.list().find(c => c.code === code);
         const readOnly = () => this.readOnlyCultures().includes(code);
-        vcr.createComponent(type, {
+        this.richRef = vcr.createComponent(type, {
             bindings: [
                 inputBinding('value', () => this.raw()[code] ?? ''),
                 inputBinding('name', () => `${this.name()}.${code}`),
@@ -451,6 +456,30 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
                 outputBinding<string>('valueChangeEvent', v => this.setText(code, v)),
             ],
         });
+    }
+
+    /**
+     * Inserts `text` (a `{{token}}`) into the culture on show, at the caret,
+     * replacing a selection, or at the end when its field was never entered
+     * or was just recreated by a culture switch; then emits the whole object
+     * once, as typing would. Returns false, and changes nothing, when the
+     * field is disabled, the culture is read-only, the result would pass
+     * `maxLength`, or the field is the rich editor (which has no insert yet).
+     *
+     * A caller tracking "the field last focused" should ignore focus on the
+     * culture tabs (`[role="tab"]`): picking a language is not choosing where
+     * the token goes.
+     */
+    insertAtCaret(text: string): boolean {
+        const code = this.activeCode();
+        if (!code || this.isDisabled() || this.activeReadOnly()) return false;
+        const target = (this.effectiveMode() === 'rich' ? this.richRef?.instance : (this.textField() ?? this.areaField())) as
+            | { insertAtCursor?: (t: string) => void }
+            | undefined;
+        if (typeof target?.insertAtCursor !== 'function') return false;
+        const before = this.raw()[code] ?? '';
+        target.insertAtCursor(text);
+        return (this.raw()[code] ?? '') !== before;
     }
 
     protected tabId(code: string): string {
