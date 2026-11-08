@@ -201,6 +201,10 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
      *  the screen renders its own preview (an email rendered by the server,
      *  with its tokens filled in). */
     readonly preview = input(true, { transform: booleanAttribute });
+    /** A badge per culture tab, culture code to i18n key (`{ ar:
+     *  'email_templates_customized' }`): a state of that language worth
+     *  seeing from the tab row. Drawn by the input that shows the tabs. */
+    readonly tabBadges = input<Readonly<Record<string, string>>>({});
 
     /** The whole new object, trimmed, with blank cultures removed. */
     readonly valueChangeEvent = output<LocalizedText>();
@@ -320,12 +324,14 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     protected readonly tabItems = computed<EfTabItem[]>(() => {
         const text = this.cleaned();
         const base = this.baseline();
+        const badges = this.tabBadges() ?? {};
         return this.list().map(c => {
             const missing = !text[c.code];
             return {
                 value: c.code,
                 labelKey: c.labelKey,
                 noteKey: missing ? 'ef_localized_input_missing' : undefined,
+                badgeKey: badges[c.code] || undefined,
                 tone:
                     this.cultureErrors()[c.code] ||
                     (missing && this.required() && c.code === this.defaultCode() && this.showErrors())

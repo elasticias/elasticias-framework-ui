@@ -18,6 +18,7 @@ const KEYS = {
     ef_localized_input_cultures: 'Langues du texte',
     ef_localized_input_read_only_hint: 'Géré par le catalogue',
     title: 'Titre',
+    customized: 'personnalisé',
 };
 
 function setup() {
@@ -172,6 +173,13 @@ describe('EfLocalizedInputComponent', () => {
         const { host } = render({ mode: 'html', preview: false, value: { fr: '<p>ok</p>' } });
         expect(host.querySelector('[data-preview]')).toBeNull();
         expect(host.querySelector('textarea')).not.toBeNull();
+    });
+
+    it('puts a translated badge on the tabs tabBadges names', () => {
+        const { tab } = render({ value: { fr: 'A', ar: 'B' }, tabBadges: { ar: 'customized' } });
+        expect(tab('ar').querySelector('.ef-tabs__badge')?.textContent?.trim()).toBe('personnalisé');
+        expect(tab('fr').querySelector('.ef-tabs__badge')).toBeNull();
+        expect(tab('en').querySelector('.ef-tabs__badge')).toBeNull();
     });
 
     it('emits the whole cleaned object on edit', () => {
