@@ -13,6 +13,14 @@ const SAFE_HREF = /^(https?:|mailto:|tel:)/i;
  * browser. Other tags are unwrapped, keeping their text; script, style and
  * frames go with their content. Quill's non-breaking spaces between words
  * become spaces. An editor holding no text returns `''`, never `<p><br></p>`.
+ *
+ * Browser only: it parses into a `<template>` and so needs `document`.
+ *
+ * Security note: `npm audit` flags quill 2.0.3 (GHSA-v3m3-f69x-jf25, XSS via
+ * HTML export; low severity, no patched release). It is mitigated here
+ * because every value ef-rich-text emits goes through this function, and
+ * incoming HTML goes through it before Quill parses it. Never render
+ * `getSemanticHTML()` without it.
  */
 export function sanitizeRichHtml(html: string | null | undefined): string {
     if (!html) return '';

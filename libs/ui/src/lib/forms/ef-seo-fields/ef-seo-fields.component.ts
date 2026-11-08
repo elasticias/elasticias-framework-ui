@@ -17,7 +17,10 @@ export interface EfSeoPatch {
     seoDescription?: LocalizedText;
 }
 
-/** The content cultures the SEO fields start from, shared with `ef-localized-input`. */
+/**
+ * The content cultures the SEO fields start from, shared with `ef-localized-input`.
+ * @deprecated use `EF_DEFAULT_CONTENT_CULTURES` from `@elasticias/core`.
+ */
 export const EF_SEO_DEFAULT_LOCALES: ReadonlyArray<EfSeoLocale> = EF_DEFAULT_CONTENT_CULTURES;
 
 /**

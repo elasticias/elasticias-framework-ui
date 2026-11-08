@@ -15,7 +15,7 @@ import { InjectionToken, Type } from '@angular/core';
  */
 export const EF_RICH_TEXT = new InjectionToken<() => Promise<Type<unknown>>>('EF_RICH_TEXT');
 
-/** Length of the text a reader sees in an HTML fragment, tags not counted. */
+/** Length of the text a reader sees in an HTML fragment, tags not counted. Browser only: it parses with `document`. */
 export function plainTextLength(html: string | null | undefined): number {
     if (!html) return 0;
     const tpl = document.createElement('template');
