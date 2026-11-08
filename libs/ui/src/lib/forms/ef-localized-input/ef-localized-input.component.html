@@ -20,7 +20,7 @@
         @switch (effectiveMode()) {
             @case ('text') {
                 <ef-input-text
-                    [variant]="variant() === 'default' ? 'primeng' : 'comptoir'"
+                    [variant]="variant() === 'comptoir' ? 'comptoir' : 'primeng'"
                     [inputId]="controlId(c.code)"
                     [name]="name() + '.' + c.code"
                     [dir]="c.dir"

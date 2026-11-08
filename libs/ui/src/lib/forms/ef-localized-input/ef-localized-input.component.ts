@@ -161,9 +161,10 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly counterHintKey = input('');
     /** i18n key (with `{{max}}`) announced politely when the text goes past the limit. */
     readonly counterOverKey = input('');
-    /** Field style in `text` mode only (`default` is ef-input-text's PrimeNG
-     *  variant); the textarea, html and rich modes have one style. */
-    readonly variant = input<'comptoir' | 'default'>('comptoir');
+    /** Field style in `text` mode only, named like ef-input-text's (`primeng`
+     *  or `comptoir`); the textarea, html and rich modes have one style.
+     *  `default` is the former name of `primeng`, kept for one release. */
+    readonly variant = input<'comptoir' | 'primeng' | 'default'>('comptoir');
     readonly disabled = input(false, { transform: booleanAttribute });
     /**
      * Messages for the whole field. Without it they come from the enclosing

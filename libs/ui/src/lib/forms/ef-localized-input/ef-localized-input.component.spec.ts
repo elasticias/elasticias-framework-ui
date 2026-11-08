@@ -62,6 +62,15 @@ describe('EfLocalizedInputComponent', () => {
         expect(field().getAttribute('name')).toBe('title.fr');
     });
 
+    it.each(['primeng', 'default'])('draws the PrimeNG skin for variant %s, like ef-input-text', variant => {
+        const { host } = render({ variant });
+        expect(host.querySelector('ef-input-text input')?.classList.contains('p-inputtext')).toBe(true);
+    });
+
+    it('draws the comptoir skin by default', () => {
+        expect(render().host.querySelector('ef-input-text input')?.classList.contains('p-inputtext')).toBe(false);
+    });
+
     it('marks every culture without text as missing', () => {
         const { tab } = render({ value: { fr: 'A' } });
         expect(tab('fr').textContent).not.toContain('manquant');
