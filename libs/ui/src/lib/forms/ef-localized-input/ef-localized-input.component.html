@@ -102,7 +102,7 @@
 
     @if (counterLimit(); as limit) {
         <span class="eli-counter" data-counter [id]="counterId" [class.is-over]="activeLength() > limit">
-            @if (advisedLength() != null) {
+            @if (advisedLength() !== null && advisedLength() !== undefined) {
                 <!-- Advice, worded so ("5123 / 5000 conseillés"), so it does not
                      read as a cap. Words around the numbers: the text takes the
                      page's direction, and an rtl reader meets the count first. -->
