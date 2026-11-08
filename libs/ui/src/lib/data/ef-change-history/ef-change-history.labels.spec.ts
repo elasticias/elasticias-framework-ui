@@ -13,6 +13,7 @@ const KEYS = {
     audit_field_product_notes: 'Notes olfactives',
     audit_field_contacts_added: 'Contact ajouté',
     audit_field_title_fr: 'Titre en français',
+    audit_field_email_template_subject: 'Objet',
     ef_localized_input_culture_fr: 'Français',
     ef_localized_input_culture_ar: 'Arabe',
 };
@@ -52,8 +53,17 @@ describe('ef-change-history field labels', () => {
         expect(make('EmailTemplate').fieldLabel('htmlBody.ar')).toBe('Html body (Arabe)');
     });
 
-    it('shows the code of a culture the bundle does not name', () => {
-        expect(make().fieldLabel('subject.de')).toBe('Subject (de)');
+    it('does not split a two-letter segment that is not a known culture', () => {
+        expect(make().fieldLabel('subject.de')).toBe('Subject de');
+        expect(make().fieldLabel('de.subject')).toBe('De subject');
+        expect(make().fieldLabel('dimensions.cm')).toBe('Dimensions cm');
+    });
+
+    it('labels a leading culture segment like a trailing one, for older entries', () => {
+        const email = make('EmailTemplate');
+        expect(email.fieldLabel('fr.subject')).toBe('Objet (Français)');
+        expect(email.fieldLabel('subject.fr')).toBe('Objet (Français)');
+        expect(email.fieldLabel('ar.htmlBody')).toBe('Html body (Arabe)');
     });
 
     it('lets an exact key for the whole path win over the culture split', () => {

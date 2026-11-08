@@ -29,8 +29,10 @@ const OP_META: Record<string, OpMeta> = {
 };
 const DEFAULT_META: OpMeta = { cls: 'op-default' };
 
-/** A last path segment of two lower-case letters is a culture (`notes.ar`). */
-const CULTURE_SEGMENT = /^(.+)\.([a-z]{2})$/;
+/** A path whose last (`notes.ar`) or first (`fr.subject`) segment is two
+ *  lower-case letters; a culture only when the bundle names it. */
+const TRAILING_CULTURE = /^(.+)\.([a-z]{2})$/;
+const LEADING_CULTURE = /^([a-z]{2})\.(.+)$/;
 
 /**
  * The i18n key segment of a backend entity type: PascalCase to snake_case,
@@ -62,11 +64,16 @@ export function auditEntityKeySegment(entityType: string): string {
  *    `email_template`); the field keeps its camelCase (`htmlBody`), as
  *    `ChangeDiff` records it;
  * 2. `audit_field_<field>`;
- * 3. when the last segment is two lower-case letters, a culture written by a
- *    LocalizedText (`notes.ar`): the label of the path before it, found by
- *    steps 1 and 2 or humanized, then the culture's name in brackets, from
- *    `ef_localized_input_culture_<xx>` or else the code: "Notes olfactives
- *    (Arabe)";
+ * 3. when the last segment (`notes.ar`, as ChangeDiff writes a
+ *    LocalizedText) or, for older entries, the first segment (`fr.subject`)
+ *    is a known culture: the label of the rest of the path, found by steps 1
+ *    and 2 or humanized, then the culture's name in brackets: "Notes
+ *    olfactives (Arabe)". A culture is known when the app's bundle has
+ *    `ef_localized_input_culture_<xx>`, the key that also names it. The
+ *    bundle, not `EF_CONTENT_CULTURES`, decides, because a history outlives
+ *    the tenant's current culture list: a language the tenant dropped still
+ *    labels its old entries. Any other two-letter segment (`dimensions.cm`)
+ *    is part of the path;
  * 4. the humanized path (`clientCode` gives "Client code").
  *
  * So one `audit_field_product_notes` key labels every language of
@@ -175,15 +182,24 @@ export class EfChangeHistoryComponent {
         if (!field) return '';
         const exact = this.lookupField(field);
         if (exact !== null) return exact;
-        const culture = CULTURE_SEGMENT.exec(field);
-        if (culture) {
-            const [, base, code] = culture;
-            const label = this.lookupField(base) ?? this.humanize(base);
-            const nameKey = `ef_localized_input_culture_${code}`;
-            const name = this.translate.instant(nameKey);
-            return `${label} (${name && name !== nameKey ? name : code})`;
+        // [base, culture code] for a trailing, then a leading, culture segment.
+        const trailing = TRAILING_CULTURE.exec(field);
+        const leading = LEADING_CULTURE.exec(field);
+        const candidates: Array<[string, string]> = [];
+        if (trailing) candidates.push([trailing[1], trailing[2]]);
+        if (leading) candidates.push([leading[2], leading[1]]);
+        for (const [base, code] of candidates) {
+            const name = this.cultureName(code);
+            if (name) return `${this.lookupField(base) ?? this.humanize(base)} (${name})`;
         }
         return this.humanize(field);
+    }
+
+    /** The culture's name from `ef_localized_input_culture_<code>`, or null when the bundle does not know it. */
+    private cultureName(code: string): string | null {
+        const key = `ef_localized_input_culture_${code}`;
+        const name = this.translate.instant(key);
+        return name && name !== key ? name : null;
     }
 
     /** The entity key, then the global key, for a path; null when neither exists. */
