@@ -55,7 +55,8 @@
 }
 
 /* Read by assistive tech, not drawn. */
-.eli-counter__sr {
+.eli-counter__sr,
+.eli-sr {
   position: absolute;
   width: 1px;
   height: 1px;

@@ -4,18 +4,32 @@
             <ef-label [labelKey]="labelKey()" [for]="controlId(active()?.code ?? '')" [required]="required()" />
         </span>
     }
-    <div class="eli-tabs">
-        <ef-tabs
-            variant="pill"
-            [items]="tabItems()"
-            [value]="active()?.code ?? null"
-            [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
-            (valueChange)="select($event)"
-        />
-    </div>
+    @if (showTabs()) {
+        <div class="eli-tabs">
+            <ef-tabs
+                variant="pill"
+                [items]="tabItems()"
+                [value]="active()?.code ?? null"
+                [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
+                (valueChange)="select($event)"
+            />
+        </div>
+    }
 </div>
 
-<div class="eli-panel" role="tabpanel" [id]="panelId" [attr.aria-labelledby]="tabId(active()?.code ?? '')">
+<!-- Without a tab row the panel is a plain group: a tabpanel would point
+     at a tab that does not exist. -->
+<div
+    class="eli-panel"
+    [id]="panelId"
+    [attr.role]="showTabs() ? 'tabpanel' : null"
+    [attr.aria-labelledby]="showTabs() ? tabId(active()?.code ?? '') : null"
+>
+    @if (!showTabs()) {
+        @if (active(); as c) {
+            <span class="eli-sr" [id]="cultureNameId">{{ c.labelKey | translate }}</span>
+        }
+    }
     @for (c of active() ? [active()!] : []; track c.code) {
         @switch (effectiveMode()) {
             @case ('text') {
@@ -33,7 +47,7 @@
                     [readonly]="activeReadOnly()"
                     [placeholderKey]="placeholderKey()"
                     [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
-                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    [describedByExtra]="describedByExtra()"
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }
@@ -52,7 +66,7 @@
                     [readonly]="activeReadOnly()"
                     [placeholderKey]="placeholderKey()"
                     [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
-                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    [describedByExtra]="describedByExtra()"
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }
@@ -79,7 +93,7 @@
                     [readonly]="activeReadOnly()"
                     [placeholderKey]="placeholderKey()"
                     [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
-                    [describedByExtra]="counterLimit() ? counterId : ''"
+                    [describedByExtra]="describedByExtra()"
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }

@@ -12,6 +12,7 @@ import {
     inputBinding,
     isDevMode,
     linkedSignal,
+    model,
     output,
     outputBinding,
     signal,
@@ -49,8 +50,11 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * (ADR-050 section 7).
  *
  * - **Cultures** come from `EF_CONTENT_CULTURES` (the ERP provides them from
- *   the tenant profile) unless `cultures` is set. The active tab is local and
- *   starts on the default culture.
+ *   the tenant profile) unless `cultures` is set. The active culture starts
+ *   on the default and is two-way through `[(activeCulture)]`.
+ * - **One tab row for several texts** (an email's subject and body): bind the
+ *   same signal to `[(activeCulture)]` on each and set `[showTabs]="false"`
+ *   on all but one. A server error on any of them moves the shared culture.
  * - **Tabs** carry the `ef_localized_input_missing` note on every culture with
  *   no text, the error tone on the default culture of a `required` field left
  *   empty once the field is touched, changed or its form submitted, and the
@@ -109,6 +113,9 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * <ef-localized-input name="title" labelKey="product_title" required
  *     [value]="product().title" (valueChangeEvent)="patch({ title: $event })"
  *     [advisedLength]="60" [maxLength]="256" />
+ *
+ * <ef-localized-input name="subject" labelKey="email_subject" [maxLength]="200" [(activeCulture)]="culture" ... />
+ * <ef-localized-input name="htmlBody" labelKey="email_body" mode="html" [showTabs]="false" [(activeCulture)]="culture" ... />
  *
  * <ef-localized-input name="title" [readOnlyCultures]="['fr']" ...>
  *     <a read-only-link [routerLink]="catalogLink()">{{ 'store_open_catalog' | translate }}</a>
@@ -174,6 +181,21 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     readonly errors = input<string[] | null | undefined>(undefined);
     /** Overrides the `EF_CONTENT_CULTURES` list for this field. */
     readonly cultures = input<ReadonlyArray<EfCulture> | undefined>(undefined);
+    /**
+     * The culture on show, two-way (`[(activeCulture)]`). `null` or a culture
+     * the field does not list means the default; the field then writes back
+     * the culture it settled on, so the parent always reads a listed code.
+     * Bind one signal to several inputs to give them one tab row.
+     */
+    readonly activeCulture = model<string | null>(null);
+    /**
+     * Draws the culture tab row. Off for a field that follows another
+     * field's row through a shared `activeCulture`: its culture is then
+     * named to assistive tech through `aria-describedby`, its server errors
+     * still move the shared culture, and the hint still names the cultures
+     * in error. Its tones, dots and badges are not drawn anywhere.
+     */
+    readonly showTabs = input(true, { transform: booleanAttribute });
 
     /** The whole new object, trimmed, with blank cultures removed. */
     readonly valueChangeEvent = output<LocalizedText>();
@@ -236,11 +258,9 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         return list.some(c => c.code === preferred) ? preferred : (list[0]?.code ?? preferred);
     });
 
-    private readonly selected = signal<string | null>(null);
-
     protected readonly active = computed<EfCulture | undefined>(() => {
         const list = this.list();
-        const code = this.selected();
+        const code = this.activeCulture();
         return list.find(c => c.code === code) ?? list.find(c => c.code === this.defaultCode()) ?? list[0];
     });
 
@@ -339,6 +359,14 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     protected readonly panelId = `${this.uid}-panel`;
     protected readonly counterId = `${this.uid}-counter`;
+    /** The culture's name, read with a field that has no tab row. */
+    protected readonly cultureNameId = `${this.uid}-culture`;
+
+    /** Extra `aria-describedby` ids for the active field: the counter, and
+     *  the culture's name when no tab says it. */
+    protected readonly describedByExtra = computed(() =>
+        [this.counterLimit() ? this.counterId : null, this.showTabs() ? null : this.cultureNameId].filter(Boolean).join(' '),
+    );
 
     private onChange: (v: LocalizedText) => void = () => { /* noop */ };
     private touched: () => void = () => { /* noop */ };
@@ -355,12 +383,20 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
             this.defaultCode();
             untracked(() => this.ngControl?.control?.updateValueAndValidity({ emitEvent: false }));
         });
-        // A new set of server errors brings the first language in error into view.
+        // The parent always reads the culture on show, never null or one
+        // the field does not list.
+        effect(() => {
+            const code = this.activeCode();
+            if (code && this.activeCulture() !== code) this.activeCulture.set(code);
+        });
+        // A new set of server errors brings the first language in error into
+        // view, through activeCulture, so a shared tab row follows a field
+        // that draws none.
         effect(() => {
             this.errorSignature();
             untracked(() => {
                 const first = this.culturesInError()[0];
-                if (first) this.selected.set(first.code);
+                if (first) this.activeCulture.set(first.code);
             });
         });
         effect(() => {
@@ -411,7 +447,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
                 inputBinding('readonly', readOnly),
                 inputBinding('placeholderKey', () => this.placeholderKey()),
                 inputBinding('hintKey', () => (readOnly() ? 'ef_localized_input_read_only_hint' : this.hintKey())),
-                inputBinding('describedByExtra', () => (this.counterLimit() ? this.counterId : '')),
+                inputBinding('describedByExtra', () => this.describedByExtra()),
                 outputBinding<string>('valueChangeEvent', v => this.setText(code, v)),
             ],
         });
@@ -426,7 +462,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     }
 
     protected select(code: string): void {
-        this.selected.set(code);
+        this.activeCulture.set(code);
     }
 
     protected setText(code: string, text: string): void {
