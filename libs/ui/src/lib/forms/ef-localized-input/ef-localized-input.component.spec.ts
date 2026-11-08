@@ -76,11 +76,11 @@ describe('EfLocalizedInputComponent', () => {
         expect(render().host.querySelector('ef-input-text input')?.classList.contains('p-inputtext')).toBe(false);
     });
 
-    it('marks every culture without text as missing', () => {
+    it('labels every tab with the language name only, filled or not', () => {
         const { tab } = render({ value: { fr: 'A' } });
         expect(tab('fr').textContent).not.toContain('manquant');
-        expect(tab('ar').textContent).toContain('manquant');
-        expect(tab('en').textContent).toContain('manquant');
+        expect(tab('ar').textContent).not.toContain('manquant');
+        expect(tab('en').textContent).not.toContain('manquant');
     });
 
     it('puts error tone on the default tab of a required empty field', () => {
@@ -114,10 +114,10 @@ describe('EfLocalizedInputComponent', () => {
         expect(host.textContent).not.toContain('Ce champ est requis.');
     });
 
-    it('shows no error tone before the field is touched, but always shows the missing note', () => {
+    it('shows no error tone before the field is touched, and no missing note', () => {
         const { tab } = render({ value: { ar: 'نص' }, required: true });
         expect(tab('fr').classList).not.toContain('is-danger');
-        expect(tab('fr').textContent).toContain('manquant');
+        expect(tab('fr').textContent).not.toContain('manquant');
     });
 
     it('shows the error tone once the user clears the default culture', () => {

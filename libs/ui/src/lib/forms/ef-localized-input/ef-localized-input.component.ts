@@ -69,8 +69,8 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  *   the row also shows their error tone, required tone and dirty dot. A new
  *   set of server errors moves the shared culture to the first culture in
  *   error in the row's order.
- * - **Tabs** carry the `ef_localized_input_missing` note on every culture with
- *   no text, the error tone on the default culture of a `required` field left
+ * - **Tabs** show the language name only (no "missing" note: an empty culture
+ *   is visible from its empty field), the error tone on the default culture of a `required` field left
  *   empty once the field is touched, changed or its form submitted, and the
  *   dirty dot on cultures edited since the value arrived. Dirty detection
  *   relies on the parent storing the emitted object by reference (the V2
@@ -128,7 +128,6 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * | `ef_localized_input_culture_fr` | Français | الفرنسية | French |
  * | `ef_localized_input_culture_ar` | Arabe | العربية | Arabic |
  * | `ef_localized_input_culture_en` | Anglais | الإنجليزية | English |
- * | `ef_localized_input_missing` | manquant | غير مكتوب | missing |
  * | `ef_localized_input_cultures` | Langues du texte | لغات النص | Text languages |
  * | `ef_localized_input_errors_in_other` | Erreur dans : | خطأ في: | Error in: |
  * | `ef_localized_input_counter_advised` | {{count}} / {{max}} conseillés | {{count}} / {{max}} موصى بها | {{count}} / {{max}} advised |
@@ -422,15 +421,12 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     });
 
     protected readonly tabItems = computed<EfTabItem[]>(() => {
-        const text = this.cleaned();
         const badges = this.tabBadges() ?? {};
         const flags = [this.cultureFlags(), ...this.linkedInputs().map(l => l.cultureFlags())];
         return this.list().map(c => {
-            const missing = !text[c.code];
             return {
                 value: c.code,
                 labelKey: c.labelKey,
-                noteKey: missing ? 'ef_localized_input_missing' : undefined,
                 badgeKey: badges[c.code] || undefined,
                 tone: flags.some(f => f[c.code]?.error) ? 'danger' : undefined,
                 dirty: flags.some(f => f[c.code]?.dirty),
