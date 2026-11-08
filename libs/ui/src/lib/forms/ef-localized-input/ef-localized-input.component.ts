@@ -84,7 +84,8 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * - **Forms.** A ControlValueAccessor (`[formControl]`, `formControlName`,
  *   `[(ngModel)]`) as well as `[value]` + `(valueChangeEvent)`. With
  *   `required`, the form control reports `required` while the default culture
- *   is empty.
+ *   is empty, and once the field is touched, changed or submitted the default
+ *   culture's field shows `validation.required` and is `aria-invalid`.
  * - **Server errors** (ADR-010) come from the enclosing `[efServerErrors]`
  *   scope. `<name>.<culture>` errors tint that culture's tab, show under its
  *   field while it is active (the field links itself by name) and, from another
@@ -333,11 +334,21 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /** Bumps when texts change, so translated messages follow the language. */
     private readonly textsVersion = signal(0);
 
-    /** The active language's messages, translated once here for the field below. */
+    /**
+     * The active language's messages, translated once here for the field
+     * below. Without one, a required default culture left empty says so
+     * once the field is touched, changed or submitted (`validation.required`,
+     * the family's message), which also sets `aria-invalid` on it.
+     */
     protected readonly activeErrors = computed<string[] | null>(() => {
         this.textsVersion();
-        const messages = this.cultureErrors()[this.active()?.code ?? ''];
-        return messages?.length ? messages.map(m => this.translateService.instant(m)) : null;
+        const code = this.active()?.code ?? '';
+        const messages = this.cultureErrors()[code];
+        if (messages?.length) return messages.map(m => this.translateService.instant(m));
+        if (this.required() && code === this.defaultCode() && !this.cleaned()[code] && this.showErrors()) {
+            return [this.translateService.instant('validation.required')];
+        }
+        return null;
     });
 
     /** Cultures with a server error, in tab order. */

@@ -164,6 +164,14 @@ describe('EfLocalizedInputComponent server errors', () => {
         expect(messages()).toEqual(['Allemand : Langue non prise en charge']);
     });
 
+    it('shows the server message, not a second required one, on a required culture in error', () => {
+        const { fixture, messages, setErrors } = render();
+        TestBed.inject(TranslateService).setTranslation('fr', { ...KEYS, 'validation.required': 'Ce champ est requis.' });
+        setErrors({ 'title.fr': ['Titre requis'] });
+        fixture.detectChanges();
+        expect(messages()).toEqual(['Titre requis']);
+    });
+
     it('does not prefix whole-field messages', () => {
         const { messages, setErrors } = render();
         setErrors({ title: ['unsupported'] });

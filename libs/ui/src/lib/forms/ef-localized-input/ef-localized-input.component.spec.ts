@@ -22,6 +22,7 @@ const KEYS = {
     ef_localized_input_counter_advised: '{{count}} / {{max}} conseillés',
     ef_localized_input_error_in_culture: '{{culture}} : {{message}}',
     over_limit: 'Plus de {{max}} caractères conseillés.',
+    'validation.required': 'Ce champ est requis.',
 };
 
 function setup() {
@@ -89,6 +90,28 @@ describe('EfLocalizedInputComponent', () => {
         expect(tab('fr').classList).toContain('is-danger');
         expect(tab('en').classList).not.toContain('is-danger');
         expect(host.querySelector('label')?.textContent).toContain('Titre');
+    });
+
+    it('says the empty default culture is required, on the field, once touched', () => {
+        const { field, host, detect } = render({ value: { ar: 'نص' }, required: true });
+        expect(field().getAttribute('aria-invalid')).toBeNull();
+        expect(host.textContent).not.toContain('Ce champ est requis.');
+        field().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }));
+        detect();
+        expect(field().getAttribute('aria-invalid')).toBe('true');
+        expect(host.querySelector('[role="tabpanel"]')!.textContent).toContain('Ce champ est requis.');
+    });
+
+    it('does not say required on another culture, or once the default has text', () => {
+        const { field, host, detect, select, type } = render({ value: { ar: 'نص' }, required: true });
+        field().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }));
+        detect();
+        select('ar');
+        expect(field().getAttribute('aria-invalid')).toBeNull();
+        select('fr');
+        type('Eau');
+        expect(field().getAttribute('aria-invalid')).toBeNull();
+        expect(host.textContent).not.toContain('Ce champ est requis.');
     });
 
     it('shows no error tone before the field is touched, but always shows the missing note', () => {
