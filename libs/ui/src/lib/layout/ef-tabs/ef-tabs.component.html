@@ -33,6 +33,13 @@
       @if (item.noteKey) {
         <span class="ef-tabs__note">{{ item.noteKey | translate }}</span>
       }
+      @if (item.badgeKey) {
+        <!-- Whitespace inside, as in the label, so the accessible name
+             reads "manquant personnalisé", not one word. -->
+        <span class="ef-tabs__badge">
+          {{ item.badgeKey | translate }}
+        </span>
+      }
       @if (item.dirty) {
         <span class="ef-tabs__dot" [attr.aria-label]="dirtyLabelKey | translate"></span>
       }

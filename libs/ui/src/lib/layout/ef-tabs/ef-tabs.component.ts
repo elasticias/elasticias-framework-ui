@@ -49,6 +49,10 @@ export interface EfTabItem<T = string> {
     /** Translation key of a short note after the label (`'missing'`). It is
      *  part of the tab's accessible name, so it says what the dot cannot. */
     noteKey?: string;
+    /** Translation key of a small chip after the note (`'customized'`): a
+     *  state of the panel worth seeing from the tab row. Part of the tab's
+     *  accessible name, like the note. */
+    badgeKey?: string;
     /** `'danger'` draws the tab in the error status colour: a required panel
      *  left empty, or a panel holding server errors. */
     tone?: 'danger';

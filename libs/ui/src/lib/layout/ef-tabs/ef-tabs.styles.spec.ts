@@ -36,6 +36,12 @@ describe('ef-tabs styles', () => {
         expect(focus).toBeGreaterThan(danger);
     });
 
+    it('keeps the badge on one line and in the tab text colour', () => {
+        expect(decl('.ef-tabs__badge', 'white-space')).toBe('nowrap');
+        expect(decl('.ef-tabs__badge', 'border')).toBe('1px solid currentColor');
+        expect(decl('.ef-tabs__badge', 'opacity')).toBeUndefined();
+    });
+
     it('does not fade the tab note', () => {
         expect(decl('.ef-tabs__note', 'font-size')).toBe('11px');
         expect(decl('.ef-tabs__note', 'opacity')).toBeUndefined();

@@ -111,6 +111,19 @@
   font-weight: 500;
 }
 
+/* A small chip after the note ("customized"). Drawn in the tab's own text
+   colour, so it keeps the label's contrast on the idle and the active pill;
+   never faded, and never wrapped, so the pill keeps its shape. */
+.ef-tabs__badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
 /* ──────────── Pill variant (default) ──────────── */
 :host(.ef-tabs--pill) .ef-tabs__list {
   background: var(--paper-alt);
