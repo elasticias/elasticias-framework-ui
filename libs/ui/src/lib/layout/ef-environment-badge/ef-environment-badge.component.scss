@@ -1,0 +1,57 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  flex: none;
+}
+
+/* A label, not a control: no hover, no pointer, no tap target. The colours are
+   the --env-* tokens (_comptoir.scss), restated for dark under .p-dark. DEV is
+   tinted, STAGING is filled, so the two differ by more than hue. */
+.ef-env-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--env-dev-rule);
+  border-radius: var(--r-pill, 999px);
+  background: var(--env-dev-bg);
+  color: var(--env-dev-fg);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+
+  &[data-env='STAGING'] {
+    border-color: var(--env-staging-rule);
+    background: var(--env-staging-bg);
+    color: var(--env-staging-fg);
+  }
+}
+
+/* The full name, for screen readers only: the code is the visible text. */
+.ef-env-badge__name {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Placed last: a media query adds no specificity. A phone's top bar holds the
+   menu, the badge and the avatar in 390px, so the pill tightens a little. */
+@media (max-width: 767px) {
+  .ef-env-badge {
+    padding: 0 6px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+}

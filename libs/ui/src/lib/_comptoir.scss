@@ -72,6 +72,17 @@
   --st-refunded-fg:   #826208;  --st-refunded-bg:   #fdf1c8;
   --st-onhold-fg:     #4f5560;  --st-onhold-bg:     #e7e9ee;
 
+  /* ── Deployment environment (ef-environment-badge) ───────────────
+     DEV is tinted blue, STAGING is filled amber: they differ by fill as
+     well as by hue, and STAGING is the louder one because it runs on a
+     restored copy of production's data. Production has no badge at all.
+     Measured fg:bg, light: dev 6.01, staging 5.39. The rule gives the
+     tinted pill an edge on --paper, where its ground alone is 1.13:1. */
+  --env-dev-fg:       #1356a8;  --env-dev-bg:       #e0ecfc;
+  --env-dev-rule:     color-mix(in srgb, #1356a8 35%, transparent);
+  --env-staging-fg:   #ffffff;  --env-staging-bg:   #b34a00;
+  --env-staging-rule: #b34a00;
+
   /* ── Typography ───────────────────────────────────────────────
      The three faces, defined once. They were hardcoded 79 times across
      16 files, and the same face carried different fallback chains in
@@ -265,6 +276,12 @@
   --st-cancelled-fg:  #e06161;  --st-cancelled-bg:  #391919;
   --st-refunded-fg:   #efc243;  --st-refunded-bg:   #3d3215;
   --st-onhold-fg:     #9096a2;  --st-onhold-bg:     #27282b;
+
+  /* Environment badge, dark. Measured fg:bg: dev 7.34, staging 7.78. */
+  --env-dev-fg:       #8ab8f0;  --env-dev-bg:       #17273b;
+  --env-dev-rule:     color-mix(in srgb, #8ab8f0 35%, transparent);
+  --env-staging-fg:   #0f1115;  --env-staging-bg:   #fa8838;
+  --env-staging-rule: #fa8838;
 
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 8px 20px -8px rgba(0, 0, 0, 0.5);

@@ -1,0 +1,121 @@
+:host {
+  display: contents;
+}
+
+/* The dialog is `sm` (92vw on a phone), so one column is the layout at every
+   width, as in ef-about-dialog. Only the value column shrinks. */
+.ef-version {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ef-version__env {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ef-version__env-name {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.ef-version__rows {
+  margin: 0;
+  padding: 12px 0 0;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  border-top: 1px solid var(--rule);
+}
+
+/* `auto` for the label, `minmax(0, 1fr)` for the value: a hash or a long
+   branch name must not size the column and widen the dialog. */
+.ef-version__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+
+  dt {
+    min-width: 0;
+    font-size: 12px;
+    color: var(--text-mute);
+  }
+
+  dd {
+    min-width: 0;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+}
+
+.ef-version__line {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.ef-version__line-label {
+  font-size: 12px;
+  color: var(--text-mute);
+}
+
+/* The line the Copy button copies, shown as is. One tap selects all of it,
+   which is the fallback when the clipboard is refused. Left-aligned even on
+   an Arabic page: it is a Latin string read left to right. */
+.ef-version__code {
+  display: block;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm, 8px);
+  background: var(--paper-alt);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: left;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* Empty until a copy, then announced and shown, so a failed copy says why
+   instead of doing nothing. Never display:none: a live region that is not in
+   the accessibility tree when its text arrives is not announced. */
+.ef-version__status {
+  margin: 0;
+  min-height: 1em;
+  font-size: 12px;
+  color: var(--text-mute);
+}
+
+.ef-version__empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-mute);
+}
+
+/* Placed last: a media query adds no specificity. */
+@media (max-width: 767px) {
+  .ef-version__env-name {
+    font-size: 16px;
+  }
+
+  .ef-version__code {
+    padding: 12px;
+  }
+}

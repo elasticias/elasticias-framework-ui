@@ -41,6 +41,18 @@
     "onhold":     { "fg": "#4f5560", "bg": "#e7e9ee" }
   },
 
+  "environment": {
+    "note": "ef-environment-badge. DEV tinted, STAGING filled; production has no badge.",
+    "light": {
+      "dev":     { "fg": "#1356a8", "bg": "#e0ecfc" },
+      "staging": { "fg": "#ffffff", "bg": "#b34a00" }
+    },
+    "dark": {
+      "dev":     { "fg": "#8ab8f0", "bg": "#17273b" },
+      "staging": { "fg": "#0f1115", "bg": "#fa8838" }
+    }
+  },
+
   "tenant": {
     "note": "Tenant ramps are generated at runtime from `storeConfig.primaryColor` via EfThemeConfigService.setTenantAccent(). The samples below match the showcase and are used for design references and onboarding seed data.",
     "samples": {

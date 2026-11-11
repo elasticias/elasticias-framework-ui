@@ -30,6 +30,15 @@ export { EfThemeToggleComponent } from './lib/layout/ef-theme-toggle/ef-theme-to
 export { EfBuildStampComponent } from './lib/layout/ef-build-stamp/ef-build-stamp.component';
 export { EfAboutDialogComponent } from './lib/layout/ef-about-dialog/ef-about-dialog.component';
 export type { EfAboutServer } from './lib/layout/ef-about-dialog/ef-about-dialog.component';
+export { EfEnvironmentBadgeComponent } from './lib/layout/ef-environment-badge/ef-environment-badge.component';
+export { EfVersionDialogComponent } from './lib/layout/ef-version-dialog/ef-version-dialog.component';
+export {
+    efEnvironmentCode,
+    efEnvironmentIsFlagged,
+    efEnvironmentNameKey,
+    efVersionLine,
+} from './lib/layout/ef-version-dialog/ef-version-info';
+export type { EfEnvironmentCode, EfVersionInfo } from './lib/layout/ef-version-dialog/ef-version-info';
 export { EfTooltipDirective } from './lib/overlays/ef-tooltip.directive';
 export { EfShortcutsDialogComponent } from './lib/overlays/ef-shortcuts-dialog/ef-shortcuts-dialog.component';
 export { EfSessionIdleDialogComponent } from './lib/overlays/ef-session-idle-dialog/ef-session-idle-dialog.component';
