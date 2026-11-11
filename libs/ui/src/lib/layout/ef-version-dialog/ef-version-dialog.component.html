@@ -1,0 +1,55 @@
+<!-- appendTo="body": ef-app-main is `overflow: hidden`, so a dialog left in
+     place inside the content column is clipped by it. -->
+<ef-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  headerKey="version_title"
+  size="sm"
+  appendTo="body"
+  dismissableMask
+  [actions]="actions()"
+>
+  <div class="ef-version">
+    @if (info(); as i) {
+      <div class="ef-version__env">
+        <ef-environment-badge [environment]="i.environment" />
+        <p class="ef-version__env-name">{{ nameKey() | translate }}</p>
+      </div>
+
+      <dl class="ef-version__rows">
+        @for (row of rows(); track row.labelKey) {
+          <div class="ef-version__row">
+            <dt>{{ row.labelKey | translate }}</dt>
+            <!-- Codes and hashes are Latin and left-to-right in every language:
+                 isolated, so an Arabic page cannot reorder "develop+15d6d6b". -->
+            <dd><span dir="ltr">{{ row.value }}</span></dd>
+          </div>
+        }
+        @if (i.startedAt) {
+          <div class="ef-version__row">
+            <dt>{{ 'version_started_at' | translate }}</dt>
+            <!-- dir="auto": the app's locale may format this in Latin or Arabic
+                 script, and either way its digits must not be reordered. -->
+            <dd><span dir="auto">{{ i.startedAt | date: 'medium' : undefined : locale() }}</span></dd>
+          </div>
+        }
+      </dl>
+
+      <div class="ef-version__line">
+        <span class="ef-version__line-label">{{ 'version_support_line' | translate }}</span>
+        <code class="ef-version__code" dir="ltr">{{ line() }}</code>
+      </div>
+
+      <p class="ef-version__status" role="status" aria-live="polite">
+        @switch (copyState()) {
+          @case ('copied') { {{ 'version_copied_announce' | translate }} }
+          @case ('failed') { {{ 'version_copy_failed' | translate }} }
+        }
+      </p>
+    } @else if (loading()) {
+      <ef-skeleton variant="text" [rows]="4" />
+    } @else {
+      <p class="ef-version__empty">{{ 'version_unavailable' | translate }}</p>
+    }
+  </div>
+</ef-dialog>
