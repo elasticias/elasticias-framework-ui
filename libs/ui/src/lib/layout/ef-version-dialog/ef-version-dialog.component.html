@@ -28,7 +28,9 @@
         @if (i.startedAt) {
           <div class="ef-version__row">
             <dt>{{ 'version_started_at' | translate }}</dt>
-            <dd>{{ i.startedAt | date: 'medium' }}</dd>
+            <!-- dir="auto": the app's locale may format this in Latin or Arabic
+                 script, and either way its digits must not be reordered. -->
+            <dd><span dir="auto">{{ i.startedAt | date: 'medium' }}</span></dd>
           </div>
         }
       </dl>

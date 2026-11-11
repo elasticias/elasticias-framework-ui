@@ -32,6 +32,10 @@ describe('EfVersionDialogComponent', () => {
         expect(q('.ef-version__code')!.textContent!.trim()).toBe('crescilio-erp develop+15d6d6b DEV');
         expect(q('.ef-version__code')!.getAttribute('dir')).toBe('ltr');
         expect(q('.ef-version__rows')!.textContent).toContain('15d6d6b');
+        // Every value is bidi-isolated, so an Arabic page cannot reorder a hash or a date.
+        const values = Array.from(document.querySelectorAll('.ef-version__row dd'));
+        expect(values).toHaveLength(4);
+        expect(values.every((dd) => dd.querySelector('span[dir]'))).toBe(true);
     });
 
     it('copies the line and says so, without closing', async () => {
