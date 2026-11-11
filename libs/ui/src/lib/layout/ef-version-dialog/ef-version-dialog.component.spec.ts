@@ -1,3 +1,5 @@
+import { registerLocaleData } from '@angular/common';
+import localeAr from '@angular/common/locales/ar-MA';
 import { TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfVersionDialogComponent } from './ef-version-dialog.component';
@@ -12,11 +14,12 @@ const INFO: EfVersionInfo = {
 };
 
 describe('EfVersionDialogComponent', () => {
-    function setup(info: EfVersionInfo | null, loading = false) {
+    function setup(info: EfVersionInfo | null, loading = false, locale?: string) {
         TestBed.configureTestingModule({ imports: [EfVersionDialogComponent, TranslateModule.forRoot()] });
         const fixture = TestBed.createComponent(EfVersionDialogComponent);
         fixture.componentRef.setInput('info', info);
         fixture.componentRef.setInput('loading', loading);
+        if (locale) fixture.componentRef.setInput('locale', locale);
         fixture.componentInstance.visible.set(true);
         fixture.detectChanges();
         const q = (s: string) => document.querySelector<HTMLElement>(s);
@@ -78,5 +81,16 @@ describe('EfVersionDialogComponent', () => {
         await fixture.whenStable();
         expect(q('ef-skeleton')).not.toBeNull();
         expect(q('.ef-version__empty')).toBeNull();
+    });
+
+    it('formats the start time in the locale it is given, not the startup one', async () => {
+        registerLocaleData(localeAr, 'ar-MA');
+        const { fixture } = setup(INFO, false, 'ar-MA');
+        await fixture.whenStable();
+        const started = Array.from(document.querySelectorAll('.ef-version__row dd')).at(-1)!.textContent!;
+        // ar-MA's medium pattern is numeric with an Arabic comma; the startup
+        // locale here (en-US) would have written "Nov".
+        expect(started).toContain('،');
+        expect(started).not.toContain('Nov');
     });
 });

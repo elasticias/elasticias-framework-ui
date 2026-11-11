@@ -57,6 +57,14 @@ export class EfVersionDialogComponent {
     /** True while the app is still asking: the body shows a skeleton. */
     readonly loading = input(false);
 
+    /**
+     * Locale for the start time, e.g. `ar-MA`. Pass the page's live language:
+     * an app that switches language without a reload keeps its startup
+     * LOCALE_ID, and the date would read in the old language. Unset falls
+     * back to LOCALE_ID. The locale's data must be registered by the app.
+     */
+    readonly locale = input<string | undefined>(undefined);
+
     private readonly destroyRef = inject(DestroyRef);
     private resetTimer: ReturnType<typeof setTimeout> | undefined;
 
