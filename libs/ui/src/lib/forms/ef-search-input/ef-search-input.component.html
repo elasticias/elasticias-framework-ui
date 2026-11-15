@@ -1,0 +1,47 @@
+@if (labelKey() || label()) {
+  <ef-label [labelKey]="labelKey()" [labelParams]="labelParams()" [label]="label()" [for]="effectiveId" />
+}
+<div class="ef-field-control">
+  <div class="ef-input-group" [class.is-default]="variant() === 'default'" [class.is-invalid]="resolvedExternalErrors()?.length">
+    <input
+      [id]="effectiveId"
+      [attr.name]="name() || null"
+      [attr.dir]="dir()"
+      type="search"
+      [attr.inputmode]="inputMode()"
+      enterkeyhint="search"
+      autocomplete="off"
+      [value]="value()"
+      (input)="value.set($any($event.target).value)"
+      (keydown.enter)="submit($event)"
+      [attr.placeholder]="effectivePlaceholder || null"
+      [disabled]="isDisabled()"
+      [attr.aria-label]="effectiveAriaLabel"
+    />
+    <button
+      type="button"
+      class="ef-search-btn"
+      [disabled]="isDisabled() || loading()"
+      [attr.aria-busy]="loading() ? 'true' : null"
+      [attr.aria-label]="buttonLabelKey() | translate"
+      (click)="submit($event)"
+    >
+      @if (loading()) {
+        <svg class="ef-search-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <path d="M12 3a9 9 0 1 0 9 9" stroke-linecap="round" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" stroke-linecap="round" />
+        </svg>
+      }
+    </button>
+  </div>
+  @if (resolvedExternalErrors(); as errors) {
+    <div role="alert" aria-live="polite">
+      @for (error of errors; track error) {
+        <small class="text-danger block">{{ error }}</small>
+      }
+    </div>
+  }
+</div>

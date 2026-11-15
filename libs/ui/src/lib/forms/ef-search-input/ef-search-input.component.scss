@@ -1,0 +1,67 @@
+/* The group border, radius, focus ring and --hit-field height (40px, 48px on a
+   coarse pointer) come from the global `.ef-input-group`. The button is the
+   last flex child, so a page in `dir="rtl"` mirrors it to the leading edge;
+   only logical properties are used here. `dir` on this component describes
+   the typed value and is applied to the native input alone, so the group
+   keeps the page direction. */
+:host {
+  display: block;
+}
+
+.ef-search-btn {
+  box-sizing: border-box;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  inline-size: var(--hit-field);
+  padding: 0;
+  border: 0;
+  border-inline-start: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--text-mute);
+  cursor: pointer;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+
+  svg {
+    inline-size: 18px;
+    block-size: 18px;
+  }
+
+  &:hover:not([disabled]) {
+    background: var(--tenant-50);
+    color: var(--tenant-500);
+  }
+
+  &:active:not([disabled]) {
+    background: var(--tenant-100);
+  }
+
+  &[disabled] {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &[aria-busy='true'] {
+    cursor: progress;
+  }
+}
+
+.ef-search-spinner {
+  animation: ef-search-spin 0.8s linear infinite;
+}
+
+@keyframes ef-search-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-search-spinner {
+    animation-duration: 2.4s;
+  }
+}
