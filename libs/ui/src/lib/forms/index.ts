@@ -9,3 +9,4 @@ export { EfPasswordComponent } from './ef-password/ef-password.component';
 export { EfMultiSelectComponent } from './ef-multi-select/ef-multi-select.component';
 export { EfSelectButtonComponent } from './ef-selectbutton/ef-selectbutton.component';
 export { EfQuantityStepperComponent } from './ef-quantity-stepper/ef-quantity-stepper.component';
+export { EfSearchInputComponent } from './ef-search-input/ef-search-input.component';

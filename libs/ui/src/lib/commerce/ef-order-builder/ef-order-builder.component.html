@@ -11,7 +11,37 @@
         [overflowVisible]="true">
         <div class="ob-order-head">
           <div class="form-grid">
-            @if (recipient(); as r) {
+            @if (recipientInteractive()) {
+              <div class="field col-6">
+                <ef-label [labelKey]="recipientLabelKey()" [required]="true" />
+                <button
+                  type="button"
+                  class="ob-recipient ob-recipient-btn"
+                  [class.empty]="!recipient()"
+                  [class.invalid]="!!backendErrors()['customerId']"
+                  aria-haspopup="dialog"
+                  [attr.aria-invalid]="!recipient() && !!backendErrors()['customerId'] ? true : null"
+                  (click)="recipientClick.emit()">
+                  @if (recipient(); as r) {
+                    <span class="ob-recipient-name">{{ r.name }}</span>
+                    @if (r.phone) {
+                      <span class="ob-recipient-phone" dir="ltr">{{ r.phone }}</span>
+                    }
+                    @if (r.city) {
+                      <span class="ob-recipient-city">{{ r.city }}</span>
+                    }
+                    @if (recipientShowAddress() && r.address) {
+                      <span class="ob-recipient-address" [title]="r.address">{{ r.address }}</span>
+                    }
+                  } @else {
+                    <span class="ob-recipient-name">{{
+                      (recipientPlaceholderKey() ?? 'label.select_customer') | translate
+                    }}</span>
+                  }
+                  <i class="pi pi-chevron-right ob-recipient-chevron" aria-hidden="true"></i>
+                </button>
+              </div>
+            } @else if (recipient(); as r) {
               <!-- No client to pick (a storefront order): who it goes to,
                    read-only, in the customer's place. -->
               <div class="field col-6">
@@ -27,7 +57,7 @@
                   @if (r.city) {
                     <span class="ob-recipient-city">{{ r.city }}</span>
                   }
-                  @if (r.address) {
+                  @if (recipientShowAddress() && r.address) {
                     <span class="ob-recipient-address" [title]="r.address">{{ r.address }}</span>
                   }
                 </div>

@@ -1,0 +1,318 @@
+<ef-dialog
+  [visible]="visible()"
+  [headerKey]="titleKey()"
+  [size]="dialogSize()"
+  [styleClass]="dialogClass()"
+  [actions]="actions()"
+  (visibleChange)="onVisibleChange($event)"
+>
+  <div class="ef-recipient" [efServerErrors]="serverErrors()">
+    @if (isStatic()) {
+      <!-- ── Read-only: text only, Fermer is the one action ── -->
+      @if (viewMatch(); as m) {
+        <ef-card titleKey="ef.recipient.section_client">
+          <div class="ef-recipient__match" data-role="selected-match">
+            <ef-recipient-match [match]="m" [clientMode]="isClient()" [clientTypes]="clientTypes()" />
+            @if (canOpenProfile()) {
+              <ef-button variant="comptoir" severity="ghost" labelKey="ef.recipient.open_profile"
+                         data-role="open-profile" (clickEvent)="onOpenProfile()" />
+            }
+          </div>
+        </ef-card>
+      }
+      @if (showDelivery() && staticDelivery(); as d) {
+        <ef-card titleKey="ef.recipient.section_delivery_view">
+          <div class="ef-recipient__text">
+            <span class="ef-recipient__pair">
+              <b>{{ d.recipientName }}</b>
+              <b dir="ltr">{{ d.phone }}</b>
+            </span>
+            <span>{{ d.street }}</span>
+            <span>{{ staticCity() }}</span>
+            @if (d.note) {
+              <span class="ef-recipient__hint">{{ 'ef.recipient.note_prefix' | translate }} {{ d.note }}</span>
+            }
+          </div>
+        </ef-card>
+      }
+      @if (paymentOn() || receivedViaOn()) {
+        <ef-card titleKey="ef.recipient.section_payment">
+          <div class="ef-recipient__text">
+            @if (paymentOn() && staticPayment()) {
+              <span>{{ staticPayment() }}</span>
+            }
+            @if (receivedViaOn() && staticReceivedVia()) {
+              <span class="ef-recipient__hint">
+                {{ 'ef.recipient.received_via_prefix' | translate }} <b>{{ staticReceivedVia() }}</b>
+              </span>
+            }
+          </div>
+        </ef-card>
+      }
+      <p class="ef-recipient__hint">{{ 'ef.recipient.view_locked' | translate }}</p>
+    } @else {
+      <!-- ── 1. Recherche ── -->
+      @if (!isView()) {
+        <ef-card titleKey="ef.recipient.section_search">
+          <div class="ef-recipient__stack">
+            <ef-search-input
+              name="search"
+              [inputId]="fieldId('search')"
+              [(value)]="query"
+              [placeholderKey]="placeholderKey()"
+              [ariaLabelKey]="placeholderKey()"
+              [loading]="searching()"
+              (search)="onSearch($event)"
+            />
+            <p class="ef-recipient__hint">{{ searchHintKey() | translate }}</p>
+          </div>
+        </ef-card>
+      }
+
+      <!-- ── 2. Client ── -->
+      @if (selected(); as m) {
+        <ef-card titleKey="ef.recipient.section_client">
+          <div class="ef-recipient__match" data-role="selected-match">
+            <ef-recipient-match [match]="m" [clientMode]="isClient()" [clientTypes]="clientTypes()" />
+            <span class="ef-recipient__match-actions">
+              @if (canOpenProfile()) {
+                <ef-button variant="comptoir" severity="ghost" labelKey="ef.recipient.open_profile"
+                           data-role="open-profile" (clickEvent)="onOpenProfile()" />
+              }
+              @if (!isView()) {
+                <ef-button variant="comptoir" severity="ghost" labelKey="ef.recipient.change"
+                           data-role="change" (clickEvent)="change()" />
+              }
+            </span>
+          </div>
+        </ef-card>
+      } @else if (showList()) {
+        <ef-card
+          [title]="(isClient() ? 'ef.recipient.matches_title_client' : 'ef.recipient.matches_title') | translate: { count: results()!.length }"
+        >
+          <div class="ef-recipient__stack" role="list">
+            @for (m of results(); track m.id) {
+              <div role="listitem">
+                <button
+                  type="button"
+                  class="ef-recipient__pick"
+                  data-role="pick"
+                  [disabled]="!isPickable(m)"
+                  [attr.aria-disabled]="isPickable(m) ? null : 'true'"
+                  (click)="pick(m)"
+                >
+                  <ef-recipient-match [match]="m" [clientMode]="isClient()" [clientTypes]="clientTypes()" />
+                </button>
+              </div>
+            }
+            <p class="ef-recipient__hint">
+              {{ (isClient() ? 'ef.recipient.matches_hint_client' : 'ef.recipient.matches_hint') | translate }}
+            </p>
+          </div>
+        </ef-card>
+      } @else if (noMatch() || creating()) {
+        @if (noMatch() && !draftShown()) {
+          <p class="ef-recipient__notice" role="status">
+            {{ (canCreate() ? 'ef.recipient.no_match_create' : 'ef.recipient.no_match') | translate }}
+          </p>
+        }
+        @if (creating()) {
+          <ef-card titleKey="ef.recipient.section_new_client">
+            <div class="ef-recipient__stack">
+              <div class="ef-recipient__fields">
+                @if (isClient()) {
+                  <ef-select
+                    name="type"
+                    [inputId]="fieldId('type')"
+                    variant="comptoir"
+                    labelKey="ef.recipient.client_type"
+                    placeholderKey="ef.recipient.client_type_placeholder"
+                    [required]="true"
+                    [options]="clientTypes()"
+                    optionLabel="label"
+                    optionValue="code"
+                    [value]="contactType()"
+                    (selectionChangeEvent)="contactType.set($event ?? '')"
+                  />
+                  <ef-input-text
+                    name="companyName"
+                    [inputId]="fieldId('companyName')"
+                    labelKey="ef.recipient.company_name"
+                    [required]="true"
+                    [value]="contactName()"
+                    (valueChangeEvent)="contactName.set($event)"
+                  />
+                } @else {
+                  <ef-input-text
+                    class="ef-recipient__full"
+                    name="fullName"
+                    [inputId]="fieldId('fullName')"
+                    labelKey="ef.recipient.full_name"
+                    placeholderKey="ef.recipient.full_name_placeholder"
+                    autocomplete="name"
+                    [required]="true"
+                    [value]="contactName()"
+                    (valueChangeEvent)="contactName.set($event)"
+                  />
+                }
+                <ef-input-text
+                  name="phone"
+                  [inputId]="fieldId('phone')"
+                  type="tel"
+                  dir="ltr"
+                  labelKey="ef.recipient.phone"
+                  autocomplete="tel"
+                  [required]="true"
+                  [value]="contactPhone()"
+                  (valueChangeEvent)="contactPhone.set($event)"
+                />
+                <ef-input-text
+                  name="email"
+                  [inputId]="fieldId('email')"
+                  type="email"
+                  dir="ltr"
+                  labelKey="ef.recipient.email"
+                  placeholderKey="ef.recipient.optional"
+                  autocomplete="email"
+                  [value]="contactEmail()"
+                  (valueChangeEvent)="contactEmail.set($event)"
+                />
+                @if (isClient()) {
+                  <ef-input-text
+                    class="ef-recipient__full"
+                    name="street"
+                    [inputId]="fieldId('street')"
+                    labelKey="ef.recipient.street"
+                    placeholderKey="ef.recipient.street_placeholder"
+                    [value]="street()"
+                    (valueChangeEvent)="street.set($event)"
+                  />
+                  <ng-container *ngTemplateOutlet="cityField" />
+                }
+              </div>
+              @if (isClient()) {
+                <ef-button
+                  class="ef-recipient__link"
+                  variant="comptoir"
+                  severity="ghost"
+                  icon="pi pi-angle-right"
+                  labelKey="ef.recipient.full_form"
+                  data-role="full-form"
+                  (clickEvent)="onOpenFullForm()"
+                />
+              }
+            </div>
+          </ef-card>
+        }
+      }
+
+      <!-- ── 3. Livraison ── -->
+      @if (showDeliverySection()) {
+        <ef-card titleKey="ef.recipient.section_delivery">
+          <div class="ef-recipient__stack">
+            @if (addresses().length) {
+              <ef-recipient-choices
+                [choices]="addressChoices()"
+                [(value)]="addressChoice"
+                [labelledBy]="fieldId('delivery-title')"
+              />
+              <span class="ef-recipient__sr" [id]="fieldId('delivery-title')">
+                {{ 'ef.recipient.section_delivery' | translate }}
+              </span>
+            }
+            @if (showAddressFields()) {
+              <div class="ef-recipient__fields">
+                <ef-input-text
+                  name="recipientName"
+                  [inputId]="fieldId('recipientName')"
+                  labelKey="ef.recipient.recipient_name"
+                  [required]="true"
+                  [value]="recipientName()"
+                  (valueChangeEvent)="recipientName.set($event)"
+                />
+                <ef-input-text
+                  name="recipientPhone"
+                  [inputId]="fieldId('recipientPhone')"
+                  type="tel"
+                  dir="ltr"
+                  labelKey="ef.recipient.recipient_phone"
+                  [required]="true"
+                  [value]="recipientPhone()"
+                  (valueChangeEvent)="recipientPhone.set($event)"
+                />
+                <ef-input-text
+                  class="ef-recipient__full"
+                  name="street"
+                  [inputId]="fieldId('street')"
+                  labelKey="ef.recipient.street"
+                  placeholderKey="ef.recipient.street_placeholder"
+                  [required]="true"
+                  [value]="street()"
+                  (valueChangeEvent)="street.set($event)"
+                />
+                <ng-container *ngTemplateOutlet="cityField" />
+              </div>
+            }
+            <ef-textarea
+              name="note"
+              [inputId]="fieldId('note')"
+              labelKey="ef.recipient.note"
+              placeholderKey="ef.recipient.optional"
+              [rows]="2"
+              [value]="note()"
+              (valueChangeEvent)="note.set($event)"
+            />
+          </div>
+        </ef-card>
+      }
+
+      <!-- ── 4. Paiement et Reçue par ── -->
+      @if (showPaymentSection()) {
+        <ef-card titleKey="ef.recipient.section_payment">
+          <div class="ef-recipient__stack">
+            @if (paymentOn()) {
+              <span class="ef-recipient__sr" [id]="fieldId('payment-title')">
+                {{ 'ef.recipient.section_payment' | translate }}
+              </span>
+              <ef-recipient-choices
+                [choices]="paymentChoices()"
+                [(value)]="paymentMethod"
+                [labelledBy]="fieldId('payment-title')"
+                [required]="true"
+              />
+            }
+            @if (receivedViaOn()) {
+              <div class="ef-recipient__via">
+                <ef-label labelKey="ef.recipient.received_via" [required]="true" />
+                <ef-pill-group
+                  [items]="receivedViaPills()"
+                  [value]="receivedVia() || null"
+                  ariaLabelKey="ef.recipient.received_via"
+                  (valueChange)="receivedVia.set($event)"
+                />
+              </div>
+            }
+          </div>
+        </ef-card>
+      }
+    }
+
+    <!-- Declared inside the [efServerErrors] scope so the city field links its errors. -->
+    <ng-template #cityField>
+      <ef-select
+        name="cityId"
+        [inputId]="fieldId('cityId')"
+        variant="comptoir"
+        labelKey="ef.recipient.city"
+        placeholderKey="ef.recipient.city_placeholder"
+        [required]="true"
+        [options]="cities()"
+        optionLabel="name"
+        optionValue="id"
+        [filter]="true"
+        [value]="cityId()"
+        (selectionChangeEvent)="cityId.set($event ?? null)"
+      />
+    </ng-template>
+  </div>
+</ef-dialog>

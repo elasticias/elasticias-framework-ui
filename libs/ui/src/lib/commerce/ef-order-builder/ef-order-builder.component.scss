@@ -147,6 +147,72 @@
       color: var(--text-mute);
     }
 
+    // Interactive Destinataire: the whole strip is one button that opens a
+    // customer dialog, drawn as the comptoir field it sits beside (the
+    // article search and date picker): same border, ground, radius and
+    // --hit-field height, filling its column exactly. The chevron sits on
+    // the trailing edge; extra lines (an address) grow the box downward.
+    .ob-recipient-btn {
+      position: relative;
+      box-sizing: border-box;
+      inline-size: 100%;
+      max-inline-size: 100%;
+      min-block-size: var(--hit-field);
+      align-content: center;
+      margin: 0;
+      padding: 8px 12px;
+      padding-inline-end: 36px;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-md);
+      background: var(--paper-alt);
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: start;
+      cursor: pointer;
+      transition:
+        border-color var(--t-fast) var(--ease-out),
+        box-shadow var(--t-fast) var(--ease-out);
+
+      &:hover {
+        border-color: var(--tenant-400);
+      }
+      &:focus-visible {
+        outline: 0;
+        border-color: var(--tenant-400);
+        box-shadow: 0 0 0 3px var(--tenant-100);
+      }
+      /* A placeholder, in the themed muted ink: the tenant's dark tone vanished on a dark ground. */
+      &.empty .ob-recipient-name {
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--text-mute);
+      }
+      &.empty .ob-recipient-city {
+        white-space: normal;
+      }
+      &.invalid {
+        border-color: var(--crit);
+        background: var(--crit-soft);
+      }
+      .ob-recipient-phone {
+        color: var(--text-soft);
+      }
+    }
+    .ob-recipient-chevron {
+      position: absolute;
+      inset-inline-end: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-mute);
+      font-size: 14px;
+      overflow: visible;
+
+      &:dir(rtl) {
+        transform: translateY(-50%) scaleX(-1);
+      }
+    }
+
     // Express-add row — sits under the customer/date row, divided by a rule.
     // flex-wrap so fields reflow cleanly instead of crushing labels.
     .qa-grid {
@@ -753,5 +819,10 @@
   // The recipient's phone is a tel: link, so it is a tap target too.
   :host .order-builder .ob-recipient-phone {
     line-height: var(--hit-touch);
+  }
+  // In the interactive row the phone is plain text in the button: the button
+  // is the tap target, so the phone keeps its normal line height.
+  :host .order-builder .ob-recipient-btn .ob-recipient-phone {
+    line-height: inherit;
   }
 }

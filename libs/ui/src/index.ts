@@ -16,6 +16,8 @@ export type {
     EfProductPickerItem,
     EfProductPickerQuery,
 } from './lib/commerce/ef-product-picker/ef-product-picker.component.types';
+export { EfRecipientDialogComponent } from './lib/commerce/ef-recipient-dialog/ef-recipient-dialog.component';
+export * from './lib/commerce/ef-recipient-dialog/ef-recipient-dialog.types';
 export { EfOrderSummaryComponent } from './lib/commerce/ef-order-summary/ef-order-summary.component';
 export type { ProductCountGroup, ProductCountGroupLabel, ProductWithCountGroup } from './lib/commerce/ef-order-summary/ef-order-summary.component';
 export { EfProductCatalogueFilterComponent } from './lib/commerce/ef-product-catalogue-filter/ef-product-catalogue-filter.component';
