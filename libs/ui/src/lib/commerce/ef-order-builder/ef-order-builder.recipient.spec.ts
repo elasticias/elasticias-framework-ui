@@ -60,6 +60,15 @@ describe('ef-order-builder Destinataire row', () => {
     expect(clicks.length).toBe(1);
   });
 
+  it('interactive_row_label_defaults_to_recipient_and_takes_a_key', () => {
+    const f = build({ recipient: RECIPIENT, recipientInteractive: true });
+    const label = () => el(f).querySelector('button.ob-recipient')?.parentElement?.querySelector('ef-label');
+    expect(label()?.textContent?.trim()).toBe('order_builder.recipient');
+    f.componentRef.setInput('recipientLabelKey', 'sales_orders_client_label');
+    f.detectChanges();
+    expect(label()?.textContent?.trim()).toBe('sales_orders_client_label');
+  });
+
   it('interactive_row_has_no_nested_link', () => {
     const f = build({ recipient: RECIPIENT, recipientInteractive: true });
     const btn = el(f).querySelector('button.ob-recipient') as HTMLElement;

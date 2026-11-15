@@ -126,6 +126,8 @@ export class EfOrderBuilderComponent implements OnInit {
   recipientInteractive = input(false);
   /** With `recipientInteractive` and no recipient: the row's text, in place of the customer select. */
   recipientPlaceholderKey = input<string | null>(null);
+  /** With `recipientInteractive`: the row's label key ("Destinataire" for a shop order, "Client" for Sales). */
+  recipientLabelKey = input('order_builder.recipient');
   /** False hides the street in the Destinataire row. */
   recipientShowAddress = input(true);
   recipientClick = output<void>();

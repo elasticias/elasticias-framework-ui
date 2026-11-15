@@ -13,7 +13,7 @@
           <div class="form-grid">
             @if (recipientInteractive()) {
               <div class="field col-6">
-                <ef-label labelKey="order_builder.recipient" [required]="true" />
+                <ef-label [labelKey]="recipientLabelKey()" [required]="true" />
                 <button
                   type="button"
                   class="ob-recipient ob-recipient-btn"
