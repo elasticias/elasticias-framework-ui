@@ -388,6 +388,29 @@ describe('EfRecipientDialogComponent', () => {
         expect(JSON.stringify(t.confirmed)).not.toContain('•');
     });
 
+    it('reopen_on_a_saved_address_then_new_address_never_sends_a_masked_phone', async () => {
+        // A picker without StoreShoppers Edit sees the saved address's phone masked; Valider sent it with its id.
+        const masked: EfRecipientMatch = {
+            ...SALMA,
+            addresses: SALMA.addresses.map(a => ({ ...a, phone: '+212 6 •• •• •• 78' })),
+        };
+        const value: EfRecipientValue = {
+            ...EXISTING,
+            delivery: { recipientName: 'Salma Ait Ali', phone: '+212 6 •• •• •• 78', street: '12 rue des Orangers',
+                cityId: 1, note: null, addressId: 'a-home' },
+        };
+        const t = await setup({ mode: 'view', viewMatch: masked, value });
+        expect(t.choice('a-home')?.getAttribute('aria-checked')).toBe('true');
+
+        t.choice('new')!.click();
+        await t.settle();
+        expect(t.field('recipientPhone')?.value).toBe('');
+        expect(t.confirmBtn().disabled).toBe(true);
+        t.confirmBtn().click();
+        await t.settle();
+        expect(JSON.stringify(t.confirmed)).not.toContain('•');
+    });
+
     it('reopen_of_a_pick_dialog_keeps_the_order_delivery_without_address_id', async () => {
         const value: EfRecipientValue = {
             ...EXISTING,
