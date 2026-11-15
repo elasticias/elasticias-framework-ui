@@ -102,6 +102,15 @@
   overflow-wrap: anywhere;
 }
 
+/* Name and phone on one line, apart by a gap rather than a typed separator,
+   so the pair mirrors with the page in RTL. */
+.ef-recipient__pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  min-width: 0;
+}
+
 .ef-recipient__sr {
   position: absolute;
   width: 1px;

@@ -23,11 +23,14 @@
       @if (showDelivery() && staticDelivery(); as d) {
         <ef-card titleKey="ef.recipient.section_delivery_view">
           <div class="ef-recipient__text">
-            <b>{{ d.recipientName }} · <span dir="ltr">{{ d.phone }}</span></b>
+            <span class="ef-recipient__pair">
+              <b>{{ d.recipientName }}</b>
+              <b dir="ltr">{{ d.phone }}</b>
+            </span>
             <span>{{ d.street }}</span>
             <span>{{ staticCity() }}</span>
             @if (d.note) {
-              <span class="ef-recipient__hint">{{ 'ef.recipient.note_label' | translate }} : {{ d.note }}</span>
+              <span class="ef-recipient__hint">{{ 'ef.recipient.note_prefix' | translate }} {{ d.note }}</span>
             }
           </div>
         </ef-card>
@@ -40,7 +43,7 @@
             }
             @if (receivedViaOn() && staticReceivedVia()) {
               <span class="ef-recipient__hint">
-                {{ 'ef.recipient.received_via' | translate }} : <b>{{ staticReceivedVia() }}</b>
+                {{ 'ef.recipient.received_via_prefix' | translate }} <b>{{ staticReceivedVia() }}</b>
               </span>
             }
           </div>

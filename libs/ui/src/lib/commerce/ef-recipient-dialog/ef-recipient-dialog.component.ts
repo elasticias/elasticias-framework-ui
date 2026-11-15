@@ -282,12 +282,8 @@ export class EfRecipientDialogComponent {
         const list = this.addresses();
         if (!list.length) return NEW_ADDRESS;
         const d = this.appliedDelivery();
-        if (d) {
-            const hit = d.addressId
-                ? list.find(a => a.id === d.addressId)
-                : list.find(a => a.street === d.street && a.cityId === d.cityId);
-            return hit?.id ?? NEW_ADDRESS;
-        }
+        // A saved address only by its id: a delivery that merely shares a street keeps its own recipient.
+        if (d) return (d.addressId && list.find(a => a.id === d.addressId)?.id) || NEW_ADDRESS;
         return list[0].id;
     });
 
@@ -300,7 +296,8 @@ export class EfRecipientDialogComponent {
     protected readonly recipientPhone = linkedSignal(() => {
         this.openCount();
         const d = this.appliedDelivery();
-        if (d) return d.phone;
+        // A masked phone is never sent back: the field starts empty and is retyped.
+        if (d) return unmasked(d.phone);
         const sel = this.selected();
         return sel ? unmasked(sel.phone) : this.contactPhone();
     });
@@ -334,8 +331,10 @@ export class EfRecipientDialogComponent {
             title: a.label || (client ? null : a.recipientName),
             titleKey: a.label ? null : client ? 'ef.recipient.address_client' : null,
             badgeKey: a.isDefault && !client ? 'ef.recipient.address_default' : null,
+            // Each part isolated (FSI ... PDI), so a Latin street on an Arabic screen keeps its place in the line.
             description: [client || !a.label ? null : a.recipientName, a.street, a.cityName]
                 .filter(Boolean)
+                .map(part => `\u2068${part}\u2069`)
                 .join(' · '),
         }));
         return [

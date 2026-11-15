@@ -165,6 +165,8 @@ describe('EfRecipientDialogComponent', () => {
         expect(t.choice('a-home')?.getAttribute('aria-checked')).toBe('true');
         expect(t.choice('a-office')?.getAttribute('aria-checked')).toBe('false');
         expect(t.field('street')).toBeNull();
+        // Each part of an address line is bidi-isolated, so it keeps its place in RTL.
+        expect(t.choice('a-home')?.textContent).toContain('\u2068Salma Ait Ali\u2069 · \u206812 rue des Orangers\u2069');
 
         await t.receivedVia('whatsapp');
         expect(t.confirmBtn().disabled).toBe(false);
@@ -323,7 +325,10 @@ describe('EfRecipientDialogComponent', () => {
         expect(t.$('input[type="search"]')).toBeNull();
         expect(t.$('[data-role="change"]')).toBeNull();
         expect(t.$('[data-role="selected-match"]')?.textContent).toContain('Salma Ait Ali');
-        expect(t.choice('a-office')?.getAttribute('aria-checked')).toBe('true');
+        // No addressId on the order: its own delivery, on "Nouvelle adresse", never a book entry.
+        expect(t.choice('new')?.getAttribute('aria-checked')).toBe('true');
+        expect(t.choice('a-office')?.getAttribute('aria-checked')).toBe('false');
+        expect(t.field('street')?.value).toBe('45 bd Zerktouni');
         expect(t.choice('bank_transfer')?.getAttribute('aria-checked')).toBe('true');
         expect(t.field('note')?.value).toBe('Sonner deux fois');
         expect(t.footer().length).toBe(2);
@@ -332,8 +337,71 @@ describe('EfRecipientDialogComponent', () => {
         t.confirmBtn().click();
         await t.settle();
         expect(t.confirmed[0].shopperId).toBe('sh-1');
-        expect(t.confirmed[0].delivery.addressId).toBe('a-office');
+        expect(t.confirmed[0].delivery.addressId).toBeNull();
         expect(t.confirmed[0].paymentMethod).toBe('bank_transfer');
+    });
+
+    it('view_mode_with_an_address_id_starts_on_that_saved_address', async () => {
+        const t = await setup({
+            mode: 'view', viewMatch: SALMA,
+            value: { ...EXISTING, delivery: { ...EXISTING.delivery, addressId: 'a-office' } },
+        });
+        expect(t.choice('a-office')?.getAttribute('aria-checked')).toBe('true');
+        t.confirmBtn().click();
+        await t.settle();
+        expect(t.confirmed[0].delivery.addressId).toBe('a-office');
+    });
+
+    it('view_mode_valider_keeps_a_recipient_that_differs_from_the_address_book', async () => {
+        // Same street and city as Salma's "Bureau", another recipient: the order's own.
+        const value: EfRecipientValue = {
+            ...EXISTING,
+            delivery: { recipientName: 'Hassan Bennani', phone: '+212698765432', street: '45 bd Zerktouni', cityId: 1,
+                note: null },
+        };
+        const t = await setup({ mode: 'view', viewMatch: SALMA, value });
+        t.confirmBtn().click();
+        await t.settle();
+        expect(t.confirmed[0].delivery).toEqual({
+            recipientName: 'Hassan Bennani', phone: '+212698765432', street: '45 bd Zerktouni', cityId: 1,
+            note: null, addressId: null,
+        });
+    });
+
+    it('reopen_then_new_address_never_sends_a_masked_phone', async () => {
+        // The order's delivery phone came back masked (a reader without StoreShoppers Edit).
+        const value: EfRecipientValue = {
+            ...EXISTING,
+            delivery: { recipientName: 'Salma Ait Ali', phone: '+212 6 •• •• •• 78', street: '7 rue Neuve', cityId: 1,
+                note: null },
+        };
+        const t = await setup({ mode: 'view', viewMatch: SALMA, value });
+        expect(t.choice('new')?.getAttribute('aria-checked')).toBe('true');
+        expect(t.field('recipientPhone')?.value).toBe('');
+        expect(t.confirmBtn().disabled).toBe(true);
+
+        await t.type('recipientPhone', '0698765432');
+        expect(t.confirmBtn().disabled).toBe(false);
+        t.confirmBtn().click();
+        await t.settle();
+        expect(t.confirmed[0].delivery.phone).toBe('0698765432');
+        expect(JSON.stringify(t.confirmed)).not.toContain('•');
+    });
+
+    it('reopen_of_a_pick_dialog_keeps_the_order_delivery_without_address_id', async () => {
+        const value: EfRecipientValue = {
+            ...EXISTING,
+            delivery: { recipientName: 'Hassan Bennani', phone: '+212698765432', street: '12 rue des Orangers',
+                cityId: 1, note: null },
+        };
+        const t = await setup({ viewMatch: SALMA, value });
+        expect(t.choice('new')?.getAttribute('aria-checked')).toBe('true');
+        expect(t.field('recipientName')?.value).toBe('Hassan Bennani');
+        await t.receivedVia('whatsapp');
+        t.confirmBtn().click();
+        await t.settle();
+        expect(t.confirmed[0].delivery.addressId).toBeNull();
+        expect(t.confirmed[0].delivery.recipientName).toBe('Hassan Bennani');
     });
 
     it('readonly_view_has_only_a_close_button', async () => {
@@ -348,6 +416,10 @@ describe('EfRecipientDialogComponent', () => {
         expect(text).toContain('Virement bancaire');
         expect(text).toContain('WhatsApp');
         expect(text).toContain('ef.recipient.view_locked');
+        // Labels carry their own punctuation: no hard-coded " : " or " · " in the read-only text.
+        expect(text).toContain('ef.recipient.note_prefix');
+        expect(text).toContain('ef.recipient.received_via_prefix');
+        expect(text).not.toMatch(/ : | · /);
 
         t.footer()[0].click();
         await t.settle();
