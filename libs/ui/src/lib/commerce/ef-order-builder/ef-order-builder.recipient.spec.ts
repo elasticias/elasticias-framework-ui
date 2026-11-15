@@ -62,11 +62,24 @@ describe('ef-order-builder Destinataire row', () => {
 
   it('interactive_row_label_defaults_to_recipient_and_takes_a_key', () => {
     const f = build({ recipient: RECIPIENT, recipientInteractive: true });
-    const label = () => el(f).querySelector('button.ob-recipient')?.parentElement?.querySelector('ef-label');
+    const label = () => el(f).querySelector('button.ob-recipient')?.closest('.field')?.querySelector('ef-label');
     expect(label()?.textContent?.trim()).toBe('order_builder.recipient');
     f.componentRef.setInput('recipientLabelKey', 'sales_orders_client_label');
     f.detectChanges();
     expect(label()?.textContent?.trim()).toBe('sales_orders_client_label');
+  });
+
+  it('interactive_row_offers_a_call_link_beside_the_button', () => {
+    const f = build({ recipient: RECIPIENT, recipientInteractive: true });
+    const call = el(f).querySelector('a.ob-recipient-call') as HTMLAnchorElement;
+    expect(call).not.toBeNull();
+    expect(call.getAttribute('href')).toBe('tel:0612345678');
+    expect(call.closest('button')).toBeNull();
+    expect(el(f).querySelector('button.ob-recipient')?.classList.contains('has-call')).toBe(true);
+
+    const noPhone = build({ recipient: { ...RECIPIENT, phone: '' }, recipientInteractive: true });
+    expect(el(noPhone).querySelector('a.ob-recipient-call')).toBeNull();
+    expect(el(noPhone).querySelector('button.ob-recipient')?.classList.contains('has-call')).toBe(false);
   });
 
   it('interactive_row_has_no_nested_link', () => {
