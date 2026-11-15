@@ -8,6 +8,13 @@
   display: block;
 }
 
+/* WebKit draws its own ✕ in a type="search" field; `clearable` is the one ✕. */
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-decoration {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
 .ef-search-btn {
   box-sizing: border-box;
   appearance: none;

@@ -14,6 +14,7 @@ import { EfSearchInputComponent } from './ef-search-input.component';
         [(value)]="value"
         [loading]="loading()"
         [dir]="fieldDir"
+        [clearable]="clearable"
         (search)="emitted.push($event)"
       />
     </div>
@@ -24,6 +25,7 @@ class HostComponent {
   loading = signal(false);
   pageDir: 'ltr' | 'rtl' = 'ltr';
   fieldDir: 'ltr' | 'auto' = 'auto';
+  clearable = false;
   emitted: string[] = [];
 }
 
@@ -70,6 +72,44 @@ describe('EfSearchInputComponent', () => {
     button().click();
     input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(host.emitted).toEqual([]);
+  });
+
+  it('enter_during_ime_composition_is_not_a_search', async () => {
+    await type('سلمى');
+    const composing = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true, isComposing: true });
+    input().dispatchEvent(composing);
+    expect(host.emitted).toEqual([]);
+    // The IME keeps its Enter: it commits the composed text.
+    expect(composing.defaultPrevented).toBe(false);
+    input().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(host.emitted).toEqual(['سلمى']);
+  });
+
+  it('hides_the_native_webkit_clear_control', () => {
+    const scss = readFileSync(resolve(__dirname, 'ef-search-input.component.scss'), 'utf8');
+    expect(scss).toMatch(/::-webkit-search-cancel-button[^{]*{[^}]*appearance:\s*none/);
+  });
+
+  it('clearable_shows_a_clear_button_that_empties_the_field_without_a_search', async () => {
+    const clear = () => fixture.nativeElement.querySelector('ef-clear-button button') as HTMLButtonElement | null;
+    expect(clear()).toBeNull();
+    await type('0612');
+    // Off by default: no clear even with a value.
+    expect(clear()).toBeNull();
+
+    host.clearable = true;
+    fixture.componentRef.changeDetectorRef.detectChanges();
+    fixture.detectChanges();
+    expect(clear()).not.toBeNull();
+    expect(clear()!.getAttribute('aria-label')).toBe('action.clear');
+    clear()!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(host.value()).toBe('');
+    expect(input().value).toBe('');
+    expect(host.emitted).toEqual([]);
+    // Nothing to clear: the button goes.
+    expect(clear()).toBeNull();
   });
 
   it('native_search_event_does_not_reach_the_host', () => {

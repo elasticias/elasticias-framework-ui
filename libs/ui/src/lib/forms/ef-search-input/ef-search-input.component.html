@@ -16,12 +16,15 @@
       autocomplete="off"
       [value]="value()"
       (input)="value.set($any($event.target).value)"
-      (keydown.enter)="submit($event)"
+      (keydown.enter)="onEnter($event)"
       (search)="$event.stopPropagation()"
       [attr.placeholder]="effectivePlaceholder || null"
       [disabled]="isDisabled()"
       [attr.aria-label]="effectiveAriaLabel"
     />
+    @if (showsClear) {
+      <ef-clear-button class="ef-group-clear" [ariaLabel]="'action.clear' | translate" (clear)="clearValue()" />
+    }
     <button
       type="button"
       class="ef-search-btn"
