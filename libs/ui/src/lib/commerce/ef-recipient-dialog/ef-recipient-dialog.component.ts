@@ -23,7 +23,7 @@ import { EfSearchInputComponent } from '../../forms/ef-search-input/ef-search-in
 import { EfInputTextComponent } from '../../forms/ef-input-text/ef-input-text.component';
 import { EfSelectComponent } from '../../forms/ef-select/ef-select.component';
 import { EfTextareaComponent } from '../../forms/ef-textarea/ef-textarea.component';
-import { EfSelectButtonComponent } from '../../forms/ef-selectbutton/ef-selectbutton.component';
+import { EfPillGroupComponent, EfPillItem } from '../../layout/ef-pill-group/ef-pill-group.component';
 import { EfServerErrorsDirective } from '../../forms/ef-server-errors.directive';
 import { EfRecipientChoice, EfRecipientChoicesComponent } from './ef-recipient-choices.component';
 import { EfRecipientMatchComponent, isPickable } from './ef-recipient-match.component';
@@ -101,7 +101,7 @@ function unmasked(value: string | null | undefined): string {
         EfInputTextComponent,
         EfSelectComponent,
         EfTextareaComponent,
-        EfSelectButtonComponent,
+        EfPillGroupComponent,
         EfServerErrorsDirective,
         EfRecipientChoicesComponent,
         EfRecipientMatchComponent,
@@ -382,6 +382,10 @@ export class EfRecipientDialogComponent {
         );
     });
     protected readonly staticPayment = computed(() => this.labelOf(this.paymentMethods(), this.value()?.paymentMethod));
+    /** "Reçue par" as the design system's pill group; the labels are already resolved from reference data. */
+    protected readonly receivedViaPills = computed<EfPillItem[]>(() =>
+        this.receivedViaOptions().map(o => ({ value: o.code, labelKey: o.label })),
+    );
     protected readonly staticReceivedVia = computed(() =>
         this.labelOf(this.receivedViaOptions(), this.value()?.receivedVia),
     );

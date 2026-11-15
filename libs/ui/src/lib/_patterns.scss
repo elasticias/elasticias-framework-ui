@@ -5317,23 +5317,16 @@ input.ef-input[type='number'] {
 }
 
 /* -- Recipient dialog (ef-recipient-dialog) ----------------------------
-   The "Reçue par" choices wrap instead of widening the dialog, and reach
-   the touch target on a coarse pointer. On a phone the dialog is a
-   full-height sheet, edge to edge: the body scrolls between the header
-   and the footer, so Annuler / Valider stay in reach, each half the width
-   and 48px tall. Last in the file so the size preset and the .btn-sm
-   footer buttons above do not win. */
-.ef-recipient-dialog .ef-recipient__via .p-selectbutton {
-  display: flex;
-  flex-wrap: wrap;
+   "Reçue par" is a labelled ef-pill-group, which scrolls inside itself
+   and sizes its own touch targets, so the column only has to let it
+   shrink. On a phone the dialog is a full-height sheet, edge to edge: the
+   body scrolls between the header and the footer, so Annuler / Valider
+   stay in reach, each half the width and 48px tall. Last in the file so
+   the size preset and the .btn-sm footer buttons above do not win. */
+.ef-recipient-dialog .ef-recipient__via {
+  display: grid;
   gap: 6px;
   min-width: 0;
-}
-
-@media (pointer: coarse) {
-  .ef-recipient-dialog .ef-recipient__via .p-togglebutton {
-    min-block-size: var(--hit-touch);
-  }
 }
 
 @media (max-width: 767px) {

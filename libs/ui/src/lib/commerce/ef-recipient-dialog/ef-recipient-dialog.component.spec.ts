@@ -4,7 +4,7 @@ import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfViewportService } from '@elasticias/core';
 import { EfSelectComponent } from '../../forms/ef-select/ef-select.component';
-import { EfSelectButtonComponent } from '../../forms/ef-selectbutton/ef-selectbutton.component';
+import { EfPillGroupComponent } from '../../layout/ef-pill-group/ef-pill-group.component';
 import { EfRecipientDialogComponent } from './ef-recipient-dialog.component';
 import {
     EfOption,
@@ -135,8 +135,8 @@ describe('EfRecipientDialogComponent', () => {
             await settle();
         };
         const receivedVia = async (code: string) => {
-            const de = fixture.debugElement.query(By.directive(EfSelectButtonComponent));
-            (de.componentInstance as EfSelectButtonComponent).handleChange({ value: code });
+            const de = fixture.debugElement.query(By.directive(EfPillGroupComponent));
+            (de.componentInstance as EfPillGroupComponent).valueChange.emit(code);
             await settle();
         };
         const choice = (value: string) => $<HTMLButtonElement>(`[role="radio"][data-value="${value}"]`);
@@ -487,7 +487,7 @@ describe('EfRecipientDialogComponent', () => {
         expect(t.field('companyName')?.value).toBe('Parfumerie Atlas');
         expect(t.field('fullName')).toBeNull();
         expect(t.choice('cash_on_delivery')).toBeNull();
-        expect(t.fixture.debugElement.query(By.directive(EfSelectButtonComponent))).toBeNull();
+        expect(t.fixture.debugElement.query(By.directive(EfPillGroupComponent))).toBeNull();
 
         await t.select('type', 'reseller');
         await t.type('phone', '0522112233');

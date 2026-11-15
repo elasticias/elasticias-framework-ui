@@ -282,19 +282,15 @@
               />
             }
             @if (receivedViaOn()) {
-              <ef-selectbutton
-                class="ef-recipient__via"
-                name="receivedVia"
-                labelKey="ef.recipient.received_via"
-                [required]="true"
-                [options]="receivedViaOptions()"
-                optionLabel="label"
-                optionValue="code"
-                [allowEmpty]="false"
-                [ngModel]="receivedVia()"
-                [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="receivedVia.set($event ?? '')"
-              />
+              <div class="ef-recipient__via">
+                <ef-label labelKey="ef.recipient.received_via" [required]="true" />
+                <ef-pill-group
+                  [items]="receivedViaPills()"
+                  [value]="receivedVia() || null"
+                  ariaLabelKey="ef.recipient.received_via"
+                  (valueChange)="receivedVia.set($event)"
+                />
+              </div>
             }
           </div>
         </ef-card>
