@@ -107,10 +107,12 @@
             </p>
           </div>
         </ef-card>
-      } @else if (noMatch()) {
-        <p class="ef-recipient__notice" role="status">
-          {{ (canCreate() ? 'ef.recipient.no_match_create' : 'ef.recipient.no_match') | translate }}
-        </p>
+      } @else if (noMatch() || creating()) {
+        @if (noMatch() && !draftShown()) {
+          <p class="ef-recipient__notice" role="status">
+            {{ (canCreate() ? 'ef.recipient.no_match_create' : 'ef.recipient.no_match') | translate }}
+          </p>
+        }
         @if (creating()) {
           <ef-card titleKey="ef.recipient.section_new_client">
             <div class="ef-recipient__stack">

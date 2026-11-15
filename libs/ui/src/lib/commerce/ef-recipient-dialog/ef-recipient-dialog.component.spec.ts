@@ -452,6 +452,93 @@ describe('EfRecipientDialogComponent', () => {
         expect(t.searched).toEqual([]);
     });
 
+    /** Fills a new shopper, confirms (Valider closes the dialog), and
+     *  returns what the host received. */
+    async function confirmNewShopper(t: Awaited<ReturnType<typeof setup>>) {
+        await t.search('0699887766');
+        await t.set({ matches: [] });
+        await t.type('fullName', 'Nadia Idrissi');
+        await t.type('email', 'nadia@example.ma');
+        await t.type('street', '3 rue Atlas');
+        await t.select('cityId', 2);
+        await t.type('note', 'Avant midi');
+        await t.receivedVia('phone');
+        t.confirmBtn().click();
+        await t.settle();
+        expect(t.cmp.visible()).toBe(false);
+        expect(t.confirmed.length).toBe(1);
+        // A [(visible)] host now holds false; setInput skips a value it
+        // already passed, so tell it so before reopening.
+        await t.set({ visible: false });
+        return t.confirmed[0];
+    }
+
+    it('reopen_with_a_new_contact_value_restores_the_typed_fields', async () => {
+        const t = await setup();
+        const draft = await confirmNewShopper(t);
+
+        // The host keeps the draft as `value` and reopens, with no new search.
+        await t.set({ value: draft, matches: null });
+        await t.set({ visible: true });
+        expect(t.field('fullName')?.value).toBe('Nadia Idrissi');
+        expect(t.field('phone')?.value).toBe('0699887766');
+        expect(t.field('email')?.value).toBe('nadia@example.ma');
+        expect(t.field('recipientName')?.value).toBe('Nadia Idrissi');
+        expect(t.field('recipientPhone')?.value).toBe('0699887766');
+        expect(t.field('street')?.value).toBe('3 rue Atlas');
+        expect(t.field('note')?.value).toBe('Avant midi');
+        expect(t.root()?.textContent).not.toContain('ef.recipient.no_match');
+        expect(t.confirmBtn().disabled).toBe(false);
+
+        t.confirmBtn().click();
+        await t.settle();
+        expect(t.confirmed[1]).toEqual(draft);
+    });
+
+    it('reopen_with_server_errors_shows_them_on_the_restored_fields', async () => {
+        const t = await setup();
+        const draft = await confirmNewShopper(t);
+
+        // The order save failed: the host reopens with the draft and the errors.
+        await t.set({
+            value: draft,
+            serverErrors: { phone: ['Téléphone invalide'], street: ['Adresse trop courte'] },
+        });
+        await t.set({ visible: true });
+
+        expect(t.field('phone')?.value).toBe('0699887766');
+        expect(t.field('phone')?.getAttribute('aria-invalid')).toBe('true');
+        expect(t.field('phone')?.closest('ef-input-text')?.textContent).toContain('Téléphone invalide');
+        expect(t.field('street')?.value).toBe('3 rue Atlas');
+        expect(t.field('street')?.closest('ef-input-text')?.textContent).toContain('Adresse trop courte');
+        expect(t.field('fullName')?.value).toBe('Nadia Idrissi');
+    });
+
+    it('reopen_with_a_new_client_value_restores_type_and_company', async () => {
+        const t = await setup({ contactFields: 'client', clientTypes: CLIENT_TYPES });
+        await t.search('Parfumerie Atlas');
+        await t.set({ matches: [] });
+        await t.select('type', 'reseller');
+        await t.type('phone', '0522112233');
+        await t.type('street', '9 bd Anfa');
+        await t.select('cityId', 2);
+        t.confirmBtn().click();
+        await t.settle();
+        const draft = t.confirmed[0];
+        expect(t.cmp.visible()).toBe(false);
+        await t.set({ visible: false });
+
+        await t.set({ value: draft, matches: null });
+        await t.set({ visible: true });
+        expect(t.field('companyName')?.value).toBe('Parfumerie Atlas');
+        expect(t.field('phone')?.value).toBe('0522112233');
+        expect(t.field('street')?.value).toBe('9 bd Anfa');
+        expect(t.confirmBtn().disabled).toBe(false);
+        t.confirmBtn().click();
+        await t.settle();
+        expect(t.confirmed[1]).toEqual(draft);
+    });
+
     it('open_profile_emits_the_match_id_when_allowed', async () => {
         const t = await setup({ canOpenProfile: true });
         await t.search('0612345678');

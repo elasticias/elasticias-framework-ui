@@ -65,6 +65,12 @@ function unmasked(value: string | null | undefined): string {
  * the result on `(confirm)`. Valider does not save the order; the host writes
  * the value into the order it is editing.
  *
+ * Valider closes the dialog. `value` is the draft the host holds: reopening
+ * with it (for example with `serverErrors` after the order save failed)
+ * restores the dialog. A value with a `contact` and no `shopperId` brings
+ * back the new-customer fields, its delivery, payment and received-via, as
+ * long as no new search has been run in this opening.
+ *
  * - `mode="pick"`: search and choose. One pickable match is chosen at once,
  *   with its default address. A `Disabled` shopper or `Inactive` client is
  *   shown but can never be picked or confirmed.
@@ -201,9 +207,23 @@ export class EfRecipientDialogComponent {
         return pool.find(m => m?.id === id) ?? null;
     });
 
+    /** The host's draft of a customer created in this dialog, to restore on
+     *  reopen. Dropped once a search runs or a customer is chosen. */
+    private readonly draft = computed<EfRecipientValue | null>(() => {
+        const v = this.value();
+        if (this.isView() || !v?.contact || v.shopperId) return null;
+        if (this.searchedTerm() || this.resultsHidden() || this.selected()) return null;
+        return v;
+    });
+
+    /** The restored draft is on screen: no "Aucun client trouvé" over it. */
+    protected readonly draftShown = computed(() => !!this.draft());
+
     protected readonly showList = computed(() => !this.selected() && (this.results()?.length ?? 0) > 0);
     protected readonly noMatch = computed(() => !this.selected() && this.results()?.length === 0);
-    protected readonly creating = computed(() => this.noMatch() && this.canCreate());
+    protected readonly creating = computed(
+        () => (this.noMatch() || (!!this.draft() && !this.showList())) && this.canCreate(),
+    );
     private readonly recipientReady = computed(() => this.isView() || !!this.selected() || this.creating());
 
     /* ── New contact ────────────────────────────────────────── */
@@ -211,25 +231,31 @@ export class EfRecipientDialogComponent {
     protected readonly contactName = linkedSignal(() => {
         this.openCount();
         this.matches();
+        const c = this.draft()?.contact;
+        if (c) return (this.isClient() ? c.companyName || c.fullName : c.fullName) ?? '';
         const term = this.searchedTerm();
         return this.isClient() && term && !looksLikePhone(term) && !looksLikeEmail(term) ? term : '';
     });
     protected readonly contactPhone = linkedSignal(() => {
         this.openCount();
         this.matches();
+        const c = this.draft()?.contact;
+        if (c) return c.phone ?? '';
         const term = this.searchedTerm();
         return looksLikePhone(term) ? term : '';
     });
     protected readonly contactEmail = linkedSignal(() => {
         this.openCount();
         this.matches();
+        const c = this.draft()?.contact;
+        if (c) return c.email ?? '';
         const term = this.searchedTerm();
         return looksLikeEmail(term) ? term : '';
     });
     protected readonly contactType = linkedSignal(() => {
         this.openCount();
         this.matches();
-        return '';
+        return this.draft()?.contact?.type ?? '';
     });
 
     /* ── Delivery ───────────────────────────────────────────── */
@@ -237,6 +263,8 @@ export class EfRecipientDialogComponent {
     /** The host's current delivery, when its value belongs to the client
      *  on screen; null otherwise. */
     private readonly appliedDelivery = computed<EfRecipientValue['delivery'] | null>(() => {
+        const draft = this.draft();
+        if (draft) return draft.delivery;
         const v = this.value();
         if (!v) return null;
         if (this.isView()) return v.delivery;
