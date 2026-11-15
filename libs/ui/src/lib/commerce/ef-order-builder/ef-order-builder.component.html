@@ -14,9 +14,11 @@
             @if (recipientInteractive()) {
               <div class="field col-6">
                 <ef-label [labelKey]="recipientLabelKey()" [required]="true" />
+                <div class="ob-recipient-field">
                 <button
                   type="button"
                   class="ob-recipient ob-recipient-btn"
+                  [class.has-call]="!!recipientTel()"
                   [class.empty]="!recipient()"
                   [class.invalid]="!!backendErrors()['customerId']"
                   aria-haspopup="dialog"
@@ -40,6 +42,18 @@
                   }
                   <i class="pi pi-chevron-right ob-recipient-chevron" aria-hidden="true"></i>
                 </button>
+                @if (recipientTel(); as tel) {
+                  <!-- Beside the button, never inside it: a link cannot nest in a button. -->
+                  <a
+                    class="ob-recipient-call"
+                    [href]="tel"
+                    dir="ltr"
+                    [attr.aria-label]="'order_builder.call_recipient' | translate: { phone: recipient()?.phone }"
+                    [title]="'order_builder.call_recipient' | translate: { phone: recipient()?.phone }">
+                    <i class="pi pi-phone" aria-hidden="true"></i>
+                  </a>
+                }
+                </div>
               </div>
             } @else if (recipient(); as r) {
               <!-- No client to pick (a storefront order): who it goes to,

@@ -199,6 +199,39 @@
         color: var(--text-soft);
       }
     }
+    // The button and its call link share one box: the link sits on the field's trailing edge, before the chevron,
+    // and the button keeps room for both.
+    .ob-recipient-field {
+      position: relative;
+      min-width: 0;
+    }
+    .ob-recipient-btn.has-call {
+      padding-inline-end: 72px;
+    }
+    .ob-recipient-call {
+      position: absolute;
+      inset-inline-end: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: grid;
+      place-items: center;
+      inline-size: 32px;
+      block-size: 32px;
+      border-radius: var(--r-sm);
+      color: var(--tenant-700);
+      text-decoration: none;
+
+      &:hover {
+        background: var(--ink-50);
+      }
+      &:focus-visible {
+        outline: 2px solid var(--tenant-400);
+        outline-offset: 1px;
+      }
+      .pi {
+        font-size: 14px;
+      }
+    }
     .ob-recipient-chevron {
       position: absolute;
       inset-inline-end: 10px;
@@ -824,5 +857,13 @@
   // is the tap target, so the phone keeps its normal line height.
   :host .order-builder .ob-recipient-btn .ob-recipient-phone {
     line-height: inherit;
+  }
+  :host .order-builder .ob-recipient-call {
+    inline-size: var(--hit-touch);
+    block-size: var(--hit-touch);
+    inset-inline-end: 28px;
+  }
+  :host .order-builder .ob-recipient-btn.has-call {
+    padding-inline-end: 84px;
   }
 }
