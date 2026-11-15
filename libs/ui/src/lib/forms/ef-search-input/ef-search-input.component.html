@@ -3,6 +3,9 @@
 }
 <div class="ef-field-control">
   <div class="ef-input-group" [class.is-default]="variant() === 'default'" [class.is-invalid]="resolvedExternalErrors()?.length">
+    <!-- type="search" fires a native bubbling `search` event (Enter, clear
+         control) that would reach a host `(search)` listener as an Event:
+         it stops here, and the output is the only `search` that leaves. -->
     <input
       [id]="effectiveId"
       [attr.name]="name() || null"
@@ -14,6 +17,7 @@
       [value]="value()"
       (input)="value.set($any($event.target).value)"
       (keydown.enter)="submit($event)"
+      (search)="$event.stopPropagation()"
       [attr.placeholder]="effectivePlaceholder || null"
       [disabled]="isDisabled()"
       [attr.aria-label]="effectiveAriaLabel"

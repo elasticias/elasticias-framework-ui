@@ -442,6 +442,16 @@ describe('EfRecipientDialogComponent', () => {
         ]);
     });
 
+    it('ignores_a_non_string_search', async () => {
+        const t = await setup();
+        // A native `search` Event, or a blank term, is never a lookup.
+        (t.cmp as unknown as { onSearch(v: unknown): void }).onSearch(new Event('search'));
+        (t.cmp as unknown as { onSearch(v: unknown): void }).onSearch('   ');
+        (t.cmp as unknown as { onSearch(v: unknown): void }).onSearch(undefined);
+        await t.settle();
+        expect(t.searched).toEqual([]);
+    });
+
     it('open_profile_emits_the_match_id_when_allowed', async () => {
         const t = await setup({ canOpenProfile: true });
         await t.search('0612345678');

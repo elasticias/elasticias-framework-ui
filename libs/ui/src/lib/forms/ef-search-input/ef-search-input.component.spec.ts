@@ -72,6 +72,14 @@ describe('EfSearchInputComponent', () => {
     expect(host.emitted).toEqual([]);
   });
 
+  it('native_search_event_does_not_reach_the_host', () => {
+    // An <input type="search"> fires a native bubbling `search` event on Enter
+    // and on its clear control (Chromium, WebKit). It must never reach a
+    // `(search)` listener as if it were the output.
+    input().dispatchEvent(new Event('search', { bubbles: true }));
+    expect(host.emitted).toEqual([]);
+  });
+
   it('disables_button_and_shows_spinner_while_loading', async () => {
     expect(button().disabled).toBe(false);
     expect(fixture.nativeElement.querySelector('.ef-search-spinner')).toBeNull();

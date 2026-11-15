@@ -412,7 +412,11 @@ export class EfRecipientDialogComponent {
 
     /* ── Handlers ───────────────────────────────────────────── */
 
-    onSearch(term: string): void {
+    onSearch(raw: unknown): void {
+        // Only a typed term is a lookup: never a native `search` Event, never blank.
+        if (typeof raw !== 'string') return;
+        const term = raw.trim();
+        if (!term) return;
         this.searchedTerm.set(term);
         this.resultsHidden.set(false);
         this.search.emit(term);
