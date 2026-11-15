@@ -1,0 +1,124 @@
+/* Only the dialog's own content. The sheet layout on a phone and the footer
+   buttons live in _patterns.scss under .ef-recipient-dialog, because they
+   style ef-dialog, which this file cannot reach. Mobile first: one column,
+   two field columns from the tablet breakpoint up. */
+.ef-recipient {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.ef-recipient > *,
+.ef-recipient__stack > * {
+  min-width: 0;
+}
+
+.ef-recipient__stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+.ef-recipient__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
+.ef-recipient__fields > * {
+  min-width: 0;
+}
+
+.ef-recipient__hint {
+  margin: 0;
+  color: var(--text-mute);
+  font-size: 12px;
+}
+
+.ef-recipient__notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--st-processing-bg);
+  color: var(--st-processing-fg);
+  font-size: 13px;
+}
+
+.ef-recipient__match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.ef-recipient__match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+
+/* A match in a result list: the whole tile is the pick. */
+.ef-recipient__pick {
+  appearance: none;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--hit-touch);
+  padding: 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  background: var(--paper-alt);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ef-recipient__pick:hover:not(:disabled) {
+  border-color: var(--ink-400);
+}
+
+.ef-recipient__pick:focus-visible {
+  outline: 2px solid var(--tenant-400);
+  outline-offset: 2px;
+}
+
+.ef-recipient__pick:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.ef-recipient__link {
+  justify-self: start;
+}
+
+.ef-recipient__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ef-recipient__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Wider than a phone: two field columns, long fields span both. Last in the
+   file so the base one-column rule does not win. */
+@media (min-width: 768px) {
+  .ef-recipient__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ef-recipient__full {
+    grid-column: 1 / -1;
+  }
+}

@@ -5315,3 +5315,50 @@ input.ef-input[type='number'] {
     min-block-size: var(--hit-touch);
   }
 }
+
+/* -- Recipient dialog (ef-recipient-dialog) ----------------------------
+   The "Reçue par" choices wrap instead of widening the dialog, and reach
+   the touch target on a coarse pointer. On a phone the dialog is a
+   full-height sheet, edge to edge: the body scrolls between the header
+   and the footer, so Annuler / Valider stay in reach, each half the width
+   and 48px tall. Last in the file so the size preset and the .btn-sm
+   footer buttons above do not win. */
+.ef-recipient-dialog .ef-recipient__via .p-selectbutton {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+@media (pointer: coarse) {
+  .ef-recipient-dialog .ef-recipient__via .p-togglebutton {
+    min-block-size: var(--hit-touch);
+  }
+}
+
+@media (max-width: 767px) {
+  .es-dialog.ef-recipient-dialog--sheet.p-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .ef-recipient-dialog--sheet .p-dialog-content {
+    max-height: none;
+    flex: 1;
+    padding: 16px;
+  }
+
+  .ef-recipient-dialog--sheet .p-dialog-footer {
+    padding-block-end: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .ef-recipient-dialog--sheet .p-dialog-footer .btn {
+    flex: 1;
+    justify-content: center;
+    min-height: var(--hit-touch);
+  }
+}
