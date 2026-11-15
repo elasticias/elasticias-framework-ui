@@ -148,40 +148,44 @@
     }
 
     // Interactive Destinataire: the whole strip is one button that opens a
-    // customer dialog. The chevron sits on the trailing edge.
-    // The hover box reaches 12px past the label on each side, so the text
-    // still lines up with the label: the negative inline margins are paid
-    // back in the width (border-box, so padding and border sit inside it),
-    // and the button never widens its column at 390px.
+    // customer dialog, drawn as the comptoir field it sits beside (the
+    // article search and date picker): same border, ground, radius and
+    // --hit-field height, filling its column exactly. The chevron sits on
+    // the trailing edge; extra lines (an address) grow the box downward.
     .ob-recipient-btn {
       position: relative;
       box-sizing: border-box;
-      inline-size: calc(100% + 24px);
-      max-inline-size: calc(100% + 24px);
-      min-block-size: var(--hit-base);
-      margin-block: -8px;
-      margin-inline: -12px;
+      inline-size: 100%;
+      max-inline-size: 100%;
+      min-block-size: var(--hit-field);
+      align-content: center;
+      margin: 0;
       padding: 8px 12px;
       padding-inline-end: 36px;
-      border: 1px solid transparent;
+      border: 1px solid var(--rule);
       border-radius: var(--r-md);
-      background: transparent;
+      background: var(--paper-alt);
       font: inherit;
       font-size: 13px;
       line-height: 1.45;
       text-align: start;
       cursor: pointer;
+      transition:
+        border-color var(--t-fast) var(--ease-out),
+        box-shadow var(--t-fast) var(--ease-out);
 
       &:hover {
-        background: var(--ink-50);
-        border-color: var(--rule);
+        border-color: var(--tenant-400);
       }
       &:focus-visible {
-        outline: 2px solid var(--tenant-700);
-        outline-offset: 2px;
+        outline: 0;
+        border-color: var(--tenant-400);
+        box-shadow: 0 0 0 3px var(--tenant-100);
       }
       /* A placeholder, in the themed muted ink: the tenant's dark tone vanished on a dark ground. */
       &.empty .ob-recipient-name {
+        font-size: 14px;
+        font-weight: 400;
         color: var(--text-mute);
       }
       &.empty .ob-recipient-city {
@@ -820,8 +824,5 @@
   // is the tap target, so the phone keeps its normal line height.
   :host .order-builder .ob-recipient-btn .ob-recipient-phone {
     line-height: inherit;
-  }
-  :host .order-builder .ob-recipient-btn {
-    min-block-size: var(--hit-touch);
   }
 }
