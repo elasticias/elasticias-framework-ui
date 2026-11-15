@@ -76,7 +76,8 @@ export function isPickable(m: EfRecipientMatch | null | undefined): boolean {
             align-items: flex-start;
             gap: var(--s-3);
             min-width: 0;
-            flex: 1;
+            /* Wrap the card's actions under it rather than squeeze the name, phone and email into a sliver. */
+            flex: 1 1 16rem;
         }
         .ef-recipient-match__body {
             display: grid;
@@ -100,6 +101,10 @@ export function isPickable(m: EfRecipientMatch | null | undefined): boolean {
         .ef-recipient-match__line > span {
             min-width: 0;
             overflow-wrap: anywhere;
+        }
+        /* A phone is read as one number, never broken between digits. */
+        .ef-recipient-match__line > [data-role='phone'] {
+            white-space: nowrap;
         }
         .ef-recipient-match__chips {
             gap: 4px 6px;

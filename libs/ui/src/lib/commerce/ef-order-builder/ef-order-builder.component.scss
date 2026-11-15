@@ -180,8 +180,9 @@
         outline: 2px solid var(--tenant-700);
         outline-offset: 2px;
       }
+      /* A placeholder, in the themed muted ink: the tenant's dark tone vanished on a dark ground. */
       &.empty .ob-recipient-name {
-        color: var(--tenant-700);
+        color: var(--text-mute);
       }
       &.empty .ob-recipient-city {
         white-space: normal;
