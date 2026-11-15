@@ -218,11 +218,13 @@
       inline-size: 32px;
       block-size: 32px;
       border-radius: var(--r-sm);
-      color: var(--tenant-700);
+      /* Themed ink, as the chevron beside it: the tenant's dark tone vanished on a dark ground. */
+      color: var(--text-soft);
       text-decoration: none;
 
       &:hover {
         background: var(--ink-50);
+        color: var(--text);
       }
       &:focus-visible {
         outline: 2px solid var(--tenant-400);
