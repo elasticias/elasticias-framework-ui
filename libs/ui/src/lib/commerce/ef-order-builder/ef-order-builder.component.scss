@@ -147,6 +147,60 @@
       color: var(--text-mute);
     }
 
+    // Interactive Destinataire: the whole strip is one button that opens a
+    // customer dialog. The chevron sits on the trailing edge.
+    .ob-recipient-btn {
+      position: relative;
+      inline-size: 100%;
+      min-block-size: var(--hit-base);
+      margin: -8px -12px;
+      padding: 8px 12px;
+      padding-inline-end: 36px;
+      border: 1px solid transparent;
+      border-radius: var(--r-md);
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: start;
+      cursor: pointer;
+
+      &:hover {
+        background: var(--ink-50);
+        border-color: var(--rule);
+      }
+      &:focus-visible {
+        outline: 2px solid var(--tenant-700);
+        outline-offset: 2px;
+      }
+      &.empty .ob-recipient-name {
+        color: var(--tenant-700);
+      }
+      &.empty .ob-recipient-city {
+        white-space: normal;
+      }
+      &.invalid {
+        border-color: var(--crit);
+        background: var(--crit-soft);
+      }
+      .ob-recipient-phone {
+        color: var(--text-soft);
+      }
+    }
+    .ob-recipient-chevron {
+      position: absolute;
+      inset-inline-end: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-mute);
+      font-size: 14px;
+      overflow: visible;
+
+      &:dir(rtl) {
+        transform: translateY(-50%) scaleX(-1);
+      }
+    }
+
     // Express-add row — sits under the customer/date row, divided by a rule.
     // flex-wrap so fields reflow cleanly instead of crushing labels.
     .qa-grid {
@@ -753,5 +807,13 @@
   // The recipient's phone is a tel: link, so it is a tap target too.
   :host .order-builder .ob-recipient-phone {
     line-height: var(--hit-touch);
+  }
+  // In the interactive row the phone is plain text in the button: the button
+  // is the tap target, so the phone keeps its normal line height.
+  :host .order-builder .ob-recipient-btn .ob-recipient-phone {
+    line-height: inherit;
+  }
+  :host .order-builder .ob-recipient-btn {
+    min-block-size: var(--hit-touch);
   }
 }

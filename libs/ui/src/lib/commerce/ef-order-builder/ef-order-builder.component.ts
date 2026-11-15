@@ -119,6 +119,18 @@ export class EfOrderBuilderComponent implements OnInit {
   recipient = input<EfOrderRecipient | null>(null);
 
   /**
+   * Makes the Destinataire row one button that emits `recipientClick`, so the
+   * host can open a customer dialog (also on a read-only order, to view it).
+   * Off keeps today's read-only strip and the customer select.
+   */
+  recipientInteractive = input(false);
+  /** With `recipientInteractive` and no recipient: the row's text, in place of the customer select. */
+  recipientPlaceholderKey = input<string | null>(null);
+  /** False hides the street in the Destinataire row. */
+  recipientShowAddress = input(true);
+  recipientClick = output<void>();
+
+  /**
    * Calling code (`'212'` or `'+212'`) for a national recipient phone, so the
    * `tel:` link dials `+212612345678` for `0612345678` from anywhere.
    */
@@ -283,6 +295,11 @@ export class EfOrderBuilderComponent implements OnInit {
 
   validationResult = computed<ValidationResult>(() => {
     const result = OrderEntityHelper.validate(this.order());
+    if (this.recipientInteractive() && !this.recipient()) {
+      // The row is the only way to pick the customer: an empty one is invalid.
+      const errors = { ...result.errors, customerId: ['order_builder.recipient_required'] };
+      return { ...result, errors, isValid: false };
+    }
     if (!this.recipient() || !result.errors['customerId']) return result;
     // An order with a recipient has no client to pick: drop that one rule.
     const errors = { ...result.errors };
