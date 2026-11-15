@@ -506,6 +506,15 @@ describe('EfRecipientDialogComponent', () => {
         expect(t.confirmed.at(-1)).toMatchObject({ shopperId: 'cl-1', paymentMethod: '', receivedVia: '' });
     });
 
+    it('client_without_code_shows_no_empty_code_chip', async () => {
+        const t = await setup({ contactFields: 'client', clientTypes: CLIENT_TYPES });
+        await t.search('Wafa');
+        await t.set({ matches: [{ ...WAFA, code: '' }] });
+        const card = t.$('[data-role="selected-match"]')!;
+        expect(card.querySelector('[data-role="code"]')).toBeNull();
+        expect(card.querySelector('[data-role="type"]')?.textContent).toContain('Revendeur');
+    });
+
     it('cannot_create_shows_only_the_notice', async () => {
         const t = await setup({ canCreate: false });
         await t.search('0612345678');

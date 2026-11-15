@@ -55,7 +55,9 @@ export function isPickable(m: EfRecipientMatch | null | undefined): boolean {
                 @if (!clientMode() && m.emailVerified) {
                     <ef-status-chip color="delivered" icon="pi-check" labelKey="ef.recipient.email_verified" />
                 }
-                <ef-status-chip color="onhold" [label]="m.code" hideDot data-role="code" />
+                @if (m.code) {
+                    <ef-status-chip color="onhold" [label]="m.code" hideDot data-role="code" />
+                }
                 @if (clientMode() && typeLabel()) {
                     <ef-status-chip color="onhold" [label]="typeLabel()" hideDot data-role="type" />
                 }
