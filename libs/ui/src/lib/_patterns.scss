@@ -5402,12 +5402,17 @@ input.ef-input[type='number'] {
   }
 
   /* The clear x keeps its 22px look; a centred pseudo-element carries the
-     48px target. No margin, so the field's layout does not move. */
-  .ef-clear {
+     48px target. No margin, so the field's layout does not move. Only the two
+     hosts that reserve room for the overhang get it (the text-input wrapper
+     and the input group): a textarea, a password field or a date picker has
+     no such room, so a 48px target there would overlap its neighbours. */
+  .ef-input-wrap .ef-clear,
+  .ef-input-group .ef-clear {
     position: relative;
   }
 
-  .ef-clear::after {
+  .ef-input-wrap .ef-clear::after,
+  .ef-input-group .ef-clear::after {
     content: '';
     position: absolute;
     inset: calc((var(--hit-touch) - var(--ef-clear-size)) / -2);
