@@ -52,10 +52,15 @@ describe('touch tier wave 2', () => {
     expect(decl(patterns, '.es-dialog .es-dialog__close', prop, phone)).toBe('var(--hit-touch)');
   });
 
-  it('grows the clear target to 48px on a phone with a pseudo-element, leaving the painted size alone', () => {
-    expect(decl(patterns, '.ef-clear', 'position', phone)).toBe('relative');
-    expect(decl(patterns, '.ef-clear::after', 'inset', phone)).toBe('calc((var(--hit-touch) - var(--ef-clear-size)) / -2)');
-    expect(decl(patterns, '.ef-clear', 'width', phone)).toBeUndefined();
+  it('grows the clear target to 48px on a phone with a pseudo-element, only where the host reserves room', () => {
+    for (const host of ['.ef-input-wrap', '.ef-input-group']) {
+      expect(decl(patterns, `${host} .ef-clear`, 'position', phone)).toBe('relative');
+      expect(decl(patterns, `${host} .ef-clear::after`, 'inset', phone)).toBe('calc((var(--hit-touch) - var(--ef-clear-size)) / -2)');
+      expect(decl(patterns, `${host} .ef-clear`, 'width', phone)).toBeUndefined();
+    }
+    // A textarea, a password field and a date picker reserve nothing: no bare .ef-clear rule on a phone.
+    expect(decl(patterns, '.ef-clear', 'position', phone)).toBeUndefined();
+    expect(decl(patterns, '.ef-clear::after', 'inset', phone)).toBeUndefined();
   });
 
   it('keeps the text clear of the 48px clear target on a phone, in both directions, and the target out of the addon', () => {

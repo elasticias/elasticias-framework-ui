@@ -21,20 +21,6 @@ describe('confirm dialog touch tier', () => {
     });
 });
 
-/**
- * The 48px clear target at 767px or less is only safe where the host reserves room for it,
- * so the rule must name the two hosts and never a bare `.ef-clear`.
- */
-describe('clear target touch tier', () => {
-    const css = readFileSync(join(__dirname, '../../_patterns.scss'), 'utf8');
-    const phone = css.split('@media (max-width: 767px)').slice(1).join('\n');
-
-    it('gives the 48px target only to the input wrapper and the input group', () => {
-        expect(phone).toMatch(/\.ef-input-wrap \.ef-clear::after,\s*\.ef-input-group \.ef-clear::after\s*\{[^}]*inset: calc\(\(var\(--hit-touch\)/);
-        expect(phone).not.toMatch(/(^|[\s,{}])\.ef-clear::after/m);
-    });
-});
-
 describe('confirm dialog close button', () => {
     afterEach(() => document.body.querySelectorAll('.p-dialog-mask').forEach((m) => m.remove()));
 
