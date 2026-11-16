@@ -25,7 +25,7 @@ const COPIED_FEEDBACK_MS = 2000;
  * The value sits in a read-only, left-to-right monospace box that scrolls
  * inside itself, so a long URL never widens the page. A successful copy is
  * announced through a polite live region; where the clipboard refuses, the
- * text is selected for a manual copy and nothing is announced.
+ * text is selected for a manual copy and `failedKey` is announced.
  *
  * ```html
  * <ef-copy-field labelKey="own_app_redirect_uri" [value]="uri()" />
