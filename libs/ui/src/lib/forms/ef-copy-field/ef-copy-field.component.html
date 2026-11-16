@@ -1,6 +1,6 @@
 <div class="ef-copy">
   @if (labelKey(); as key) {
-    <label class="ef-copy__label" [attr.for]="inputId">{{ key | translate }}</label>
+    <ef-label [labelKey]="key" [for]="inputId" styleClass="" />
   }
   <div class="ef-copy__row">
     <!-- A URI, a client ID or a hash is Latin and left-to-right in every

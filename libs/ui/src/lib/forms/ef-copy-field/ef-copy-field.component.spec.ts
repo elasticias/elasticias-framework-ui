@@ -36,6 +36,7 @@ describe('EfCopyFieldComponent', () => {
         const label = el.querySelector('label')!;
         expect(label.textContent).toContain('redirect_uri');
         expect(label.htmlFor).toBe(input().id);
+        expect(label.classList).toContain('ef-label');
     });
 
     it('has no label when none is given', () => {

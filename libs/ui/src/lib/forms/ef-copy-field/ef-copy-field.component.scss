@@ -10,11 +10,6 @@
   min-width: 0;
 }
 
-.ef-copy__label {
-  font-size: 12px;
-  color: var(--text-mute);
-}
-
 .ef-copy__row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

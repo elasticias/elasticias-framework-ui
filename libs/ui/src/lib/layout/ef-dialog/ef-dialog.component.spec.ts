@@ -31,3 +31,30 @@ describe('EfDialogComponent accessible name', () => {
         expect(title?.classList).toContain('es-dialog__title');
     });
 });
+
+describe('EfDialogComponent mobileFullSheet', () => {
+    afterEach(() => document.body.querySelectorAll('.p-dialog-mask').forEach(m => m.remove()));
+
+    async function open(sheet: boolean | undefined) {
+        TestBed.configureTestingModule({ imports: [EfDialogComponent, TranslateModule.forRoot()] });
+        const fixture = TestBed.createComponent(EfDialogComponent);
+        fixture.componentRef.setInput('header', 'T');
+        if (sheet !== undefined) fixture.componentRef.setInput('mobileFullSheet', sheet);
+        fixture.componentRef.setInput('visible', true);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        return document.querySelector<HTMLElement>('.es-dialog')!;
+    }
+
+    it('adds the sheet class when opted in, keeping the size preset', async () => {
+        const d = await open(true);
+        expect(d.classList).toContain('es-dialog--mobile-sheet');
+        expect(d.classList).toContain('es-dialog--md');
+    });
+
+    it('is off by default', async () => {
+        const d = await open(undefined);
+        expect(d.classList).not.toContain('es-dialog--mobile-sheet');
+    });
+});

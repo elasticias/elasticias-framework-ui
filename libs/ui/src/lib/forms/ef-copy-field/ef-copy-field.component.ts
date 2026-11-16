@@ -10,6 +10,7 @@ import {
     viewChild,
 } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { copyToClipboard } from './copy-to-clipboard';
 
 let nextId = 0;
@@ -37,7 +38,7 @@ const COPIED_FEEDBACK_MS = 2000;
     selector: 'ef-copy-field',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [TranslateModule],
+    imports: [TranslateModule, EfLabelComponent],
     templateUrl: './ef-copy-field.component.html',
     styleUrl: './ef-copy-field.component.scss',
 })
