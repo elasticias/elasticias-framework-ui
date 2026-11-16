@@ -1,3 +1,25 @@
+## 1.0.59 (2026-11-16)
+
+This changelog has no entries for 1.0.52 to 1.0.58, which were tagged without one.
+
+### Added
+
+- **`ef-copy-field`**: a read-only, left-to-right monospace value with a Copy button, for text a person pastes into another system (a redirect URI, a webhook URL). Inputs `value`, `labelKey`, `copiedKey`, `failedKey`, `copyLabelKey`; output `copied`. A copy is announced politely; where the clipboard refuses, the text is selected for a manual copy and `failedKey` is announced. Apps add `ef_copy_action`, `ef_copy_copied` and `ef_copy_failed`.
+- **`copyToClipboard`**: public export of the helper behind it.
+- **`ef-dialog [mobileFullSheet]`**: opt-in; at 767px or less the dialog opens as a full-height sheet.
+
+### Changed
+
+At 767px or less, for every consumer and with no opt-in (previously only on `pointer: coarse`):
+
+- the close X of **every** `ef-dialog` grows from 32px to 48px, so the dialog header is taller;
+- the `ef-confirm-dialog` accept and reject buttons are 48px tall;
+- clearable `ef-input-text`, `ef-inputnumber` and `ef-search-input` reserve 44px of trailing padding (13px of inline margin inside a group) so the 48px clear target does not cover the text. Textareas, password fields and date pickers are unchanged.
+
+### Needs an app change
+
+- **`ef-confirm-dialog`** reads the `common_close` i18n key for its close button's accessible name, at every width. An app without it reads the raw key aloud. Add `common_close` to every language file.
+
 ## 1.0.51 (2026-11-03)
 
 Bump all five packages together: `@elasticias/ui` uses `EfViewportService` from `@elasticias/core` and the screens' `auditValueLists()`, and the peer ranges (`>=0.0.1`) will not stop npm installing older ones.
