@@ -10,3 +10,5 @@ export { EfMultiSelectComponent } from './ef-multi-select/ef-multi-select.compon
 export { EfSelectButtonComponent } from './ef-selectbutton/ef-selectbutton.component';
 export { EfQuantityStepperComponent } from './ef-quantity-stepper/ef-quantity-stepper.component';
 export { EfSearchInputComponent } from './ef-search-input/ef-search-input.component';
+export { EfCopyFieldComponent } from './ef-copy-field/ef-copy-field.component';
+export { copyToClipboard } from './ef-copy-field/copy-to-clipboard';

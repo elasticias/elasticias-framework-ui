@@ -1,0 +1,87 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.ef-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+}
+
+.ef-copy__label {
+  font-size: 12px;
+  color: var(--text-mute);
+}
+
+.ef-copy__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* The value scrolls inside its own box; it never sizes the page. */
+.ef-copy__value {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--hit-touch, 48px);
+  padding: 0 12px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  text-overflow: ellipsis;
+  background: var(--paper-2, var(--surface, transparent));
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md, 12px);
+}
+
+.ef-copy__value:focus-visible,
+.ef-copy__btn:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+
+.ef-copy__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--hit-touch, 48px);
+  height: var(--hit-touch, 48px);
+  padding: 0;
+  color: var(--text);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 9999px;
+}
+
+.ef-copy__btn:hover {
+  background: var(--paper-2, var(--surface, transparent));
+}
+
+/* Visually hidden, still announced. */
+.ef-copy__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Small-screen overrides go last; here the desktop sizes are the override. */
+@media (min-width: 1280px) {
+  .ef-copy__value {
+    min-height: var(--hit-base, 40px);
+  }
+
+  .ef-copy__btn {
+    width: var(--hit-base, 40px);
+    height: var(--hit-base, 40px);
+  }
+}
