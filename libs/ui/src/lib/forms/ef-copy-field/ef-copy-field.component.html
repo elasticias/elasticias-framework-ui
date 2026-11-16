@@ -24,12 +24,14 @@
       [title]="copyLabelKey() | translate"
       (click)="copy()"
     >
-      <i [class]="announced() ? 'pi pi-check' : 'pi pi-copy'" aria-hidden="true"></i>
+      <i [class]="announced()?.kind === 'copied' ? 'pi pi-check' : 'pi pi-copy'" aria-hidden="true"></i>
     </button>
   </div>
   <span class="ef-copy__status" role="status" aria-live="polite">
-    @if (announced()) {
-      {{ copiedKey() | translate }}
+    @if (announced(); as a) {
+      @for (n of [a.n]; track n) {
+        <span>{{ (a.kind === 'copied' ? copiedKey() : failedKey()) | translate }}</span>
+      }
     }
   </span>
 </div>

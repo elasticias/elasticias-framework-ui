@@ -68,20 +68,39 @@ describe('EfCopyFieldComponent', () => {
         expect(emitted).toHaveBeenCalledTimes(1);
     });
 
-    it('selects the text and announces nothing when the clipboard refuses', async () => {
+    it('selects the text and announces the failure when the clipboard refuses', async () => {
         stubClipboard(vi.fn().mockRejectedValue(new Error('denied')));
         const { fixture, input, button, status } = setup();
         const emitted = vi.fn();
         fixture.componentInstance.copied.subscribe(emitted);
         const select = vi.spyOn(input(), 'select');
+        const focus = vi.spyOn(input(), 'focus');
 
         button().click();
         await fixture.whenStable();
         fixture.detectChanges();
 
         expect(select).toHaveBeenCalled();
-        expect(status().textContent!.trim()).toBe('');
+        expect(focus).toHaveBeenCalled();
+        expect(focus.mock.invocationCallOrder[0]).toBeLessThan(select.mock.invocationCallOrder[0]);
+        expect(status().textContent!.trim()).toBe('ef_copy_failed');
         expect(emitted).not.toHaveBeenCalled();
+    });
+
+    it('re-announces a second press inside the feedback window', async () => {
+        stubClipboard(vi.fn().mockResolvedValue(undefined));
+        const { fixture, button, status } = setup();
+        button().click();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        const first = status().querySelector('span');
+        button().click();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        const second = status().querySelector('span');
+        expect(second).not.toBeNull();
+        expect(second).not.toBe(first);
+        expect(status().textContent!.trim()).toBe('ef_copy_copied');
     });
 
     it('keeps the value left-to-right inside a right-to-left page', () => {

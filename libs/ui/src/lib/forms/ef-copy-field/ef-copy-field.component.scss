@@ -28,21 +28,21 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  min-height: var(--hit-touch, 48px);
+  min-height: var(--hit-touch);
   padding: 0 12px;
   overflow-x: auto;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text);
   text-overflow: ellipsis;
-  background: var(--paper-2, var(--surface, transparent));
+  background: var(--paper-alt);
   border: 1px solid var(--rule);
-  border-radius: var(--radius-md, 12px);
+  border-radius: var(--r-md);
 }
 
 .ef-copy__value:focus-visible,
 .ef-copy__btn:focus-visible {
-  outline: 2px solid var(--focus, currentColor);
+  outline: 2px solid var(--tenant-400);
   outline-offset: 2px;
 }
 
@@ -50,18 +50,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--hit-touch, 48px);
-  height: var(--hit-touch, 48px);
+  width: var(--hit-touch);
+  height: var(--hit-touch);
   padding: 0;
   color: var(--text);
   cursor: pointer;
-  background: transparent;
+  background: var(--paper-alt);
   border: 1px solid var(--rule);
-  border-radius: 9999px;
+  border-radius: var(--r-pill);
 }
 
 .ef-copy__btn:hover {
-  background: var(--paper-2, var(--surface, transparent));
+  border-color: var(--rule-hover);
 }
 
 /* Visually hidden, still announced. */
@@ -77,11 +77,11 @@
 /* Small-screen overrides go last; here the desktop sizes are the override. */
 @media (min-width: 1280px) {
   .ef-copy__value {
-    min-height: var(--hit-base, 40px);
+    min-height: var(--hit-base);
   }
 
   .ef-copy__btn {
-    width: var(--hit-base, 40px);
-    height: var(--hit-base, 40px);
+    width: var(--hit-base);
+    height: var(--hit-base);
   }
 }

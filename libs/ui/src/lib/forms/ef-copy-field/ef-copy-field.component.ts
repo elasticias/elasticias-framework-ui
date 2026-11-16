@@ -31,7 +31,7 @@ const COPIED_FEEDBACK_MS = 2000;
  * ```
  *
  * Translation keys (add to the app's i18n files): `ef_copy_action` (the
- * button's accessible name) and `ef_copy_copied` (the announcement).
+ * button's accessible name), `ef_copy_copied` and `ef_copy_failed` (announcements).
  */
 @Component({
     selector: 'ef-copy-field',
@@ -51,6 +51,9 @@ export class EfCopyFieldComponent {
     /** Announced through the live region after a successful copy. */
     readonly copiedKey = input<string>('ef_copy_copied');
 
+    /** Announced when the clipboard refused; the text is selected for a manual copy. */
+    readonly failedKey = input<string>('ef_copy_failed');
+
     /** Accessible name of the button. */
     readonly copyLabelKey = input<string>('ef_copy_action');
 
@@ -58,7 +61,8 @@ export class EfCopyFieldComponent {
     readonly copied = output<void>();
 
     protected readonly inputId = `ef-copy-field-${nextId++}`;
-    protected readonly announced = signal(false);
+    protected readonly announced = signal<{ kind: 'copied' | 'failed'; n: number } | null>(null);
+    private announceSeq = 0;
 
     private readonly box = viewChild<ElementRef<HTMLInputElement>>('box');
     private timer: ReturnType<typeof setTimeout> | undefined;
@@ -71,13 +75,16 @@ export class EfCopyFieldComponent {
         const ok = await copyToClipboard(this.value());
         clearTimeout(this.timer);
         if (!ok) {
-            this.announced.set(false);
-            this.box()?.nativeElement.select();
-            return;
+            const box = this.box()?.nativeElement;
+            // focus() before select(): iOS Safari ignores select() on an unfocused input.
+            box?.focus();
+            box?.select();
         }
-        this.announced.set(true);
-        this.copied.emit();
-        this.timer = setTimeout(() => this.announced.set(false), COPIED_FEEDBACK_MS);
+        // A new `n` re-creates the message node, so a second press inside the
+        // feedback window is announced again (a live region speaks on change).
+        this.announced.set({ kind: ok ? 'copied' : 'failed', n: ++this.announceSeq });
+        if (ok) this.copied.emit();
+        this.timer = setTimeout(() => this.announced.set(null), COPIED_FEEDBACK_MS);
     }
 
     protected selectAll(event: Event): void {
