@@ -58,6 +58,12 @@ describe('touch tier wave 2', () => {
     expect(decl(patterns, '.ef-clear', 'width', phone)).toBeUndefined();
   });
 
+  it('keeps the text clear of the 48px clear target on a phone, in both directions, and the target out of the addon', () => {
+    expect(decl(patterns, '.ef-input-wrap:dir(ltr) .ef-input.has-clear', 'padding-right', phone)).toBe('44px');
+    expect(decl(patterns, '.ef-input-wrap:dir(rtl) .ef-input.has-clear', 'padding-left', phone)).toBe('44px');
+    expect(decl(patterns, '.ef-input-group .ef-group-clear', 'margin-inline', phone)).toBe('calc((var(--hit-touch) - var(--ef-clear-size)) / 2)');
+  });
+
   it('wraps the pdf preview footer only under 768px (D2)', () => {
     const sel = '.es-dialog.ef-pdf-preview-dialog .p-dialog-footer';
     expect(decl(patterns, sel, 'flex-wrap', phone)).toBe('wrap');

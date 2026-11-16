@@ -5412,4 +5412,22 @@ input.ef-input[type='number'] {
     position: absolute;
     inset: calc((var(--hit-touch) - var(--ef-clear-size)) / -2);
   }
+
+  /* The target reaches 8px (clear offset) + 22px + 13px = 43px from the
+     field's trailing edge, so the text must stop 44px short of it or the
+     last characters sit under the tap. Both :dir rules repeat the base
+     pair, which beats a bare .has-clear rule on specificity. */
+  .ef-input-wrap:dir(ltr) .ef-input.has-clear {
+    padding-right: 44px;
+  }
+
+  .ef-input-wrap:dir(rtl) .ef-input.has-clear {
+    padding-left: 44px;
+  }
+
+  /* In a group the clear is a flex item: its 13px overhang must land on
+     margin, not on the input or the addon beside it. */
+  .ef-input-group .ef-group-clear {
+    margin-inline: calc((var(--hit-touch) - var(--ef-clear-size)) / 2);
+  }
 }
