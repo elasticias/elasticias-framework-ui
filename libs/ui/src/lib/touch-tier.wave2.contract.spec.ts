@@ -47,6 +47,17 @@ describe('touch tier wave 2', () => {
     expect(decl(patterns, '.es-dialog .es-dialog__close', prop, base)).toBe('32px');
   });
 
+  it.each(['width', 'height'])('the dialog close (PrimeNG and ours) has a 48px %s on a phone, coarse pointer or not', (prop) => {
+    expect(decl(patterns, '.es-dialog .p-dialog-close-button', prop, phone)).toBe('var(--hit-touch)');
+    expect(decl(patterns, '.es-dialog .es-dialog__close', prop, phone)).toBe('var(--hit-touch)');
+  });
+
+  it('grows the clear target to 48px on a phone with a pseudo-element, leaving the painted size alone', () => {
+    expect(decl(patterns, '.ef-clear', 'position', phone)).toBe('relative');
+    expect(decl(patterns, '.ef-clear::after', 'inset', phone)).toBe('calc((var(--hit-touch) - var(--ef-clear-size)) / -2)');
+    expect(decl(patterns, '.ef-clear', 'width', phone)).toBeUndefined();
+  });
+
   it('wraps the pdf preview footer only under 768px (D2)', () => {
     const sel = '.es-dialog.ef-pdf-preview-dialog .p-dialog-footer';
     expect(decl(patterns, sel, 'flex-wrap', phone)).toBe('wrap');

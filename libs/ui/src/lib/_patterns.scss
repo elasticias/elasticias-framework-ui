@@ -5392,4 +5392,24 @@ input.ef-input[type='number'] {
   .es-confirm .p-confirmdialog-reject-button {
     min-height: var(--hit-touch);
   }
+
+  /* Dialog close X at thumb size on a phone whatever the pointer reports
+     (an emulated or desktop-narrow viewport is not `pointer: coarse`). */
+  .es-dialog .p-dialog-close-button,
+  .es-dialog .es-dialog__close {
+    width: var(--hit-touch);
+    height: var(--hit-touch);
+  }
+
+  /* The clear x keeps its 22px look; a centred pseudo-element carries the
+     48px target. No margin, so the field's layout does not move. */
+  .ef-clear {
+    position: relative;
+  }
+
+  .ef-clear::after {
+    content: '';
+    position: absolute;
+    inset: calc((var(--hit-touch) - var(--ef-clear-size)) / -2);
+  }
 }
