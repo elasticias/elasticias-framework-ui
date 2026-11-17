@@ -47,6 +47,28 @@ describe('touch tier wave 2', () => {
     expect(decl(patterns, '.es-dialog .es-dialog__close', prop, base)).toBe('32px');
   });
 
+  it.each(['width', 'height'])('the dialog close (PrimeNG and ours) has a 48px %s on a phone, coarse pointer or not', (prop) => {
+    expect(decl(patterns, '.es-dialog .p-dialog-close-button', prop, phone)).toBe('var(--hit-touch)');
+    expect(decl(patterns, '.es-dialog .es-dialog__close', prop, phone)).toBe('var(--hit-touch)');
+  });
+
+  it('grows the clear target to 48px on a phone with a pseudo-element, only where the host reserves room', () => {
+    for (const host of ['.ef-input-wrap', '.ef-input-group']) {
+      expect(decl(patterns, `${host} .ef-clear`, 'position', phone)).toBe('relative');
+      expect(decl(patterns, `${host} .ef-clear::after`, 'inset', phone)).toBe('calc((var(--hit-touch) - var(--ef-clear-size)) / -2)');
+      expect(decl(patterns, `${host} .ef-clear`, 'width', phone)).toBeUndefined();
+    }
+    // A textarea, a password field and a date picker reserve nothing: no bare .ef-clear rule on a phone.
+    expect(decl(patterns, '.ef-clear', 'position', phone)).toBeUndefined();
+    expect(decl(patterns, '.ef-clear::after', 'inset', phone)).toBeUndefined();
+  });
+
+  it('keeps the text clear of the 48px clear target on a phone, in both directions, and the target out of the addon', () => {
+    expect(decl(patterns, '.ef-input-wrap:dir(ltr) .ef-input.has-clear', 'padding-right', phone)).toBe('44px');
+    expect(decl(patterns, '.ef-input-wrap:dir(rtl) .ef-input.has-clear', 'padding-left', phone)).toBe('44px');
+    expect(decl(patterns, '.ef-input-group .ef-group-clear', 'margin-inline', phone)).toBe('calc((var(--hit-touch) - var(--ef-clear-size)) / 2)');
+  });
+
   it('wraps the pdf preview footer only under 768px (D2)', () => {
     const sel = '.es-dialog.ef-pdf-preview-dialog .p-dialog-footer';
     expect(decl(patterns, sel, 'flex-wrap', phone)).toBe('wrap');

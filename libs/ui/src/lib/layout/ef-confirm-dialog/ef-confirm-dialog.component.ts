@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 /**
@@ -23,7 +24,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
     selector: 'ef-confirm-dialog',
     standalone: true,
     imports: [ConfirmDialogModule],
-    template: `<p-confirmdialog [styleClass]="effectiveStyleClass()" />`,
+    template: `<p-confirmdialog [styleClass]="effectiveStyleClass()" [pt]="passThrough()" />`,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EfConfirmDialogComponent {
@@ -32,6 +33,20 @@ export class EfConfirmDialogComponent {
 
     /** Extra classes appended to the panel. */
     readonly styleClass = input<string>('');
+
+    private readonly translate = inject(TranslateService);
+
+    /** Same key ef-dialog's close uses, so the X is named the same everywhere. */
+    protected readonly closeLabel = () => this.translate.instant('common_close');
+
+    /**
+     * `p-confirmdialog` declares `closeAriaLabel` but never hands it to the
+     * `p-dialog` it renders, so its X had no name. The pass-through reaches
+     * the inner dialog's close button, whose root takes the attribute.
+     */
+    protected readonly passThrough = () => ({
+        pcCloseButton: { root: { 'aria-label': this.closeLabel() } },
+    });
 
     protected readonly effectiveStyleClass = () =>
         ['es-dialog', `es-dialog--${this.size()}`, 'es-confirm', this.styleClass()]

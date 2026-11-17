@@ -11,6 +11,7 @@ import {
 import { DatePipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { EfDialogAction, EfDialogComponent } from '../ef-dialog/ef-dialog.component';
+import { copyToClipboard } from '../../forms/ef-copy-field/copy-to-clipboard';
 import { EfSkeletonComponent } from '../../feedback/ef-skeleton/ef-skeleton.component';
 import { EfEnvironmentBadgeComponent } from '../ef-environment-badge/ef-environment-badge.component';
 import {
@@ -114,13 +115,7 @@ export class EfVersionDialogComponent {
     protected async copy(): Promise<void> {
         const text = this.line();
         if (!text) return;
-        try {
-            if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
-            await navigator.clipboard.writeText(text);
-            this.copyState.set('copied');
-        } catch {
-            this.copyState.set('failed');
-        }
+        this.copyState.set((await copyToClipboard(text)) ? 'copied' : 'failed');
         clearTimeout(this.resetTimer);
         this.resetTimer = setTimeout(() => this.copyState.set('idle'), COPIED_FEEDBACK_MS);
     }

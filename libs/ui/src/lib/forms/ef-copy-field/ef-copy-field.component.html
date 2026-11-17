@@ -1,0 +1,37 @@
+<div class="ef-copy">
+  @if (labelKey(); as key) {
+    <ef-label [labelKey]="key" [for]="inputId" styleClass="" />
+  }
+  <div class="ef-copy__row">
+    <!-- A URI, a client ID or a hash is Latin and left-to-right in every
+         language, so an Arabic page must not reorder it. -->
+    <input
+      #box
+      class="ef-copy__value"
+      type="text"
+      readonly
+      dir="ltr"
+      spellcheck="false"
+      autocomplete="off"
+      [id]="inputId"
+      [value]="value()"
+      (focus)="selectAll($event)"
+    />
+    <button
+      type="button"
+      class="ef-copy__btn"
+      [attr.aria-label]="copyLabelKey() | translate"
+      [title]="copyLabelKey() | translate"
+      (click)="copy()"
+    >
+      <i [class]="announced()?.kind === 'copied' ? 'pi pi-check' : 'pi pi-copy'" aria-hidden="true"></i>
+    </button>
+  </div>
+  <span class="ef-copy__status" role="status" aria-live="polite">
+    @if (announced(); as a) {
+      @for (n of [a.n]; track n) {
+        <span>{{ (a.kind === 'copied' ? copiedKey() : failedKey()) | translate }}</span>
+      }
+    }
+  </span>
+</div>

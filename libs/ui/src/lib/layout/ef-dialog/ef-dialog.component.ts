@@ -140,6 +140,14 @@ export class EfDialogComponent {
   @Input() icon?: string;
   /** Width preset: sm 380 / md 480 (default) / lg 640 / xl 880 / full. */
   @Input() size: EfDialogSize = 'md';
+  /**
+   * On a phone (<= 767px, the EfViewportService breakpoint) the dialog becomes
+   * a true full sheet: 100vw x 100dvh, no margin, no radius, the footer padded
+   * past the home-indicator inset and its buttons at --hit-touch. Pure CSS, so
+   * there is no band where it disagrees with the shell. Desktop and tablet keep
+   * their `size`. Opt-in: `size="full"` keeps its 24px inset for current users.
+   */
+  @Input({ transform: booleanAttribute }) mobileFullSheet = false;
 
   /* ── Style hooks ────────────────────────────────────────── */
 
@@ -223,6 +231,7 @@ export class EfDialogComponent {
       parts.push('es-dialog', `es-dialog--${this.size}`);
       if (this.severity !== 'default') parts.push(`es-dialog--${this.severity}`);
     }
+    if (this.mobileFullSheet) parts.push('es-dialog--mobile-sheet');
     if (this.styleClass) parts.push(this.styleClass);
     return parts.join(' ');
   }
