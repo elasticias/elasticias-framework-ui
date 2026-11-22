@@ -1,0 +1,268 @@
+/* Section navigation with scrollspy. Two layouts, picked by EfViewportService
+   (host classes, not media queries, so the template and the CSS agree):
+   --rail  desktop ≥1280px: a sticky column at the inline end of the content.
+   --bar   tablet and phone: a sticky chip strip welded under the toolbar.
+   --ef-section-nav-top is the measured CSS `top` that pins the nav right
+   under the sticky detail toolbar. Logical properties throughout, so RTL
+   mirrors without overrides. */
+
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.ef-section-nav__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.ef-section-nav__end {
+  height: 1px;
+  margin-block-start: calc(-1 * var(--s-3));
+}
+
+.ef-section-nav__nav {
+  min-width: 0;
+}
+
+.ef-section-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  min-width: 0;
+}
+
+.ef-section-nav__entry {
+  min-width: 0;
+}
+
+.ef-section-nav__item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--text-mute);
+  cursor: pointer;
+  /* Containing block for the phone's visually hidden state text. */
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+  text-align: start;
+  transition:
+    color var(--t-fast, 140ms) var(--ease-out, ease-out),
+    background-color var(--t-fast, 140ms) var(--ease-out, ease-out);
+}
+
+.ef-section-nav__item:hover:not(.is-active) {
+  color: var(--text);
+}
+
+/* Visible focus, drawn inside the box so the strip's overflow never clips it. */
+.ef-section-nav__item:focus-visible {
+  outline: 0;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink-active, #0f1115) 55%, transparent);
+}
+
+.ef-section-nav__icon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.ef-section-nav__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ef-section-nav__label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ef-section-nav__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-mute);
+}
+
+.ef-section-nav__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ef-section-nav-tone, var(--text-mute));
+  flex-shrink: 0;
+}
+
+.ef-section-nav__status-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* ──────────── Rail (desktop) ──────────── */
+:host(.ef-section-nav--rail) {
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
+  column-gap: var(--s-5);
+  align-items: start;
+}
+
+:host(.ef-section-nav--rail) .ef-section-nav__nav {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: calc(var(--ef-section-nav-top, 0px) + var(--s-3));
+  max-height: calc(100dvh - var(--ef-section-nav-top, 0px) - 160px);
+  overflow-y: auto;
+  padding-block-end: var(--s-3);
+}
+
+:host(.ef-section-nav--rail) .ef-section-nav__content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.ef-section-nav__heading {
+  margin: 0 0 var(--s-2);
+  padding-inline: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+:host(.ef-section-nav--rail) .ef-section-nav__list {
+  flex-direction: column;
+  gap: 2px;
+  border-inline-start: 1px solid var(--rule);
+}
+
+/* The indicator overlays the list's rule: a 2px bar in the module colour. */
+:host(.ef-section-nav--rail) .ef-section-nav__item {
+  width: 100%;
+  min-height: var(--hit-base, 40px);
+  padding: 6px 12px;
+  margin-inline-start: -1px;
+  border-inline-start: 2px solid transparent;
+  border-radius: 0;
+  border-start-end-radius: var(--r-md);
+  border-end-end-radius: var(--r-md);
+}
+
+:host(.ef-section-nav--rail) .ef-section-nav__item.is-active {
+  color: var(--text);
+  background: var(--paper-alt);
+  border-inline-start-color: var(--module, var(--ink-active));
+}
+
+/* ──────────── Bar (tablet and phone) ──────────── */
+/* A full-bleed band under the toolbar: the negative margins cancel the
+   scroller's gutter (24px, 16px on a phone) and the screen's 12px row gap,
+   the same way `.detail-toolbar` cancels them, so it reads as the toolbar's
+   second row and sticks right beneath it. */
+:host(.ef-section-nav--bar) .ef-section-nav__nav {
+  position: sticky;
+  top: var(--ef-section-nav-top, 0px);
+  z-index: 7;
+  margin: calc(-1 * var(--s-3)) calc(-1 * var(--s-6)) 0;
+  padding: 6px var(--s-6);
+  background: var(--paper-alt);
+  border-bottom: 1px solid var(--rule);
+}
+
+:host(.ef-section-nav--bar) .ef-section-nav__list {
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+:host(.ef-section-nav--bar) .ef-section-nav__list::-webkit-scrollbar {
+  display: none;
+}
+
+:host(.ef-section-nav--bar) .ef-section-nav__entry {
+  flex: 0 0 auto;
+}
+
+:host(.ef-section-nav--bar) .ef-section-nav__item {
+  min-height: var(--hit-base, 40px);
+  max-width: 18rem;
+  padding: 4px 14px;
+  border-radius: var(--r-pill);
+}
+
+:host(.ef-section-nav--bar) .ef-section-nav__item.is-active {
+  background: var(--ink-active, #0f1115);
+  color: var(--paper);
+}
+
+:host(.ef-section-nav--bar) .ef-section-nav__item.is-active .ef-section-nav__status {
+  color: inherit;
+}
+
+/* On the dark active chip a dark tone would vanish: the dot takes the chip's text colour. */
+:host(.ef-section-nav--bar) .ef-section-nav__item.is-active .ef-section-nav__dot {
+  background: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ef-section-nav__item {
+    transition: none;
+  }
+}
+
+/* Phone (EfViewportService ≤767px), last so it wins over the bar rules: the
+   gutter is 16px, chips are 48px tap targets, and the state shrinks to its
+   dot (its text stays in the accessible name). */
+:host(.ef-section-nav--bar.ef-section-nav--phone) .ef-section-nav__nav {
+  margin-inline: calc(-1 * var(--s-4));
+  padding-inline: var(--s-4);
+}
+
+:host(.ef-section-nav--bar.ef-section-nav--phone) .ef-section-nav__item {
+  min-height: var(--hit-touch, 48px);
+}
+
+:host(.ef-section-nav--bar.ef-section-nav--phone) .ef-section-nav__text {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+:host(.ef-section-nav--bar.ef-section-nav--phone) .ef-section-nav__status-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Touch tier: a coarse pointer gets 48px targets at every width. */
+@media (pointer: coarse) {
+  :host(.ef-section-nav--rail) .ef-section-nav__item,
+  :host(.ef-section-nav--bar) .ef-section-nav__item {
+    min-height: var(--hit-touch, 48px);
+  }
+}

@@ -81,6 +81,9 @@ export type {
     EfTabsModule,
 } from './lib/layout/ef-tabs/ef-tabs.component';
 export { EfTabPanelDirective } from './lib/layout/ef-tabs/ef-tab-panel.directive';
+export { EfSectionNavComponent } from './lib/layout/ef-section-nav/ef-section-nav.component';
+export type { EfSectionNavItem, EfSectionNavMode, EfSectionNavStatus } from './lib/layout/ef-section-nav/ef-section-nav.component';
+export { EfSectionDirective } from './lib/layout/ef-section-nav/ef-section.directive';
 export { EfProfileChipComponent } from './lib/layout/ef-profile-chip/ef-profile-chip.component';
 export { EfProfileMenuComponent } from './lib/layout/ef-profile-menu/ef-profile-menu.component';
 export type { EfProfileMenuItem } from './lib/layout/ef-profile-menu/ef-profile-menu.types';

@@ -1,0 +1,43 @@
+<!-- In the DOM before the content, so the list is reached first by keyboard
+     and screen reader; the desktop grid places it in the inline-end column. -->
+<nav #nav class="ef-section-nav__nav" [attr.aria-label]="ariaLabelKey() | translate">
+  @if (mode() === 'rail') {
+    <p class="ef-section-nav__heading" aria-hidden="true">{{ ariaLabelKey() | translate }}</p>
+  }
+  <ul #list class="ef-section-nav__list">
+    @for (item of items(); track item.id) {
+      <li class="ef-section-nav__entry">
+        <button
+          type="button"
+          class="ef-section-nav__item"
+          [class.is-active]="isActive(item.id)"
+          [attr.aria-current]="isActive(item.id) ? 'true' : null"
+          [attr.aria-controls]="item.domId"
+          [attr.data-section]="item.id"
+          (click)="go(item.id)"
+        >
+          @if (item.icon) {
+            <i class="ef-section-nav__icon" [class]="item.icon" aria-hidden="true"></i>
+          }
+          <span class="ef-section-nav__text">
+            <span class="ef-section-nav__label">{{ item.labelKey | translate }}</span>
+            @if (item.status; as st) {
+              <!-- Inside the button, so the state is part of its accessible name;
+                   the leading space keeps "ZeptoMail Défini ici" two words. -->
+              <span class="ef-section-nav__status" [style.--ef-section-nav-tone]="colorVar(st.color)" [attr.data-color]="st.color">
+                <span class="ef-section-nav__dot" aria-hidden="true"></span>
+                <span class="ef-section-nav__status-text"> {{ st.key ? (st.key | translate: st.params ?? undefined) : st.text }}</span>
+              </span>
+            }
+          </span>
+        </button>
+      </li>
+    }
+  </ul>
+</nav>
+
+<div class="ef-section-nav__content">
+  <ng-content></ng-content>
+  <!-- Reaching it means the bottom is reached: the last section is the one read. -->
+  <div #end class="ef-section-nav__end" aria-hidden="true"></div>
+</div>
