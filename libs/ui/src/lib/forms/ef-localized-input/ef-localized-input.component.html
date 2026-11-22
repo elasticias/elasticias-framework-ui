@@ -191,7 +191,7 @@
         (visibleChange)="onDialogVisible($event)"
         (hideEvent)="onDialogHidden()"
     >
-        <div class="eli-dialog" (keydown)="onDialogKeydown($event)">
+        <div class="eli-dialog" role="group" tabindex="-1" (keydown)="onDialogKeydown($event)">
             @if (dialogOpen()) {
                 @for (c of list(); track c.code) {
                     <div class="eli-dialog__culture" [attr.data-culture]="c.code">
