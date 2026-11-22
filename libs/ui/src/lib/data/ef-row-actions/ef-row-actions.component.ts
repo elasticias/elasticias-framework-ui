@@ -192,7 +192,8 @@ export class EfRowActionsComponent {
         const isOpen = this.open();
 
         if (isOpen) {
-            EfRowActionsComponent.openInstance?.close();
+            const previous = EfRowActionsComponent.openInstance;
+            if (previous && previous !== this) previous.close();
             EfRowActionsComponent.openInstance = this;
             // Place it from an estimate first so it never renders in the
             // wrong direction, then correct against the real height once
@@ -204,6 +205,9 @@ export class EfRowActionsComponent {
             this.focusItem('first');
         } else {
             this.stopListeningForDisplacement();
+            // Closing through the trigger must release the app-wide slot too,
+            // or the next open finds itself there and closes itself.
+            if (EfRowActionsComponent.openInstance === this) EfRowActionsComponent.openInstance = null;
         }
 
         this.dispatchToggle(isOpen);
