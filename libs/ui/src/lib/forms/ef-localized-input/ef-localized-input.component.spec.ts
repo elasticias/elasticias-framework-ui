@@ -35,7 +35,7 @@ function setup() {
 function render(inputs: Record<string, unknown> = {}) {
     setup();
     const fixture = TestBed.createComponent(EfLocalizedInputComponent);
-    for (const [k, v] of Object.entries({ name: 'title', labelKey: 'title', ...inputs })) fixture.componentRef.setInput(k, v);
+    for (const [k, v] of Object.entries({ name: 'title', labelKey: 'title', languageEditor: 'tabs', ...inputs })) fixture.componentRef.setInput(k, v);
     const emitted: LocalizedText[] = [];
     fixture.componentInstance.valueChangeEvent.subscribe(v => emitted.push(v));
     fixture.detectChanges();
@@ -130,7 +130,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, ReactiveFormsModule],
-            template: `<form [formGroup]="form"><ef-localized-input name="title" required formControlName="title" /></form>`,
+            template: `<form [formGroup]="form"><ef-localized-input name="title" languageEditor="tabs" required formControlName="title" /></form>`,
         })
         class Host { form = new FormGroup({ title: new FormControl<LocalizedText>({}, { nonNullable: true }) }); }
         setup();
@@ -147,7 +147,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, ReactiveFormsModule],
-            template: `<ef-localized-input name="title" [formControl]="ctrl" /><button id="outside">x</button>`,
+            template: `<ef-localized-input name="title" languageEditor="tabs" [formControl]="ctrl" /><button id="outside">x</button>`,
         })
         class Host { ctrl = new FormControl<LocalizedText>({}, { nonNullable: true }); }
         setup();
@@ -282,7 +282,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, EfReadOnlyDirective],
-            template: `<div [efReadOnly]="ro()"><ef-localized-input name="title" [value]="{ fr: 'Eau' }" /></div>`,
+            template: `<div [efReadOnly]="ro()"><ef-localized-input name="title" languageEditor="tabs" [value]="{ fr: 'Eau' }" /></div>`,
         })
         class Host { ro = signal(true); }
         setup();
@@ -407,7 +407,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, ReactiveFormsModule],
-            template: `<ef-localized-input name="title" [formControl]="ctrl" />`,
+            template: `<ef-localized-input name="title" languageEditor="tabs" [formControl]="ctrl" />`,
         })
         class Host { ctrl = new FormControl<LocalizedText>({ fr: 'Eau' }, { nonNullable: true }); }
         setup();
@@ -430,7 +430,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, FormsModule],
-            template: `<ef-localized-input name="title" [(ngModel)]="model" />`,
+            template: `<ef-localized-input name="title" languageEditor="tabs" [(ngModel)]="model" />`,
         })
         class Host { model: LocalizedText = { fr: 'Eau' }; }
         setup();
@@ -448,7 +448,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, ReactiveFormsModule],
-            template: `<ef-localized-input name="title" required [formControl]="ctrl" />`,
+            template: `<ef-localized-input name="title" languageEditor="tabs" required [formControl]="ctrl" />`,
         })
         class Host { ctrl = new FormControl<LocalizedText>({ ar: 'ماء' }, { nonNullable: true }); }
         setup();
@@ -467,7 +467,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, ReactiveFormsModule],
-            template: `<ef-localized-input name="title" required [cultures]="list()" [formControl]="ctrl" />`,
+            template: `<ef-localized-input name="title" languageEditor="tabs" required [cultures]="list()" [formControl]="ctrl" />`,
         })
         class Host { list = signal([AR]); ctrl = new FormControl<LocalizedText>({ ar: 'ماء' }, { nonNullable: true }); }
         setup();
@@ -483,7 +483,7 @@ describe('EfLocalizedInputComponent', () => {
         @Component({
             standalone: true,
             imports: [EfLocalizedInputComponent, ReactiveFormsModule],
-            template: `<ef-localized-input name="title" [formControl]="ctrl" />`,
+            template: `<ef-localized-input name="title" languageEditor="tabs" [formControl]="ctrl" />`,
         })
         class Host { ctrl = new FormControl<LocalizedText>({}, { nonNullable: true }); }
         setup();

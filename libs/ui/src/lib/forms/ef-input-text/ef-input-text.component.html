@@ -3,7 +3,7 @@
 }
 <div class="ef-field-control">
   @if (variant === 'comptoir') {
-    @if (prefix || suffix) {
+    @if (prefix || suffix || trailingTemplate()) {
       <!-- Comptoir variant with prefix/suffix — wraps the input in
            an .ef-input-group so the addons share the border + focus
            ring with the input. -->
@@ -39,6 +39,9 @@
         }
         @if (suffix) {
           <span class="ef-input-addon is-suffix" aria-hidden="true">{{ suffix }}</span>
+        }
+        @if (trailingTemplate(); as action) {
+          <ng-container [ngTemplateOutlet]="action" />
         }
       </div>
     } @else {

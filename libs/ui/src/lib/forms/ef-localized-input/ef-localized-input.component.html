@@ -1,31 +1,35 @@
-<div class="eli-head">
-    @if (labelKey()) {
-        <span class="eli-label" [id]="labelId">
-            <ef-label [labelKey]="labelKey()" [for]="controlId(active()?.code ?? '')" [required]="required()" />
-        </span>
-    }
-    @if (showTabs()) {
-        <div class="eli-tabs">
-            <ef-tabs
-                variant="pill"
-                [items]="tabItems()"
-                [value]="active()?.code ?? null"
-                [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
-                (valueChange)="select($event)"
-            />
-        </div>
-    }
-</div>
+<!-- The compact field lets ef-input-text draw its label, so its label-to-input
+     spacing is exactly a plain input's and a two-column row lines up. -->
+@if (!compact()) {
+    <div class="eli-head">
+        @if (labelKey()) {
+            <span class="eli-label" [id]="labelId">
+                <ef-label [labelKey]="labelKey()" [for]="controlId(active()?.code ?? '')" [required]="required()" />
+            </span>
+        }
+        @if (showTabRow()) {
+            <div class="eli-tabs">
+                <ef-tabs
+                    variant="pill"
+                    [items]="tabItems()"
+                    [value]="active()?.code ?? null"
+                    [ariaLabelKey]="labelKey() || 'ef_localized_input_cultures'"
+                    (valueChange)="select($event)"
+                />
+            </div>
+        }
+    </div>
+}
 
 <!-- Without a tab row the panel is a plain group: a tabpanel would point
      at a tab that does not exist. -->
 <div
     class="eli-panel"
     [id]="panelId"
-    [attr.role]="showTabs() ? 'tabpanel' : null"
-    [attr.aria-labelledby]="showTabs() ? tabId(active()?.code ?? '') : null"
+    [attr.role]="showTabRow() ? 'tabpanel' : null"
+    [attr.aria-labelledby]="showTabRow() ? tabId(active()?.code ?? '') : null"
 >
-    @if (!showTabs()) {
+    @if (!showTabRow()) {
         @if (active(); as c) {
             <span class="eli-sr" [id]="cultureNameId">{{ c.labelKey | translate }}</span>
         }
@@ -34,7 +38,9 @@
         @switch (effectiveMode()) {
             @case ('text') {
                 <ef-input-text
-                    [variant]="variant() === 'comptoir' ? 'comptoir' : 'primeng'"
+                    #inlineField
+                    [labelKey]="compact() ? labelKey() : ''"
+                    [variant]="compact() || variant() === 'comptoir' ? 'comptoir' : 'primeng'"
                     [inputId]="controlId(c.code)"
                     [name]="name() + '.' + c.code"
                     [dir]="c.dir"
@@ -42,12 +48,13 @@
                     [value]="activeText()"
                     [maxlength]="maxLength()"
                     [required]="required() && c.code === defaultCode()"
-                    [errors]="activeErrors()"
+                    [errors]="inlineErrors()"
                     [disabled]="isDisabled()"
                     [readonly]="activeReadOnly()"
                     [placeholderKey]="placeholderKey()"
                     [hintKey]="activeReadOnly() ? 'ef_localized_input_read_only_hint' : hintKey()"
                     [describedByExtra]="describedByExtra()"
+                    [trailingTemplate]="dialogAvailable() ? languagesAction : null"
                     (valueChangeEvent)="setText(c.code, $event)"
                 />
             }
@@ -136,7 +143,8 @@
     }
 
     @if (errorsElsewhere(); as others) {
-        @if (others.length) {
+        <!-- The compact field says it in its own messages (inlineErrors). -->
+        @if (others.length && !compact()) {
             <small class="eli-elsewhere text-danger block" data-errors-elsewhere role="status">
                 {{ 'ef_localized_input_errors_in_other' | translate }}
                 @for (c of others; track c.code; let last = $last) {
@@ -152,3 +160,70 @@
         </div>
     }
 </div>
+
+<!-- The languages button, drawn by ef-input-text inside the compact field at
+     its trailing edge. It stays usable on a read-only field: the dialog then
+     opens read-only, so the other languages can still be read. -->
+<ng-template #languagesAction>
+    <button
+        #languagesButton
+        type="button"
+        class="ef-input-action eli-languages"
+        data-languages
+        [class.is-invalid]="errorsElsewhere().length > 0"
+        [attr.aria-label]="translationsLabel()"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="dialogOpen()"
+        (click)="openDialog()"
+    >
+        <i class="pi pi-language" aria-hidden="true"></i>
+        <span class="eli-languages__count" aria-hidden="true"><bdi dir="ltr">{{ filledCount() }}/{{ list().length }}</bdi></span>
+    </button>
+</ng-template>
+
+@if (dialogAvailable()) {
+    <ef-dialog
+        [visible]="dialogOpen()"
+        [headerKey]="labelKey() || 'ef_localized_input_cultures'"
+        size="md"
+        mobileFullSheet
+        [actions]="dialogActions()"
+        (visibleChange)="onDialogVisible($event)"
+        (hideEvent)="onDialogHidden()"
+    >
+        <div class="eli-dialog" (keydown)="onDialogKeydown($event)">
+            @if (dialogOpen()) {
+                @for (c of list(); track c.code) {
+                    <div class="eli-dialog__culture" [attr.data-culture]="c.code">
+                        <ef-input-text
+                            variant="comptoir"
+                            [labelKey]="c.labelKey"
+                            [inputId]="dialogControlId(c.code)"
+                            [name]="name() + '.' + c.code"
+                            [dir]="c.dir"
+                            [lang]="c.code"
+                            [value]="draft()[c.code] ?? ''"
+                            [maxlength]="maxLength()"
+                            [required]="required() && c.code === defaultCode()"
+                            [errors]="dialogErrors()[c.code] ?? null"
+                            [disabled]="isDisabled()"
+                            [readonly]="readOnlyCultures().includes(c.code)"
+                            [placeholderKey]="placeholderKey()"
+                            [hintKey]="readOnlyCultures().includes(c.code) ? 'ef_localized_input_read_only_hint' : ''"
+                            (valueChangeEvent)="setDraft(c.code, $event)"
+                        />
+                        @if (counterLimit(); as limit) {
+                            <span class="eli-counter" data-counter [class.is-over]="dialogLength(c.code) > limit">
+                                @if (advisedLength() !== null && advisedLength() !== undefined) {
+                                    <span>{{ 'ef_localized_input_counter_advised' | translate: { count: dialogLength(c.code), max: limit } }}</span>
+                                } @else {
+                                    <bdi dir="ltr">{{ dialogLength(c.code) }} / {{ limit }}</bdi>
+                                }
+                            </span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </ef-dialog>
+}

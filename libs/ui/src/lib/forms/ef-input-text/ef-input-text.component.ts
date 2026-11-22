@@ -8,7 +8,10 @@ import {
   Input,
   Output,
   EventEmitter,
+  input,
+  TemplateRef,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { ControlValueAccessor, NgControl, FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { TranslateModule } from '@ngx-translate/core';
@@ -22,7 +25,7 @@ import { insertAtSelection, placeCaret } from '../insert-at-cursor';
   standalone: true,
   templateUrl: './ef-input-text.component.html',
   styleUrls: ['./ef-input-text.component.scss'],
-  imports: [InputTextModule, FormsModule, TranslateModule, EfLabelComponent, EfClearButtonComponent],
+  imports: [InputTextModule, FormsModule, TranslateModule, NgTemplateOutlet, EfLabelComponent, EfClearButtonComponent],
   // A static lang="ar" belongs to the field only, not to the label and hint around it.
   host: { '[attr.lang]': 'null' },
 })
@@ -80,6 +83,16 @@ export class EfInputTextComponent
   /** Inline suffix addon — e.g. `'MAD'`, `'cm'`. Renders only in the
    *  Comptoir variant; ignored otherwise. */
   @Input() suffix?: string;
+
+  /**
+   * A control drawn inside the field at its trailing edge, after the clear
+   * and the suffix (ef-localized-input's languages button). It puts the
+   * comptoir input in its `.ef-input-group`, so the control shares the
+   * field's border, focus ring and `--hit-field` height. The template owns
+   * its markup and styles; give a button the `ef-input-action` class for the
+   * shared look. Comptoir variant only.
+   */
+  readonly trailingTemplate = input<TemplateRef<unknown> | null>(null);
 
   @HostBinding('class.ef-inline') get isInline() { return this.inline; }
 

@@ -3681,6 +3681,48 @@
   font-size: 11px;
 }
 
+/* A control inside the field at its trailing edge (ef-input-text's
+   `trailingTemplate`, such as ef-localized-input's languages button). It
+   takes the group's full height (--hit-field: 40px, 48px on touch) and is at
+   least as wide, so it is a full tap target without making the field taller. */
+.ef-input-group .ef-input-action {
+  box-sizing: border-box;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: var(--hit-field);
+  padding: 0 10px;
+  border: 0;
+  border-inline-start: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--text-mute);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
+}
+
+.ef-input-group .ef-input-action:hover {
+  background: var(--tenant-50);
+  color: var(--tenant-500);
+}
+
+.ef-input-group .ef-input-action:focus-visible {
+  outline: 2px solid var(--tenant-400);
+  outline-offset: -2px;
+}
+
+.ef-input-group .ef-input-action.is-invalid {
+  background: var(--st-cancelled-bg);
+  color: var(--st-cancelled-fg);
+}
+
 /* Hide the native number spinners — we expose ours via .is-stepper.
    Note: ef-inputnumber's comptoir input is now `type="text"
    inputmode="decimal"` (comma-decimal entry), which renders no native

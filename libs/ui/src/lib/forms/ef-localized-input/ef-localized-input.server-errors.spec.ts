@@ -27,7 +27,7 @@ type Errors = { [k: string]: string[] };
 @Component({
     standalone: true,
     imports: [EfLocalizedInputComponent, EfServerErrorsDirective],
-    template: `<div [efServerErrors]="map()"><ef-localized-input [name]="name" labelKey="title" [errors]="explicit()" [value]="{ fr: 'a', ar: 'b' }" /></div>`,
+    template: `<div [efServerErrors]="map()"><ef-localized-input [name]="name" labelKey="title" languageEditor="tabs" [errors]="explicit()" [value]="{ fr: 'a', ar: 'b' }" /></div>`,
 })
 class Host {
     name = 'title';

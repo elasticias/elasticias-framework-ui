@@ -28,6 +28,7 @@ import { merge } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cleanLocalizedText, EF_CONTENT_CULTURES, type EfCulture } from '@elasticias/core';
 import type { LocalizedText } from '@elasticias/types';
+import { EfDialogAction, EfDialogComponent } from '../../layout/ef-dialog/ef-dialog.component';
 import { EfLabelComponent } from '../../layout/ef-label/ef-label.component';
 import { EfTabItem, EfTabsComponent } from '../../layout/ef-tabs/ef-tabs.component';
 import { EfInputTextComponent } from '../ef-input-text/ef-input-text.component';
@@ -60,6 +61,26 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * it, and the whole object out on every edit with blank cultures removed
  * (ADR-050 section 7).
  *
+ * - **Compact editor** (`languageEditor`). A one-line field
+ *   (`mode="text"`) looks and aligns like any ef-input-text: the label row
+ *   holds the label only and the field edits the default culture. A
+ *   languages button inside the field, at its trailing edge, shows how many
+ *   cultures are filled (`2/3`) and opens an `ef-dialog` titled by the label
+ *   with every culture stacked, each in its own direction, editing a draft:
+ *   Appliquer (or Enter in a field) emits the whole object once; Annuler,
+ *   Escape and the close button discard the draft; focus returns to the button.
+ *   `auto` (the default) uses it for a text field in the comptoir variant
+ *   that draws its own tabs and links no other input (the row owner of a
+ *   shared tab row keeps its tabs, or its followers would lose their only
+ *   language switch); `tabs` keeps the tab row; `dialog` asks for it on any
+ *   text field. Textarea, html and rich modes always keep the tab row. A
+ *   field with one culture shows the plain field, with no button.
+ *   Errors in another culture mark the field invalid with
+ *   `ef_localized_input_errors_in_other` and tint the button; in the dialog
+ *   each culture shows its own. Under `[efReadOnly]` (or disabled) the button
+ *   still opens the dialog, read-only, with one close action, so the other
+ *   languages can still be read. Keys: `ef_localized_input_translations`
+ *   (`{{filled}}`, `{{total}}`), `common_apply`, `common_cancel`, `common_close`.
  * - **Cultures** come from `EF_CONTENT_CULTURES` (the ERP provides them from
  *   the tenant profile) unless `cultures` is set. The active culture starts
  *   on the default and is two-way through `[(activeCulture)]`.
@@ -133,6 +154,10 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
  * | `ef_localized_input_counter_advised` | {{count}} / {{max}} conseillés | {{count}} / {{max}} موصى بها | {{count}} / {{max}} advised |
  * | `ef_localized_input_error_in_culture` | {{culture}} : {{message}} | {{culture}}: {{message}} | {{culture}}: {{message}} |
  * | `ef_localized_input_read_only_hint` | Ce texte se modifie ailleurs. | يُعدَّل هذا النص في مكان آخر. | This text is edited elsewhere. |
+ * | `ef_localized_input_translations` | Traductions : {{filled}} sur {{total}} langues remplies | الترجمات: {{filled}} من {{total}} لغات مكتملة | Translations: {{filled}} of {{total}} languages filled |
+ *
+ * The compact editor's dialog also uses `common_apply`, `common_cancel` and
+ * `common_close`, which ef-dialog consumers already define.
  *
  * ```html
  * <ef-localized-input name="title" labelKey="product_title" required
@@ -150,7 +175,7 @@ function sameText(a: LocalizedText, b: LocalizedText): boolean {
 @Component({
     selector: 'ef-localized-input',
     standalone: true,
-    imports: [TranslateModule, EfLabelComponent, EfTabsComponent, EfInputTextComponent, EfTextareaComponent],
+    imports: [TranslateModule, EfDialogComponent, EfLabelComponent, EfTabsComponent, EfInputTextComponent, EfTextareaComponent],
     templateUrl: './ef-localized-input.component.html',
     styleUrl: './ef-localized-input.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -243,6 +268,15 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
      *  seeing from the tab row. Drawn by the input that shows the tabs. */
     readonly tabBadges = input<Readonly<Record<string, string>>>({});
 
+    /**
+     * How the other languages are edited (text mode only): `auto` (the
+     * default) draws the compact field with a languages button and dialog
+     * when the field draws its own tabs, links no other input and uses the
+     * comptoir variant; `tabs` keeps the tab row; `dialog` asks for the
+     * compact field on any text field. Textarea, html and rich always use tabs.
+     */
+    readonly languageEditor = input<'auto' | 'tabs' | 'dialog'>('auto');
+
     /** The whole new object, trimmed, with blank cultures removed. */
     readonly valueChangeEvent = output<LocalizedText>();
 
@@ -256,7 +290,8 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     private readonly richFailed = signal(false);
     private readonly richHost = viewChild('richHost', { read: ViewContainerRef });
     private richRef: ComponentRef<unknown> | null = null;
-    private readonly textField = viewChild(EfInputTextComponent);
+    private readonly textField = viewChild('inlineField', { read: EfInputTextComponent });
+    private readonly languagesButton = viewChild<ElementRef<HTMLButtonElement>>('languagesButton');
     private readonly areaField = viewChild(EfTextareaComponent);
 
     /** `rich` without a provided editor renders the html source instead. */
@@ -307,9 +342,25 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         return list.some(c => c.code === preferred) ? preferred : (list[0]?.code ?? preferred);
     });
 
+    /** The compact editor: one field for the default culture, the others in a dialog. */
+    protected readonly compact = computed(() => {
+        const editor = this.languageEditor();
+        if (this.mode() !== 'text' || editor === 'tabs') return false;
+        if (editor === 'dialog') return true;
+        return this.showTabs() && this.linkedInputs().length === 0 && this.variant() === 'comptoir';
+    });
+
+    /** The languages button and its dialog: the compact field with more than one culture. */
+    protected readonly dialogAvailable = computed(() => this.compact() && this.list().length > 1);
+
+    /** The culture tab row is drawn. */
+    protected readonly showTabRow = computed(() => this.showTabs() && !this.compact());
+
     protected readonly active = computed<EfCulture | undefined>(() => {
         const list = this.list();
-        const code = this.activeCulture();
+        // The compact field always shows the default culture: the error
+        // jump below must not swap another language into it.
+        const code = this.compact() ? this.defaultCode() : this.activeCulture();
         return list.find(c => c.code === code) ?? list.find(c => c.code === this.defaultCode()) ?? list[0];
     });
 
@@ -381,6 +432,61 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
 
     /** Cultures in error other than the one on show, for the hint under the tabs. */
     protected readonly errorsElsewhere = computed(() => this.culturesInError().filter(c => c.code !== this.active()?.code));
+
+    /**
+     * The field's own messages. On the compact field, errors in the other
+     * cultures are added as `Erreur dans : Arabe`, so the field is marked
+     * invalid and says where to look.
+     */
+    protected readonly inlineErrors = computed<string[] | null>(() => {
+        const own = this.activeErrors();
+        if (!this.compact() || !this.errorsElsewhere().length) return own;
+        this.textsVersion();
+        const t = this.translateService;
+        const names = this.errorsElsewhere().map(c => t.instant(c.labelKey)).join(', ');
+        return [...(own ?? []), `${t.instant('ef_localized_input_errors_in_other')} ${names}`];
+    });
+
+    /** Cultures with text, for the languages button. */
+    protected readonly filledCount = computed(() => {
+        const text = this.cleaned();
+        return this.list().filter(c => !!text[c.code]).length;
+    });
+
+    protected readonly translationsLabel = computed(() => {
+        this.textsVersion();
+        return this.translateService.instant('ef_localized_input_translations', {
+            filled: this.filledCount(),
+            total: this.list().length,
+        });
+    });
+
+    /** The languages dialog is open. */
+    protected readonly dialogOpen = signal(false);
+    /** What the dialog edits; merged into the value only on Appliquer. */
+    protected readonly draft = signal<LocalizedText>({});
+
+    /** Each culture's messages in the dialog, translated once here. */
+    protected readonly dialogErrors = computed<Record<string, string[]>>(() => {
+        this.textsVersion();
+        const out: Record<string, string[]> = {};
+        const errors = this.cultureErrors();
+        for (const c of this.list()) {
+            const messages = errors[c.code];
+            if (messages?.length) out[c.code] = messages.map(m => this.translateService.instant(m));
+            else if (this.requiredTone(c.code)) out[c.code] = [this.translateService.instant('validation.required')];
+        }
+        return out;
+    });
+
+    protected readonly dialogActions = computed<EfDialogAction[]>(() =>
+        this.isDisabled()
+            ? [{ labelKey: 'common_close', severity: 'ghost' }]
+            : [
+                  { labelKey: 'common_cancel', severity: 'ghost' },
+                  { labelKey: 'common_apply', severity: 'primary', command: () => this.applyDraft() },
+              ],
+    );
 
     /** Changes only when the set of errors does, so a tab the user picked stays picked. */
     private readonly errorSignature = computed(() => {
@@ -492,7 +598,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
     /** Extra `aria-describedby` ids for the active field: the counter, and
      *  the culture's name when no tab says it. */
     protected readonly describedByExtra = computed(() =>
-        [this.counterLimit() ? this.counterId : null, this.showTabs() ? null : this.cultureNameId].filter(Boolean).join(' '),
+        [this.counterLimit() ? this.counterId : null, this.showTabRow() ? null : this.cultureNameId].filter(Boolean).join(' '),
     );
 
     private onChange: (v: LocalizedText) => void = () => { /* noop */ };
@@ -516,7 +622,7 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         // each other.
         effect(() => {
             const code = this.activeCode();
-            if (this.showTabs() && code && this.activeCulture() !== code) this.activeCulture.set(code);
+            if (this.showTabRow() && code && this.activeCulture() !== code) this.activeCulture.set(code);
         });
         // A row owner tells the inputs it links, so they leave the error jump to it.
         effect(onCleanup => {
@@ -638,8 +744,67 @@ export class EfLocalizedInputComponent implements ControlValueAccessor, DoCheck 
         this.activeCulture.set(code);
     }
 
+    protected dialogControlId(code: string): string {
+        return `${this.uid}-dialog-${code}`;
+    }
+
+    protected dialogLength(code: string): number {
+        const text = this.draft()[code] ?? '';
+        return text.length;
+    }
+
+    protected openDialog(): void {
+        this.draft.set({ ...this.raw() });
+        this.dialogOpen.set(true);
+    }
+
+    protected setDraft(code: string, text: string): void {
+        this.draft.update(d => ({ ...d, [code]: text }));
+    }
+
+    /** Every close that is not Appliquer discards the draft (Annuler, Esc, the close button). */
+    protected onDialogVisible(visible: boolean): void {
+        if (!visible) this.dialogOpen.set(false);
+    }
+
+    protected onDialogHidden(): void {
+        this.draft.set({});
+        this.languagesButton()?.nativeElement.focus();
+    }
+
+    /**
+     * Enter in a one-line field applies, Escape discards; neither while an
+     * IME composes (Arabic input). Escape is handled here because a comptoir
+     * ef-dialog passes `closable=false` to p-dialog, which then ignores it.
+     */
+    protected onDialogKeydown(event: KeyboardEvent): void {
+        if (event.isComposing) return;
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            this.dialogOpen.set(false);
+            return;
+        }
+        if (event.key !== 'Enter' || !(event.target instanceof HTMLInputElement)) return;
+        event.preventDefault();
+        if (!this.isDisabled()) this.applyDraft();
+        this.dialogOpen.set(false);
+    }
+
+    /** Merges the dialog's draft and emits once, when it changed anything. */
+    private applyDraft(): void {
+        if (this.isDisabled()) return;
+        const draft = this.draft();
+        if (sameText(cleanLocalizedText(draft), this.cleaned())) return;
+        this.raw.set({ ...draft });
+        this.emitValue();
+    }
+
     protected setText(code: string, text: string): void {
         this.raw.update(r => ({ ...r, [code]: text }));
+        this.emitValue();
+    }
+
+    private emitValue(): void {
         const out = this.cleaned();
         this.lastEmitted = out;
         this.interacted.set(true);

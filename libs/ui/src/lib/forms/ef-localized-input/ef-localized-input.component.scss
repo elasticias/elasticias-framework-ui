@@ -1,5 +1,6 @@
 /* ef-localized-input: a label and a row of culture tabs, then the active
-   culture's field. Keep this file ASCII: a non-ASCII character makes Sass
+   culture's field; or, compact, the label and the default culture's field
+   with a languages button, the other cultures in a dialog. Keep this file ASCII: a non-ASCII character makes Sass
    emit @charset and jsdom then drops the rule after it. */
 
 :host {
@@ -82,6 +83,31 @@
 
 .eli-link {
   font-size: 12px;
+}
+
+/* The compact field's languages button: the filled count beside the icon,
+   in figures that do not shift as it changes. The button itself is the
+   shared .ef-input-action (_patterns.scss). */
+.eli-languages__count {
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* The dialog: one block per culture, stacked, each label above its field
+   and the counter under it. */
+.eli-dialog {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-4);
+  min-width: 0;
+}
+
+.eli-dialog__culture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-1);
+  min-width: 0;
 }
 
 /* Phone: the tabs become touch targets and take the full row. Last in the
