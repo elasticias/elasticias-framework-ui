@@ -59,7 +59,10 @@ const ROW_SHORTCUTS: ReadonlyArray<{ actionId: string; keys: string; labelKey: s
  * Behaviour:
  * - Click the trigger to toggle. Trigger gets `.open` (ink-active) while the menu is open.
  * - Only one row menu is open at a time — opening one closes the last.
- * - The menu flips above the trigger when there isn't room below it.
+ * - The menu opens beside the trigger (not under it), so the dots of the
+ *   rows below stay clickable; it rises from the trigger's bottom edge when
+ *   there isn't room below, and falls back to under the trigger only when
+ *   neither side has room for its width.
  * - The menu is fixed to the viewport, placed from the trigger's rect, so a
  *   table's horizontal scroller cannot clip it. Scrolling any ancestor or
  *   resizing the window closes it, rather than leaving it behind its row.
@@ -153,8 +156,8 @@ export class EfRowActionsComponent {
     readonly disabled = input(false, { transform: booleanAttribute });
 
     /**
-     * Pin the menu to the inline-start edge of the trigger instead of
-     * inline-end. Use when the actions cell sits at the start of the row.
+     * Open the menu on the inline-end side of the trigger instead of the
+     * inline-start side. Use when the actions cell sits at the start of the row.
      */
     readonly menuLeft = input(false, { transform: booleanAttribute });
 
@@ -198,8 +201,7 @@ export class EfRowActionsComponent {
             // Place it from an estimate first so it never renders in the
             // wrong direction, then correct against the real height once
             // the menu is in the DOM.
-            this.dropUp.set(this.shouldDropUp(this.estimateMenuHeight()));
-            this.place();
+            this.reposition(this.estimateMenuHeight());
             this.listenForDisplacement();
             this.correctPlacementAfterRender();
             this.focusItem('first');
@@ -310,9 +312,43 @@ export class EfRowActionsComponent {
      */
     private shouldDropUp(menuHeight: number): boolean {
         const rect = this.triggerRect();
-        const below = EfRowActionsComponent.viewportHeight() - rect.bottom;
-        const above = rect.top;
+        // Beside the trigger the menu hangs from the trigger's top edge (or
+        // rises from its bottom edge); only below it does it clear the trigger.
+        const beside = this.mode !== 'below';
+        const below = EfRowActionsComponent.viewportHeight() - (beside ? rect.top : rect.bottom);
+        const above = beside ? rect.bottom : rect.top;
         return below < menuHeight + EfRowActionsComponent.EDGE_GAP && above > below;
+    }
+
+    /** Matches `.row-actions__menu { min-width }`; the width before it is measured. */
+    private static readonly MENU_MIN_WIDTH = 212;
+
+    /**
+     * Where the menu sits against its trigger. `left` / `right` put it
+     * beside the trigger (physically left / right of it), so the actions
+     * column stays uncovered and the dots of the rows below remain
+     * clickable. `below` is the fallback when neither side has room for the
+     * menu's width (a very narrow viewport), and does cover the trigger column.
+     */
+    private mode: 'left' | 'right' | 'below' = 'left';
+
+    private chooseMode(width: number): void {
+        const rect = this.triggerRect();
+        const gap = EfRowActionsComponent.MENU_GAP;
+        const fitsLeft = rect.left - gap - gap >= width;
+        const fitsRight = EfRowActionsComponent.viewportWidth() - rect.right - gap - gap >= width;
+        const preferLeft = this.isRtl() === this.menuLeft();
+        const [first, second] = preferLeft
+            ? ([['left', fitsLeft], ['right', fitsRight]] as const)
+            : ([['right', fitsRight], ['left', fitsLeft]] as const);
+        this.mode = first[1] ? first[0] : second[1] ? second[0] : 'below';
+    }
+
+    /** Decide side and direction for a menu of this size, then place it. */
+    private reposition(height: number, width = EfRowActionsComponent.MENU_MIN_WIDTH): void {
+        this.chooseMode(width);
+        this.dropUp.set(this.shouldDropUp(height));
+        this.place();
     }
 
     /** Gap between the trigger and the menu. Matches the CSS `calc(100% + 8px)`. */
@@ -345,22 +381,33 @@ export class EfRowActionsComponent {
         const vh = EfRowActionsComponent.viewportHeight();
         const gap = EfRowActionsComponent.MENU_GAP;
         const px = (n: number) => `${Math.round(n)}px`;
+        const up = this.dropUp();
+        const mode = this.mode;
 
-        // The menu's inline end meets the trigger's inline end (or its
-        // inline start with menuLeft); in a right-to-left page those are
-        // the physical left and right edges respectively.
-        const rtl = this.isRtl();
-        const alignRight = rtl === this.menuLeft();
+        // Beside the trigger the menu's top meets the trigger's top (or its
+        // bottom meets the trigger's bottom, upward); below it, it clears the
+        // trigger by a gap. Horizontally it ends a gap before the trigger on
+        // the physical left, or starts a gap after it on the right; below, it
+        // is flush with the trigger's edge as before.
+        const anchorTop = mode === 'below' ? rect.bottom + gap : rect.top;
+        const anchorBottom = mode === 'below' ? rect.top - gap : rect.bottom;
 
         // A fixed menu cannot be scrolled into view (a scroll closes it), so
         // one taller than the room on its side scrolls inside itself instead.
-        const room = this.dropUp() ? rect.top - gap - gap : vh - (rect.bottom + gap) - gap;
+        const room = up ? anchorBottom - gap : vh - anchorTop - gap;
+
+        let right = 'auto';
+        let left = 'auto';
+        if (mode === 'left') right = px(vw - (rect.left - gap));
+        else if (mode === 'right') left = px(rect.right + gap);
+        else if (this.isRtl() === this.menuLeft()) right = px(vw - rect.right);
+        else left = px(rect.left);
 
         this.menuPosition.set({
-            top: this.dropUp() ? 'auto' : px(rect.bottom + gap),
-            bottom: this.dropUp() ? px(vh - rect.top + gap) : 'auto',
-            right: alignRight ? px(vw - rect.right) : 'auto',
-            left: alignRight ? 'auto' : px(rect.left),
+            top: up ? 'auto' : px(anchorTop),
+            bottom: up ? px(vh - anchorBottom) : 'auto',
+            right,
+            left,
             maxHeight: px(Math.max(room, 120)),
         });
     }
@@ -381,11 +428,23 @@ export class EfRowActionsComponent {
         const gap = EfRowActionsComponent.MENU_GAP;
         const vw = EfRowActionsComponent.viewportWidth();
 
-        const wantTop = this.dropUp() ? rect.top - gap - m.height : rect.bottom + gap;
+        const beside = this.mode !== 'below';
+        const wantTop = this.dropUp()
+            ? (beside ? rect.bottom : rect.top - gap) - m.height
+            : beside
+              ? rect.top
+              : rect.bottom + gap;
         // Only meaningful once the entry animation (a translate and scale)
         // is over; see correctPlacementAfterRender.
         const alignRight = pos.right !== 'auto';
-        let wantLeft = alignRight ? rect.right - m.width : rect.left;
+        let wantLeft =
+            this.mode === 'left'
+                ? rect.left - gap - m.width
+                : this.mode === 'right'
+                  ? rect.right + gap
+                  : alignRight
+                    ? rect.right - m.width
+                    : rect.left;
         // Keep the whole menu on screen when the trigger hugs an edge.
         wantLeft = Math.min(Math.max(wantLeft, gap), Math.max(gap, vw - gap - m.width));
 
@@ -482,8 +541,7 @@ export class EfRowActionsComponent {
             // scrollHeight, not offsetHeight: the first placement already
             // capped the menu to the room below, so its offsetHeight can
             // never say it does not fit there.
-            this.dropUp.set(this.shouldDropUp(menu.scrollHeight));
-            this.place();
+            this.reposition(menu.scrollHeight, menu.offsetWidth || undefined);
             // The new offsets reach the DOM on the next change detection.
             // Measure only after the entry animation: its translate and
             // scale are in getBoundingClientRect, and correcting mid-flight

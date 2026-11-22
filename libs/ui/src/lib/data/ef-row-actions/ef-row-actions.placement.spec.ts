@@ -71,13 +71,13 @@ describe('EfRowActionsComponent placement', () => {
         vi.restoreAllMocks();
     });
 
-    it('fixes the menu below the trigger, aligned to its inline end', () => {
+    it('fixes the menu beside the trigger, ending a gap before its inline start', () => {
         triggerAt({ left: 900, top: 100 });
         open();
         const m = menu()!;
         expect(m.classList).toContain('is-floating');
-        expect(m.style.top).toBe('136px'); // 100 + 28 + 8
-        expect(m.style.right).toBe('66px'); // 1000 - 934
+        expect(m.style.top).toBe('100px'); // level with the trigger's top
+        expect(m.style.right).toBe('108px'); // 1000 - (900 - 8)
         expect(m.style.left).toBe('auto');
         expect(m.style.bottom).toBe('auto');
     });
@@ -87,25 +87,41 @@ describe('EfRowActionsComponent placement', () => {
         open();
         const m = menu()!;
         expect(m.classList).toContain('up');
-        expect(m.style.bottom).toBe('48px'); // 800 - 760 + 8
+        expect(m.style.bottom).toBe('12px'); // level with the trigger's bottom: 800 - 788
         expect(m.style.top).toBe('auto');
     });
 
-    it('aligns to the left edge in a right-to-left page', () => {
+    it('mirrors to after the trigger in a right-to-left page', () => {
         document.documentElement.setAttribute('dir', 'rtl');
         triggerAt({ left: 40, top: 100 });
         open();
         const m = menu()!;
-        expect(m.style.left).toBe('40px');
+        expect(m.style.left).toBe('82px'); // 40 + 34 + 8
         expect(m.style.right).toBe('auto');
     });
 
-    it('aligns to the inline start with menuLeft', () => {
+    it('opens on the other side of the trigger with menuLeft', () => {
         fixture.componentRef.setInput('menuLeft', true);
         fixture.detectChanges();
         triggerAt({ left: 40, top: 100 });
         open();
-        expect(menu()!.style.left).toBe('40px');
+        expect(menu()!.style.left).toBe('82px');
+    });
+
+    it('falls back to the other side when its preferred side is too narrow', () => {
+        triggerAt({ left: 100, top: 100 }); // 100 - 16 < 212 on the left
+        open();
+        expect(menu()!.style.left).toBe('142px'); // 100 + 34 + 8
+        expect(menu()!.style.right).toBe('auto');
+    });
+
+    it('drops below the trigger only when neither side has room for it', () => {
+        vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(300);
+        triggerAt({ left: 130, top: 100 });
+        open();
+        const m = menu()!;
+        expect(component.dropUp()).toBe(false);
+        expect(m.style.top).toBe('136px'); // 100 + 28 + 8
     });
 
     it('closes when an ancestor scrolls, since a fixed menu would float away from its row', () => {
@@ -143,13 +159,13 @@ describe('EfRowActionsComponent placement', () => {
     it('caps its height to the room below, and scrolls inside', () => {
         triggerAt({ left: 900, top: 100 });
         open();
-        expect(menu()!.style.maxHeight).toBe('656px'); // 800 - (128 + 8) - 8
+        expect(menu()!.style.maxHeight).toBe('692px'); // 800 - 100 - 8
     });
 
     it('caps its height to the room above when it opens upward', () => {
         triggerAt({ left: 900, top: 760 });
         open();
-        expect(menu()!.style.maxHeight).toBe('744px'); // 760 - 8 - 8
+        expect(menu()!.style.maxHeight).toBe('780px'); // 788 - 8
     });
 
     it('closes on Escape', () => {
@@ -188,17 +204,17 @@ describe('EfRowActionsComponent placement', () => {
             frames.push(cb);
             return frames.length;
         });
-        // Room below: 800 - (428 + 8) - 8 = 356. Room above: 400 - 16 = 384.
-        triggerAt({ left: 900, top: 400 });
+        // Room below: 800 - 440 - 8 = 352. Room above: 468 - 8 = 460.
+        triggerAt({ left: 900, top: 440 });
         open();
         expect(component.dropUp()).toBe(false); // the two-item estimate fits below
-        // Labels wrapped: the real menu is 370px, capped below at 356.
+        // Labels wrapped: the real menu is 370px, capped below at 352.
         const m = menu()!;
         vi.spyOn(m, 'scrollHeight', 'get').mockReturnValue(370);
-        vi.spyOn(m, 'offsetHeight', 'get').mockReturnValue(356);
+        vi.spyOn(m, 'offsetHeight', 'get').mockReturnValue(352);
         while (frames.length) frames.shift()!(0);
         fixture.detectChanges();
         expect(component.dropUp()).toBe(true);
-        expect(m.style.maxHeight).toBe('384px');
+        expect(m.style.maxHeight).toBe('460px');
     });
 });
