@@ -69,6 +69,21 @@
         </ef-card>
       }
 
+      <!-- ── 1b. Reçue par: how the order reached the shop, asked first and before the notice below ── -->
+      @if (showReceivedViaSection()) {
+        <ef-card>
+          <div class="ef-recipient__via" data-role="received-via">
+            <ef-label labelKey="ef.recipient.received_via" [required]="true" />
+            <ef-pill-group
+              [items]="receivedViaPills()"
+              [value]="receivedVia() || null"
+              ariaLabelKey="ef.recipient.received_via"
+              (valueChange)="receivedVia.set($event)"
+            />
+          </div>
+        </ef-card>
+      }
+
       <!-- ── 2. Client ── -->
       @if (selected(); as m) {
         <ef-card titleKey="ef.recipient.section_client">
@@ -266,32 +281,19 @@
         </ef-card>
       }
 
-      <!-- ── 4. Paiement et Reçue par ── -->
+      <!-- ── 4. Paiement ── -->
       @if (showPaymentSection()) {
         <ef-card titleKey="ef.recipient.section_payment">
           <div class="ef-recipient__stack">
-            @if (paymentOn()) {
-              <span class="ef-recipient__sr" [id]="fieldId('payment-title')">
-                {{ 'ef.recipient.section_payment' | translate }}
-              </span>
-              <ef-recipient-choices
-                [choices]="paymentChoices()"
-                [(value)]="paymentMethod"
-                [labelledBy]="fieldId('payment-title')"
-                [required]="true"
-              />
-            }
-            @if (receivedViaOn()) {
-              <div class="ef-recipient__via">
-                <ef-label labelKey="ef.recipient.received_via" [required]="true" />
-                <ef-pill-group
-                  [items]="receivedViaPills()"
-                  [value]="receivedVia() || null"
-                  ariaLabelKey="ef.recipient.received_via"
-                  (valueChange)="receivedVia.set($event)"
-                />
-              </div>
-            }
+            <span class="ef-recipient__sr" [id]="fieldId('payment-title')">
+              {{ 'ef.recipient.section_payment' | translate }}
+            </span>
+            <ef-recipient-choices
+              [choices]="paymentChoices()"
+              [(value)]="paymentMethod"
+              [labelledBy]="fieldId('payment-title')"
+              [required]="true"
+            />
           </div>
         </ef-card>
       }

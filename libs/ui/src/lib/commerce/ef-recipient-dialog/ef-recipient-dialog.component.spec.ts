@@ -266,6 +266,24 @@ describe('EfRecipientDialogComponent', () => {
         expect(t.confirmBtn().disabled).toBe(true);
     });
 
+    it('received_via_sits_between_the_search_and_the_new_customer_sections', async () => {
+        const t = await setup();
+        await t.search('nobody@example.com');
+        await t.set({ matches: [] });
+
+        const order = t.$$('ef-card').map(c => {
+            if (c.querySelector('[data-role="received-via"]')) return 'via';
+            if (c.querySelector('input[type="search"]')) return 'search';
+            if (c.querySelector('input[name="fullName"]')) return 'new';
+            return 'other';
+        });
+        expect(order.slice(0, 3)).toEqual(['search', 'via', 'new']);
+        // The notice stays right above the form it points to, after the via card.
+        const notice = t.$('.ef-recipient__notice')!;
+        const via = t.$('[data-role="received-via"]')!;
+        expect(via.compareDocumentPosition(notice) & 4).toBeTruthy();
+    });
+
     it('confirm_requires_name_phone_street_city_payment_and_received_via', async () => {
         const t = await setup({ paymentMethods: [PAYMENTS[1]] });
         await t.search('nobody@example.com');

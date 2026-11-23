@@ -364,7 +364,11 @@ export class EfRecipientDialogComponent {
         this.paymentMethods().map(p => ({ value: p.code, title: p.label, description: p.description })),
     );
     protected readonly showPaymentSection = computed(
-        () => (this.paymentOn() || this.receivedViaOn()) && this.recipientReady() && !this.noMatchOnly(),
+        () => this.paymentOn() && this.recipientReady() && !this.noMatchOnly(),
+    );
+    /** Shown from the start, under the search: it does not depend on who the customer is. */
+    protected readonly showReceivedViaSection = computed(
+        () => this.receivedViaOn() && !this.isView() && !this.noMatchOnly(),
     );
     /** No match and no right to create: the notice is all there is. */
     private readonly noMatchOnly = computed(() => this.noMatch() && !this.canCreate());
