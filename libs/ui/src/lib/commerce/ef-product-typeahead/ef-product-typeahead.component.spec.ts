@@ -91,26 +91,26 @@ describe('EfProductTypeaheadComponent', () => {
       expect(rows[0].hint!.find((s) => s.mark)!.text).toBe('CHÈVREFEUILLE');
     });
 
-    it('matches the product code', () => {
-      host.ta.query.set('prd1045');
-      expect(host.ta.rows().map((r) => r.label)).toEqual(['[PF] STYLE LONDON']);
-    });
-
-    it("matches a size's SKU and preselects that size", () => {
-      host.ta.query.set('PRD0683');
-      const row = host.ta.rows()[0];
-      expect(row.hint!.map((s) => s.text).join('')).toBe('PRD0683');
-      expect(host.ta.variantOf(row)!['title']).toBe('50ML');
-      host.ta.selectRow(row);
-      expect((host.picked as ProductTypeaheadSelection).variant!['variantId']).toBe('b');
-    });
-
-    it('expanded mode matches only the row of that SKU', () => {
+    it('never matches a product code or a size SKU, so "060" brings up no PRD060x', () => {
+      for (const q of ['prd1045', 'PRD0683', '0682', '068']) {
+        host.ta.query.set(q);
+        expect(host.ta.rows().map((r) => r.label), q).toEqual([]);
+      }
       const f = TestBed.createComponent(EfProductTypeaheadComponent);
       f.componentRef.setInput('products', host.products);
       f.componentRef.setInput('showVariants', false);
       f.componentInstance.query.set('PRD0682');
-      expect(f.componentInstance.rows().map((r) => r.label)).toEqual(['[PF] STYLE LONDON - 30ML']);
+      expect(f.componentInstance.rows()).toEqual([]);
+    });
+
+    it('still finds the number that is part of the name', () => {
+      const f = TestBed.createComponent(EfProductTypeaheadComponent);
+      f.componentRef.setInput('products', [
+        { id: 'p10', displayName: '[PF] 060 - STYLE GUCCI GUILTY FEMME', productCode: 'PRD0599', variants: [] },
+        { id: 'p11', displayName: '[PF] 039 - STYLE ACQUA DI GIO', productCode: 'PRD0601', variants: [] },
+      ]);
+      f.componentInstance.query.set('060');
+      expect(f.componentInstance.rows().map((r) => r.label)).toEqual(['[PF] 060 - STYLE GUCCI GUILTY FEMME']);
     });
 
     it('matches a search alias (an original name)', () => {

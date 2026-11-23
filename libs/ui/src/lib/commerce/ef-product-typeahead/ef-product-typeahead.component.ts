@@ -80,23 +80,18 @@ export class EfProductTypeaheadComponent {
   }
 
   /**
-   * The texts a row also matches on besides its label. A size's SKU carries its index, so a match on it can
-   * preselect that size.
+   * The names a row also matches on besides its label: the shop title in every language and the original names.
+   * Never a product code or a size's SKU: a staff member types a name or the number in it, and "060" must not
+   * bring up every PRD060x.
    */
-  private static searchKeys(
-    product: Record<string, unknown>,
-    variants: Record<string, unknown>[],
-    variantOffset = 0,
-  ): { text: string; variantIndex?: number }[] {
-    const keys: { text: string; variantIndex?: number }[] = [];
-    const add = (value: unknown, variantIndex?: number) => {
-      if (typeof value === 'string' && value.trim().length > 0) keys.push({ text: value, variantIndex });
+  private static searchKeys(product: Record<string, unknown>): string[] {
+    const keys: string[] = [];
+    const add = (value: unknown) => {
+      if (typeof value === 'string' && value.trim().length > 0) keys.push(value);
     };
     const title = product['title'];
     if (title && typeof title === 'object') Object.values(title as Record<string, unknown>).forEach((t) => add(t));
     else add(title);
-    add(product['productCode']);
-    variants.forEach((v, i) => add(v['sku'], i + variantOffset));
     const aliases = product['searchAliases'];
     if (Array.isArray(aliases)) aliases.forEach((a) => add(a));
     return keys;
@@ -105,19 +100,15 @@ export class EfProductTypeaheadComponent {
   /** The row when its label or one of its search keys contains the query, else null. */
   private match(
     row: ProductTypeaheadRow,
-    keys: { text: string; variantIndex?: number }[],
+    keys: string[],
     q: string,
     nq: string,
   ): ProductTypeaheadRow | null {
     const norm = EfProductTypeaheadComponent.norm;
     if (norm(row.label).includes(nq)) return row;
-    const hit = keys.find((k) => norm(k.text).includes(nq));
+    const hit = keys.find((k) => norm(k).includes(nq));
     if (!hit) return null;
-    return {
-      ...row,
-      hint: this.buildSegments(hit.text, q),
-      matchedVariant: row.variants.length > 1 ? hit.variantIndex : undefined,
-    };
+    return { ...row, hint: this.buildSegments(hit, q) };
   }
 
   rows = computed<ProductTypeaheadRow[]>(() => {
@@ -152,7 +143,7 @@ export class EfProductTypeaheadComponent {
               variants: [variant],
               segments: this.buildSegments(label, q),
             };
-            return this.match(row, EfProductTypeaheadComponent.searchKeys(product, [variant]), q, nq);
+            return this.match(row, EfProductTypeaheadComponent.searchKeys(product), q, nq);
           });
         }
 
@@ -164,7 +155,7 @@ export class EfProductTypeaheadComponent {
           variants,
           segments: this.buildSegments(baseLabel, q),
         };
-        return [this.match(row, EfProductTypeaheadComponent.searchKeys(product, variants), q, nq)];
+        return [this.match(row, EfProductTypeaheadComponent.searchKeys(product), q, nq)];
       })
       .filter((row): row is ProductTypeaheadRow => row !== null);
   });
@@ -210,9 +201,9 @@ export class EfProductTypeaheadComponent {
     }
   }
 
-  /** Active variant index for a row: the one picked, else the size whose SKU matched, else the first. */
+  /** Active variant index for a row (defaults to 0). */
   variantIndexOf(row: ProductTypeaheadRow): number {
-    return this.activeVariant()[row.key] ?? row.matchedVariant ?? 0;
+    return this.activeVariant()[row.key] ?? 0;
   }
 
   variantOf(row: ProductTypeaheadRow): Record<string, unknown> | null {
