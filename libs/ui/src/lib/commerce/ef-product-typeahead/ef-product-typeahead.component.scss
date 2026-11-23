@@ -121,6 +121,18 @@
       padding: 0 1px;
       font-weight: 800;
     }
+
+    // What matched when the label did not (shop title, code, SKU, original name): its own line, quieter.
+    .qa-hint-match {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-mute);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   .var {

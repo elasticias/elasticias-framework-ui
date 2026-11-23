@@ -59,6 +59,81 @@ describe('EfProductTypeaheadComponent', () => {
     expect(rows[0].label).toBe('Style Good Girl');
   });
 
+  describe('beyond the display name', () => {
+    const renamed = {
+      id: 'p9',
+      displayName: '[PF] STYLE LONDON',
+      title: { fr: 'CHÈVREFEUILLE TIARÉ', ar: 'زهر العسل' },
+      productCode: 'PRD1045',
+      searchAliases: ['style london', 'london'],
+      variants: [
+        { variantId: 'a', title: '30ML', sku: 'PRD0682', price: 22.2, isActive: true },
+        { variantId: 'b', title: '50ML', sku: 'PRD0683', price: 32.3, isActive: true },
+      ],
+    };
+
+    beforeEach(() => {
+      host.products = [...host.products, renamed];
+      fixture.detectChanges();
+    });
+
+    it('still matches the display name, with no hint', () => {
+      host.ta.query.set('style london');
+      const row = host.ta.rows().find((r) => r.product === renamed)!;
+      expect(row.hint).toBeUndefined();
+    });
+
+    it('matches the shop title, accent-insensitive, and says so under the label', () => {
+      host.ta.query.set('chevrefeuille');
+      const rows = host.ta.rows();
+      expect(rows.map((r) => r.label)).toEqual(['[PF] STYLE LONDON']);
+      expect(rows[0].hint!.map((s) => s.text).join('')).toBe('CHÈVREFEUILLE TIARÉ');
+      expect(rows[0].hint!.find((s) => s.mark)!.text).toBe('CHÈVREFEUILLE');
+    });
+
+    it('matches the product code', () => {
+      host.ta.query.set('prd1045');
+      expect(host.ta.rows().map((r) => r.label)).toEqual(['[PF] STYLE LONDON']);
+    });
+
+    it("matches a size's SKU and preselects that size", () => {
+      host.ta.query.set('PRD0683');
+      const row = host.ta.rows()[0];
+      expect(row.hint!.map((s) => s.text).join('')).toBe('PRD0683');
+      expect(host.ta.variantOf(row)!['title']).toBe('50ML');
+      host.ta.selectRow(row);
+      expect((host.picked as ProductTypeaheadSelection).variant!['variantId']).toBe('b');
+    });
+
+    it('expanded mode matches only the row of that SKU', () => {
+      const f = TestBed.createComponent(EfProductTypeaheadComponent);
+      f.componentRef.setInput('products', host.products);
+      f.componentRef.setInput('showVariants', false);
+      f.componentInstance.query.set('PRD0682');
+      expect(f.componentInstance.rows().map((r) => r.label)).toEqual(['[PF] STYLE LONDON - 30ML']);
+    });
+
+    it('matches a search alias (an original name)', () => {
+      const f = TestBed.createComponent(EfProductTypeaheadComponent);
+      f.componentRef.setInput('products', [{ ...renamed, searchAliases: ['hudson valley'] }]);
+      f.componentInstance.query.set('hudson');
+      expect(f.componentInstance.rows()[0].hint!.map((s) => s.text).join('')).toBe('hudson valley');
+    });
+
+    it('renders the hint line only when the label did not match', () => {
+      const f = TestBed.createComponent(EfProductTypeaheadComponent);
+      f.componentRef.setInput('products', host.products);
+      f.componentRef.setInput('locale', 'en-US'); // registered in the test env
+      f.componentInstance.query.set('chevrefeuille');
+      f.componentInstance.open.set(true);
+      f.detectChanges();
+      expect(f.nativeElement.querySelectorAll('[data-match-hint]').length).toBe(1);
+      f.componentInstance.query.set('style london');
+      f.detectChanges();
+      expect(f.nativeElement.querySelectorAll('[data-match-hint]').length).toBe(0);
+    });
+  });
+
   it('builds highlight segments around the match', () => {
     const segs = host.ta.buildSegments('Style Good Girl', 'good');
     expect(segs).toEqual([

@@ -44,6 +44,13 @@
             @for (seg of row.segments; track $index) {
               @if (seg.mark) { <mark>{{ seg.text }}</mark> } @else { {{ seg.text }} }
             }
+            @if (row.hint) {
+              <span class="qa-hint-match" data-match-hint>
+                @for (seg of row.hint; track $index) {
+                  @if (seg.mark) { <mark>{{ seg.text }}</mark> } @else { {{ seg.text }} }
+                }
+              </span>
+            }
           </span>
           <span class="var">
             @if (showVariants()) {

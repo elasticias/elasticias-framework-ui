@@ -18,4 +18,11 @@ export interface ProductTypeaheadRow {
   label: string;
   variants: Record<string, unknown>[];
   segments: HighlightSegment[];
+  /**
+   * What matched when the label did not: the shop title, a code, a size SKU or an original name, shown under the
+   * label so the row says why it is there. Absent when the label itself matched.
+   */
+  hint?: HighlightSegment[];
+  /** The size whose SKU matched, preselected in compact mode. */
+  matchedVariant?: number;
 }

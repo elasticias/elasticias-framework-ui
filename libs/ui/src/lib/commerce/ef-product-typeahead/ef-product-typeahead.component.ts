@@ -18,8 +18,10 @@ import {
 import { defaultUnitPrice, EfOrderPriceList } from '../order-pricing';
 
 /**
- * Keyboard-navigable product search. Filters products by display name,
- * highlights the match, exposes per-product variant chips, and emits the
+ * Keyboard-navigable product search. Filters products by display name, and
+ * also by the shop title (every culture), the product code, a size's SKU and
+ * the search aliases (a renamed product's original names); highlights the
+ * match, shows what matched under the label when the label did not, exposes per-product variant chips, and emits the
  * chosen product + active variant + unit price. Pure input-driven — no API.
  *
  * @example
@@ -77,6 +79,47 @@ export class EfProductTypeaheadComponent {
       .replace(/[̀-ͯ]/g, '');
   }
 
+  /**
+   * The texts a row also matches on besides its label. A size's SKU carries its index, so a match on it can
+   * preselect that size.
+   */
+  private static searchKeys(
+    product: Record<string, unknown>,
+    variants: Record<string, unknown>[],
+    variantOffset = 0,
+  ): { text: string; variantIndex?: number }[] {
+    const keys: { text: string; variantIndex?: number }[] = [];
+    const add = (value: unknown, variantIndex?: number) => {
+      if (typeof value === 'string' && value.trim().length > 0) keys.push({ text: value, variantIndex });
+    };
+    const title = product['title'];
+    if (title && typeof title === 'object') Object.values(title as Record<string, unknown>).forEach((t) => add(t));
+    else add(title);
+    add(product['productCode']);
+    variants.forEach((v, i) => add(v['sku'], i + variantOffset));
+    const aliases = product['searchAliases'];
+    if (Array.isArray(aliases)) aliases.forEach((a) => add(a));
+    return keys;
+  }
+
+  /** The row when its label or one of its search keys contains the query, else null. */
+  private match(
+    row: ProductTypeaheadRow,
+    keys: { text: string; variantIndex?: number }[],
+    q: string,
+    nq: string,
+  ): ProductTypeaheadRow | null {
+    const norm = EfProductTypeaheadComponent.norm;
+    if (norm(row.label).includes(nq)) return row;
+    const hit = keys.find((k) => norm(k.text).includes(nq));
+    if (!hit) return null;
+    return {
+      ...row,
+      hint: this.buildSegments(hit.text, q),
+      matchedVariant: row.variants.length > 1 ? hit.variantIndex : undefined,
+    };
+  }
+
   rows = computed<ProductTypeaheadRow[]>(() => {
     const q = this.query().trim();
     if (q.length < 2) return [];
@@ -102,28 +145,28 @@ export class EfProductTypeaheadComponent {
           return variants.map((variant, vi) => {
             const label = `${baseLabel} - ${variant['title']}`;
             const variantId = variant['variantId'];
-            return {
+            const row: ProductTypeaheadRow = {
               key: variantId != null ? `${key}:${variantId}` : `${key}:${vi}`,
               product,
               label,
               variants: [variant],
               segments: this.buildSegments(label, q),
             };
+            return this.match(row, EfProductTypeaheadComponent.searchKeys(product, [variant]), q, nq);
           });
         }
 
         // Compact mode (variant chips), or a product with no variants.
-        return [
-          {
-            key,
-            product,
-            label: baseLabel,
-            variants,
-            segments: this.buildSegments(baseLabel, q),
-          },
-        ];
+        const row: ProductTypeaheadRow = {
+          key,
+          product,
+          label: baseLabel,
+          variants,
+          segments: this.buildSegments(baseLabel, q),
+        };
+        return [this.match(row, EfProductTypeaheadComponent.searchKeys(product, variants), q, nq)];
       })
-      .filter((row) => EfProductTypeaheadComponent.norm(row.label).includes(nq));
+      .filter((row): row is ProductTypeaheadRow => row !== null);
   });
 
   buildSegments(label: string, query: string): HighlightSegment[] {
@@ -167,9 +210,9 @@ export class EfProductTypeaheadComponent {
     }
   }
 
-  /** Active variant index for a row (defaults to 0). */
+  /** Active variant index for a row: the one picked, else the size whose SKU matched, else the first. */
   variantIndexOf(row: ProductTypeaheadRow): number {
-    return this.activeVariant()[row.key] ?? 0;
+    return this.activeVariant()[row.key] ?? row.matchedVariant ?? 0;
   }
 
   variantOf(row: ProductTypeaheadRow): Record<string, unknown> | null {
