@@ -1,6 +1,6 @@
 {
   "name": "@elasticias/screens",
-  "version": "1.0.64",
+  "version": "1.0.65",
   "peerDependencies": {
     "@angular/common": "^21.0.0",
     "@angular/core": "^21.0.0",
