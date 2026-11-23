@@ -131,3 +131,24 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Received via: six short options. On a phone a scroller hid the last one at
+   the edge and nothing said there was more, so the row wraps and every option
+   shows, 48px tall with the gap token between rows. From the tablet breakpoint
+   it keeps the pill group's single line. Declared last: a media query adds no
+   specificity. */
+@media (max-width: 767px) {
+  .ef-recipient__via ::ng-deep .ef-pill-group__track {
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: var(--s-2);
+    padding-block: 0;
+  }
+
+  .ef-recipient__via ::ng-deep .ef-pill {
+    block-size: var(--hit-touch);
+    padding-inline: 16px;
+    min-inline-size: var(--hit-touch);
+    justify-content: center;
+  }
+}
